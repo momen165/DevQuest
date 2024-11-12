@@ -1,4 +1,3 @@
-// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from 'pages/user/HomePage';
@@ -22,27 +21,29 @@ import './App.css';
 function App() {
   return (
     <Router>
-     <Routes>
-  {/* Public Routes */}
-  <Route path="/" element={<HomePage />} />
-  <Route path="/CoursesPage" element={<CoursesPage />} />
-  <Route path="/CourseSection/:courseId" element={<CourseSection />} />
-  <Route path="/enroll/:courseId" element={<EnrollmentPage />} />
-  <Route path="/faq" element={<FAQPage />} />
-  <Route path="/pricing" element={<PricingPage />} />
-  <Route path="/RegistrationPage" element={<RegistrationPage />} />
-  <Route path="/LoginPage" element={<LoginPage />} />
-  <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage />} />
-  <Route path="/Dashboard" element={<Dashboard />} />
-  {/* Protected Routes */}
- 
-  <Route path="/Profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-  <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-  <Route path="/Billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-  <Route path="/Students" element={<ProtectedRoute><Students /></ProtectedRoute>} />
-  <Route path="/AdminCourses" element={<ProtectedRoute><AdminCourses /></ProtectedRoute>} />
-</Routes>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/CoursesPage" element={<CoursesPage />} />
+        
+        <Route path="/enroll/:courseId" element={<EnrollmentPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/RegistrationPage" element={<RegistrationPage />} />
+        <Route path="/LoginPage" element={<LoginPage />} />
+        <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage />} />
 
+        {/* Admin Routes (Protected for Admins) */}
+        <Route path="/Dashboard" element={<ProtectedRoute adminRequired><Dashboard /></ProtectedRoute>} />
+        <Route path="/Students" element={<ProtectedRoute adminRequired><Students /></ProtectedRoute>} />
+        <Route path="/AdminCourses" element={<ProtectedRoute adminRequired><AdminCourses /></ProtectedRoute>} />
+
+        {/* Protected Routes for Users */}
+        <Route path="/Profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+        <Route path="/Billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+        <Route path="/CourseSection/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
+      </Routes>
     </Router>
   );
 }
