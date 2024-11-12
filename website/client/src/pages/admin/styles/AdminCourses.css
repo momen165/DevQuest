@@ -1,0 +1,87 @@
+/* Sidebar and Page Layout */
+.course-page {
+    display: flex;
+    width: 100%;
+    min-height: 100vh; /* Full viewport height */
+  }
+  
+  .course-content {
+    flex: 1;
+    padding: 20px;
+    background-color: #f8f9fa;
+  }
+  .PageTitle {
+   color: #000000;
+  }
+  /* Header Styles */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  
+  .add-course-button {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .add-course-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Table Styles */
+  .course-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .course-table th,
+  .course-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    color: #000000;
+  }
+  
+  .course-table th {
+    background-color: #f1f1f1;
+    color: #000000;
+    font-weight: bold;
+  }
+  
+  .course-table tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  /* Icon Styles */
+  .icon {
+    cursor: pointer;
+    margin-right: 8px;
+  }
+  
+  .view-icon {
+    color: #007bff;
+  }
+  
+  .edit-icon {
+    color: #0000EE;
+  }
+  
+  .delete-icon {
+    color: #dc3545;
+  }
+  

@@ -1,0 +1,32 @@
+.faq {
+    margin: 0px;
+    text-align: center;
+    background-color: #102542;
+    color: white;
+  }
+  
+  .faq h2 {
+    margin-top: 0px;
+    font-size: 44px;
+    font-weight: bold;
+  }
+  
+  .faq p {
+    margin-top: 10px;
+    font-size: 28px;
+    font-family: 'Chivo Thin Italic', sans-serif;
+
+  }
+  
+  .faq-btn {
+    padding: 5px 25px;
+    background-color: #1da1f2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 26px;
+    margin-bottom: 5px;
+
+  }
+  

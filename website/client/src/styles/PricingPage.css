@@ -1,0 +1,105 @@
+/* General styling */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #0A2A69 100%, #0C1F54 100%);
+  color: #FFFFFF;
+}
+
+.pricing-page {
+  text-align: center;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 50px;
+}
+
+
+
+
+
+.pricing-content {
+  padding: 50px;
+}
+
+h1 {
+  font-size: 2.5em;
+  margin: 0.5em 0;
+}
+
+p {
+  color: #A4B4E1;
+}
+
+.toggle-plan {
+  margin: 20px auto;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.toggle-button {
+  background-color: #0A2A69;
+  border: none;
+  border-radius: 20px;
+  color: #A4B4E1;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s;
+}
+
+.toggle-button.active {
+  background-color: #FFFFFF;
+  color: #0A2A69;
+}
+
+.save-badge {
+  background-color: #FFA500;
+  border-radius: 5px;
+  color: white;
+  font-size: 0.8em;
+  padding: 2px 5px;
+  margin-left: 5px;
+}
+
+/* Pricing Card Styling */
+.pricing-card {
+  background: #FFFFFF;
+  color: #0A2A69;
+  border-radius: 10px;
+  width: 300px;
+  margin: 30px auto;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.pricing-card h2 {
+  font-size: 2.5em;
+  margin: 0;
+}
+
+.plan-description {
+  font-weight: bold;
+  margin: 10px 0;
+  color: #4C6FF1;
+}
+
+.feature {
+  color: #A4B4E1;
+  margin-bottom: 20px;
+}
+
+.choose-plan-button {
+  background: linear-gradient(180deg, #4C6FF1 0%, #364FC7 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 1em;
+}

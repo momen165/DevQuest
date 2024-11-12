@@ -1,0 +1,92 @@
+.student-subscription-container {
+    padding: 20px;
+    background-color: #000000;
+  }
+  
+  .student-subscription-container h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+ .PageTitle {
+    color: #000000;
+  }
+
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .search-bar input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .search-bar .search-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .search-bar .search-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .subscription-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #CCCCCC; /* Add border to table */
+  }
+  
+  .subscription-table th,
+  .subscription-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #000000;
+    color: #000; /* Set text color to black */
+  }
+  
+  .subscription-table th {
+    background-color: #f1f1f1;
+    color: #333;
+    font-weight: bold;
+    color: #000; /* Set header text color to black */
+  }
+  
+  .subscription-table tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .student-subscription-page {
+    display: flex;
+    width: 100%;
+    min-height: 100vh; /* Full viewport height */
+  }
+  
+  .student-subscription-content {
+    flex: 1;
+    padding: 20px;
+    background-color: #f8f9fa;
+  }
+  
+  .student-detail-container {
+    margin-top: 20px;
+  }
+  
+  .student-detail-container h3 {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  

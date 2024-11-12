@@ -1,0 +1,136 @@
+.dashboard-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-header h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.profile span {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.profile p {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.stats-cards {
+  display: flex;
+  gap: 20px;
+}
+
+.card {
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.card .icon {
+  font-size: 2.5rem;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.card h3 {
+  font-size: 2rem;
+  color: #007bff;
+  margin: 0;
+}
+
+.card p {
+  font-size: 1rem;
+  color: #666;
+  margin: 5px 0 0;
+}
+
+/* Changing to grid layout for independent spacing */
+.activity-section {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 900px;
+}
+
+.recent-activity,
+.new-students {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.recent-activity h2,
+.new-students h2 {
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.see-all-button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 5px 15px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.see-all-button:hover {
+  background-color: #0056b3;
+}
+
+.recent-activity ul,
+.new-students ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recent-activity li,
+.new-students li {
+  font-size: 0.95rem;
+  color: #555;
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.recent-activity li:last-child,
+.new-students li:last-child {
+  border-bottom: none;
+}

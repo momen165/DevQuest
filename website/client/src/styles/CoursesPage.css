@@ -1,0 +1,62 @@
+/* styles/CoursesPage.css */
+
+.courses-page {
+  color: #ffffff;
+  width: 100%;
+}
+
+.courses-header {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background-image: url("assets/images/CoursePage-hero-img.svg");
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+  height: 300px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.courses-header::before {
+  /* Dark overlay with filter applied */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: inherit; /* Use the same background image */
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.4); /* Adjust this value to make it darker or lighter */
+  z-index: 0;
+}
+
+.hero-head, .hero-para, .courses-header > * {
+  position: relative;
+  z-index: 1; /* Ensures content is above the overlay */
+}
+
+.hero-head {
+  margin: 0;
+  margin-top: 20px;
+  font-size: 64px;
+  color: #ffffff;
+  font-family: "LibreFranklin-Black";
+  font-weight: 900;
+}
+
+.hero-para {
+  font-size: 28px;
+  color: #ffffff;
+  width: 1200px;
+  font-family: sans-serif;
+  font-weight: 500;
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: linear-gradient(to bottom,  #1f2e5a 30%, #09112A 70%);
+}
