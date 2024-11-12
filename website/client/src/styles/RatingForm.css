@@ -1,0 +1,60 @@
+.rating-form {
+    width: 300px;
+    padding: 20px;
+    background-color: #fef9f7; /* Light background color */
+    border-radius: 10px;
+    font-family: Arial, sans-serif;
+    color: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 30px 0px 0px 60px ;
+}
+
+.rating-title, .comment-title {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.stars {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.star {
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #ccc; /* Grey for unfilled stars */
+    transition: color 0.2s;
+}
+
+.star.filled {
+    color: #ffd700; /* Gold for filled stars */
+}
+
+.comment-box {
+    width: 90%;
+    height: 80px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    resize: none;
+}
+
+.submit-button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff; /* Blue background */
+    color: #fff;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}

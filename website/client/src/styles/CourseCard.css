@@ -1,0 +1,80 @@
+.course-card {
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    color: #333;
+    padding: 16px;
+    border-radius: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 490px;
+    height: 405px;
+    margin: 30px ;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for both scale and shadow */
+
+
+
+  }
+  .course-head{
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height:82px;
+  }
+  .course-info{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top:20px ;
+    gap: 30px;
+    padding: 10px;
+    align-self: flex-start;
+
+    
+  }
+  .enroll-btn{
+    display: flex;
+    justify-content: right;
+  }
+  
+  .course-icon {
+    height: 50px;
+    margin-bottom: 10px;
+  }
+  
+  .course-rating, .course-level, .course-students {
+    font-size: 0.9rem;
+    color: #666;
+  }
+  .course-students{
+    display: flex;
+    align-self: flex-start;
+  }
+  .card-p{
+    text-align: left;
+    padding-left: 0px !important; 
+    margin-left: 0px !important;
+  }
+  
+  .enroll-button {
+    background-color: #000000;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 200px;
+    margin-right: 30px;
+  }
+  
+
+.course-card:hover {
+    box-shadow: 10px 10px rgba(255, 255, 255, 0.3) ; /* Increased shadow on hover */
+  transform: scale(1.05); /* Slightly enlarge the card */
+
+}
+

@@ -1,0 +1,69 @@
+/* src/styles/EnrollmentPage.css */
+
+.enrollment-page {
+    display: flex;
+    height: 100vh;
+    flex-direction: row;
+    background-color: #1a2a4e; /* Background color for the entire page */
+    color: white;
+  }
+  
+  .enrollment-header {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    margin-top: 100px;
+  }
+  
+  .course-intro {
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: #335b99; /* Background for intro label */
+    padding: 8px 12px;
+    border-radius: 5px;
+    display: inline-block;
+    color: white;
+    text-transform: uppercase;
+    width: fit-content;
+  }
+  
+  .course-titl {
+    font-size: 96px;
+    font-weight: bold;
+    margin-top: 20px;
+  }
+  
+  .course-description {
+    font-size: 1.2rem;
+    margin: 20px 0;
+    line-height: 1.5;
+  }
+  
+  .start-button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top:200px ;
+    width: fit-content;
+  }
+  
+  .start-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+  }
+  .enroll-img{
+    display: flex;
+    align-items: center;
+    height: 830px;
+    margin-top: 120px;
+    width: 750px;
+    background: url('assets/icons/python-enroll-icon.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+  }

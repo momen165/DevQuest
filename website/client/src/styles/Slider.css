@@ -1,0 +1,53 @@
+.slider-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    background: black;
+  }
+  
+  .slider {
+    display: flex;
+    overflow-x: scroll;
+    scroll-behavior: smooth;
+    gap: 20px;
+    padding: 10px;
+    width: calc(100% - 100px); /* To accommodate space for arrows */
+  }
+  
+  .slider::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for a cleaner look */
+  }
+  
+  .slider-item {
+    min-width: 300px; /* Adjust the width of each section */
+    height: 250px; /* Adjust height as needed */
+    background-color: #1e3c90;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    border-radius: 8px;
+  }
+  
+  .slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 10px;
+  }
+  
+  .left-arrow {
+    left: 10px;
+  }
+  
+  .right-arrow {
+    right: 10px;
+  }
+  

@@ -1,0 +1,22 @@
+.filter-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .filter-tab {
+    padding: 10px 20px;
+    background-color: #1e3c9000;
+    color: white;
+    border: 1px solid #C4C4C4;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  .filter-tab.active {
+    background-color: #0B7077;
+    border: none;
+    color: #ffffff;
+  }
+  

@@ -1,0 +1,66 @@
+.billing-page {
+    display: flex;
+    height: 100vh;
+    background-color: #0f184a;
+    color: #fff;
+  }
+  
+  .sidebar {
+    width: 200px;
+    background-color: #16256b;
+    padding: 20px;
+  }
+  
+  .sidebar ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .sidebar li {
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .sidebar li.active {
+    background-color: #2b4ac8;
+    border-radius: 10px;
+  }
+  
+  .billing-content {
+    flex: 1;
+    padding: 50px;
+    background: linear-gradient(180deg, #1E3C90, #09112A);
+    border-left: 2px solid #1f2d5b;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    margin: 20px;
+  }
+  
+  .billing-details {
+    margin-top: 20px;
+  }
+  
+  .billing-details p {
+    margin-bottom: 15px;
+  }
+  
+  .highlight {
+    font-weight: bold;
+    color: #6fb8ff; /* Light blue color for highlighting */
+  }
+  
+  .edit-payment-btn, .cancel-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 20px;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .edit-payment-btn {
+    background-color: #2b4ac8;
+    margin-left: 10px;
+  }
+  
+ 
