@@ -12,8 +12,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = (token) => {
-    const userData = { token };
+  const login = (token, admin) => {
+    const userData = { token, admin };  // Include admin status when logging in
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
   };
