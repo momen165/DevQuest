@@ -25,14 +25,15 @@ const LoginPage = () => {
     }
     try {
       const response = await axios.post('http://localhost:5000/api/login', formData);
-      const { token } = response.data;
-      login(token);
+      const { token } = response.data; // Extract token and role from response
+      login(token); // Pass both token and role to login function
       setSuccess(true);
-      setTimeout(() => navigate('/'), 1500);
+      setTimeout(() => navigate('/'), 1500); // Redirect to home after successful login
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please check your email and password.');
     }
   };
+  
 
   return (
     <div className="container">

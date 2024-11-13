@@ -33,7 +33,7 @@ const authenticateToken = (req, res, next) => {
 // Sample route to test database connection
 app.get('/data', authenticateToken, async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT * FROM Devquest.student;');
+        const { rows } = await db.query('SELECT * FROM Devquest.users;');
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: 'Failed to retrieve data' });
@@ -42,7 +42,7 @@ app.get('/data', authenticateToken, async (req, res) => {
 
 app.post('/api/insert', authenticateToken, async (req, res) => {
     const { name, age } = req.body;
-    const query = 'INSERT INTO Devquest.student (name, age) VALUES ($1, $2)';
+    const query = 'INSERT INTO Devquest.users (name, age) VALUES ($1, $2)';
     try {
         await db.query(query, [name, age]);
         res.status(200).send('Data inserted successfully');
@@ -57,7 +57,7 @@ app.post('/api/signup', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const query = 'INSERT INTO student (name, email, password, country) VALUES ($1, $2, $3, $4)';
+        const query = 'INSERT INTO users (name, email, password, country) VALUES ($1, $2, $3, $4)';
         await db.query(query, [name, email, hashedPassword, country]);
         res.status(201).json({ message: 'User created successfully' });
     } catch (err) {
@@ -70,27 +70,38 @@ app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const query = 'SELECT * FROM student WHERE email = $1';
-        const { rows } = await db.query(query, [email]);
+        // Check if the user exists
+        const userQuery = 'SELECT * FROM users WHERE email = $1';
+        const { rows } = await db.query(userQuery, [email]);
 
         if (rows.length === 0) {
             return res.status(400).json({ error: 'User not found' });
         }
 
         const user = rows[0];
-        const isMatch = await bcrypt.compare(password, user.password);
 
+        // Verify the password
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.status(200).json({ message: 'Login successful', token });
+        // Check if the user is an admin
+        const adminQuery = 'SELECT 1 FROM admins WHERE admin_id = $1';
+        const adminResult = await db.query(adminQuery, [user.user_id]);
+        const isAdmin = adminResult.rowCount > 0;
+
+        // Generate JWT with admin status
+        const token = jwt.sign({ userId: user.user_id, admin: isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        res.status(200).json({ message: 'Login successful', token, admin: isAdmin });
     } catch (err) {
         console.error('Login error:', err);
         res.status(500).json({ error: 'Failed to login' });
     }
 });
+
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

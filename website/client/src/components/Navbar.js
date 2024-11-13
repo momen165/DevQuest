@@ -38,7 +38,7 @@ const Navbar = () => {
         {user ? (
           <li className="navbar-item dropdown">
             <img
-              src={user.profilePicture || 'default-profile-pic-url.png'}
+              src={user.profilePicture || require('./default-profile-pic-url.png')}
               alt="User Profile"
               className="navbar-profile-picture"
               onClick={toggleDropdown} // Toggle dropdown on click
@@ -46,7 +46,11 @@ const Navbar = () => {
             {isDropdownOpen && (
               <div className="dropdown-content">
                 <Link to="/Profile">Profile</Link>
+                
                 <button onClick={logout} className="logout-button">Log out</button>
+                {user && user.admin && (
+                <Link className="navbar-dropdown-item" to="/dashboard">Dashboard</Link>
+              )}
               </div>
             )}
           </li>
