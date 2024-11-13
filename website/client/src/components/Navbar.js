@@ -38,7 +38,7 @@ const Navbar = () => {
         {user ? (
           <li className="navbar-item dropdown">
             <img
-              src={user.profilePicture || 'default-profile-pic-url.png'}
+              src={user.profilePicture || require('./default-profile-pic-url.png')}
               alt="User Profile"
               className="navbar-profile-picture"
               onClick={toggleDropdown} // Toggle dropdown on click
