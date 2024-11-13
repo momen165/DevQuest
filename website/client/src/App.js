@@ -16,6 +16,7 @@ import Students from 'pages/admin/Students';
 import AdminCourses from 'pages/admin/AdminCourses';
 import ProtectedRoute from './ProtectedRoute'; // Import ProtectedRoute
 import { useAuth } from 'AuthContext';
+import NotFoundPage from 'pages/NotFoundPage'; // Import NotFoundPage
 import './App.css';
 
 function App() {
@@ -44,6 +45,9 @@ function App() {
         <Route path="/Profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
         <Route path="/Billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+
+        {/* Catch-all route for 404 Not Found */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   );

@@ -46,7 +46,11 @@ const Navbar = () => {
             {isDropdownOpen && (
               <div className="dropdown-content">
                 <Link to="/Profile">Profile</Link>
+                
                 <button onClick={logout} className="logout-button">Log out</button>
+                {user && user.admin && (
+                <Link className="navbar-dropdown-item" to="/dashboard">Dashboard</Link>
+              )}
               </div>
             )}
           </li>
