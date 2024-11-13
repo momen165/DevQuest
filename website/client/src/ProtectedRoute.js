@@ -1,23 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from './AuthContext'; // Adjust path if necessary
+import { useAuth } from './AuthContext';
 
 const ProtectedRoute = ({ children, adminRequired = false }) => {
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);  // To track if the user state is being loaded
+
+  useEffect(() => {
+    if (user !== null) {
+      setLoading(false);  // Once user data is loaded, stop loading
+    }
+  }, [user]);
+
+  console.log('User in ProtectedRoute:', user);
+
+  // If loading, return a loading indicator or null
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   // Check if the user is logged in
   if (!user) {
+    console.log('User not logged in, redirecting to LoginPage');
     return <Navigate to="/LoginPage" replace />;
   }
 
-  // If the route requires admin access, check if the user is an admin
+  // If the route requires an admin and the user is not an admin, redirect to unauthorized page
   if (adminRequired && !user.admin) {
+    console.log('User is not an admin, redirecting to Unauthorized page');
     return <Navigate to="/Unauthorized" replace />;
-    console.log('Unauthorized access');
   }
 
   return children;
 };
-
 
 export default ProtectedRoute;
