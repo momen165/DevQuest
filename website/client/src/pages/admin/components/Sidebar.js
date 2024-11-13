@@ -47,7 +47,7 @@ const Sidebar = () => {
         </Link>
 
         <li className="sidebar-item logout">
-          <FaSignOutAlt /> <span>Logout</span>
+          <FaSignOutAlt  /> <span>Logout</span>
         </li>
       </ul>
     </div>
