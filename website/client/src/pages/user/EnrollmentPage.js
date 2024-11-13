@@ -29,7 +29,7 @@ const EnrollmentPage = () => {
         </header>
       </div>
             <div >
-                <img className='enroll-img' src='' alt=''/>
+                <div className='enroll-img' />
             </div>
             
     </div>
