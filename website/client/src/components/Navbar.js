@@ -60,7 +60,7 @@ const Navbar = () => {
                 onClick={toggleDropdown} // Toggle dropdown on click
               />
               <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
-                <Link to="/Profile">Profile</Link>
+                <Link to="/AccountSettings">Account Settings</Link>
                 {user && user.admin && (
                   <Link className="navbar-dropdown-item" to="/dashboard">Dashboard</Link>
                 )}
