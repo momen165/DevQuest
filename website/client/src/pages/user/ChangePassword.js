@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import 'styles/ChangePassword.css'; // Create and import this CSS file for styling
 import Navbar from 'components/Navbar';
 
-import Sidebar from 'components/ProfileSidebar';
+import Sidebar from 'components/AccountSettingsSidebar';
 
 function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState('');

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from 'components/Navbar';
-import Sidebar from 'components/ProfileSidebar';
+import Sidebar from 'components/AccountSettingsSidebar';
 import { useAuth } from 'AuthContext';
-import 'styles/Profile.css';
+import 'styles/AccountSettings.css';
 import defaultProfilePic from '../../assets/images/default-profile-pic.png';
 
 
@@ -186,7 +186,7 @@ function ProfilePage() {
 
             <div className="form-buttons">
               <button type="submit" className="save-btn">Save Changes</button>
-              <button type="button" className="cancel-btn" onClick={() => navigate('/profile')}>Cancel</button>
+              <button type="button" className="cancel-btn" onClick={() => navigate('/AccountSettings')}>Cancel</button>
             </div>
           </form>
         </div>
