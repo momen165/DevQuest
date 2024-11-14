@@ -1,7 +1,7 @@
 import React from 'react';
 import 'styles/Billing.css'; // Create and import this CSS file for styling
 import Navbar from 'components/Navbar';
-import { Link } from 'react-router-dom';
+
 import Sidebar from 'components/AccountSettingsSidebar';
 
 function Billing() {
