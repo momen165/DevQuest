@@ -17,11 +17,12 @@ import AdminCourses from 'pages/admin/AdminCourses';
 import ProtectedRoute from './ProtectedRoute'; // Import ProtectedRoute
 import { useAuth } from 'AuthContext';
 import NotFoundPage from 'pages/NotFoundPage'; // Import NotFoundPage
+import CourseSection from 'pages/user/CourseSection'; // Import CourseSections
 import './App.css';
 
 function App() {
-  const { user } = useAuth();
-  console.log('User in App:', user); // Log user to verify its value
+
+  
 
   return (
     <Router>
@@ -45,7 +46,7 @@ function App() {
         <Route path="/Profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
         <Route path="/Billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-
+        <Route path="/CourseSection/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
         {/* Catch-all route for 404 Not Found */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

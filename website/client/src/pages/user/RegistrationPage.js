@@ -7,7 +7,7 @@ const SignupPage = () => {
     name: '',
     email: '',
     password: '',
-    country: 'Palestine',
+    country: '',
   });
 
   const handleChange = (e) => {
@@ -80,6 +80,10 @@ const SignupPage = () => {
               className="select"
             >
               <option value="Palestine">Palestine</option>
+              <option value="Jordan">Jordan</option>
+              <option value="USA">USA</option>
+              <option value="UK">UK</option>
+      
               <option value="Other">Other</option>
             </select>
           </label>
