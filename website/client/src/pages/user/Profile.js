@@ -4,30 +4,121 @@ import Navbar from 'components/Navbar';
 import Sidebar from 'components/ProfileSidebar';
 import { useAuth } from 'AuthContext';
 import 'styles/Profile.css';
+import defaultProfilePic from '../../assets/images/default-profile-pic.png';
+
 
 function ProfilePage() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState('Morty Smith');
-  const [country, setCountry] = useState('Palestine');
-  const [bio, setBio] = useState(
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ut velit imperdiet, vulputate sapien eu, maximus tellus. Nam tellus sem, condimentum et rhoncus a, interdum.'
-  );
+
+  const [name, setName] = useState('');
+  const [country, setCountry] = useState('');
+  const [bio, setBio] = useState('');
 
   useEffect(() => {
-    // Debug: Log user data to check if it's correctly set
-    console.log("User data:", user);
-
-    // Redirect to home if user is not authenticated
     if (!user || !user.token) {
       navigate('/');
+    } else {
+      console.log('User data:', user); // Debugging
+      if (user.name) setName(user.name);
+      if (user.country) setCountry(user.country);
+      if (user.bio) setBio(user.bio);
     }
   }, [user, navigate]);
 
-  const handleProfilePicChange = (e) => {
-   // const file = e.target.files[0];
-    // Handle profile picture upload logic here
+
+  const handleRemoveProfilePic = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/removeProfilePic', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+      });
+  
+      if (response.ok) {
+        // Remove the profileimage from the user object
+        const updatedUser = { ...user, profileimage: null };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+  
+        alert('Profile picture removed successfully');
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to remove profile picture:', errorData.error);
+        alert(`Failed to remove profile picture: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error removing profile picture:', error);
+      alert('An error occurred while removing your profile picture');
+    }
   };
+  
+
+  const handleProfilePicChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('profilePic', file);
+
+  try {
+    const response = await fetch('http://localhost:5000/api/uploadProfilePic', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+      },
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const profileimage = data.profileimage;
+
+      const updatedUser = { ...user, profileimage };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
+      alert('Profile picture updated successfully');
+    } else {
+      console.error('Failed to upload profile picture');
+      alert('Failed to upload profile picture');
+    }
+  } catch (error) {
+    console.error('Error uploading profile picture:', error);
+    alert('An error occurred while uploading your profile picture');
+  }
+};
+
+  
+
+  const handleSaveChanges = async (e) => {
+    e.preventDefault();
+
+    try {
+        const response = await fetch('http://localhost:5000/api/updateProfile', {
+            method: 'POST', // Change to POST if backend uses POST
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user.token}`,
+            },
+            body: JSON.stringify({ name, country, bio }),
+        });
+
+        if (response.ok) {
+            const updatedUser = { ...user, name, country, bio };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            alert('Profile updated successfully');
+        } else {
+            console.error('Failed to update profile');
+            alert('Failed to update profile');
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('An error occurred while updating your profile');
+    }
+};
 
   return (
     <>
@@ -36,12 +127,19 @@ function ProfilePage() {
         <Sidebar activeLink="profile" />
 
         <div className="profile-content">
+        <h2>{name ? `Welcome, ${name}!` : 'Loading...'}</h2>
           <div className="profile-header">
+           
             <div className="profile-avatar">
-              <img
-                src="https://via.placeholder.com/100" // Replace with user's profile picture URL
-                alt="Profile"
-              />
+            <img
+            src={
+              user.profileimage
+                ? `http://localhost:5000${user.profileimage}?${new Date().getTime()}`
+                : defaultProfilePic
+            }
+            alt="Profile"
+          />
+
               <input
                 type="file"
                 id="profilePicInput"
@@ -51,11 +149,12 @@ function ProfilePage() {
               <button className="update-btn" onClick={() => document.getElementById('profilePicInput').click()}>
                 Update
               </button>
-              <button className="remove-btn">Remove</button>
+              <button className="remove-btn" onClick={handleRemoveProfilePic}>Remove</button>
+
             </div>
           </div>
 
-          <form className="profile-form">
+          <form className="profile-form" onSubmit={handleSaveChanges}>
             <label htmlFor="name">Name</label>
             <input
               type="text"
@@ -70,9 +169,11 @@ function ProfilePage() {
               value={country}
               onChange={(e) => setCountry(e.target.value)}
             >
+              <option value="Other">Other</option>
               <option value="Palestine">Palestine</option>
+              <option value="Jordan">Jordan</option>
               <option value="USA">USA</option>
-              <option value="Canada">Canada</option>
+              <option value="UK">UK</option>
               {/* Add more countries as needed */}
             </select>
 
@@ -85,7 +186,7 @@ function ProfilePage() {
 
             <div className="form-buttons">
               <button type="submit" className="save-btn">Save Changes</button>
-              <button type="button" className="cancel-btn">Cancel</button>
+              <button type="button" className="cancel-btn" onClick={() => navigate('/profile')}>Cancel</button>
             </div>
           </form>
         </div>
