@@ -15,7 +15,7 @@ function ProfilePage() {
               <h2 className={styles.profileName}>Ahmed</h2>
               <p className={styles.bioTitle}>Bio</p>
               <div className={styles.bioText}>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam a lectus metus. Donec auctor tincidunt est, sed interdum lacus. Donec porta arcu et mauris consequat, vel rhoncus diam faucibus.
+                
               </div>
             </div>
 
