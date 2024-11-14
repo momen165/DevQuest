@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children, adminRequired = false }) => {
     }
   }, [user]);
 
-  console.log('User in ProtectedRoute:', user);
+  
 
   // If loading, return a loading indicator or null
   if (loading) {
@@ -21,13 +21,13 @@ const ProtectedRoute = ({ children, adminRequired = false }) => {
 
   // Check if the user is logged in
   if (!user) {
-    console.log('User not logged in, redirecting to LoginPage');
+   
     return <Navigate to="/LoginPage" replace />;
   }
 
   // If the route requires an admin and the user is not an admin, redirect to unauthorized page
   if (adminRequired && !user.admin) {
-    console.log('User is not an admin, redirecting to Unauthorized page');
+    
     return <Navigate to="/Unauthorized" replace />;
   }
 
