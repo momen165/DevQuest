@@ -1,26 +1,57 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# production
-/build
-
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-databasepg.js
-.env
+# Node modules
+node_modules/
+
+# Build and dist directories
+build/
+dist/
+
+
+
+
+# Cache files
+.cache/
+tmp/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor files
+.idea/
+.vscode/
+*.iml
+
+# Testing output
+coverage/
+
+# Production files
+*.pid
+*.seed
+*.pid.lock
+
+# NPM shrinkwrap
+npm-shrinkwrap.json
+
+# Debug and production build artifacts
+debug.log
+*.bak
+
+# React specific
+public/static/
+*.map
+service-worker.js
+asset-manifest.json
+
+# Ignore upload folders (if not tracking uploaded files)
+uploads/
+
+
+
+
