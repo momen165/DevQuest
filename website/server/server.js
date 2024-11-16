@@ -407,20 +407,36 @@ app.get('/api/courses', async (req, res) => {
 });
 
 
-app.get('/api/courses/:course_id', async (req, res) => {
-  const { course_id } = req.params;
+app.get('/api/courses/:courseId', async (req, res) => {
+  const { courseId } = req.params;
+
   try {
-    const query = 'SELECT * FROM course WHERE course_id = $1'; // Fetch course by ID
-    const result = await db.query(query, [course_id]);
+    const query = `
+      SELECT 
+        course.course_id, 
+        course.name AS title, 
+        course.description, 
+        course.difficulty AS level, 
+        course.image, 
+        COUNT(enrollment.user_id) AS users
+      FROM course
+      LEFT JOIN enrollment ON course.course_id = enrollment.course_id
+      WHERE course.course_id = $1
+      GROUP BY course.course_id;
+    `;
+    const result = await db.query(query, [courseId]);
+    
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Course not found' });
     }
-    res.status(200).json(result.rows[0]); // Send the specific course data
+
+    res.status(200).json(result.rows[0]); // Return the single course data
   } catch (err) {
     console.error('Error fetching course:', err);
-    res.status(500).json({ error: 'Failed to fetch course' });
+    res.status(500).json({ error: 'Failed to fetch course data' });
   }
 });
+
 
 app.get('/api/students', authenticateToken, async (req, res) => {
   try {
@@ -622,3 +638,23 @@ app.delete('/api/courses/:courseId', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to delete course.' });
   }
 });
+
+
+// server.js
+app.get('/api/feedback', async (req, res) => {
+  try {
+      const result = await db.query('SELECT course_id, Round(AVG(rating)) as average_rating FROM feedback GROUP BY course_id');
+      const ratings = result.rows.reduce((acc, row) => {
+          acc[row.course_id] = row.average_rating;
+          return acc;
+      }, {});
+      res.json(ratings); // Returns an object with course_id as key and average_rating as value
+  } catch (error) {
+      console.error('Error fetching feedback:', error);
+      res.status(500).json({ error: 'Failed to fetch feedback' });
+  }
+});
+
+
+
+
