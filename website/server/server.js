@@ -303,10 +303,10 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
     console.log('Request Body:', req.body);
     console.log('Uploaded File:', req.file);
 
-    const { name, description, status, difficulty } = req.body;
+    const { title, description, status, difficulty } = req.body; // Updated to use "title"
 
     // Validate required fields
-    if (!name || !description || !status || !difficulty) {
+    if (!title || !description || !status || !difficulty) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -316,8 +316,8 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
       const filename = `course_${Date.now()}_${req.file.originalname.replace(/\s/g, '_')}`;
       imagePath = `/uploads/${filename}`;
       await sharp(req.file.buffer)
-        .resize(50) // Resize to 50px width for consistency
-        .jpeg({ quality: 80 })
+        .resize(800) // Adjust size if needed
+        .png({ quality: 80 }) // Keep the image in PNG format
         .toFile(`uploads/${filename}`);
     }
 
@@ -327,7 +327,7 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
       VALUES ($1, $2, $3, $4, $5)
       RETURNING *;
     `;
-    const result = await db.query(query, [name, description, status, difficulty, imagePath]);
+    const result = await db.query(query, [title, description, status, difficulty, imagePath]);
 
     if (result.rowCount === 0) {
       return res.status(400).json({ error: 'Failed to add course' });
@@ -335,12 +335,9 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
 
     // Return the created course
     res.status(201).json(result.rows[0]);
-      // Log activity
-      await logActivity('Course', `New course added: ${name}`, req.user.userId);
+    await logActivity('Course', `New course added: ${title}`, req.user.userId);
   } catch (err) {
     console.error('Error adding course:', err);
-
-    // Handle specific errors for better feedback
     if (err.code === '23502') {
       res.status(400).json({ error: 'Missing required fields (name, description, status, difficulty).' });
     } else {
@@ -349,11 +346,10 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
   }
 });
 
-
 // Update course with image upload
 app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image'), async (req, res) => {
   const { course_id } = req.params;
-  const { name, description, status, difficulty } = req.body;
+  const { title, description, status, difficulty } = req.body; // Updated to use "title"
 
   if (!course_id || isNaN(course_id)) {
     return res.status(400).json({ error: 'Invalid course ID' });
@@ -363,17 +359,17 @@ app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image')
     let imagePath = null;
 
     if (req.file) {
-      const filename = `course_${Date.now()}_${req.file.originalname}`;
+      const filename = `course_${Date.now()}_${req.file.originalname.replace(/\s/g, '_')}`;
       imagePath = `/uploads/${filename}`;
       await sharp(req.file.buffer)
-        .resize(50) // Resize to a max width of 800px
-        .jpeg({ quality: 80 })
+        .resize(800) // Adjust size if needed
+        .png({ quality: 80 }) // Keep the image in PNG format
         .toFile(`uploads/${filename}`);
     }
 
     const query =
       'UPDATE course SET name = $1, description = $2, status = $3, difficulty = $4, image = COALESCE($5, image) WHERE course_id = $6 RETURNING *';
-    const result = await db.query(query, [name, description, status, difficulty, imagePath, course_id]);
+    const result = await db.query(query, [title, description, status, difficulty, imagePath, course_id]);
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Course not found' });
@@ -385,6 +381,7 @@ app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image')
     res.status(500).json({ error: 'Failed to update course' });
   }
 });
+
 
 app.get('/api/courses', async (req, res) => {
   try {
