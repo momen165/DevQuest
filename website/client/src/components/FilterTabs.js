@@ -1,14 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import 'styles/FilterTabs.css';
 
-const FilterTabs = () => {
+const FilterTabs = ({ onFilterChange }) => {
+  const [activeTab, setActiveTab] = useState('All Courses');
+
+  const handleTabClick = (filter) => {
+    setActiveTab(filter);
+    onFilterChange(filter);
+  };
+
   return (
     <div className="filter-tabs">
-      <button className="filter-tab active">All Courses</button>
-      <button className="filter-tab">Popular</button>
-      <button className="filter-tab">Difficulty</button>
-      <button className="filter-tab">Beginner</button>
-      {/* Add more tabs as needed */}
+      {['All Courses', 'Popular', 'Difficulty', 'Beginner'].map((tab) => (
+        <button
+          key={tab}
+          className={`filter-tab ${activeTab === tab ? 'active' : ''}`}
+          onClick={() => handleTabClick(tab)}
+        >
+          {tab}
+        </button>
+      ))}
     </div>
   );
 };

@@ -6,29 +6,62 @@ import Navbar from 'components/Navbar';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch courses from the API
+  // Fetch courses and ratings from the API
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCoursesAndRatings = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/courses'); // Update this with your API endpoint
-        if (!response.ok) {
+        const coursesResponse = await fetch('http://localhost:5000/api/courses');
+        if (!coursesResponse.ok) {
           throw new Error('Failed to fetch courses');
         }
-        const data = await response.json();
-        setCourses(data); // Store fetched courses in state
+        const coursesData = await coursesResponse.json();
+  
+        const ratingsResponse = await fetch('http://localhost:5000/api/feedback'); // Use the new GET API for feedback
+        if (!ratingsResponse.ok) {
+          throw new Error('Failed to fetch feedback');
+        }
+        const ratingsData = await ratingsResponse.json();
+  
+        console.log("Fetched Ratings Data:", ratingsData); // Debugging line
+  
+        setCourses(coursesData);
+        setFilteredCourses(coursesData);
+        setRatings(ratingsData); // Set the ratings for courses
         setLoading(false);
       } catch (err) {
         console.error('Error:', err);
-        setError('Failed to load courses');
+        setError('Failed to load data');
         setLoading(false);
       }
     };
-
-    fetchCourses();
+  
+    fetchCoursesAndRatings();
   }, []);
+  
+  // Handle filter change
+  const handleFilterChange = (filter) => {
+    if (filter === 'All Courses') {
+      setFilteredCourses(courses);
+    } else if (filter === 'Popular') {
+      setFilteredCourses(
+        courses.filter((course) => ratings[course.course_id] >= 4.5)
+      );
+    } else if (filter === 'Difficulty') {
+      setFilteredCourses(
+        [...courses].sort((a, b) => {
+          const levels = { Beginner: 1, Intermediate: 2, Advanced: 3 };
+          return levels[a.level] - levels[b.level];
+        })
+      );
+    } else if (filter === 'Beginner') {
+      setFilteredCourses(courses.filter((course) => course.level === 'Beginner'));
+    }
+  };
 
   if (loading) {
     return <div>Loading courses...</div>;
@@ -48,16 +81,16 @@ const CoursesPage = () => {
           <br />
           You can find there everything from self-developing to sciences, for any knowledge levels.
         </p>
-        <FilterTabs />
+        <FilterTabs onFilterChange={handleFilterChange} />
       </header>
       <section className="courses-grid">
-        {courses.map((course) => (
+        {filteredCourses.map((course) => (
           <CourseCard
             key={course.course_id}
             courseId={course.course_id}
             title={course.title}
             level={course.level}
-            rating={course.rating || 'N/A'}
+            rating={ratings[course.course_id] || 'N/A'}  // Show average rating or 'N/A'
             students={course.users || 0} // Assuming `users` contains the student count
             description={course.description}
             image={course.image} // Image path from the backend

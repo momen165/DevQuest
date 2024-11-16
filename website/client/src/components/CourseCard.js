@@ -5,10 +5,9 @@ import 'styles/CourseCard.css';
 const CourseCard = ({ title, level, rating, students, description, courseId, image }) => {
   const navigate = useNavigate();
   const fullImageUrl = image ? `http://localhost:5000${image}` : '/default-placeholder.png';
-  const color = `FEFEF2`; // Random background color (optional)
 
   return (
-    <div className="course-card" style={{ backgroundColor: color }}>
+    <div className="course-card">
       <div className="course-head">
         <div className="course-icon">
           <img src={fullImageUrl} alt={`${title} icon`} className="icon-image" />
