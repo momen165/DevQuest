@@ -53,23 +53,21 @@ const upload = multer({
 });
   
   
-
-// Corrected middleware
 const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    // Extract token from 'Bearer <token>'
-    const token = authHeader && authHeader.split(' ')[1];
-    if (!token) {
-        return res.sendStatus(401); // Unauthorized
-    }
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) {
+      return res.status(401).json({ error: 'Token missing' });
+  }
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.sendStatus(403); // Forbidden
-        }
-        req.user = user;
-        next();
-    });
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+          console.error('Token verification failed:', err.message); // Log error
+          return res.status(403).json({ error: 'Invalid token' });
+      }
+      req.user = user;
+      next();
+  });
 };
 
 
@@ -77,19 +75,30 @@ const authenticateToken = (req, res, next) => {
 
 
 
-app.post('/api/signup', async (req, res) => {
-    const { name, email, password, country } = req.body;
 
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const query = 'INSERT INTO users (name, email, password, country) VALUES ($1, $2, $3, $4)';
-        await db.query(query, [name, email, hashedPassword, country]);
-        res.status(201).json({ message: 'User created successfully' });
-    } catch (err) {
-        console.error('Failed to create user:', err);
-        res.status(500).json({ error: 'Failed to create user' });
-    }
+app.post('/api/signup', async (req, res) => {
+  const { name, email, password, country } = req.body;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Use RETURNING to get the new user's ID
+    const query = 'INSERT INTO users (name, email, password, country) VALUES ($1, $2, $3, $4) RETURNING user_id';
+    const { rows } = await db.query(query, [name, email, hashedPassword, country]);
+
+    const userId = rows[0].user_id;
+
+    // Log the activity
+    await logActivity('User', `New user registered: ${name}`, userId);
+
+    // Send the response after logging activity
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (err) {
+    console.error('Failed to create user:', err);
+    res.status(500).json({ error: 'Failed to create user' });
+  }
 });
+
 
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
@@ -249,3 +258,370 @@ app.post('/api/updateProfile', authenticateToken, async (req, res) => {
       res.status(500).json({ error: 'Failed to remove profile picture' });
     }
   });
+
+
+  // Add this endpoint in your server.js
+
+app.post('/api/changePassword', authenticateToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.userId; // Get user ID from the JWT token
+
+    try {
+        // Fetch the user's current password from the database
+        const userQuery = 'SELECT password FROM users WHERE user_id = $1';
+        const { rows } = await db.query(userQuery, [userId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = rows[0];
+
+        // Compare current password with the stored password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: 'Current password is incorrect' });
+        }
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update the user's password in the database
+        const updateQuery = 'UPDATE users SET password = $1 WHERE user_id = $2';
+        await db.query(updateQuery, [hashedPassword, userId]);
+
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (err) {
+        console.error('Error changing password:', err);
+        res.status(500).json({ error: 'Failed to change password' });
+    }
+});
+
+// Add new course with image upload
+app.post('/api/addCourses', authenticateToken, upload.single('image'), async (req, res) => {
+  try {
+    console.log('Request Body:', req.body);
+    console.log('Uploaded File:', req.file);
+
+    const { name, description, status, difficulty } = req.body;
+
+    // Validate required fields
+    if (!name || !description || !status || !difficulty) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Process image if provided
+    let imagePath = null;
+    if (req.file) {
+      const filename = `course_${Date.now()}_${req.file.originalname.replace(/\s/g, '_')}`;
+      imagePath = `/uploads/${filename}`;
+      await sharp(req.file.buffer)
+        .resize(50) // Resize to 50px width for consistency
+        .jpeg({ quality: 80 })
+        .toFile(`uploads/${filename}`);
+    }
+
+    // Insert course into the database
+    const query = `
+      INSERT INTO course (name, description, status, difficulty, image)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+    `;
+    const result = await db.query(query, [name, description, status, difficulty, imagePath]);
+
+    if (result.rowCount === 0) {
+      return res.status(400).json({ error: 'Failed to add course' });
+    }
+
+    // Return the created course
+    res.status(201).json(result.rows[0]);
+      // Log activity
+      await logActivity('Course', `New course added: ${name}`, req.user.userId);
+  } catch (err) {
+    console.error('Error adding course:', err);
+
+    // Handle specific errors for better feedback
+    if (err.code === '23502') {
+      res.status(400).json({ error: 'Missing required fields (name, description, status, difficulty).' });
+    } else {
+      res.status(500).json({ error: 'Failed to add course' });
+    }
+  }
+});
+
+
+// Update course with image upload
+app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image'), async (req, res) => {
+  const { course_id } = req.params;
+  const { name, description, status, difficulty } = req.body;
+
+  if (!course_id || isNaN(course_id)) {
+    return res.status(400).json({ error: 'Invalid course ID' });
+  }
+
+  try {
+    let imagePath = null;
+
+    if (req.file) {
+      const filename = `course_${Date.now()}_${req.file.originalname}`;
+      imagePath = `/uploads/${filename}`;
+      await sharp(req.file.buffer)
+        .resize(50) // Resize to a max width of 800px
+        .jpeg({ quality: 80 })
+        .toFile(`uploads/${filename}`);
+    }
+
+    const query =
+      'UPDATE course SET name = $1, description = $2, status = $3, difficulty = $4, image = COALESCE($5, image) WHERE course_id = $6 RETURNING *';
+    const result = await db.query(query, [name, description, status, difficulty, imagePath, course_id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating course:', err);
+    res.status(500).json({ error: 'Failed to update course' });
+  }
+});
+
+app.get('/api/courses', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        course.course_id, 
+        course.name AS title, 
+        course.description, 
+        course.difficulty AS level, 
+        course.image, -- Include the image column
+        COUNT(enrollment.user_id) AS users
+      FROM course
+      LEFT JOIN enrollment ON course.course_id = enrollment.course_id
+      GROUP BY course.course_id;
+    `;
+    const result = await db.query(query);
+    res.status(200).json(result.rows);
+    
+  } catch (err) {
+    console.error('Error fetching courses:', err);
+    res.status(500).json({ error: 'Failed to fetch courses' });
+  }
+});
+
+
+app.get('/api/courses/:course_id', async (req, res) => {
+  const { course_id } = req.params;
+  try {
+    const query = 'SELECT * FROM course WHERE course_id = $1'; // Fetch course by ID
+    const result = await db.query(query, [course_id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    res.status(200).json(result.rows[0]); // Send the specific course data
+  } catch (err) {
+    console.error('Error fetching course:', err);
+    res.status(500).json({ error: 'Failed to fetch course' });
+  }
+});
+
+app.get('/api/students', authenticateToken, async (req, res) => {
+  try {
+    
+
+    // Role-based access control
+    if (!req.user.admin) {
+      console.error(`Access denied for user: ${req.user.userId}`);
+      return res.status(403).json({ error: 'Access denied. Admins only.' });
+    }
+
+    const query = `
+      SELECT 
+        u.user_id, 
+        u.name, 
+        u.email, 
+        u.created_at, -- Ensure this column exists in the database
+        CASE 
+          WHEN us.subscription_id IS NOT NULL THEN 'Active'
+          ELSE 'Inactive'
+        END AS subscription
+      FROM users u
+      LEFT JOIN user_subscription us ON u.user_id = us.user_id;
+    `;
+
+    const { rows } = await db.query(query);
+    res.status(200).json({ students: rows, count: rows.length });
+  } catch (err) {
+    console.error('Error fetching students:', err.message || err);
+    res.status(500).json({ error: 'An error occurred while fetching students data.' });
+  }
+});
+
+
+
+
+
+
+app.get('/api/students/:studentId', authenticateToken, async (req, res) => {
+  const { studentId } = req.params;
+
+  if (!studentId || isNaN(studentId)) {
+    return res.status(400).json({ error: 'Invalid student ID.' });
+  }
+
+  try {
+    const query = `
+      SELECT 
+        u.user_id, 
+        u.name, 
+        u.email, 
+        CASE 
+          WHEN us.subscription_id IS NOT NULL THEN 'Active'
+          ELSE 'Inactive'
+        END AS subscription
+      FROM users u
+      LEFT JOIN user_subscription us ON u.user_id = us.user_id
+      WHERE u.user_id = $1
+    `;
+
+    const { rows } = await db.query(query, [studentId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Student not found.' });
+    }
+
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching student details:', err);
+    res.status(500).json({ error: 'Failed to fetch student details.' });
+  }
+});
+
+
+app.get('/api/students/:studentId/courses', authenticateToken, async (req, res) => {
+  const { studentId } = req.params;
+
+  // Validate studentId
+  if (!studentId || isNaN(studentId)) {
+    return res.status(400).json({ error: 'Invalid student ID.' });
+  }
+
+  try {
+    const query = `
+      SELECT 
+        c.name AS course_name, 
+        e.progress 
+      FROM enrollment e
+      JOIN course c ON e.course_id = c.course_id
+      WHERE e.user_id = $1
+    `;
+
+    const { rows } = await db.query(query, [studentId]);
+
+    // Return empty array if no courses found
+    if (rows.length === 0) {
+      return res.status(200).json([]); // Empty array indicates no courses
+    }
+
+    res.status(200).json(rows); // Return the list of courses
+  } catch (err) {
+    console.error('Error fetching courses for student:', err);
+    res.status(500).json({ error: 'Failed to fetch courses for the student.' });
+  }
+});
+
+
+
+
+app.post('/api/sections', authenticateToken, async (req, res) => {
+  try {
+    const { courseId, title } = req.body;
+
+    const query = `
+      INSERT INTO sections (course_id, title)
+      VALUES ($1, $2) RETURNING section_id
+    `;
+    const { rows } = await db.query(query, [courseId, title]);
+
+    // Log activity
+    await logActivity('Section', `New section added: ${title}`, req.user.userId);
+
+    res.status(201).json({ message: 'Section added successfully' });
+  } catch (err) {
+    console.error('Error adding section:', err.message || err);
+    res.status(500).json({ error: 'Failed to add section' });
+  }
+});
+
+app.put('/api/sections/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title } = req.body;
+
+    const query = `
+      UPDATE sections SET title = $1 WHERE section_id = $2
+    `;
+    await db.query(query, [title, id]);
+
+    // Log activity
+    await logActivity('Section', `Section updated: ${title}`, req.user.userId);
+
+    res.status(200).json({ message: 'Section updated successfully' });
+  } catch (err) {
+    console.error('Error updating section:', err.message || err);
+    res.status(500).json({ error: 'Failed to update section' });
+  }
+});
+
+
+
+app.get('/api/activities/recent', authenticateToken, async (req, res) => {
+  try {
+    const query = `
+      SELECT action_type, action_description, created_at
+      FROM recent_activity
+      ORDER BY created_at DESC
+      LIMIT 5
+    `;
+
+    const { rows } = await db.query(query);
+
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error('Error fetching recent activity:', err);
+    res.status(500).json({ error: 'Failed to fetch recent activity.' });
+  }
+});
+
+
+
+const logActivity = async (actionType, actionDescription, userId = null) => {
+  try {
+    const query = `
+      INSERT INTO recent_activity (action_type, action_description, user_id)
+      VALUES ($1, $2, $3)
+    `;
+    await db.query(query, [actionType, actionDescription, userId]);
+  } catch (err) {
+    console.error('Error logging activity:', err.message || err);
+  }
+};
+
+
+
+app.delete('/api/courses/:courseId', authenticateToken, async (req, res) => {
+  const { courseId } = req.params;
+
+  try {
+    // Delete related records in the enrollment table
+    await db.query('DELETE FROM enrollment WHERE course_id = $1', [courseId]);
+
+    // Delete the course itself
+    await db.query('DELETE FROM course WHERE course_id = $1', [courseId]);
+
+    res.status(200).json({ message: 'Course and related enrollments deleted successfully.' });
+  } catch (err) {
+    console.error('Error deleting course:', err);
+    res.status(500).json({ error: 'Failed to delete course.' });
+  }
+});

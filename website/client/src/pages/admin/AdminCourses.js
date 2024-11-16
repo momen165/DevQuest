@@ -1,31 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from 'pages/admin/components/Sidebar';
-import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 import 'pages/admin/styles/AdminCourses.css';
 import EditCourseForm from 'pages/admin/components/AddEditCourseComponent';
 import SectionEditComponent from 'pages/admin/components/SectionEditComponent';
+import axios from 'axios';
 
 const AdminCourses = () => {
-  const courses = [
-    {
-      name: 'Basic Python',
-      enrolled: 200,
-      sections: [
-        { name: 'Variables', lessons: [] },
-        { name: 'Functions', lessons: [] }
-      ]
-    },
-    {
-      name: 'Advanced JavaScript',
-      enrolled: 105,
-      sections: [
-        { name: 'ES6', lessons: [] }
-      ]
-    }
-  ];
-
+  const [loading, setLoading] = useState(false);
+  const [courses, setCourses] = useState([]);
   const [editingCourse, setEditingCourse] = useState(null);
   const [editingSections, setEditingSections] = useState(false);
+
+  const userData = JSON.parse(localStorage.getItem('user'));
+  const token = userData ? userData.token : null;
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      if (token) {
+        setLoading(true);
+        try {
+          const response = await axios.get('http://localhost:5000/api/courses', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          console.log('Fetched Courses:', response.data);
+          setCourses(response.data);
+        } catch (err) {
+          console.error('Error fetching courses:', err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchCourses();
+  }, [token]);
 
   const handleEditSections = (course) => {
     setEditingCourse(course);
@@ -51,6 +62,23 @@ const AdminCourses = () => {
 
   const closeEditForm = () => {
     setEditingCourse(null);
+  };
+
+  const handleDeleteCourse = async (courseId) => {
+    if (!window.confirm('Are you sure you want to delete this course?')) {
+      return; // User canceled deletion
+    }
+
+    try {
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+      await axios.delete(`http://localhost:5000/api/courses/${courseId}`, { headers });
+      setCourses((prevCourses) => prevCourses.filter((course) => course.course_id !== courseId));
+      console.log(`Course ${courseId} deleted successfully.`);
+    } catch (err) {
+      console.error('Error deleting course:', err.response?.data || err.message);
+    }
   };
 
   return (
@@ -85,8 +113,8 @@ const AdminCourses = () => {
             <tbody>
               {courses.map((course, index) => (
                 <tr key={index}>
-                  <td>{course.name}</td>
-                  <td>{course.enrolled}</td>
+                  <td>{course.title}</td>
+                  <td>{course.users || '0'}</td>
                   <td>
                     <FaEdit
                       className="icon edit-icon"
@@ -100,7 +128,11 @@ const AdminCourses = () => {
                       title="Edit Course"
                       onClick={() => handleEditClick(course)}
                     />
-                    <FaTrash className="icon delete-icon" title="Delete Course" />
+                    <FaTrash
+                      className="icon delete-icon"
+                      title="Delete Course"
+                      onClick={() => handleDeleteCourse(course.course_id)}
+                    />
                   </td>
                 </tr>
               ))}
