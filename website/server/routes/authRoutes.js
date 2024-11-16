@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 const logActivity = require('../utils/logActivity');
+const authenticateToken = require('../middlewares/authenticateToken'); // Add this line
 const router = express.Router();
 
 router.post('/signup', async (req, res) => {

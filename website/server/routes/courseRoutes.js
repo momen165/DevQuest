@@ -4,8 +4,8 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const { Pool } = require('pg');
-const authenticateToken = require('../middleware/authenticateToken');
-const logActivity = require('../middleware/logActivity');
+const authenticateToken = require('../middlewares/authenticateToken');
+const logActivity = require('../utils/logActivity');
 
 const db = new Pool({
     host: process.env.DB_HOST,
