@@ -49,8 +49,7 @@ public/static/
 service-worker.js
 asset-manifest.json
 
-# Ignore upload folders (if not tracking uploaded files)
-uploads/
+
 
 
 
