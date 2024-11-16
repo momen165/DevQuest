@@ -1,7 +1,8 @@
 import React from 'react';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import 'pages/admin/styles/SectionEditComponent.css';
-const SectionEditComponent = ({ sections, onSectionUpdate, onDeleteSection, onClose }) => {
+
+const SectionEditComponent = ({ sections = [], onSectionUpdate, onDeleteSection, onClose }) => {
   const handleEditLesson = (sectionIndex, lessonIndex) => {
     // Function to edit a specific lesson within a section
   };
@@ -26,13 +27,18 @@ const SectionEditComponent = ({ sections, onSectionUpdate, onDeleteSection, onCl
             <tr key={sectionIndex}>
               <td>{section.name}</td>
               <td>
-                {section.lessons.map((lesson, lessonIndex) => (
-                  <FaEdit
-                    key={lessonIndex}
-                    className="icon edit-lesson-icon"
-                    onClick={() => handleEditLesson(sectionIndex, lessonIndex)}
-                  />
-                ))}
+                {/* Check if lessons is an array before mapping */}
+                {Array.isArray(section.lessons) && section.lessons.length > 0 ? (
+                  section.lessons.map((lesson, lessonIndex) => (
+                    <FaEdit
+                      key={lessonIndex}
+                      className="icon edit-lesson-icon"
+                      onClick={() => handleEditLesson(sectionIndex, lessonIndex)}
+                    />
+                  ))
+                ) : (
+                  <span>No lessons available</span>
+                )}
               </td>
               <td>
                 <FaEdit

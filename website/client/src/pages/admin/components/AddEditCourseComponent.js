@@ -1,27 +1,77 @@
-// EditCourseForm.js
 import React, { useState } from 'react';
+import axios from 'axios';
 import 'pages/admin/styles/AddEditCourseComponent.css';
 
 const EditCourseForm = ({ course, onClose }) => {
-  const [name, setName] = useState(course.name);
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('Published');
-  const [difficulty, setDifficulty] = useState('Beginner');
+  const [title, setTitle] = useState(course ? course.title : ''); // Update to use course.title
+  const [description, setDescription] = useState(course ? course.description : '');
+  const [status, setStatus] = useState(course?.status || 'Published');
+  const [difficulty, setDifficulty] = useState(course?.difficulty || 'Beginner');
+  const [image, setImage] = useState(null); // New state for image file
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
-    // Add logic to save the edited course details
-    onClose(); // Close the form after saving
+  const handleSave = async () => {
+    setLoading(true);
+    setError('');
+
+    const userData = JSON.parse(localStorage.getItem('user'));
+    const token = userData.token;
+
+    try {
+      const formData = new FormData();
+      formData.append('title', title); // Update to send title instead of name
+      formData.append('description', description);
+      formData.append('status', status);
+      formData.append('difficulty', difficulty);
+      if (image) {
+        formData.append('image', image);
+      }
+
+      if (course && course.course_id) {
+        const response = await axios.put(
+          `http://localhost:5000/api/editCourses/${course.course_id}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+        console.log('Course updated:', response.data);
+      } else {
+        const response = await axios.post(
+          'http://localhost:5000/api/addCourses',
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+        console.log('Course added:', response.data);
+      }
+      onClose();
+    } catch (err) {
+      setError('Failed to save the course. Please try again.');
+      console.error('Error saving course:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="edit-course-form">
-      <h2>Add/Edit Course</h2>
+      <h2>{course ? 'Edit Course' : 'Add New Course'}</h2>
+      {error && <div className="error-message">{error}</div>}
       <div>
-        <label>Course Name</label>
+        <label>Course Title</label> {/* Update label to "Course Title" */}
         <input
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={title} // Update to use title
+          onChange={(e) => setTitle(e.target.value)} // Update to setTitle
         />
       </div>
       <div>
@@ -46,7 +96,17 @@ const EditCourseForm = ({ course, onClose }) => {
           <option value="Advanced">Advanced</option>
         </select>
       </div>
-      <button onClick={handleSave}>Save</button>
+      <div>
+        <label className="Course-Image-uploadBtn">Course Image</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
+        />
+      </div>
+      <button onClick={handleSave} disabled={loading}>
+        {loading ? 'Saving...' : 'Save'}
+      </button>
       <button onClick={onClose}>Cancel</button>
     </div>
   );

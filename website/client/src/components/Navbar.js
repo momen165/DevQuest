@@ -28,6 +28,11 @@ const Navbar = () => {
     };
   }, []);
 
+  const handleLogout = () => {
+    logout();
+    window.location.reload(); // Refresh the page after logging out
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -53,8 +58,7 @@ const Navbar = () => {
           {user ? (
             <li className="navbar-item dropdown" ref={dropdownRef}>
               <img
-               src={user.profileimage  ? `http://localhost:5000${user.profileimage}?${new Date().getTime()}` : defaultProfilePic}
-             
+                src={user.profileimage  ? `http://localhost:5000${user.profileimage}?${new Date().getTime()}` : defaultProfilePic}
                 alt="User Profile"
                 className="navbar-profile-picture"
                 onClick={toggleDropdown} // Toggle dropdown on click
@@ -64,7 +68,7 @@ const Navbar = () => {
                 {user && user.admin && (
                   <Link className="navbar-dropdown-item" to="/dashboard">Dashboard</Link>
                 )}
-                <button onClick={logout} className="logout-button">Log out</button>
+                <button onClick={handleLogout} className="logout-button">Log out</button>
               </div>
             </li>
           ) : (

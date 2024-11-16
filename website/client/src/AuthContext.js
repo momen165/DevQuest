@@ -11,32 +11,35 @@ export const AuthProvider = ({ children }) => {
     const storedUserData = localStorage.getItem('user');
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
-      setUser(parsedData);
+      const decodedToken = jwtDecode(parsedData.token);
+
+      // Check if the token has expired
+      if (decodedToken.exp * 1000 < Date.now()) {
+        console.log('Token expired. Logging out...');
+        logout();
+      } else {
+        setUser(parsedData);
+      }
     } else {
       console.log('No user found in localStorage');
     }
     setLoading(false);
   }, []);
 
-  const fetchUserName = async (userId) => {
-    // Replace with your actual API endpoint to fetch user data
-    const response = await fetch(`/api/users/${userId}`);
-    const data = await response.json();
-    return data.name; // Adjust based on API response structure
-  };
-
   const login = (token) => {
     try {
-        const decodedToken = jwtDecode(token);
-        const { userId, name, country, bio, admin, profileimage } = decodedToken;
-        const userData = { token, userId, name, country, bio, admin, profileimage };
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
+      const decodedToken = jwtDecode(token);
+      const { userId, name, country, bio, admin, profileimage } = decodedToken;
+      const userData = { token, userId, name, country, bio, admin, profileimage };
+
+      // Store the token and user data in localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
     } catch (error) {
-        console.error('Error decoding token:', error);
+      console.error('Error decoding token:', error);
+      throw new Error('Invalid token');
     }
-};
-  
+  };
 
   const logout = () => {
     setUser(null);
@@ -44,7 +47,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return null; // Don't block rendering
   }
 
   return (
