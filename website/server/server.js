@@ -12,6 +12,20 @@ const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
 
+// Add security headers
+const helmet = require('helmet');
+app.use(helmet());
+
+// Add rate limiting
+const rateLimit = require('express-rate-limit');
+app.use(rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100
+}));
+
+// Add request size limit
+app.use(express.json({ limit: '10kb' }));
+
 app.use(cors());
 app.use(express.json());
 
@@ -70,13 +84,19 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Add input validation middleware
+const { body, validationResult } = require('express-validator');
+const validateSignup = [
+    body('email').isEmail(),
+    body('password').isLength({ min: 6 }),
+    body('name').trim().notEmpty()
+];
 
-
-
-
-
-
-app.post('/api/signup', async (req, res) => {
+app.post('/api/signup', validateSignup, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+  }
   const { name, email, password, country } = req.body;
 
   try {
@@ -654,7 +674,3 @@ app.get('/api/feedback', async (req, res) => {
       res.status(500).json({ error: 'Failed to fetch feedback' });
   }
 });
-
-
-
-
