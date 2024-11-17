@@ -17,14 +17,14 @@ const helmet = require('helmet');
 app.use(helmet());
 
 // Add rate limiting
-const rateLimit = require('express-rate-limit');
-app.use(rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100
-}));
+// const rateLimit = require('express-rate-limit');
+// app.use(rateLimit({
+//     windowMs: 15 * 60 * 1000,
+//     max: 100
+// }));
 
-// Add request size limit
-app.use(express.json({ limit: '10kb' }));
+// // Add request size limit
+// app.use(express.json({ limit: '10kb' }));
 
 app.use(cors());
 app.use(express.json());
