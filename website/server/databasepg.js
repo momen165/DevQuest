@@ -6,7 +6,7 @@ const pool = new Pool({
     user: 'postgres',
     port: 5432,
     password: 'momen165',
-    database: 'Devquest'
+    database: 'Devquest2'
 
 });
 pool.connect();
