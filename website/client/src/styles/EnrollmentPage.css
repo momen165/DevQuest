@@ -60,13 +60,14 @@
 .start-button:hover {
   background-color: #0056b3; /* Darker blue on hover */
 }
+
 .enroll-img{
   display: flex;
   align-items: center;
   height: 830px;
   margin-top: 120px;
   width: 750px;
-  background: url('assets/icons/python-enroll-icon.svg');
+ 
   background-size: contain;
   background-repeat: no-repeat;
 }

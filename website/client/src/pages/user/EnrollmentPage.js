@@ -41,7 +41,9 @@ const EnrollmentPage = () => {
     return <div>Course not found</div>;
   }
 
-  const fullImageUrl = course.image ? `http://localhost:5000${course.image}` : '/s-placeholder.png';
+  const fullImageUrl = course.image
+    ? `http://localhost:5000${course.image}`
+    : '/fallback-image.png';
 
   return (
     <div className="enrollment-page">
@@ -58,11 +60,22 @@ const EnrollmentPage = () => {
         </header>
       </div>
 
-     
-      <div 
-        className="enroll-img" 
-        style={{ backgroundImage: `url(${fullImageUrl})` }} 
-      />
+      {/* Dynamic Image with Fallback */}
+      <div className="enroll-img">
+        <img
+          src={fullImageUrl}
+          alt={`Course: ${course.title}`}
+          style={{
+            width: '700px', // Smaller width
+            height: 'auto', // Maintain aspect ratio
+           
+          }}
+          onError={(e) => {
+            console.error('Image failed to load, falling back to placeholder');
+            e.target.src = '/fallback-image.png';
+          }}
+        />
+      </div>
     </div>
   );
 };
