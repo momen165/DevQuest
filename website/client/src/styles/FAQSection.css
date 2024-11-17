@@ -1,32 +1,58 @@
 .faq {
-    margin: 0px;
-    text-align: center;
-    background-color: #102542;
-    color: white;
-  }
-  
+  margin: 0px;
+  text-align: center;
+  background-color: #102542;
+  color: white;
+  padding: 40px 20px; /* Add padding to make it less tight */
+}
+
+.faq h2 {
+  margin-top: 0px;
+  font-size: 44px;
+  font-weight: bold;
+}
+
+.faq p {
+  margin-top: 10px;
+  font-size: 28px;
+  font-family: 'Chivo Thin Italic', sans-serif;
+}
+
+.faq-btn {
+  padding: 5px 25px;
+  background-color: #1da1f2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 26px;
+  margin-bottom: 5px;
+}
+
+@media (max-width: 768px) {
   .faq h2 {
-    margin-top: 0px;
-    font-size: 44px;
-    font-weight: bold;
+    font-size: 36px;
   }
-  
+
   .faq p {
-    margin-top: 10px;
-    font-size: 28px;
-    font-family: 'Chivo Thin Italic', sans-serif;
-
+    font-size: 24px;
   }
-  
+
   .faq-btn {
-    padding: 5px 25px;
-    background-color: #1da1f2;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 26px;
-    margin-bottom: 5px;
-
+    font-size: 22px;
   }
-  
+}
+
+@media (max-width: 480px) {
+  .faq h2 {
+    font-size: 28px;
+  }
+
+  .faq p {
+    font-size: 18px;
+  }
+
+  .faq-btn {
+    font-size: 18px;
+  }
+}

@@ -5,8 +5,8 @@ const pool = new Pool({
     host: 'devquest.postgres.database.azure.com',
     user: 'yazandb',
     port: 5432,
-    password: 'admin123@',
-    database: 'DevQuestDatabase'
+    password: 'momen165',
+    database: 'Devquest'
 
 });
 pool.connect();

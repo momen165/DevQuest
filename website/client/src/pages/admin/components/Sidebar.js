@@ -2,10 +2,10 @@ import React from 'react';
 import { FaMoneyCheckAlt, FaChalkboardTeacher, FaHome, FaUser, FaBook, FaComment, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom';
 import 'pages/admin/styles/Sidebar.css';
-
+import { useAuth } from 'AuthContext';
 const Sidebar = () => {
   const location = useLocation();
-
+  const {  logout } = useAuth();
   return (
     <div className="sidebar">
       <h2>Admin Dashboard</h2>
@@ -45,10 +45,11 @@ const Sidebar = () => {
             <FaCog /> <span>Settings</span>
           </li>
         </Link>
-
-        <li className="sidebar-item logout">
+       
+        <li className="sidebar-item logout" onClick={logout}>
           <FaSignOutAlt  /> <span>Logout</span>
         </li>
+        
       </ul>
     </div>
   );

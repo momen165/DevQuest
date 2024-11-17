@@ -9,7 +9,7 @@ import RegistrationPage from 'pages/user/RegistrationPage';
 import LoginPage from 'pages/user/LoginPage';
 import ForgotPasswordPage from 'pages/user/ForgotPasswordPage';
 import Dashboard from 'pages/admin/Dashboard';
-import Profile from 'pages/user/Profile';
+import AccountSettings from 'pages/user/AccountSettings';
 import ChangePassword from 'pages/user/ChangePassword';
 import Billing from 'pages/user/Billing';
 import Students from 'pages/admin/Students';
@@ -17,11 +17,13 @@ import AdminCourses from 'pages/admin/AdminCourses';
 import ProtectedRoute from './ProtectedRoute'; // Import ProtectedRoute
 import { useAuth } from 'AuthContext';
 import NotFoundPage from 'pages/NotFoundPage'; // Import NotFoundPage
+import CourseSection from 'pages/user/CourseSection'; // Import CourseSections
+import ProfilePage from 'pages/user/ProfilePage'; // Import ProfilePage
 import './App.css';
 
 function App() {
-  const { user } = useAuth();
-  console.log('User in App:', user); // Log user to verify its value
+
+  
 
   return (
     <Router>
@@ -42,10 +44,11 @@ function App() {
         <Route path="/AdminCourses" element={<ProtectedRoute adminRequired={true}><AdminCourses /></ProtectedRoute>} />
 
         {/* Protected Routes for Users */}
-        <Route path="/Profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/AccountSettings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
         <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
         <Route path="/Billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-
+        <Route path="/CourseSection/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
+        <Route path="/ProfilePage" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         {/* Catch-all route for 404 Not Found */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
