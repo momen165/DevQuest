@@ -9,6 +9,7 @@ const DashboardContent = () => {
   const [coursesCount, setCoursesCount] = useState(0);
   const [recentActivity, setRecentActivity] = useState([]);
   const [newStudentsList, setNewStudentsList] = useState([]);
+  const [selectedActivity, setSelectedActivity] = useState(null); // Track selected activity for modal
   const [error, setError] = useState(null);
 
   // Retrieve token from localStorage
@@ -49,7 +50,6 @@ const DashboardContent = () => {
 
         // Fetch recent activity
         const activityResponse = await axios.get('http://localhost:5000/api/activities/recent', { headers });
-        console.log('Recent Activity Data:', activityResponse.data);
         setRecentActivity(activityResponse.data);
       } catch (err) {
         console.error('Error fetching dashboard data:', err.response?.data || err.message);
@@ -59,6 +59,14 @@ const DashboardContent = () => {
 
     fetchData();
   }, [token]);
+
+  const openActivityDetails = (activity) => {
+    setSelectedActivity(activity);
+  };
+
+  const closeActivityDetails = () => {
+    setSelectedActivity(null);
+  };
 
   if (error) {
     return <div className="error-message">{error}</div>;
@@ -93,23 +101,25 @@ const DashboardContent = () => {
       </div>
 
       <div className="activity-section">
-      <div className="recent-activity">
-  <div className="activity-header">
-    <h2>Recent Activity</h2>
-    <button className="see-all-button">See all</button>
-  </div>
-  <ul>
-    {recentActivity.length > 0 ? (
-      recentActivity.map((activity) => (
-        <li key={activity.activity_id}>
-          {activity.action_description} - {new Date(activity.created_at).toLocaleString()}
-        </li>
-      ))
-    ) : (
-      <li>No recent activity available.</li>
-    )}
-  </ul>
-</div>
+        <div className="recent-activity">
+          <div className="activity-header">
+            <h2>Recent Activity</h2>
+            <button className="see-all-button">See all</button>
+          </div>
+          <ul>
+            {recentActivity.length > 0 ? (
+              recentActivity.map((activity) => (
+                <li key={activity.activity_id}>
+                  <div className="activity-short" onClick={() => openActivityDetails(activity)}>
+                    {activity.action_description.substring(0, 50)}...
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li>No recent activity available.</li>
+            )}
+          </ul>
+        </div>
 
         <div className="new-students">
           <div className="activity-header">
@@ -129,6 +139,19 @@ const DashboardContent = () => {
           </ul>
         </div>
       </div>
+
+      {selectedActivity && (
+        <div className="modal">
+          <div className="modal-content">
+            <button className="close-button" onClick={closeActivityDetails}>
+              &times;
+            </button>
+            <h3>Activity Details</h3>
+            <p>{selectedActivity.action_description}</p>
+            <p>Date: {new Date(selectedActivity.created_at).toLocaleString()}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

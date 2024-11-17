@@ -109,7 +109,7 @@ app.post('/api/signup', validateSignup, async (req, res) => {
     const userId = rows[0].user_id;
 
     // Log the activity
-    await logActivity('User', `New user registered: ${name}`, userId);
+    await logActivity('User', `New user registered: ${name} (Email: ${email})`, userId);
 
     // Send the response after logging activity
     res.status(201).json({ message: 'User created successfully' });
@@ -366,16 +366,25 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
   }
 });
 
-// Update course with image upload
 app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image'), async (req, res) => {
   const { course_id } = req.params;
-  const { title, description, status, difficulty } = req.body; // Updated to use "title"
+  const { title, description, status, difficulty } = req.body;
 
   if (!course_id || isNaN(course_id)) {
     return res.status(400).json({ error: 'Invalid course ID' });
   }
 
   try {
+    // Fetch the existing course data for comparison
+    const oldCourseQuery = 'SELECT * FROM course WHERE course_id = $1';
+    const oldCourseResult = await db.query(oldCourseQuery, [course_id]);
+
+    if (oldCourseResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    const oldCourse = oldCourseResult.rows[0];
+
     let imagePath = null;
 
     if (req.file) {
@@ -395,7 +404,27 @@ app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image')
       return res.status(404).json({ error: 'Course not found' });
     }
 
-    res.status(200).json(result.rows[0]);
+    const updatedCourse = result.rows[0];
+
+    // Log activity including the changes
+    const changes = [];
+    if (oldCourse.name !== title) changes.push(`Name: ${oldCourse.name} → ${title}`);
+    if (oldCourse.description !== description) changes.push(`Description: ${oldCourse.description} → ${description}`);
+    if (oldCourse.status !== status) changes.push(`Status: ${oldCourse.status} → ${status}`);
+    if (oldCourse.difficulty !== difficulty) changes.push(`Difficulty: ${oldCourse.difficulty} → ${difficulty}`);
+    if (imagePath && oldCourse.image !== imagePath) changes.push(`Image: ${oldCourse.image || 'none'} → ${imagePath}`);
+
+    if (changes.length > 0) {
+      await logActivity(
+        'Course',
+        `Course updated (ID: ${course_id}). Changes: ${changes.join(', ')}`,
+        req.user.userId
+      );
+    } else {
+      await logActivity('Course', `Course updated (ID: ${course_id}) with no changes`, req.user.userId);
+    }
+
+    res.status(200).json(updatedCourse);
   } catch (err) {
     console.error('Error updating course:', err);
     res.status(500).json({ error: 'Failed to update course' });

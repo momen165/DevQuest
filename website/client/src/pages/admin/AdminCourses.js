@@ -11,6 +11,7 @@ const AdminCourses = () => {
   const [courses, setCourses] = useState([]);
   const [editingCourse, setEditingCourse] = useState(null);
   const [editingSections, setEditingSections] = useState(false);
+  const [isAddingCourse, setIsAddingCourse] = useState(false); // State to track add mode
 
   const userData = JSON.parse(localStorage.getItem('user'));
   const token = userData ? userData.token : null;
@@ -57,11 +58,18 @@ const AdminCourses = () => {
   };
 
   const handleEditClick = (course) => {
+    setIsAddingCourse(false); // Ensure we're in edit mode
     setEditingCourse(course);
+  };
+
+  const handleAddCourseClick = () => {
+    setIsAddingCourse(true); // Set to add mode
+    setEditingCourse(null); // Ensure no course is being edited
   };
 
   const closeEditForm = () => {
     setEditingCourse(null);
+    setIsAddingCourse(false); // Reset add mode when closing
   };
 
   const handleDeleteCourse = async (courseId) => {
@@ -87,8 +95,20 @@ const AdminCourses = () => {
 
       <div className="course-content">
         <div className="header">
-          <h2 className="PageTitle">All Courses</h2>
-          <button className="add-course-button" onClick={() => handleEditClick(courses)}>Add Course</button>
+          <h2 className="PageTitle">
+            {editingSections
+              ? 'Edit Sections'
+              : editingCourse
+              ? isAddingCourse
+                ? 'Add Course'
+                : 'Edit Course'
+              : 'All Courses'}
+          </h2>
+          {!editingCourse && !editingSections && (
+            <button className="add-course-button" onClick={handleAddCourseClick}>
+              Add Course
+            </button>
+          )}
         </div>
 
         {editingSections ? (
@@ -98,7 +118,7 @@ const AdminCourses = () => {
             onDeleteSection={handleDeleteSection}
             onClose={handleCloseSections}
           />
-        ) : editingCourse ? (
+        ) : editingCourse || isAddingCourse ? (
           <EditCourseForm course={editingCourse} onClose={closeEditForm} />
         ) : (
           <table className="course-table">
