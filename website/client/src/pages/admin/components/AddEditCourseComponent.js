@@ -1,26 +1,34 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import 'pages/admin/styles/AddEditCourseComponent.css';
+import { FaUpload } from 'react-icons/fa';
 
 const EditCourseForm = ({ course, onClose }) => {
-  const [title, setTitle] = useState(course ? course.title : ''); // Update to use course.title
+  const [title, setTitle] = useState(course ? course.title : '');
   const [description, setDescription] = useState(course ? course.description : '');
   const [status, setStatus] = useState(course?.status || 'Published');
   const [difficulty, setDifficulty] = useState(course?.difficulty || 'Beginner');
-  const [image, setImage] = useState(null); // New state for image file
+  const [image, setImage] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
-    setLoading(true);
     setError('');
+
+    // Input validation
+    if (!title.trim() || !description.trim() || !status || !difficulty) {
+      setError('All fields are required.');
+      return;
+    }
+
+    setLoading(true);
 
     const userData = JSON.parse(localStorage.getItem('user'));
     const token = userData.token;
 
     try {
       const formData = new FormData();
-      formData.append('title', title); // Update to send title instead of name
+      formData.append('title', title);
       formData.append('description', description);
       formData.append('status', status);
       formData.append('difficulty', difficulty);
@@ -61,17 +69,30 @@ const EditCourseForm = ({ course, onClose }) => {
       setLoading(false);
     }
   };
+  const handleCloseError = () => {
+    setError('');
+  };
 
   return (
     <div className="edit-course-form">
       <h2>{course ? 'Edit Course' : 'Add New Course'}</h2>
-      {error && <div className="error-message">{error}</div>}
+
+      
+      {error && (
+        <div className="alert">
+          {error}
+          <span className="closebtn" onClick={handleCloseError}>
+            &times;
+          </span>
+        </div>
+      )}
+
       <div>
-        <label>Course Title</label> {/* Update label to "Course Title" */}
+        <label>Course Title</label>
         <input
           type="text"
-          value={title} // Update to use title
-          onChange={(e) => setTitle(e.target.value)} // Update to setTitle
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
         />
       </div>
       <div>
@@ -96,12 +117,18 @@ const EditCourseForm = ({ course, onClose }) => {
           <option value="Advanced">Advanced</option>
         </select>
       </div>
-      <div>
-        <label className="Course-Image-uploadBtn">Course Image</label>
+
+      <div className="file-upload-container-isolated">
+        <label htmlFor="file-upload-isolated" className="upload-button-isolated">
+          <FaUpload className="upload-icon-isolated" />
+          Upload Image
+        </label>
         <input
+          id="file-upload-isolated"
           type="file"
           accept="image/*"
           onChange={(e) => setImage(e.target.files[0])}
+          style={{ display: 'none' }}
         />
       </div>
       <button onClick={handleSave} disabled={loading}>
