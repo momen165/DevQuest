@@ -33,7 +33,7 @@ const authenticateToken = (req, res, next) => {
 // Sample route to test database connection
 app.get('/data', authenticateToken, async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT * FROM Devquest.users;');
+        const { rows } = await db.query('SELECT * FROM DevQuestDatabase.users;');
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: 'Failed to retrieve data' });
@@ -42,7 +42,7 @@ app.get('/data', authenticateToken, async (req, res) => {
 
 app.post('/api/insert', authenticateToken, async (req, res) => {
     const { name, age } = req.body;
-    const query = 'INSERT INTO Devquest.users (name, age) VALUES ($1, $2)';
+    const query = 'INSERT INTO DevQuestDatabase.users (name, age) VALUES ($1, $2)';
     try {
         await db.query(query, [name, age]);
         res.status(200).send('Data inserted successfully');
