@@ -458,6 +458,11 @@ app.get('/api/courses', async (req, res) => {
 
 app.get('/api/courses/:courseId', async (req, res) => {
   const { courseId } = req.params;
+  const numericCourseId = parseInt(courseId, 10);
+
+  if (isNaN(numericCourseId)) {
+    return res.status(400).json({ error: 'Invalid course ID' });
+  }
 
   try {
     const query = `
@@ -471,15 +476,23 @@ app.get('/api/courses/:courseId', async (req, res) => {
       FROM course
       LEFT JOIN enrollment ON course.course_id = enrollment.course_id
       WHERE course.course_id = $1
-      GROUP BY course.course_id;
+      GROUP BY 
+        course.course_id, 
+        course.name, 
+        course.description, 
+        course.difficulty, 
+        course.image;
     `;
-    const result = await db.query(query, [courseId]);
-    
+
+    const result = await db.query(query, [numericCourseId]);
+
+    console.log('Query Result:', result.rows);
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Course not found' });
     }
 
-    res.status(200).json(result.rows[0]); // Return the single course data
+    res.status(200).json(result.rows[0]);
   } catch (err) {
     console.error('Error fetching course:', err);
     res.status(500).json({ error: 'Failed to fetch course data' });

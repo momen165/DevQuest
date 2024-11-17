@@ -7,7 +7,7 @@ const EditCourseForm = ({ course, onClose }) => {
   const [title, setTitle] = useState(course ? course.title : '');
   const [description, setDescription] = useState(course ? course.description : '');
   const [status, setStatus] = useState(course?.status || 'Published');
-  const [difficulty, setDifficulty] = useState(course?.difficulty || 'Beginner');
+  const [difficulty, setDifficulty] = useState(course?.level  || '');
   const [image, setImage] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,7 +47,7 @@ const EditCourseForm = ({ course, onClose }) => {
             },
           }
         );
-        console.log('Course updated:', response.data);
+       
       } else {
         const response = await axios.post(
           'http://localhost:5000/api/addCourses',
@@ -59,7 +59,7 @@ const EditCourseForm = ({ course, onClose }) => {
             },
           }
         );
-        console.log('Course added:', response.data);
+
       }
       onClose();
     } catch (err) {
@@ -72,6 +72,7 @@ const EditCourseForm = ({ course, onClose }) => {
   const handleCloseError = () => {
     setError('');
   };
+
 
   return (
     <div className="edit-course-form">

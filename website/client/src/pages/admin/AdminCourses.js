@@ -26,7 +26,7 @@ const AdminCourses = () => {
               Authorization: `Bearer ${token}`,
             },
           });
-          console.log('Fetched Courses:', response.data);
+        
           setCourses(response.data);
         } catch (err) {
           console.error('Error fetching courses:', err);
@@ -83,7 +83,7 @@ const AdminCourses = () => {
       };
       await axios.delete(`http://localhost:5000/api/courses/${courseId}`, { headers });
       setCourses((prevCourses) => prevCourses.filter((course) => course.course_id !== courseId));
-      console.log(`Course ${courseId} deleted successfully.`);
+      
     } catch (err) {
       console.error('Error deleting course:', err.response?.data || err.message);
     }
