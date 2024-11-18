@@ -1,0 +1,77 @@
+.view-lessons-container {
+    margin: 20px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: #000;
+  }
+  
+  .add-lesson-container {
+    margin-bottom: 20px;
+  }
+  
+  .add-lesson-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .add-lesson-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .lesson-table {
+    width: 100%;
+    border-collapse: collapse;
+    
+  }
+  
+  .lesson-table th,
+  .lesson-table td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    
+  }
+  
+  .icon {
+    font-size: 18px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .icon.edit-lesson-icon:hover {
+    color: #007bff;
+  }
+  
+  .icon.delete-lesson-icon:hover {
+    color: #f44336;
+  }
+  
+  .save-button {
+    margin-top: 20px;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .save-button:hover {
+    background-color: #0056b3;
+  }
+  
