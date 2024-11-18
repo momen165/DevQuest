@@ -154,7 +154,7 @@ app.post('/api/login', async (req, res) => {
                 profileimage: user.profileimage, // Include profileimage
             },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '72h' }
         );
 
         res.status(200).json({
@@ -949,3 +949,23 @@ app.delete('/api/lessons/:lesson_id', async (req, res) => {
 });
 
 
+app.get('/api/lesson/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = `
+      SELECT lesson_id, name, content, expected_output, xp
+      FROM lesson
+      WHERE lesson_id = $1;
+    `;
+    const result = await db.query(query, [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Lesson not found.' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching lesson:', err);
+    res.status(500).json({ error: 'Failed to fetch lesson data.' });
+  }
+});

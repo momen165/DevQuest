@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'styles/LessonSection.css';
+import { useNavigate } from 'react-router-dom';
+
 
 const LessonList = ({ sectionName, sectionId }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+
 
   const toggleList = () => {
     setIsOpen(!isOpen);
@@ -18,7 +22,7 @@ const LessonList = ({ sectionName, sectionId }) => {
       setError('');
       try {
         const response = await axios.get(`http://localhost:5000/api/lessons?section_id=${sectionId}`);
-        setLessons(response.data.lessons || response.data); // Handle cases where lessons array exists
+        setLessons(response.data.lessons || response.data);
       } catch (err) {
         setError('Failed to fetch lessons.');
         console.error('Error fetching lessons:', err);
@@ -29,6 +33,10 @@ const LessonList = ({ sectionName, sectionId }) => {
 
     fetchLessons();
   }, [sectionId]);
+
+  const handleStartLesson = (lessonId) => {
+    navigate(`/lesson/${lessonId}`);
+  };
 
   return (
     <div className="lesson-list">
@@ -47,7 +55,8 @@ const LessonList = ({ sectionName, sectionId }) => {
             <ul>
               {lessons.map((lesson) => (
                 <li key={lesson.lesson_id} className="lesson">
-                  <input type="checkbox" /> {lesson.name} <span>Start ➔</span>
+                  <input type="checkbox" /> {lesson.name}{' '}
+                  <span onClick={() => handleStartLesson(lesson.lesson_id)}>Start ➔</span>
                 </li>
               ))}
             </ul>

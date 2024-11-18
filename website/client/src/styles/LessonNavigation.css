@@ -1,0 +1,38 @@
+/* LessonNavigation.css */
+.lesson-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #161925;
+    border-top: 1px solid #282c34;
+  }
+  
+  .nav-button {
+    font-size: 1rem;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    background-color: #1a73e8;
+    transition: background-color 0.3s ease;
+  }
+  
+  .nav-button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+  }
+  
+  .nav-button:hover:not(:disabled) {
+    background-color: #145dbf;
+  }
+  
+  .complete-button {
+    background-color: #f7b731;
+  }
+  
+  .complete-button:hover {
+    background-color: #d19f27;
+  }
+  
