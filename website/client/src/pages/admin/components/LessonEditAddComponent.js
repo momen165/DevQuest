@@ -1,38 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaSave, FaTrash } from 'react-icons/fa';
 import axios from 'axios';
-import ReactQuill from 'react-quill'; // Import ReactQuill
-import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+import { CKEditor } from '@ckeditor/ckeditor5-react'; // Corrected import
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import 'pages/admin/styles/LessonEditAddComponent.css';
+
 
 const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCancel }) => {
   const [lessonName, setLessonName] = useState(lesson?.name || '');
-  const [lessonContent, setLessonContent] = useState(lesson?.content || '');
+  const [editorData, setEditorData] = useState(lesson?.content || '');  // Default CKEditor data
   const [expectedOutput, setExpectedOutput] = useState(lesson?.expected_output || '');
-  const [xp, setXp] = useState(lesson?.xp || 0); // XP input for the lesson
-  const [testCases, setTestCases] = useState(lesson?.testCases || ['']); // Test cases input
+  const [xp, setXp] = useState(lesson?.xp || 0);
+  const [testCases, setTestCases] = useState(lesson?.testCases || ['']);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (lesson) {
+      setEditorData(lesson.content || '');  // Update CKEditor content when lesson changes
+      setExpectedOutput(lesson.expected_output || '');
+      setXp(lesson.xp || 0);
+      setTestCases(lesson.testCases || ['']);
+    }
+  }, [lesson]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const rawContent = editorData;  // Get CKEditor content
       if (lesson?.lesson_id) {
-        // Update existing lesson
         const response = await axios.put(
           `http://localhost:5000/api/lessons/${lesson.lesson_id}`,
-          {
-            name: lessonName,
-            content: lessonContent, // Save rich text content
-            expected_output: expectedOutput,
-            xp,
-          }
+          { name: lessonName, content: rawContent, expected_output: expectedOutput, xp }
         );
         onSave(response.data);
       } else {
-        // Add new lesson
         const response = await axios.post('http://localhost:5000/api/lessons', {
           name: lessonName,
-          content: lessonContent, // Save rich text content
+          content: rawContent,
           section_id: section.section_id,
           expected_output: expectedOutput,
           xp,
@@ -85,24 +89,19 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
             placeholder="Enter lesson name"
           />
         </div>
-        <div className="form-group">
-          <label>Lesson Content:</label>
-          <ReactQuill
-            value={lessonContent}
-            onChange={setLessonContent}
-            placeholder="Enter lesson content"
-            theme="snow"
-            modules={{
-              toolbar: [
-                [{ header: [1, 2, false] }],
-                ['bold', 'italic', 'underline', 'strike'], // Formatting
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                ['link', 'image'], // Links and images
-                ['clean'], // Remove formatting
-              ],
+
+        {/* CKEditor Container */}
+        <div className="editor-container">
+          <CKEditor
+            editor={ClassicEditor}
+            data={editorData}  // Bind data to CKEditor
+            onChange={(event, editor) => {
+              setEditorData(editor.getData());  // Capture CKEditor data
             }}
           />
         </div>
+
+        {/* Additional fields for expected output and XP */}
         <div className="form-group">
           <label>XP:</label>
           <input
@@ -112,6 +111,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
             placeholder="Enter XP value"
           />
         </div>
+
         <div className="form-group">
           <label>Expected Output:</label>
           <textarea
@@ -120,6 +120,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
             placeholder="Enter expected output"
           ></textarea>
         </div>
+
         <div className="form-group">
           <label>Test Cases:</label>
           {testCases.map((testCase, index) => (
@@ -147,6 +148,8 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
             Add More Test Cases
           </button>
         </div>
+
+        {/* Action buttons */}
         <div className="form-actions">
           <button type="button" onClick={handleSave} disabled={isSaving} className="save-button">
             Save <FaSave />
