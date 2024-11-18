@@ -1,90 +1,105 @@
-/* Main container for SectionEditComponent */
 .section-edit-container {
+  background-color: #ffffff;
   padding: 20px;
-  background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   max-width: 800px;
   margin: 20px auto;
 }
 
-/* Header styles */
 .section-edit-container h3 {
   font-size: 24px;
   font-weight: bold;
+  text-align: left;
   margin-bottom: 20px;
-  color: #333;
+  color: #000;
 }
 
-/* Table styling */
+.add-section-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.section-input {
+  width: 300px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.add-section-button {
+  display: flex;
+  align-items: center;
+  background-color: #007bff;
+  color: #fff;
+  padding: 10px 15px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  gap: 5px;
+}
+
+.add-section-button:hover {
+  background-color: #0056b3;
+}
+
 .section-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-bottom: 20px;
 }
 
-.section-table th, .section-table td {
-  padding: 12px;
+.section-table th,
+.section-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
   font-size: 16px;
-  color: #555;
+  color: #000;
 }
 
 .section-table th {
+  background-color: #f4f4f4;
   font-weight: bold;
-  color: #333;
 }
 
-/* Icon styling */
 .icon {
   cursor: pointer;
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+
+.edit-lessons-icon {
   color: #007bff;
-  margin-right: 8px;
-  font-size: 18px;
 }
-
-.icon:hover {
-  color: #0056b3;
-}
-
 .edit-section-icon {
   color: #007bff;
 }
 
-.edit-section-icon:hover {
-  color: #0056b3;
-}
-
 .delete-section-icon {
-  color: #dc3545;
+  color: #f44336;
 }
 
-.delete-section-icon:hover {
-  color: #c82333;
-}
-
-/* Button styling */
 .save-button {
-  display: inline-flex;
-  align-items: center;
+  display: block;
+  margin: 20px auto;
   background-color: #007bff;
   color: #fff;
-  padding: 8px 16px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
-  margin-top: 20px;
-  float: right;
+  width: 150px;
 }
 
 .save-button:hover {
   background-color: #0056b3;
 }
-
-/* Layout adjustments */
-.section-edit-container {
-  margin-bottom: 30px;
-}
-  
