@@ -37,7 +37,7 @@ function App() {
         <Route path="/RegistrationPage" element={<RegistrationPage />} />
         <Route path="/LoginPage" element={<LoginPage />} />
         <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage />} />
-
+        <Route path="/course/:courseId" element={<CourseSection />} />
         {/* Admin Routes (Protected for Admins) */}
         <Route path="/Dashboard" element={<ProtectedRoute adminRequired={true}><Dashboard /></ProtectedRoute>} />
         <Route path="/Students" element={<ProtectedRoute adminRequired={true}><Students /></ProtectedRoute>} />
