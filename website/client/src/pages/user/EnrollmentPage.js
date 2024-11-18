@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
 import 'styles/EnrollmentPage.css';
 
 const EnrollmentPage = () => {
   const { courseId } = useParams(); // Get the courseId from the URL
+  const navigate = useNavigate(); // Hook for programmatic navigation
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,6 +46,11 @@ const EnrollmentPage = () => {
     ? `http://localhost:5000${course.image}`
     : '/fallback-image.png';
 
+  // Handle "Start Learning" button click
+  const handleStartLearning = () => {
+    navigate(`/course/${courseId}`); // Navigate to the course sections page
+  };
+
   return (
     <div className="enrollment-page">
       <div className="enroll-info">
@@ -54,7 +60,7 @@ const EnrollmentPage = () => {
           <p className="course-description">{course.description || 'Course description goes here.'}</p>
 
           {/* Start Learning Button */}
-          <button className="start-button">
+          <button className="start-button" onClick={handleStartLearning}>
             Start learning {course.title}
           </button>
         </header>
@@ -68,7 +74,6 @@ const EnrollmentPage = () => {
           style={{
             width: '700px', // Smaller width
             height: 'auto', // Maintain aspect ratio
-           
           }}
           onError={(e) => {
             console.error('Image failed to load, falling back to placeholder');
