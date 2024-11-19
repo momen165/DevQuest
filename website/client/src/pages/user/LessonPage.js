@@ -34,9 +34,7 @@ const LessonPage = () => {
     fetchLesson();
   }, [lessonId]);
 
-  const runCode = () => {
-    document.getElementById('console-output').textContent = `Output: \n${code}`;
-  };
+  
 
   if (loading) return <p className="loading">Loading lesson...</p>;
   if (error) return <p className="error">{error}</p>;
@@ -48,7 +46,7 @@ const LessonPage = () => {
         {/* Left Section: Lesson Instructions */}
         <div className="lesson-instructions">
           <h1>{lesson.name}</h1>
-          <h2># What is JavaScript?</h2>
+         
           <p>{lesson.description}</p>
           <div
             className="lesson-content"
@@ -65,9 +63,9 @@ const LessonPage = () => {
               height="400px"
               theme="dark"
               extensions={[javascript()]}
-              onChange={(value) => setCode(value)}
+           
             />
-            <button className="run-btn" onClick={runCode}>
+            <button className="run-btn">
               Run
             </button>
           </div>
