@@ -653,7 +653,7 @@ app.put('/api/sections/:id', authenticateToken, async (req, res) => {
 app.get('/api/activities/recent', authenticateToken, async (req, res) => {
   try {
     const query = `
-      SELECT action_type, action_description, created_at
+      SELECT activity_id, action_type, action_description, created_at
       FROM recent_activity
       ORDER BY created_at DESC
       LIMIT 5
@@ -667,7 +667,6 @@ app.get('/api/activities/recent', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch recent activity.' });
   }
 });
-
 
 
 const logActivity = async (actionType, actionDescription, userId = null) => {
