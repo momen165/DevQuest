@@ -21,7 +21,9 @@
 .form-group {
   margin-bottom: 15px;
 }
-
+p {
+  color: #000;
+}
 label {
   font-size: 14px;
   font-weight: 500;

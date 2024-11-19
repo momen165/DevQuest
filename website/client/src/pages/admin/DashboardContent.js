@@ -59,6 +59,7 @@ const DashboardContent = () => {
 
     fetchData();
   }, [token]);
+  
 
   const openActivityDetails = (activity) => {
     setSelectedActivity(activity);
