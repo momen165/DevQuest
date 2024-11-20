@@ -109,7 +109,7 @@ app.post('/api/signup', validateSignup, async (req, res) => {
     const userId = rows[0].user_id;
 
     // Log the activity
-    await logActivity('User', `New user registered: ${name}`, userId);
+    await logActivity('User', `New user registered: ${name} (Email: ${email})`, userId);
 
     // Send the response after logging activity
     res.status(201).json({ message: 'User created successfully' });
@@ -154,7 +154,7 @@ app.post('/api/login', async (req, res) => {
                 profileimage: user.profileimage, // Include profileimage
             },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '72h' }
         );
 
         res.status(200).json({
@@ -366,16 +366,25 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
   }
 });
 
-// Update course with image upload
 app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image'), async (req, res) => {
   const { course_id } = req.params;
-  const { title, description, status, difficulty } = req.body; // Updated to use "title"
+  const { title, description, status, difficulty } = req.body;
 
   if (!course_id || isNaN(course_id)) {
     return res.status(400).json({ error: 'Invalid course ID' });
   }
 
   try {
+    // Fetch the existing course data for comparison
+    const oldCourseQuery = 'SELECT * FROM course WHERE course_id = $1';
+    const oldCourseResult = await db.query(oldCourseQuery, [course_id]);
+
+    if (oldCourseResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    const oldCourse = oldCourseResult.rows[0];
+
     let imagePath = null;
 
     if (req.file) {
@@ -395,7 +404,27 @@ app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image')
       return res.status(404).json({ error: 'Course not found' });
     }
 
-    res.status(200).json(result.rows[0]);
+    const updatedCourse = result.rows[0];
+
+    // Log activity including the changes
+    const changes = [];
+    if (oldCourse.name !== title) changes.push(`Name: ${oldCourse.name} → ${title}`);
+    if (oldCourse.description !== description) changes.push(`Description: ${oldCourse.description} → ${description}`);
+    if (oldCourse.status !== status) changes.push(`Status: ${oldCourse.status} → ${status}`);
+    if (oldCourse.difficulty !== difficulty) changes.push(`Difficulty: ${oldCourse.difficulty} → ${difficulty}`);
+    if (imagePath && oldCourse.image !== imagePath) changes.push(`Image: ${oldCourse.image || 'none'} → ${imagePath}`);
+
+    if (changes.length > 0) {
+      await logActivity(
+        'Course',
+        `Course updated (ID: ${course_id}). Changes: ${changes.join(', ')}`,
+        req.user.userId
+      );
+    } else {
+      await logActivity('Course', `Course updated (ID: ${course_id}) with no changes`, req.user.userId);
+    }
+
+    res.status(200).json(updatedCourse);
   } catch (err) {
     console.error('Error updating course:', err);
     res.status(500).json({ error: 'Failed to update course' });
@@ -429,6 +458,11 @@ app.get('/api/courses', async (req, res) => {
 
 app.get('/api/courses/:courseId', async (req, res) => {
   const { courseId } = req.params;
+  const numericCourseId = parseInt(courseId, 10);
+
+  if (isNaN(numericCourseId)) {
+    return res.status(400).json({ error: 'Invalid course ID' });
+  }
 
   try {
     const query = `
@@ -442,15 +476,23 @@ app.get('/api/courses/:courseId', async (req, res) => {
       FROM course
       LEFT JOIN enrollment ON course.course_id = enrollment.course_id
       WHERE course.course_id = $1
-      GROUP BY course.course_id;
+      GROUP BY 
+        course.course_id, 
+        course.name, 
+        course.description, 
+        course.difficulty, 
+        course.image;
     `;
-    const result = await db.query(query, [courseId]);
-    
+
+    const result = await db.query(query, [numericCourseId]);
+
+    console.log('Query Result:', result.rows);
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Course not found' });
     }
 
-    res.status(200).json(result.rows[0]); // Return the single course data
+    res.status(200).json(result.rows[0]);
   } catch (err) {
     console.error('Error fetching course:', err);
     res.status(500).json({ error: 'Failed to fetch course data' });
@@ -571,7 +613,7 @@ app.post('/api/sections', authenticateToken, async (req, res) => {
     const { courseId, title } = req.body;
 
     const query = `
-      INSERT INTO sections (course_id, title)
+      INSERT INTO section (course_id, title)
       VALUES ($1, $2) RETURNING section_id
     `;
     const { rows } = await db.query(query, [courseId, title]);
@@ -592,7 +634,7 @@ app.put('/api/sections/:id', authenticateToken, async (req, res) => {
     const { title } = req.body;
 
     const query = `
-      UPDATE sections SET title = $1 WHERE section_id = $2
+      UPDATE section SET title = $1 WHERE section_id = $2
     `;
     await db.query(query, [title, id]);
 
@@ -611,7 +653,7 @@ app.put('/api/sections/:id', authenticateToken, async (req, res) => {
 app.get('/api/activities/recent', authenticateToken, async (req, res) => {
   try {
     const query = `
-      SELECT action_type, action_description, created_at
+      SELECT activity_id, action_type, action_description, created_at
       FROM recent_activity
       ORDER BY created_at DESC
       LIMIT 5
@@ -625,7 +667,6 @@ app.get('/api/activities/recent', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch recent activity.' });
   }
 });
-
 
 
 const logActivity = async (actionType, actionDescription, userId = null) => {
@@ -675,6 +716,259 @@ app.get('/api/feedback', async (req, res) => {
   }
 });
 
+app.get('/api/section', async (req, res) => {
+  try {
+    const { course_id } = req.query;
+    console.log('Received course_id:', course_id);
+
+    if (!course_id || isNaN(course_id)) {
+      return res.status(400).json({ error: 'Invalid or missing course_id' });
+    }
+
+    const query = `
+      SELECT 
+        section.section_id, 
+        section.name, 
+        section.description
+      FROM section
+      WHERE section.course_id = $1;
+    `;
+
+    const result = await db.query(query, [course_id]);
+
+    // Return an empty array instead of a 404 error
+    res.status(200).json(result.rows || []);
+  } catch (err) {
+    console.error('Error fetching sections:', err);
+    res.status(500).json({ error: 'Failed to fetch sections' });
+  }
+});
+
+
+app.post('/api/section', async (req, res) => {
+  try {
+    console.log('Received request body:', req.body); // Debug incoming request body
+    const { course_id, name, description } = req.body;
+
+    if (!course_id || !name || !description) {
+      return res.status(400).json({ error: 'course_id, name, and description are required.' });
+    }
+
+    const query = `
+      INSERT INTO section (course_id, name, description)
+      VALUES ($1, $2, $3)
+      RETURNING section_id, course_id, name, description;
+    `;
+    const values = [course_id, name, description];
+
+    const result = await db.query(query, values);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error adding section:', err);
+    res.status(500).json({ error: 'Failed to add section.' });
+  }
+});
+
+
+
+app.put('/api/section/:section_id', async (req, res) => {
+  try {
+    const { section_id } = req.params;
+    const { name, description } = req.body;
+
+    if (!name || !description) {
+      return res.status(400).json({ error: 'name and description are required.' });
+    }
+
+    const query = `
+      UPDATE section
+      SET name = $1, description = $2
+      WHERE section_id = $3
+      RETURNING section_id, course_id, name, description;
+    `;
+    const values = [name, description, section_id];
+
+    const result = await db.query(query, values);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Section not found.' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating section:', err);
+    res.status(500).json({ error: 'Failed to update section.' });
+  }
+});
+
+
+app.delete('/api/section/:section_id', async (req, res) => {
+  try {
+    const { section_id } = req.params;
+
+    const query = `DELETE FROM section WHERE section_id = $1 RETURNING section_id;`;
+    const result = await db.query(query, [section_id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Section not found.' });
+    }
+
+    res.status(200).json({ message: 'Section deleted successfully.', section_id });
+  } catch (err) {
+    console.error('Error deleting section:', err);
+    res.status(500).json({ error: 'Failed to delete section.' });
+  }
+});
+
+
+app.post('/api/lessons', async (req, res) => {
+  try {
+    const { section_id, name, content, expected_output, xp } = req.body;
+
+    if (!section_id || !name || !content) {
+      return res.status(400).json({ error: 'section_id, name, and content are required.' });
+    }
+
+    const query = `
+      INSERT INTO lesson (section_id, name, content, expected_output, xp)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+    `;
+
+    const values = [section_id, name, content, expected_output, xp || 0];
+
+    const result = await db.query(query, values);
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error adding lesson:', err);
+    res.status(500).json({ error: 'Failed to add lesson.' });
+  }
+});
+
+
+
+app.get('/api/lessons', async (req, res) => {
+  try {
+    const { section_id } = req.query;
+    console.log('Requested section_id:', section_id);
+
+    if (!section_id) {
+      return res.status(400).json({ error: 'section_id is required.' });
+    }
+
+    // Verify if section exists
+    const sectionQuery = 'SELECT * FROM section WHERE section_id = $1';
+    const sectionResult = await db.query(sectionQuery, [section_id]);
+
+    if (sectionResult.rowCount === 0) {
+      return res.status(404).json({
+        error: 'Section not found',
+        section_id: section_id
+      });
+    }
+
+    // Get lessons for the section
+    const query = `
+      SELECT lesson_id, name, content, expected_output, xp
+      FROM lesson
+      WHERE section_id = $1;
+    `;
+    const result = await db.query(query, [section_id]);
+
+    if (result.rowCount === 0) {
+      // Return an empty array with a friendly message
+      return res.status(200).json({
+        message: 'No lessons found for this section.',
+        section_id: section_id,
+        lessons: []
+      });
+    }
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Error fetching lessons:', err);
+    res.status(500).json({
+      error: 'Failed to fetch lessons.',
+      details: err.message,
+      section_id: section_id
+    });
+  }
+});
+
+
+
+app.put('/api/lessons/:lesson_id', async (req, res) => {
+  try {
+    const { lesson_id } = req.params;
+    const { name, content, expected_output, xp } = req.body;
+
+    if (!name || !content) {
+      return res.status(400).json({ error: 'name and content are required.' });
+    }
+
+    const query = `
+      UPDATE lesson
+      SET name = $1, content = $2, expected_output = $3, xp = $4
+      WHERE lesson_id = $5
+      RETURNING *;
+    `;
+
+    const values = [name, content, expected_output, xp || 0, lesson_id]; // Default XP to 0 if not provided
+
+    const result = await db.query(query, values);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Lesson not found.' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating lesson:', err);
+    res.status(500).json({ error: 'Failed to update lesson.' });
+  }
+});
+
+app.delete('/api/lessons/:lesson_id', async (req, res) => {
+  try {
+    const { lesson_id } = req.params;
+
+    const query = `DELETE FROM lesson WHERE lesson_id = $1 RETURNING lesson_id;`;
+    const result = await db.query(query, [lesson_id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Lesson not found.' });
+    }
+
+    res.status(200).json({ message: 'Lesson deleted successfully.', lesson_id });
+  } catch (err) {
+    console.error('Error deleting lesson:', err);
+    res.status(500).json({ error: 'Failed to delete lesson.' });
+  }
+});
+
+
+app.get('/api/lesson/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = `
+      SELECT lesson_id, name, content, expected_output, xp
+      FROM lesson
+      WHERE lesson_id = $1;
+    `;
+    const result = await db.query(query, [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Lesson not found.' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching lesson:', err);
+    res.status(500).json({ error: 'Failed to fetch lesson data.' });
+  }
+});
+=======
 
 app.post('/api/subscribe', authenticateToken, async (req, res) => {
   const { amount_paid } = req.body;
