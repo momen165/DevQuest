@@ -8,6 +8,7 @@ import axios from 'axios';
 
 const AdminCourses = () => {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null); // State for handling errors
   const [courses, setCourses] = useState([]);
   const [editingCourse, setEditingCourse] = useState(null);
   const [editingSections, setEditingSections] = useState(false);
@@ -17,8 +18,15 @@ const AdminCourses = () => {
   const [selectedSection, setSelectedSection] = useState(null);
 
   const userData = JSON.parse(localStorage.getItem('user'));
-  const token = userData ? userData.token : null;
+  const token = userData?.token;
 
+  // Centralized error handler
+  const handleError = (err, message = 'An error occurred') => {
+    console.error(message, err.response?.data || err.message);
+    setError(message);
+  };
+
+  // Fetch all courses
   useEffect(() => {
     const fetchCourses = async () => {
       if (token) {
@@ -29,7 +37,7 @@ const AdminCourses = () => {
           });
           setCourses(response.data);
         } catch (err) {
-          console.error('Error fetching courses:', err);
+          handleError(err, 'Failed to fetch courses.');
         } finally {
           setLoading(false);
         }
@@ -39,6 +47,7 @@ const AdminCourses = () => {
     fetchCourses();
   }, [token]);
 
+  // Fetch sections for a specific course
   const handleEditSections = async (course) => {
     setEditingCourse(course);
     setEditingSections(true);
@@ -52,46 +61,23 @@ const AdminCourses = () => {
       );
       setSections(response.data);
     } catch (err) {
-      console.error('Error fetching sections:', err);
+      handleError(err, 'Failed to fetch sections.');
     }
   };
-  
+
+  // Add a new section
   const addSection = async (newSection) => {
     try {
-      console.log('Payload being sent to API:', newSection); // Debugging line
       const response = await axios.post('http://localhost:5000/api/section', newSection, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSections((prevSections) => [...prevSections, response.data]);
+      setSections((prev) => [...prev, response.data]);
     } catch (err) {
-      console.error('Error adding section:', err.response?.data || err.message);
-    }
-  };
-  
-  const handleEditLessons = (section) => {
-    setSelectedSection(section); // Set the selected section for lesson editing
-    setEditingLessons(true); // Show the lesson editing view
-  };
-
-  const handleSaveLesson = async (lessonData) => {
-    try {
-      const response = await axios.post('http://localhost:5000/api/lessons', {
-        ...lessonData,
-        section_id: selectedSection.section_id,
-      });
-      console.log('Lesson saved successfully:', response.data);
-      setEditingLessons(false); // Close the lesson editor
-    } catch (err) {
-      console.error('Error saving lesson:', err.response?.data || err.message);
+      handleError(err, 'Failed to add section.');
     }
   };
 
-  const handleCloseLessons = () => {
-    setEditingLessons(false); // Close lesson editing
-    setSelectedSection(null);
-  };
-
-
+  // Edit an existing section
   const editSection = async (updatedSection) => {
     try {
       const response = await axios.put(
@@ -101,36 +87,36 @@ const AdminCourses = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setSections((prevSections) =>
-        prevSections.map((section) =>
+      setSections((prev) =>
+        prev.map((section) =>
           section.section_id === updatedSection.section_id ? response.data : section
         )
       );
     } catch (err) {
-      console.error('Error updating section:', err);
+      handleError(err, 'Failed to update section.');
     }
   };
-  
+
+  // Delete a section
   const deleteSection = async (sectionId) => {
     try {
       await axios.delete(`http://localhost:5000/api/section/${sectionId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSections((prevSections) =>
-        prevSections.filter((section) => section.section_id !== sectionId)
-      );
+      setSections((prev) => prev.filter((section) => section.section_id !== sectionId));
     } catch (err) {
-      console.error('Error deleting section:', err);
+      handleError(err, 'Failed to delete section.');
     }
   };
-  
 
+  // Handle closing sections view
   const handleCloseSections = () => {
     setEditingSections(false);
     setEditingCourse(null);
     setSections([]);
   };
 
+  // Add or edit a course
   const handleEditClick = (course) => {
     setIsAddingCourse(false);
     setEditingCourse(course);
@@ -141,22 +127,22 @@ const AdminCourses = () => {
     setEditingCourse(null);
   };
 
+  // Close course edit form
   const closeEditForm = () => {
     setEditingCourse(null);
     setIsAddingCourse(false);
   };
 
+  // Delete a course
   const handleDeleteCourse = async (courseId) => {
-    if (!window.confirm('Are you sure you want to delete this course?')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this course?')) return;
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
       await axios.delete(`http://localhost:5000/api/courses/${courseId}`, { headers });
-      setCourses((prevCourses) => prevCourses.filter((course) => course.course_id !== courseId));
+      setCourses((prev) => prev.filter((course) => course.course_id !== courseId));
     } catch (err) {
-      console.error('Error deleting course:', err.response?.data || err.message);
+      handleError(err, 'Failed to delete course.');
     }
   };
 
@@ -181,10 +167,14 @@ const AdminCourses = () => {
           )}
         </div>
 
-        {editingSections ? (
+        {error && <p className="error-message">{error}</p>}
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : editingSections ? (
           <SectionEditComponent
             sections={sections}
-            courseId={editingCourse?.course_id} // Pass the course_id from editingCourse
+            courseId={editingCourse?.course_id}
             onSectionUpdate={(updatedSections) => {
               updatedSections.forEach((section) => {
                 if (section.section_id) {
@@ -210,31 +200,37 @@ const AdminCourses = () => {
               </tr>
             </thead>
             <tbody>
-              {courses.map((course, index) => (
-                <tr key={index}>
-                  <td>{course.title}</td>
-                  <td>{course.users || '0'}</td>
-                  <td>
-                    <FaEdit
-                      className="icon edit-icon"
-                      title="Edit Sections"
-                      onClick={() => handleEditSections(course)}
-                    />
-                  </td>
-                  <td>
-                    <FaEdit
-                      className="icon edit-icon"
-                      title="Edit Course"
-                      onClick={() => handleEditClick(course)}
-                    />
-                    <FaTrash
-                      className="icon delete-icon"
-                      title="Delete Course"
-                      onClick={() => handleDeleteCourse(course.course_id)}
-                    />
-                  </td>
+              {courses.length > 0 ? (
+                courses.map((course, index) => (
+                  <tr key={index}>
+                    <td>{course.title}</td>
+                    <td>{course.users || '0'}</td>
+                    <td>
+                      <FaEdit
+                        className="icon edit-icon"
+                        title="Edit Sections"
+                        onClick={() => handleEditSections(course)}
+                      />
+                    </td>
+                    <td>
+                      <FaEdit
+                        className="icon edit-icon"
+                        title="Edit Course"
+                        onClick={() => handleEditClick(course)}
+                      />
+                      <FaTrash
+                        className="icon delete-icon"
+                        title="Delete Course"
+                        onClick={() => handleDeleteCourse(course.course_id)}
+                      />
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4">No courses available</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         )}

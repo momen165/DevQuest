@@ -10,64 +10,62 @@ const ViewLessonsComponent = ({ section, onClose }) => {
   const [error, setError] = useState('');
   const [editingLesson, setEditingLesson] = useState(null); // Track lesson being edited
   const [isAddingLesson, setIsAddingLesson] = useState(false); // Track if adding a new lesson
+  const [isProcessing, setIsProcessing] = useState(false); // Track save/delete actions
 
   // Fetch lessons for the given section
+  const fetchLessons = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/lessons?section_id=${section.section_id}`
+      );
+      setLessons(Array.isArray(response.data) ? response.data : []); // Ensure it's an array
+    } catch (err) {
+      console.error('Error fetching lessons:', err);
+      setError('Failed to fetch lessons.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchLessons = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/lessons?section_id=${section.section_id}`
-          
-        );
-        
-        // Handle empty lessons array
-        if (response.data.length === 0) {
-          setError('No lessons found for this section.');
-        } else {
-          setLessons(response.data); // Populate lessons if successful
-        }
-      } catch (err) {
-        console.error('Error fetching lessons:', err);
-        setError('Failed to fetch lessons.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    
-    
     if (section?.section_id) {
       fetchLessons();
     }
   }, [section]);
 
   // Handle save operation from LessonEditAddComponent
-  const handleSaveLesson = (lesson) => {
-    if (lesson.lesson_id) {
-      // Update existing lesson in the list
-      setLessons((prevLessons) =>
-        prevLessons.map((l) => (l.lesson_id === lesson.lesson_id ? lesson : l))
-      );
-    } else {
-      // Add a new lesson to the list
-      setLessons((prevLessons) => [...prevLessons, lesson]);
+  const handleSaveLesson = async () => {
+    setIsProcessing(true);
+    try {
+      // After saving, refresh lessons by fetching from backend
+      await fetchLessons();
+    } catch (error) {
+      console.error('Error saving lesson:', error);
+      setError('Failed to save lesson.');
+    } finally {
+      setEditingLesson(null);
+      setIsAddingLesson(false);
+      setIsProcessing(false);
     }
-    setEditingLesson(null); // Close the edit form
-    setIsAddingLesson(false); // Close the add form
   };
 
   // Handle delete operation for lessons
   const handleDeleteLesson = async (lessonId) => {
+    if (!window.confirm('Are you sure you want to delete this lesson?')) {
+      return;
+    }
+    setIsProcessing(true);
     try {
       await axios.delete(`http://localhost:5000/api/lessons/${lessonId}`);
-      setLessons((prevLessons) =>
-        prevLessons.filter((lesson) => lesson.lesson_id !== lessonId)
-      );
+      // Refresh lessons after deletion
+      await fetchLessons();
     } catch (err) {
       console.error('Error deleting lesson:', err);
       setError('Failed to delete lesson.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -92,7 +90,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
   return (
     <div className="view-lessons-container">
       <h3>{section.name} Lessons</h3>
-  
+
       <div className="add-lesson-container">
         <button
           className="add-lesson-button"
@@ -101,7 +99,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
           Add Lesson <FaPlusCircle />
         </button>
       </div>
-  
+
       {loading ? (
         <p>Loading lessons...</p>
       ) : error ? (
@@ -131,11 +129,13 @@ const ViewLessonsComponent = ({ section, onClose }) => {
                     className="icon edit-lesson-icon"
                     onClick={() => handleEditLesson(lesson)} // Open Edit Lesson form
                     title="Edit Lesson"
+                    aria-label="Edit Lesson"
                   />
                   <FaTrash
                     className="icon delete-lesson-icon"
                     onClick={() => handleDeleteLesson(lesson.lesson_id)} // Trigger delete
                     title="Delete Lesson"
+                    aria-label="Delete Lesson"
                   />
                 </td>
               </tr>
@@ -145,13 +145,12 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       ) : (
         <p>No lessons available for this section.</p> // Show message if no lessons are present
       )}
-  
+
       <button className="save-button" onClick={onClose}>
         Close
       </button>
     </div>
   );
-  
 };
 
 export default ViewLessonsComponent;
