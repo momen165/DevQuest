@@ -59,4 +59,5 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   background: linear-gradient(to bottom,  #1f2e5a 30%, #09112A 70%);
+  height: 100vh;
 }
