@@ -54,7 +54,7 @@ const upload = multer({
     storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit files to 5MB
   fileFilter: function (req, file, cb) {
-    const filetypes = /jpeg|jpg|png|webp/; // Allowed extensions
+    const filetypes = /jpeg|jpg|png|webp|svg/; // Allowed extensions
     const mimetype = filetypes.test(file.mimetype.toLowerCase());
     const extname = filetypes.test(require('path').extname(file.originalname).toLowerCase());
 
@@ -674,3 +674,84 @@ app.get('/api/feedback', async (req, res) => {
       res.status(500).json({ error: 'Failed to fetch feedback' });
   }
 });
+
+
+app.post('/api/subscribe', authenticateToken, async (req, res) => {
+  const { amount_paid } = req.body;
+  const userId = req.user.userId; // Extracted from the token
+
+  try {
+    // Step 1: Insert the subscription into the `subscription` table
+    const subscriptionQuery = `
+      INSERT INTO subscription (subscription_start_date, amount_paid, status)
+      VALUES (CURRENT_DATE, $1, 'Completed')
+      RETURNING subscription_id;
+    `;
+    const { rows: subscriptionRows } = await db.query(subscriptionQuery, [amount_paid]);
+
+    const subscriptionId = subscriptionRows[0].subscription_id;
+
+    // Step 2: Link user to subscription in `user_subscription`
+    const userSubscriptionQuery = `
+      INSERT INTO user_subscription (user_id, subscription_id)
+      VALUES ($1, $2);
+    `;
+    await db.query(userSubscriptionQuery, [userId, subscriptionId]);
+
+    res.status(201).json({ subscription_id: subscriptionId });
+  } catch (error) {
+    console.error('Error creating subscription:', error); // Debug log
+    res.status(500).json({ error: 'Failed to create subscription.' });
+  }
+});
+
+
+app.get('/api/subscriptions', authenticateToken, async (req, res) => {
+  if (!req.user.admin) {
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
+
+  try {
+    const query = `
+      SELECT 
+        s.subscription_id,
+        u.name AS student_name,
+        s.amount_paid,
+        s.subscription_start_date,
+        s.status,
+      FROM subscription s
+      JOIN user_subscription us ON s.subscription_id = us.subscription_id
+      JOIN users u ON us.user_id = u.user_id;
+    `;
+    const { rows } = await db.query(query);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Error fetching subscriptions:', error);
+    res.status(500).json({ error: 'Failed to fetch subscriptions.' });
+  }
+});
+
+app.get('/api/feedbackad', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        f.feedback_id, 
+        u.name AS student_name, 
+        c.name AS course_name, 
+        f.comment AS feedback, 
+        f.rating, 
+        f.created_at AS date
+      FROM feedback f
+      JOIN users u ON f.user_id = u.user_id
+      JOIN course c ON f.course_id = c.course_id
+      ORDER BY f.created_at DESC;
+    `;
+
+    const { rows } = await db.query(query);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Error fetching feedback:', error);
+    res.status(500).json({ error: 'Failed to fetch feedback' });
+  }
+});
+

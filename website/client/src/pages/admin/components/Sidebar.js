@@ -1,11 +1,26 @@
-import React from 'react';
+import React , { useState } from 'react';
 import { FaMoneyCheckAlt, FaChalkboardTeacher, FaHome, FaUser, FaBook, FaComment, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom';
 import 'pages/admin/styles/Sidebar.css';
 import { useAuth } from 'AuthContext';
+
 const Sidebar = () => {
   const location = useLocation();
-  const {  logout } = useAuth();
+  const { logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true); // Show confirmation dialog
+  };
+
+  const confirmLogout = () => {
+    logout(); // Perform logout
+    setShowLogoutConfirm(false); // Hide confirmation dialog
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false); // Hide confirmation dialog
+  };
   return (
     <div className="sidebar">
       <h2>Admin Dashboard</h2>
@@ -28,8 +43,10 @@ const Sidebar = () => {
           </li>
         </Link>
 
-        <Link to="/Payment" className="link">
-          <li className={location.pathname === '/Payment' ? 'sidebar-item active' : 'sidebar-item'}>
+        
+
+        <Link to="/PaymentInfo" className="link">
+          <li className={location.pathname === '/PaymentInfo' ? 'sidebar-item active' : 'sidebar-item'}>
             <FaMoneyCheckAlt /> <span>Payment</span>
           </li>
         </Link>
@@ -40,17 +57,29 @@ const Sidebar = () => {
           </li>
         </Link>
 
-        <Link to="/Settings" className="link">
-          <li className={location.pathname === '/Settings' ? 'sidebar-item active' : 'sidebar-item'}>
+        <Link to="/AdminSettingsPage" className="link">
+          <li className={location.pathname === '/AdminSettingsPage' ? 'sidebar-item active' : 'sidebar-item'}>
             <FaCog /> <span>Settings</span>
           </li>
         </Link>
        
-        <li className="sidebar-item logout" onClick={logout}>
-          <FaSignOutAlt  /> <span>Logout</span>
+        <li className="sidebar-item logout" onClick={handleLogout}>
+          <FaSignOutAlt /> <span>Logout</span>
         </li>
-        
       </ul>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutConfirm && (
+        <div className="logout-confirmation">
+          <div className="logout-dialog">
+            <p>Are you sure you want to log out?</p>
+            <div className="dialog-buttons">
+              <button className="confirm-button" onClick={confirmLogout}>Yes</button>
+              <button className="cancel-button" onClick={cancelLogout}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
