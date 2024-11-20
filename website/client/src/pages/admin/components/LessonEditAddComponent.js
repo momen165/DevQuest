@@ -26,13 +26,15 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const rawContent = editorData;  // Get CKEditor content
+      const rawContent = editorData; // CKEditor content
+      let savedLesson;
+  
       if (lesson?.lesson_id) {
         const response = await axios.put(
           `http://localhost:5000/api/lessons/${lesson.lesson_id}`,
           { name: lessonName, content: rawContent, expected_output: expectedOutput, xp }
         );
-        onSave(response.data);
+        savedLesson = response.data;
       } else {
         const response = await axios.post('http://localhost:5000/api/lessons', {
           name: lessonName,
@@ -41,14 +43,18 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
           expected_output: expectedOutput,
           xp,
         });
-        onSave(response.data);
+        savedLesson = response.data;
       }
+  
+      // Pass the saved lesson back to the parent
+      onSave(savedLesson);
     } catch (err) {
       console.error('Error saving lesson:', err);
     } finally {
       setIsSaving(false);
     }
   };
+  
 
   const handleDelete = async () => {
     if (!lesson?.lesson_id) return;
