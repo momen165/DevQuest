@@ -9,6 +9,9 @@ import RegistrationPage from 'pages/user/RegistrationPage';
 import LoginPage from 'pages/user/LoginPage';
 import ForgotPasswordPage from 'pages/user/ForgotPasswordPage';
 import Dashboard from 'pages/admin/Dashboard';
+import AdminSettingsPage from 'pages/admin/AdminSettingsPage';
+import PaymentInfo from 'pages/admin/PaymentInfo';
+import Feedback from 'pages/admin/FeedbackPage';
 import AccountSettings from 'pages/user/AccountSettings';
 import ChangePassword from 'pages/user/ChangePassword';
 import Billing from 'pages/user/Billing';
@@ -42,6 +45,12 @@ function App() {
         <Route path="/Dashboard" element={<ProtectedRoute adminRequired={true}><Dashboard /></ProtectedRoute>} />
         <Route path="/Students" element={<ProtectedRoute adminRequired={true}><Students /></ProtectedRoute>} />
         <Route path="/AdminCourses" element={<ProtectedRoute adminRequired={true}><AdminCourses /></ProtectedRoute>} />
+        <Route path="/PaymentInfo" element={<ProtectedRoute adminRequired={true}><PaymentInfo /></ProtectedRoute>} />
+        <Route path="/Feedback" element={<ProtectedRoute adminRequired={true}><Feedback /></ProtectedRoute>} />
+        <Route path="/AdminSettingsPage" element={<ProtectedRoute adminRequired={true}><AdminSettingsPage /></ProtectedRoute>} />
+
+
+
 
         {/* Protected Routes for Users */}
         <Route path="/AccountSettings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
