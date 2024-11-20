@@ -32,7 +32,7 @@ const CoursesPage = () => {
         setCourses(coursesData);
         setFilteredCourses(coursesData);
         setRatings(ratingsData); // Set the ratings for courses
-        setLoading(false);
+        setLoading(false);  
       } catch (err) {
         console.error('Error:', err);
         setError('Failed to load data');

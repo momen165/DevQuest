@@ -22,6 +22,7 @@
   justify-content: center;
   align-items: center;
   height:82px;
+  padding: 10px;
 }
 .course-info{
   display: flex;
@@ -41,8 +42,13 @@
 }
 
 .course-icon {
-  height: 50px;
+  height: 50px; /* Reduced from 50px */
+  width: auto; /* Maintain aspect ratio */
   margin-bottom: 10px;
+  object-fit: contain; /* Ensures image isn't distorted */
+  display: flex;
+  align-self: flex-start; /* Maintains left alignment */
+  margin-right: 10px;
 }
 
 .course-rating, .course-level, .course-students {
@@ -77,3 +83,5 @@
 transform: scale(1.05); /* Slightly enlarge the card */
 
 }
+
+
