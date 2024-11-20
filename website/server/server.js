@@ -11,7 +11,7 @@ const sharp = require('sharp');
 const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
-
+const axios = require('axios');
 // Add security headers
 const helmet = require('helmet');
 app.use(helmet());
@@ -25,8 +25,14 @@ app.use(helmet());
 
 // // Add request size limit
 // app.use(express.json({ limit: '10kb' }));
+   
 
-app.use(cors());
+app.use(cors({
+      origin: 'http://localhost:3000',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'], // Include 'Authorization' header
+    }));
+
 app.use(express.json());
 
 const db = new Pool({
@@ -212,8 +218,8 @@ app.post('/api/uploadProfilePic', authenticateToken, upload.single('profilePic')
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+  console.error('Internal Server Error:', err.message);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 // Start the server
@@ -323,10 +329,10 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
     console.log('Request Body:', req.body);
     console.log('Uploaded File:', req.file);
 
-    const { title, description, status, difficulty } = req.body; // Updated to use "title"
+    const { title, description, status, difficulty, language_id } = req.body; // Include language_id
 
     // Validate required fields
-    if (!title || !description || !status || !difficulty) {
+    if (!title || !description || !status || !difficulty || !language_id) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -336,18 +342,18 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
       const filename = `course_${Date.now()}_${req.file.originalname.replace(/\s/g, '_')}`;
       imagePath = `/uploads/${filename}`;
       await sharp(req.file.buffer)
-        .resize(800) // Adjust size if needed
-        .png({ quality: 80 }) // Keep the image in PNG format
+        .resize(800)
+        .png({ quality: 80 })
         .toFile(`uploads/${filename}`);
     }
 
     // Insert course into the database
     const query = `
-      INSERT INTO course (name, description, status, difficulty, image)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO course (name, description, status, difficulty, language_id, image)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
-    const result = await db.query(query, [title, description, status, difficulty, imagePath]);
+    const result = await db.query(query, [title, description, status, difficulty, language_id, imagePath]);
 
     if (result.rowCount === 0) {
       return res.status(400).json({ error: 'Failed to add course' });
@@ -358,17 +364,14 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
     await logActivity('Course', `New course added: ${title}`, req.user.userId);
   } catch (err) {
     console.error('Error adding course:', err);
-    if (err.code === '23502') {
-      res.status(400).json({ error: 'Missing required fields (name, description, status, difficulty).' });
-    } else {
-      res.status(500).json({ error: 'Failed to add course' });
-    }
+    res.status(500).json({ error: 'Failed to add course' });
   }
 });
 
+
 app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image'), async (req, res) => {
   const { course_id } = req.params;
-  const { title, description, status, difficulty } = req.body;
+  const { title, description, status, difficulty, language_id } = req.body;
 
   if (!course_id || isNaN(course_id)) {
     return res.status(400).json({ error: 'Invalid course ID' });
@@ -386,43 +389,34 @@ app.put('/api/editCourses/:course_id', authenticateToken, upload.single('image')
     const oldCourse = oldCourseResult.rows[0];
 
     let imagePath = null;
-
     if (req.file) {
       const filename = `course_${Date.now()}_${req.file.originalname.replace(/\s/g, '_')}`;
       imagePath = `/uploads/${filename}`;
       await sharp(req.file.buffer)
-        .resize(800) // Adjust size if needed
-        .png({ quality: 80 }) // Keep the image in PNG format
+        .resize(800)
+        .png({ quality: 80 })
         .toFile(`uploads/${filename}`);
     }
 
-    const query =
-      'UPDATE course SET name = $1, description = $2, status = $3, difficulty = $4, image = COALESCE($5, image) WHERE course_id = $6 RETURNING *';
-    const result = await db.query(query, [title, description, status, difficulty, imagePath, course_id]);
+    const query = `
+      UPDATE course 
+      SET 
+        name = $1, 
+        description = $2, 
+        status = $3, 
+        difficulty = $4, 
+        language_id = $5, 
+        image = COALESCE($6, image)
+      WHERE course_id = $7
+      RETURNING *;
+    `;
+    const result = await db.query(query, [title, description, status, difficulty, language_id, imagePath, course_id]);
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Course not found' });
     }
 
     const updatedCourse = result.rows[0];
-
-    // Log activity including the changes
-    const changes = [];
-    if (oldCourse.name !== title) changes.push(`Name: ${oldCourse.name} → ${title}`);
-    if (oldCourse.description !== description) changes.push(`Description: ${oldCourse.description} → ${description}`);
-    if (oldCourse.status !== status) changes.push(`Status: ${oldCourse.status} → ${status}`);
-    if (oldCourse.difficulty !== difficulty) changes.push(`Difficulty: ${oldCourse.difficulty} → ${difficulty}`);
-    if (imagePath && oldCourse.image !== imagePath) changes.push(`Image: ${oldCourse.image || 'none'} → ${imagePath}`);
-
-    if (changes.length > 0) {
-      await logActivity(
-        'Course',
-        `Course updated (ID: ${course_id}). Changes: ${changes.join(', ')}`,
-        req.user.userId
-      );
-    } else {
-      await logActivity('Course', `Course updated (ID: ${course_id}) with no changes`, req.user.userId);
-    }
 
     res.status(200).json(updatedCourse);
   } catch (err) {
@@ -440,7 +434,8 @@ app.get('/api/courses', async (req, res) => {
         course.name AS title, 
         course.description, 
         course.difficulty AS level, 
-        course.image, -- Include the image column
+        course.language_id, -- Include language_id
+        course.image,
         COUNT(enrollment.user_id) AS users
       FROM course
       LEFT JOIN enrollment ON course.course_id = enrollment.course_id
@@ -448,12 +443,12 @@ app.get('/api/courses', async (req, res) => {
     `;
     const result = await db.query(query);
     res.status(200).json(result.rows);
-    
   } catch (err) {
     console.error('Error fetching courses:', err);
     res.status(500).json({ error: 'Failed to fetch courses' });
   }
 });
+
 
 
 app.get('/api/courses/:courseId', async (req, res) => {
@@ -471,6 +466,7 @@ app.get('/api/courses/:courseId', async (req, res) => {
         course.name AS title, 
         course.description, 
         course.difficulty AS level, 
+        course.language_id, -- Include language_id
         course.image, 
         COUNT(enrollment.user_id) AS users
       FROM course
@@ -481,12 +477,10 @@ app.get('/api/courses/:courseId', async (req, res) => {
         course.name, 
         course.description, 
         course.difficulty, 
+        course.language_id, -- Include language_id
         course.image;
     `;
-
     const result = await db.query(query, [numericCourseId]);
-
-    console.log('Query Result:', result.rows);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Course not found' });
@@ -948,27 +942,36 @@ app.delete('/api/lessons/:lesson_id', async (req, res) => {
 });
 
 
-app.get('/api/lesson/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const query = `
-      SELECT lesson_id, name, content, expected_output, xp
-      FROM lesson
-      WHERE lesson_id = $1;
-    `;
-    const result = await db.query(query, [id]);
+app.get('/api/lesson/:lessonId', async (req, res) => {
+  const { lessonId } = req.params;
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Lesson not found.' });
+  try {
+    const query = `
+      SELECT 
+        lesson.lesson_id, 
+        lesson.name, 
+         
+        lesson.content, 
+        course.language_id -- Fetch language_id from the course
+      FROM lesson
+      JOIN section ON lesson.section_id = section.section_id -- Join with section table
+      JOIN course ON section.course_id = course.course_id -- Join with course table
+      WHERE lesson.lesson_id = $1;
+    `;
+    const result = await db.query(query, [lessonId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    res.status(200).json(result.rows[0]);
+    res.status(200).json(result.rows[0]); // Include language_id in the response
   } catch (err) {
     console.error('Error fetching lesson:', err);
-    res.status(500).json({ error: 'Failed to fetch lesson data.' });
+    res.status(500).json({ error: 'Failed to fetch lesson data' });
   }
 });
-=======
+
+
 
 app.post('/api/subscribe', authenticateToken, async (req, res) => {
   const { amount_paid } = req.body;
@@ -1046,6 +1049,95 @@ app.get('/api/feedbackad', async (req, res) => {
   } catch (error) {
     console.error('Error fetching feedback:', error);
     res.status(500).json({ error: 'Failed to fetch feedback' });
+  }
+});
+
+
+
+
+// Judge0 configuration
+const JUDGE0_API_URL = 'http://51.44.5.41:2358/submissions?base64_encoded=true';
+
+const POLL_INTERVAL = 1000; // Polling interval in milliseconds
+
+
+
+
+const { Buffer } = require('buffer'); // Node.js built-in module
+
+
+app.post('/api/run', async (req, res) => {
+  const { lessonId, code, languageId } = req.body;
+
+  console.log('Processing run request for Lesson ID:', lessonId);
+  console.log('Payload:', { lessonId, code, languageId });
+
+  if (!lessonId || !code || !languageId) {
+    console.error('Missing required fields:', { lessonId, code, languageId });
+    return res.status(400).json({ error: 'Missing required fields: lessonId, code, or languageId' });
+  }
+
+  try {
+    const query = `SELECT expected_output FROM public.lesson WHERE lesson_id = $1`;
+    const result = await db.query(query, [lessonId]);
+
+    if (result.rowCount === 0) {
+      console.error('Lesson not found for ID:', lessonId);
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+
+    const expectedOutput = result.rows[0].expected_output || '';
+    console.log('Fetched expected output:', expectedOutput);
+
+    const base64Code = Buffer.from(code, 'utf8').toString('base64');
+    const base64ExpectedOutput = Buffer.from(expectedOutput, 'utf8').toString('base64');
+    console.log('Base64-encoded code and expected output prepared.');
+
+    const submissionResponse = await axios.post(
+      'http://localhost:2358/submissions?base64_encoded=true',
+      {
+        source_code: base64Code,
+        language_id: languageId,
+        expected_output: base64ExpectedOutput,
+      }
+    );
+
+    const submissionToken = submissionResponse.data.token;
+    console.log('Submission sent to Judge0. Token:', submissionToken);
+
+    let executionResult = null;
+    while (!executionResult || executionResult.status.id < 3) {
+      const resultResponse = await axios.get(
+        `http://localhost:2358/submissions/${submissionToken}?base64_encoded=true`
+      );
+      executionResult = resultResponse.data;
+
+      if (executionResult.status.id < 3) {
+        console.log('Submission still processing. Retrying...');
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+
+    console.log('Judge0 result:', executionResult);
+    const decodedStdout = executionResult.stdout
+      ? Buffer.from(executionResult.stdout, 'base64').toString('utf8')
+      : '';
+    const decodedStderr = executionResult.stderr
+      ? Buffer.from(executionResult.stderr, 'base64').toString('utf8')
+      : '';
+    const decodedCompileOutput = executionResult.compile_output
+      ? Buffer.from(executionResult.compile_output, 'base64').toString('utf8')
+      : '';
+
+    res.json({
+      status: executionResult.status.description,
+      stdout: decodedStdout,
+      stderr: decodedStderr,
+      compile_output: decodedCompileOutput,
+    });
+  } catch (error) {
+    console.error('Error in /api/run:', error.response?.data || error.message);
+    res.status(500).json({ error: 'An error occurred while running the code.' });
   }
 });
 

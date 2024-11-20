@@ -7,8 +7,9 @@ const EditCourseForm = ({ course, onClose }) => {
   const [title, setTitle] = useState(course ? course.title : '');
   const [description, setDescription] = useState(course ? course.description : '');
   const [status, setStatus] = useState(course?.status || 'Published');
-  const [difficulty, setDifficulty] = useState(course?.level  || '');
+  const [difficulty, setDifficulty] = useState(course?.level || '');
   const [image, setImage] = useState(null);
+  const [languageId, setLanguageId] = useState(course?.language_id || ''); // New state for language_id
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +17,7 @@ const EditCourseForm = ({ course, onClose }) => {
     setError('');
 
     // Input validation
-    if (!title.trim() || !description.trim() || !status || !difficulty) {
+    if (!title.trim() || !description.trim() || !status || !difficulty || !languageId) {
       setError('All fields are required.');
       return;
     }
@@ -32,6 +33,7 @@ const EditCourseForm = ({ course, onClose }) => {
       formData.append('description', description);
       formData.append('status', status);
       formData.append('difficulty', difficulty);
+      formData.append('language_id', languageId); // Add language_id
       if (image) {
         formData.append('image', image);
       }
@@ -47,7 +49,6 @@ const EditCourseForm = ({ course, onClose }) => {
             },
           }
         );
-       
       } else {
         const response = await axios.post(
           'http://localhost:5000/api/addCourses',
@@ -59,7 +60,6 @@ const EditCourseForm = ({ course, onClose }) => {
             },
           }
         );
-
       }
       onClose();
     } catch (err) {
@@ -69,16 +69,15 @@ const EditCourseForm = ({ course, onClose }) => {
       setLoading(false);
     }
   };
+
   const handleCloseError = () => {
     setError('');
   };
-
 
   return (
     <div className="edit-course-form">
       <h2>{course ? 'Edit Course' : 'Add New Course'}</h2>
 
-      
       {error && (
         <div className="alert">
           {error}
@@ -116,6 +115,28 @@ const EditCourseForm = ({ course, onClose }) => {
           <option value="Beginner">Beginner</option>
           <option value="Intermediate">Intermediate</option>
           <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+
+      {/* New language selector */}
+      <div>
+        <label>Programming Language</label>
+        <select value={languageId} onChange={(e) => setLanguageId(e.target.value)}>
+        <option value="">Select Language</option>
+        <option value="71">Python (3.8.1)</option>
+        <option value="62">Java (OpenJDK 13.0.1)</option>
+        <option value="54">C++ (GCC 9.2.0)</option>
+        <option value="63">JavaScript (Node.js 12.14.0)</option>
+        <option value="68">PHP (7.4.1)</option>
+        <option value="72">Ruby (2.7.0)</option>
+        <option value="50">C (GCC 9.2.0)</option>
+        <option value="74">TypeScript (3.7.4)</option>
+        <option value="78">Kotlin (1.3.70)</option>
+        <option value="73">Rust (1.40.0)</option>
+        <option value="51">C# (Mono 6.6.0.161)</option>
+        <option value="60">Go (1.13.5)</option>
+
+
         </select>
       </div>
 
