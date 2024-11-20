@@ -22,6 +22,9 @@ import { useAuth } from 'AuthContext';
 import NotFoundPage from 'pages/NotFoundPage'; // Import NotFoundPage
 import CourseSection from 'pages/user/CourseSection'; // Import CourseSections
 import ProfilePage from 'pages/user/ProfilePage'; // Import ProfilePage
+import LessonPage from 'pages/user/LessonPage';
+import Unauthorized from 'pages/user/Unauthorized';
+
 import './App.css';
 
 function App() {
@@ -40,7 +43,7 @@ function App() {
         <Route path="/RegistrationPage" element={<RegistrationPage />} />
         <Route path="/LoginPage" element={<LoginPage />} />
         <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage />} />
-
+        <Route path="/Unauthorized" element={<Unauthorized />} />
         {/* Admin Routes (Protected for Admins) */}
         <Route path="/Dashboard" element={<ProtectedRoute adminRequired={true}><Dashboard /></ProtectedRoute>} />
         <Route path="/Students" element={<ProtectedRoute adminRequired={true}><Students /></ProtectedRoute>} />
@@ -58,6 +61,8 @@ function App() {
         <Route path="/Billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
         <Route path="/CourseSection/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
         <Route path="/ProfilePage" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/course/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
+        <Route path="/lesson/:lessonId" element={<ProtectedRoute><LessonPage /></ProtectedRoute>} />
         {/* Catch-all route for 404 Not Found */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

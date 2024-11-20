@@ -6,6 +6,11 @@
   background-size: cover;
   background-position: center;
   color: #fff;
+  transition: background 0.3s ease-in-out;
+}
+
+.container:hover {
+  filter: brightness(1.1); /* Slight brightness increase on hover */
 }
 
 /* Form Container */
@@ -16,6 +21,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .form {
@@ -25,6 +42,7 @@
   flex-direction: column;
 }
 
+/* Input Fields */
 .input {
   width: 100%;
   padding: 0.5rem;
@@ -32,15 +50,32 @@
   border-radius: 4px;
   border: 1px solid #444;
   background-color: #333;
- 
   color: #fff;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
+.input:focus {
+  background-color: #222;
+  border-color: #007bff;
+  outline: none;
+}
+
+.input:hover {
+  background-color: #444;
+}
+
+/* Hint Text */
 .hint {
   font-size: 0.8rem;
   color: #aaa;
+  transition: color 0.3s ease;
 }
 
+.hint:hover {
+  color: #fff;
+}
+
+/* Select Dropdown */
 .select {
   width: 100%;
   padding: 0.5rem;
@@ -49,14 +84,33 @@
   border: 1px solid #444;
   background-color: #333;
   color: #fff;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
+.select:focus {
+  border-color: #007bff;
+  background-color: #222;
+  outline: none;
+}
+
+/* Captcha Section */
 .captcha {
   display: flex;
   align-items: center;
   margin: 1rem 0;
+  gap: 1rem;
 }
 
+.captcha img {
+  border-radius: 4px;
+  transition: transform 0.3s ease;
+}
+
+.captcha img:hover {
+  transform: scale(1.05); /* Slight zoom effect */
+}
+
+/* Button */
 .button {
   padding: 0.75rem;
   margin-top: 1rem;
@@ -66,6 +120,17 @@
   color: #fff;
   font-weight: bold;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05); /* Slight zoom on hover */
+}
+
+.button:active {
+  background-color: #003f8c;
+  transform: scale(0.95); /* Pressed effect */
 }
 
 /* Welcome Container */
@@ -77,5 +142,42 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  
+  animation: fadeSlideIn 0.8s ease-in-out;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.welcome-container:hover {
+  background-color: rgba(0, 51, 102, 0.5); /* Change background shade on hover */
+  transition: background-color 0.3s ease;
+}
+
+.welcome-container h1 {
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.welcome-container h1:hover {
+  transform: scale(1.1); /* Slight zoom on hover */
+  color: #add8e6; /* Light blue */
+}
+
+.welcome-container p {
+  font-size: 1.2rem;
+  color: #ddd;
+  transition: color 0.3s ease;
+}
+
+.welcome-container p:hover {
+  color: #fff;
 }
