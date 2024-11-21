@@ -6,8 +6,7 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 5000;
 require('dotenv').config();
-app.use('/uploads', express.static('uploads'));
-const sharp = require('sharp');
+
 const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
@@ -26,12 +25,21 @@ app.use(helmet());
 // // Add request size limit
 // app.use(express.json({ limit: '10kb' }));
    
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000'); // Frontend origin
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // Update this header
+  next();
+}, express.static('uploads'));
+
 
 app.use(cors({
-      origin: 'http://localhost:3000',
-      methods: ['GET', 'POST', 'PUT', 'DELETE'],
-      allowedHeaders: ['Content-Type', 'Authorization'], // Include 'Authorization' header
-    }));
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
+
 
 app.use(express.json());
 
@@ -710,6 +718,56 @@ app.get('/api/feedback', async (req, res) => {
   }
 });
 
+app.get('/api/lessons', async (req, res) => {
+  try {
+    const { section_id } = req.query;
+    console.log('Requested section_id:', section_id);
+
+    if (!section_id) {
+      return res.status(400).json({ error: 'section_id is required.' });
+    }
+
+    // Verify if section exists
+    const sectionQuery = 'SELECT * FROM section WHERE section_id = $1';
+    const sectionResult = await db.query(sectionQuery, [section_id]);
+
+    if (sectionResult.rowCount === 0) {
+      return res.status(404).json({
+        error: 'Section not found',
+        section_id: section_id,
+      });
+    }
+
+    // Get lessons for the section, ordered by lesson_order
+    const query = `
+      SELECT lesson_id, name, content, expected_output, xp
+      FROM lesson
+      WHERE section_id = $1
+      ORDER BY lesson_order ASC; -- Ensure lessons are ordered
+    `;
+    const result = await db.query(query, [section_id]);
+
+    if (result.rowCount === 0) {
+      // Return an empty array with a friendly message
+      return res.status(200).json({
+        message: 'No lessons found for this section.',
+        section_id: section_id,
+        lessons: [],
+      });
+    }
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Error fetching lessons:', err);
+    res.status(500).json({
+      error: 'Failed to fetch lessons.',
+      details: err.message,
+      section_id: section_id,
+    });
+  }
+});
+
+
 app.get('/api/section', async (req, res) => {
   try {
     const { course_id } = req.query;
@@ -719,50 +777,25 @@ app.get('/api/section', async (req, res) => {
       return res.status(400).json({ error: 'Invalid or missing course_id' });
     }
 
+    // Get sections for the course, ordered by section_order
     const query = `
       SELECT 
         section.section_id, 
         section.name, 
         section.description
       FROM section
-      WHERE section.course_id = $1;
+      WHERE section.course_id = $1
+      ORDER BY section_order ASC; -- Ensure sections are ordered
     `;
-
     const result = await db.query(query, [course_id]);
 
-    // Return an empty array instead of a 404 error
+    // Return an empty array if no sections found
     res.status(200).json(result.rows || []);
   } catch (err) {
     console.error('Error fetching sections:', err);
     res.status(500).json({ error: 'Failed to fetch sections' });
   }
 });
-
-
-app.post('/api/section', async (req, res) => {
-  try {
-    console.log('Received request body:', req.body); // Debug incoming request body
-    const { course_id, name, description } = req.body;
-
-    if (!course_id || !name || !description) {
-      return res.status(400).json({ error: 'course_id, name, and description are required.' });
-    }
-
-    const query = `
-      INSERT INTO section (course_id, name, description)
-      VALUES ($1, $2, $3)
-      RETURNING section_id, course_id, name, description;
-    `;
-    const values = [course_id, name, description];
-
-    const result = await db.query(query, values);
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error('Error adding section:', err);
-    res.status(500).json({ error: 'Failed to add section.' });
-  }
-});
-
 
 
 app.put('/api/section/:section_id', async (req, res) => {
@@ -950,8 +983,8 @@ app.get('/api/lesson/:lessonId', async (req, res) => {
       SELECT 
         lesson.lesson_id, 
         lesson.name, 
-         
         lesson.content, 
+        lesson.section_id, -- Include section_id
         course.language_id -- Fetch language_id from the course
       FROM lesson
       JOIN section ON lesson.section_id = section.section_id -- Join with section table
@@ -964,7 +997,7 @@ app.get('/api/lesson/:lessonId', async (req, res) => {
       return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    res.status(200).json(result.rows[0]); // Include language_id in the response
+    res.status(200).json(result.rows[0]); // Include section_id in the response
   } catch (err) {
     console.error('Error fetching lesson:', err);
     res.status(500).json({ error: 'Failed to fetch lesson data' });
@@ -1141,3 +1174,74 @@ app.post('/api/run', async (req, res) => {
   }
 });
 
+
+
+app.post('/api/sections/reorder', async (req, res) => {
+  const { sections } = req.body; // Expect an array of { section_id, order }
+
+  if (!sections || !Array.isArray(sections)) {
+    return res.status(400).json({ error: 'Invalid request format. Expected an array of sections.' });
+  }
+
+  const client = await db.connect(); // Use 'db' instead of 'pool'
+
+
+  try {
+    await client.query('BEGIN');
+
+    // Update section order for each section
+    const updatePromises = sections.map(({ section_id, order }) => {
+      return client.query(
+        'UPDATE section SET section_order = $1 WHERE section_id = $2',
+        [order, section_id]
+      );
+    });
+
+    await Promise.all(updatePromises);
+
+    await client.query('COMMIT');
+    res.json({ success: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error reordering sections:', err);
+    res.status(500).json({ error: 'Failed to reorder sections.' });
+  } finally {
+    client.release();
+  }
+});
+
+
+// Reorder lessons
+app.post('/api/lessons/reorder', async (req, res) => {
+  const { lessons } = req.body; // Expect an array of { lesson_id, order }
+
+  if (!lessons || !Array.isArray(lessons)) {
+    return res.status(400).json({ error: 'Invalid request format. Expected an array of lessons.' });
+  }
+
+  const client = await db.connect(); // Use 'db' instead of 'pool'
+
+
+  try {
+    await client.query('BEGIN');
+
+    // Update lesson order for each lesson
+    const updatePromises = lessons.map(({ lesson_id, order }) => {
+      return client.query(
+        'UPDATE lesson SET lesson_order = $1 WHERE lesson_id = $2',
+        [order, lesson_id]
+      );
+    });
+
+    await Promise.all(updatePromises);
+
+    await client.query('COMMIT');
+    res.json({ success: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error reordering lessons:', err);
+    res.status(500).json({ error: 'Failed to reorder lessons.' });
+  } finally {
+    client.release();
+  }
+});
