@@ -12,7 +12,7 @@
   font-weight: bold;
   text-align: left;
   margin-bottom: 20px;
-  color: #000;
+  color: #333; /* Slightly darker text for better readability */
 }
 
 .add-section-container {
@@ -20,7 +20,7 @@
   justify-content: flex-end;
   align-items: center;
   margin-bottom: 20px;
-  gap: 10px;
+  gap: 10px; /* Spacing between elements */
 }
 
 .section-input {
@@ -28,12 +28,13 @@
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  font-size: 14px;
 }
 
 .add-section-button {
   display: flex;
   align-items: center;
-  background-color: #007bff;
+  background-color: #28a745; /* Green for add button */
   color: #fff;
   padding: 10px 15px;
   font-size: 16px;
@@ -41,49 +42,67 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  gap: 5px;
+  gap: 5px; /* Space between icon and text */
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .add-section-button:hover {
-  background-color: #0056b3;
+  background-color: #218838; /* Darker green for hover */
+  transform: translateY(-2px); /* Slight lift effect */
 }
 
 .section-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .section-table th,
 .section-table td {
   border: 1px solid #ddd;
-  padding: 10px;
+  padding: 12px;
   text-align: left;
   font-size: 16px;
-  color: #000;
+  color: #555; /* Medium gray for table content */
 }
 
 .section-table th {
-  background-color: #f4f4f4;
+  background-color: #f8f9fa; /* Subtle gray for header */
   font-weight: bold;
+}
+
+.section-table tr:hover {
+  background-color: #f1f1f1; /* Light gray hover effect for rows */
 }
 
 .icon {
   cursor: pointer;
-  font-size: 16px;
+  font-size: 18px;
   margin-right: 10px;
+  transition: color 0.3s ease;
 }
 
-
-.edit-lessons-icon {
-  color: #007bff;
+.icon:hover {
+  transform: scale(1.1); /* Slight zoom effect */
 }
+
+.edit-lessons-icon,
 .edit-section-icon {
-  color: #007bff;
+  color: #007bff; /* Blue for edit actions */
+}
+
+.view-lessons-icon,
+.view-section-icon {
+  color: #000000; /* Green for view actions */
 }
 
 .delete-section-icon {
-  color: #f44336;
+  color: #dc3545; /* Red for delete actions */
+}
+
+.delete-section-icon:hover {
+  color: #c82333; /* Darker red on hover */
 }
 
 .save-button {
@@ -98,8 +117,24 @@
   border-radius: 4px;
   cursor: pointer;
   width: 150px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .save-button:hover {
   background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.error-message {
+  color: #dc3545;
+  font-weight: bold;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.success-message {
+  color: #28a745;
+  font-weight: bold;
+  text-align: center;
+  margin: 10px 0;
 }

@@ -13,12 +13,14 @@ const AddEditSectionComponent = ({ section, courseId, onSave, onCancel }) => {
         name: sectionName,
         description: sectionDescription,
       });
+    } else {
+      alert('Section name is required.');
     }
   };
 
   return (
     <div className="edit-course-form">
-      <h2>{section ? 'Edit Section' : 'Add Section'}</h2>
+      <h2>{section?.section_id ? 'Edit Section' : 'Add Section'}</h2>
       <label>Section Name</label>
       <input
         type="text"
