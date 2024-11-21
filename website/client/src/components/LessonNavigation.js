@@ -5,8 +5,6 @@ import 'styles/LessonNavigation.css';
 const LessonNavigation = ({ currentLessonId, lessons }) => {
   const navigate = useNavigate();
 
-  // Debugging logs for props
-  console.log('LessonNavigation Props:', { currentLessonId, lessons });
 
   // Find current lesson index
   const currentIndex = lessons?.findIndex((lesson) => lesson.lesson_id === currentLessonId);
