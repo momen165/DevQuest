@@ -9,6 +9,9 @@ import { java } from '@codemirror/lang-java';
 import 'styles/LessonPage.css';
 import Navbar from 'components/Navbar';
 import LessonNavigation from 'components/LessonNavigation';
+import { useAuth } from 'AuthContext'; // Ensure you import useAuth
+
+
 
 const languageExtensions = {
   71: python(), // Python
@@ -19,6 +22,7 @@ const languageExtensions = {
 
 const LessonPage = () => {
   const { lessonId } = useParams();
+  const { user } = useAuth(); // Access user from AuthContext
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -67,46 +71,66 @@ const LessonPage = () => {
 
     if (lesson?.section_id) fetchAllLessons();
   }, [lesson?.section_id]);
-
-  // Run code function
+  
   const runCode = async () => {
     try {
       setConsoleOutput('Running code...');
+      
       if (!languageId) {
         setConsoleOutput('Language ID not available. Cannot run the code.');
         return;
       }
-
+  
+      if (!user || !user.token) {
+        setConsoleOutput('Authorization token is missing. Please log in again.');
+        return;
+      }
+  
       const payload = {
-        lessonId: parseInt(lessonId), // Assuming lessonId is from useParams
+        lessonId: parseInt(lessonId, 10),
         code,
         languageId,
       };
-
-      console.log('Payload:', payload);
-
-      const response = await axios.post('http://localhost:5000/api/run', payload);
-
-      console.log('Response:', response.data);
-
-      const { status, stdout, stderr, compile_output } = response.data;
-
-      if (status === 'Accepted') {
-        setConsoleOutput(stdout || 'No output.');
-      } else {
-        let errorMessage = `Status: ${status}\n`;
-        if (compile_output) errorMessage += `Compilation Error:\n${compile_output}\n`;
-        if (stderr) errorMessage += `Runtime Error:\n${stderr}\n`;
-        if (stdout) errorMessage += `Output:\n${stdout}\n`;
-
-        setConsoleOutput(errorMessage.trim());
+  
+      console.log('Payload sent to API:', payload);
+  
+      const response = await axios.post(
+        'http://localhost:5000/api/run',
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
+  
+      console.log('Response from API:', response.data);
+  
+      const { results } = response.data;
+      if (!results || results.length === 0) {
+        setConsoleOutput('No results received from the server.');
+        return;
       }
+  
+      let output = 'Test Case Results:\n';
+      results.forEach((testCase, index) => {
+        const { input, expected_output, actual_output, status } = testCase;
+        output += `Test Case ${index + 1}:\n`;
+        output += `Input:\n${input}\n`;
+        output += `Expected Output:\n${expected_output.trim()}\n`;
+        output += `Actual Output:\n${actual_output.trim()}\n`;
+        output += `Status: ${status}\n\n`;
+      });
+  
+      setConsoleOutput(output);
+  
     } catch (err) {
       console.error('Error running code:', err.response?.data || err.message);
-      setConsoleOutput('An error occurred while running the code.');
+      setConsoleOutput('An error occurred while running the code. Please try again.');
     }
-    
   };
+  
+  
 
   if (loading) return <p className="loading">Loading lesson...</p>;
   if (error) return <p className="error">{error}</p>;
@@ -134,7 +158,7 @@ const LessonPage = () => {
               extensions={[languageExtensions[languageId] || javascript()]} // Dynamically set the extension
               onChange={(value) => setCode(value)} // Update code state
             />
-            <button className="run-btn" onClick={runCode}>
+            <button className="run-btn" onClick={() => runCode(user)}>
               Run
             </button>
           </div>
@@ -154,8 +178,7 @@ const LessonPage = () => {
         
       />
       {/* Debugging Logs */}
-      {console.log('Current Lesson ID:', lessonId)}
-      {console.log('Lessons:', lessons)}
+    
     </>
   );
 };
