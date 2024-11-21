@@ -15,7 +15,6 @@ const languageExtensions = {
   74: javascript(), // JavaScript
   54: cpp(), // C++
   62: java(), // Java
-
 };
 
 const LessonPage = () => {
@@ -26,7 +25,8 @@ const LessonPage = () => {
   const [code, setCode] = useState('// Write your code here');
   const [consoleOutput, setConsoleOutput] = useState('Output will appear here...');
   const [languageId, setLanguageId] = useState(null); // To store language_id
-  const totalLessons = 10;
+  const [lessons, setLessons] = useState([]); // For navigation
+  const [totalLessons, setTotalLessons] = useState(0); // Dynamically set total lessons
 
   useEffect(() => {
     const fetchLesson = async () => {
@@ -34,8 +34,14 @@ const LessonPage = () => {
       setError('');
       try {
         const response = await axios.get(`http://localhost:5000/api/lesson/${lessonId}`);
-        setLesson(response.data);
-        setLanguageId(response.data.language_id); // Set language_id from API response
+        const lessonData = response.data;
+        setLesson(lessonData);
+        setLanguageId(lessonData.language_id); // Set language_id for code editor
+        
+        // Fetch lessons in the same section for navigation
+        const lessonsResponse = await axios.get(`http://localhost:5000/api/lessons?section_id=${lessonData.section_id}`);
+        setLessons(lessonsResponse.data || []);
+        setTotalLessons(lessonsResponse.data.length); // Dynamically set total lessons
       } catch (err) {
         setError('Failed to fetch lesson data.');
         console.error('Error fetching lesson:', err);
@@ -43,10 +49,26 @@ const LessonPage = () => {
         setLoading(false);
       }
     };
-
+  
     fetchLesson();
   }, [lessonId]);
 
+  // Fetch all lessons for navigation
+  useEffect(() => {
+    const fetchAllLessons = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/lessons?section_id=${lesson?.section_id}`);
+        setLessons(response.data || []);
+        setTotalLessons(response.data.length); // Update total lessons count
+      } catch (err) {
+        console.error('Failed to fetch lessons for navigation:', err);
+      }
+    };
+
+    if (lesson?.section_id) fetchAllLessons();
+  }, [lesson?.section_id]);
+
+  // Run code function
   const runCode = async () => {
     try {
       setConsoleOutput('Running code...');
@@ -54,21 +76,21 @@ const LessonPage = () => {
         setConsoleOutput('Language ID not available. Cannot run the code.');
         return;
       }
-  
+
       const payload = {
         lessonId: parseInt(lessonId), // Assuming lessonId is from useParams
         code,
         languageId,
       };
-  
+
       console.log('Payload:', payload);
-  
+
       const response = await axios.post('http://localhost:5000/api/run', payload);
-  
+
       console.log('Response:', response.data);
-  
+
       const { status, stdout, stderr, compile_output } = response.data;
-  
+
       if (status === 'Accepted') {
         setConsoleOutput(stdout || 'No output.');
       } else {
@@ -76,15 +98,15 @@ const LessonPage = () => {
         if (compile_output) errorMessage += `Compilation Error:\n${compile_output}\n`;
         if (stderr) errorMessage += `Runtime Error:\n${stderr}\n`;
         if (stdout) errorMessage += `Output:\n${stdout}\n`;
-  
+
         setConsoleOutput(errorMessage.trim());
       }
     } catch (err) {
       console.error('Error running code:', err.response?.data || err.message);
       setConsoleOutput('An error occurred while running the code.');
     }
+    
   };
-  
 
   if (loading) return <p className="loading">Loading lesson...</p>;
   if (error) return <p className="error">{error}</p>;
@@ -125,7 +147,15 @@ const LessonPage = () => {
         </div>
       </div>
 
-      <LessonNavigation lessonId={parseInt(lessonId)} totalLessons={totalLessons} />
+      {/* Lesson Navigation with all lessons */}
+      <LessonNavigation
+        currentLessonId={parseInt(lessonId)}
+        lessons={lessons} // Pass lessons array for navigation
+        
+      />
+      {/* Debugging Logs */}
+      {console.log('Current Lesson ID:', lessonId)}
+      {console.log('Lessons:', lessons)}
     </>
   );
 };

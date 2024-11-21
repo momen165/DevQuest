@@ -2,20 +2,37 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'styles/LessonNavigation.css';
 
-const LessonNavigation = ({ lessonId, totalLessons }) => {
+const LessonNavigation = ({ currentLessonId, lessons }) => {
   const navigate = useNavigate();
 
+  // Debugging logs for props
+  console.log('LessonNavigation Props:', { currentLessonId, lessons });
+
+  // Find current lesson index
+  const currentIndex = lessons?.findIndex((lesson) => lesson.lesson_id === currentLessonId);
+
+  // Handle invalid currentLessonId or empty lessons array
+  if (currentIndex === -1 || !lessons?.length) {
+    console.error(
+      `Invalid currentLessonId (${currentLessonId}) or empty lessons array.`
+    );
+    return null; // Don't render navigation
+  }
+
   const goToPreviousLesson = () => {
-    if (lessonId > 1) navigate(`/lesson/${lessonId - 1}`);
+    if (currentIndex > 0) {
+      navigate(`/lesson/${lessons[currentIndex - 1].lesson_id}`);
+    }
   };
 
   const goToNextLesson = () => {
-    if (lessonId < totalLessons) navigate(`/lesson/${lessonId + 1}`);
+    if (currentIndex < lessons.length - 1) {
+      navigate(`/lesson/${lessons[currentIndex + 1].lesson_id}`);
+    }
   };
 
   const completeLesson = () => {
-    alert('Lesson marked as complete!');
-    // You can implement backend logic here
+    alert(`Lesson ${currentLessonId} marked as complete!`);
   };
 
   return (
@@ -23,7 +40,7 @@ const LessonNavigation = ({ lessonId, totalLessons }) => {
       <button
         className="nav-button prev-button"
         onClick={goToPreviousLesson}
-        disabled={lessonId <= 1}
+        disabled={currentIndex === 0}
       >
         Prev
       </button>
@@ -33,7 +50,7 @@ const LessonNavigation = ({ lessonId, totalLessons }) => {
       <button
         className="nav-button next-button"
         onClick={goToNextLesson}
-        disabled={lessonId >= totalLessons}
+        disabled={currentIndex === lessons.length - 1}
       >
         Next
       </button>

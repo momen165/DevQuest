@@ -1,47 +1,45 @@
-/* General styling */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(180deg, #0A2A69 100%, #0C1F54 100%);
-  color: #FFFFFF;
-}
+/* Scope styles under .pricing-page */
 
 .pricing-page {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #0A2A69 0%, #0C1F54 100%);
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
   text-align: center;
+  min-height: 100vh;      /* Ensures the page fills the viewport */
+
 }
 
-.header {
+.pricing-page .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 50px;
 }
 
-
-
-
-
-.pricing-content {
+.pricing-page .pricing-content {
   padding: 50px;
 }
 
-h1 {
+.pricing-page h1 {
   font-size: 2.5em;
   margin: 0.5em 0;
 }
 
-p {
+.pricing-page .pricing-content p {
   color: #A4B4E1;
 }
 
-.toggle-plan {
+.pricing-page .toggle-plan {
   margin: 20px auto;
   display: flex;
   justify-content: center;
   gap: 20px;
 }
 
-.toggle-button {
+.pricing-page .toggle-button {
   background-color: #0A2A69;
   border: none;
   border-radius: 20px;
@@ -52,12 +50,12 @@ p {
   transition: background-color 0.3s;
 }
 
-.toggle-button.active {
+.pricing-page .toggle-button.active {
   background-color: #FFFFFF;
   color: #0A2A69;
 }
 
-.save-badge {
+.pricing-page .save-badge {
   background-color: #FFA500;
   border-radius: 5px;
   color: white;
@@ -67,7 +65,7 @@ p {
 }
 
 /* Pricing Card Styling */
-.pricing-card {
+.pricing-page .pricing-card {
   background: #FFFFFF;
   color: #0A2A69;
   border-radius: 10px;
@@ -78,23 +76,23 @@ p {
   position: relative;
 }
 
-.pricing-card h2 {
+.pricing-page .pricing-card h2 {
   font-size: 2.5em;
   margin: 0;
 }
 
-.plan-description {
+.pricing-page .plan-description {
   font-weight: bold;
   margin: 10px 0;
   color: #4C6FF1;
 }
 
-.feature {
+.pricing-page .feature {
   color: #A4B4E1;
   margin-bottom: 20px;
 }
 
-.choose-plan-button {
+.pricing-page .choose-plan-button {
   background: linear-gradient(180deg, #4C6FF1 0%, #364FC7 100%);
   color: #FFFFFF;
   border: none;
@@ -102,4 +100,63 @@ p {
   padding: 10px 20px;
   cursor: pointer;
   font-size: 1em;
+}
+
+.pricing-page .popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.pricing-page .popup-content {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.pricing-page .popup-content h2 {
+  color: #0A2A69;
+}
+
+.pricing-page .popup-content p {
+  color: #4C6FF1;
+}
+
+.pricing-page .confirm-button {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px;
+}
+
+.pricing-page .cancel-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pricing-page .success-message {
+  color: #28a745;
+  margin-top: 10px;
+}
+
+.pricing-page .error-message {
+  color: #dc3545;
+  margin-top: 10px;
 }

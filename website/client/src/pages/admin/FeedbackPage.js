@@ -19,36 +19,39 @@ const FeedbackPage = () => {
   }, []);
 
   return (
-    <div className="container">
+    <>
+     
+      <div className="container feedback-page">
       <Sidebar />
-      <div className="main-content">
-        <h2>Feedback</h2>
-        <table className="feedback-table">
-          <thead>
-            <tr>
-              <th>Feedback ID</th>
-              <th>Student Name</th>
-              <th>Feedback</th>
-              <th>Rating</th>
-              <th>Course Name</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {feedbacks.map((feedback) => (
-              <tr key={feedback.feedback_id}>
-                <td>#{feedback.feedback_id}</td>
-                <td>{feedback.student_name}</td>
-                <td>{feedback.feedback}</td>
-                <td>{feedback.rating}</td>
-                <td>{feedback.course_name}</td>
-                <td>{feedback.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  <div className="main-content">
+    <h2>Feedback</h2>
+    <table className="feedback-table">
+      <thead>
+        <tr>
+          <th>Feedback ID</th>
+          <th>Student Name</th>
+          <th>Feedback</th>
+          <th>Rating</th>
+          <th>Course Name</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {feedbacks.map((feedback) => (
+          <tr key={feedback.feedback_id}>
+            <td>#{feedback.feedback_id}</td>
+            <td>{feedback.student_name}</td>
+            <td>{feedback.feedback}</td>
+            <td>{feedback.rating}</td>
+            <td>{feedback.course_name}</td>
+            <td>{feedback.date}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
     </div>
+  </div>
+    </> 
   );
 };
 

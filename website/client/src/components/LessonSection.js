@@ -3,14 +3,12 @@ import axios from 'axios';
 import 'styles/LessonSection.css';
 import { useNavigate } from 'react-router-dom';
 
-
 const LessonList = ({ sectionName, sectionId }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
 
   const toggleList = () => {
     setIsOpen(!isOpen);
@@ -22,7 +20,12 @@ const LessonList = ({ sectionName, sectionId }) => {
       setError('');
       try {
         const response = await axios.get(`http://localhost:5000/api/lessons?section_id=${sectionId}`);
-        setLessons(response.data.lessons || response.data);
+    
+        // Ensure response.data is an array
+        const lessons = Array.isArray(response.data) ? response.data : [];
+        // Optionally, sort lessons if the server doesn't return them in order
+        const sortedLessons = lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
+        setLessons(sortedLessons);
       } catch (err) {
         setError('Failed to fetch lessons.');
         console.error('Error fetching lessons:', err);
@@ -30,7 +33,7 @@ const LessonList = ({ sectionName, sectionId }) => {
         setLoading(false);
       }
     };
-
+    
     fetchLessons();
   }, [sectionId]);
 

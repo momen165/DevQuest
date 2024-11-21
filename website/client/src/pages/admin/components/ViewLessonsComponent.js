@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FaEdit, FaTrash, FaPlusCircle } from 'react-icons/fa';
 import axios from 'axios';
 import LessonEditAddComponent from './LessonEditAddComponent';
 import 'pages/admin/styles/ViewLessonsComponent.css';
 
 const ViewLessonsComponent = ({ section, onClose }) => {
-  const [lessons, setLessons] = useState([]); // Lessons state
+  const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [editingLesson, setEditingLesson] = useState(null); // Track lesson being edited
-  const [isAddingLesson, setIsAddingLesson] = useState(false); // Track if adding a new lesson
-  const [isProcessing, setIsProcessing] = useState(false); // Track save/delete actions
+  const [editingLesson, setEditingLesson] = useState(null);
+  const [isAddingLesson, setIsAddingLesson] = useState(false);
 
-  // Fetch lessons for the given section
   const fetchLessons = async () => {
     setLoading(true);
     setError('');
@@ -20,7 +19,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       const response = await axios.get(
         `http://localhost:5000/api/lessons?section_id=${section.section_id}`
       );
-      setLessons(Array.isArray(response.data) ? response.data : []); // Ensure it's an array
+      setLessons(response.data || []);
     } catch (err) {
       console.error('Error fetching lessons:', err);
       setError('Failed to fetch lessons.');
@@ -30,123 +29,119 @@ const ViewLessonsComponent = ({ section, onClose }) => {
   };
 
   useEffect(() => {
-    if (section?.section_id) {
-      fetchLessons();
-    }
+    if (section?.section_id) fetchLessons();
   }, [section]);
 
-  // Handle save operation from LessonEditAddComponent
   const handleSaveLesson = async () => {
-    setIsProcessing(true);
-    try {
-      // After saving, refresh lessons by fetching from backend
-      await fetchLessons();
-    } catch (error) {
-      console.error('Error saving lesson:', error);
-      setError('Failed to save lesson.');
-    } finally {
-      setEditingLesson(null);
-      setIsAddingLesson(false);
-      setIsProcessing(false);
-    }
-  };
-
-  // Handle delete operation for lessons
-  const handleDeleteLesson = async (lessonId) => {
-    if (!window.confirm('Are you sure you want to delete this lesson?')) {
-      return;
-    }
-    setIsProcessing(true);
-    try {
-      await axios.delete(`http://localhost:5000/api/lessons/${lessonId}`);
-      // Refresh lessons after deletion
-      await fetchLessons();
-    } catch (err) {
-      console.error('Error deleting lesson:', err);
-      setError('Failed to delete lesson.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Open Add Lesson form
-  const handleAddLesson = () => {
-    setEditingLesson(null); // Clear any editing state
-    setIsAddingLesson(true); // Enable Add mode
-  };
-
-  // Open Edit Lesson form
-  const handleEditLesson = (lesson) => {
-    setEditingLesson(lesson); // Set the lesson being edited
-    setIsAddingLesson(false); // Ensure not in add mode
-  };
-
-  // Close Add/Edit Lesson form
-  const handleCancel = () => {
+    await fetchLessons();
     setEditingLesson(null);
     setIsAddingLesson(false);
   };
 
+  const handleDeleteLesson = async (lessonId) => {
+    if (window.confirm('Are you sure you want to delete this lesson?')) {
+      await axios.delete(`http://localhost:5000/api/lessons/${lessonId}`);
+      await fetchLessons();
+    }
+  };
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+  
+    const reorderedLessons = Array.from(lessons);
+    const [movedLesson] = reorderedLessons.splice(result.source.index, 1);
+    reorderedLessons.splice(result.destination.index, 0, movedLesson);
+  
+    setLessons(reorderedLessons);
+  
+    // Map the lessons array to only include lesson_id and order
+    const payload = reorderedLessons.map((lesson, index) => ({
+      lesson_id: lesson.lesson_id,
+      order: index,
+    }));
+  
+    try {
+      await axios.post('http://localhost:5000/api/lessons/reorder', { lessons: payload });
+      console.log('Reorder successful');
+    } catch (err) {
+      console.error('Error updating lesson order:', err);
+    }
+  };
+  
+
   return (
     <div className="view-lessons-container">
       <h3>{section.name} Lessons</h3>
-
-      <div className="add-lesson-container">
-        <button
-          className="add-lesson-button"
-          onClick={handleAddLesson} // Trigger Add Lesson form
-        >
-          Add Lesson <FaPlusCircle />
-        </button>
-      </div>
+      <button className="add-lesson-button" onClick={() => setIsAddingLesson(true)}>
+        Add Lesson <FaPlusCircle />
+      </button>
 
       {loading ? (
         <p>Loading lessons...</p>
       ) : error ? (
-        <p className="error">{error}</p> // Display the error message if set
+        <p className="error">{error}</p>
       ) : isAddingLesson || editingLesson ? (
         <LessonEditAddComponent
           section={section}
-          lesson={editingLesson} // Pass lesson if editing, null if adding
-          onSave={handleSaveLesson} // Save handler
-          onDelete={handleDeleteLesson} // Delete handler (only for edit mode)
-          onCancel={handleCancel} // Cancel handler
+          lesson={editingLesson}
+          onSave={handleSaveLesson}
+          onDelete={handleDeleteLesson}
+          onCancel={() => {
+            setEditingLesson(null);
+            setIsAddingLesson(false);
+          }}
         />
       ) : lessons.length > 0 ? (
-        <table className="lesson-table">
-          <thead>
-            <tr>
-              <th>Lesson Name</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lessons.map((lesson) => (
-              <tr key={lesson.lesson_id}>
-                <td>{lesson.name}</td>
-                <td>
-                  <FaEdit
-                    className="icon edit-lesson-icon"
-                    onClick={() => handleEditLesson(lesson)} // Open Edit Lesson form
-                    title="Edit Lesson"
-                    aria-label="Edit Lesson"
-                  />
-                  <FaTrash
-                    className="icon delete-lesson-icon"
-                    onClick={() => handleDeleteLesson(lesson.lesson_id)} // Trigger delete
-                    title="Delete Lesson"
-                    aria-label="Delete Lesson"
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="lessons">
+            {(provided) => (
+              <table className="lesson-table" ref={provided.innerRef} {...provided.droppableProps}>
+                <thead>
+                  <tr>
+                    <th>Lesson Name</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lessons.map((lesson, index) => (
+                    <Draggable
+                      key={lesson.lesson_id}
+                      draggableId={String(lesson.lesson_id)}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <tr
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <td>{lesson.name}</td>
+                          <td>
+                            <FaEdit
+                              className="icon edit-section-icon"
+                              onClick={() => setEditingLesson(lesson)}
+                              title="Edit Lesson"
+                            />
+                            <FaTrash
+                              className="icon delete-section-icon"
+                              onClick={() => handleDeleteLesson(lesson.lesson_id)}
+                              title="Delete Lesson"
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </tbody>
+              </table>
+            )}
+          </Droppable>
+        </DragDropContext>
       ) : (
-        <p>No lessons available for this section.</p> // Show message if no lessons are present
+        <p>No lessons available for this section.</p>
       )}
-
-      <button className="save-button" onClick={onClose}>
+      <button className="close-button" onClick={onClose}>
         Close
       </button>
     </div>
