@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 5000;
 require('dotenv').config();
+const sharp = require('sharp');
 
 const fs = require('fs');
 const multer = require('multer');
@@ -335,8 +336,7 @@ app.post('/api/changePassword', authenticateToken, async (req, res) => {
 // Add new course with image upload
 app.post('/api/addCourses', authenticateToken, upload.single('image'), async (req, res) => {
   try {
-    console.log('Request Body:', req.body);
-    console.log('Uploaded File:', req.file);
+   
 
     const { title, description, status, difficulty, language_id } = req.body; // Include language_id
 
@@ -363,14 +363,14 @@ app.post('/api/addCourses', authenticateToken, upload.single('image'), async (re
       RETURNING *;
     `;
     const result = await db.query(query, [title, description, status, difficulty, language_id, imagePath]);
-
+    await logActivity('Course', `Course created: ${title} by user ID ${req.user.userId} Name (${req.user.name})`, req.user.userId);
     if (result.rowCount === 0) {
       return res.status(400).json({ error: 'Failed to add course' });
     }
 
     // Return the created course
     res.status(201).json(result.rows[0]);
-    await logActivity('Course', `New course added: ${title}`, req.user.userId);
+    await logActivity('Course', `New course added: ${title} by user ${req.user.userId} (${req.user.name})`, req.user.userId);
   } catch (err) {
     console.error('Error adding course:', err);
     res.status(500).json({ error: 'Failed to add course' });
@@ -611,46 +611,88 @@ app.get('/api/students/:studentId/courses', authenticateToken, async (req, res) 
 
 
 
+// In server.js, add/update the sections endpoint
 app.post('/api/sections', authenticateToken, async (req, res) => {
   try {
-    const { courseId, title } = req.body;
+    const { course_id, name, description } = req.body;
 
-    const query = `
-      INSERT INTO section (course_id, title)
-      VALUES ($1, $2) RETURNING section_id
+    // Validate required fields
+    if (!course_id || !name) {
+      return res.status(400).json({ error: 'course_id and name are required' });
+    }
+
+    // Get the next order value
+    const orderQuery = `
+      SELECT COALESCE(MAX(section_order), 0) + 1 as next_order 
+      FROM section 
+      WHERE course_id = $1
     `;
-    const { rows } = await db.query(query, [courseId, title]);
+    const orderResult = await db.query(orderQuery, [course_id]);
+    const nextOrder = orderResult.rows[0].next_order;
+
+    // Insert the new section
+    const query = `
+      INSERT INTO section (course_id, name, description, section_order)
+      VALUES ($1, $2, $3, $4)
+      RETURNING section_id, course_id, name, description, section_order;
+    `;
+    
+    const result = await db.query(query, [course_id, name, description, nextOrder]);
 
     // Log activity
-    await logActivity('Section', `New section added: ${title}`, req.user.userId);
+    await logActivity('Section', `New section added: ${name} by user ID ${req.user.userId} Name (${req.user.name})`, req.user.userId);
 
-    res.status(201).json({ message: 'Section added successfully' });
+
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('Error adding section:', err.message || err);
-    res.status(500).json({ error: 'Failed to add section' });
+    console.error('Error creating section:', err);
+    res.status(500).json({ error: 'Failed to create section' });
   }
 });
+
 
 app.put('/api/sections/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title } = req.body;
+    const { name, description } = req.body;
 
-    const query = `
-      UPDATE section SET title = $1 WHERE section_id = $2
+    // Input validation
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid title provided' });
+    }
+
+    // Description can be null/empty but if provided must be string
+    if (description && typeof description !== 'string') {
+      return res.status(400).json({ error: 'Invalid description format' });
+    }
+
+    // Update section with both name and description
+    const updateQuery = `
+      UPDATE section 
+      SET name = $1,
+          description = $2
+          
+      WHERE section_id = $3
+      RETURNING *
     `;
-    await db.query(query, [title, id]);
+    
+    const result = await db.query(updateQuery, [name.trim(), description, id]);
 
-    // Log activity
-    await logActivity('Section', `Section updated: ${title}`, req.user.userId);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Section not found' });
+    }
 
-    res.status(200).json({ message: 'Section updated successfully' });
+    await logActivity('Section', `Section updated: ${name} by user ID ${req.user.userId} Name (${req.user.name})`, req.user.userId);
+
+    res.status(200).json({ 
+      message: 'Section updated successfully',
+      section: result.rows[0]
+    });
   } catch (err) {
-    console.error('Error updating section:', err.message || err);
+    console.error('Error updating section:', err);
     res.status(500).json({ error: 'Failed to update section' });
   }
 });
-
 
 
 app.get('/api/activities/recent', authenticateToken, async (req, res) => {
@@ -685,23 +727,53 @@ const logActivity = async (actionType, actionDescription, userId = null) => {
 };
 
 
-
 app.delete('/api/courses/:courseId', authenticateToken, async (req, res) => {
-  const { courseId } = req.params;
+  const courseId = req.params.courseId;
 
   try {
-    // Delete related records in the enrollment table
+    // First get course details for logging - fixed column name
+    const courseResult = await db.query('SELECT name FROM course WHERE course_id = $1', [courseId]);
+    if (courseResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    
+    // Add check for undefined title
+    const name = courseResult.rows[0].name;
+    if (!name) {
+      return res.status(400).json({ error: 'Course name not found' });
+    }
+
+    // Get all sections for this course
+    const sections = await db.query('SELECT section_id FROM section WHERE course_id = $1', [courseId]);
+    
+    // Delete lessons for all sections
+    for (const section of sections.rows) {
+      await db.query('DELETE FROM lesson WHERE section_id = $1', [section.section_id]);
+    }
+
+    // Delete sections
+    await db.query('DELETE FROM section WHERE course_id = $1', [courseId]);
+
+    // Delete enrollments
     await db.query('DELETE FROM enrollment WHERE course_id = $1', [courseId]);
 
-    // Delete the course itself
+    // Finally delete the course
     await db.query('DELETE FROM course WHERE course_id = $1', [courseId]);
 
-    res.status(200).json({ message: 'Course and related enrollments deleted successfully.' });
+    // Log the activity with verified title
+    await logActivity('Course', `Course was deleted: ${name} by user ID ${req.user.userId} Name (${req.user.name})`, req.user.userId);
+    
+    res.status(200).json({ message: 'Course and all related data deleted successfully.' });
+    
   } catch (err) {
     console.error('Error deleting course:', err);
-    res.status(500).json({ error: 'Failed to delete course.' });
+    res.status(500).json({ 
+      error: 'Failed to delete course',
+      details: err.detail || err.message
+    });
   }
 });
+
 
 
 // server.js
@@ -719,52 +791,51 @@ app.get('/api/feedback', async (req, res) => {
   }
 });
 
-app.get('/api/lessons', async (req, res) => {
+app.get('/api/lesson/:lessonId', async (req, res) => {
+  const { lessonId } = req.params;
+
   try {
-    const { section_id } = req.query;
-
-
-    if (!section_id) {
-      return res.status(400).json({ error: 'section_id is required.' });
-    }
-
-    // Verify if section exists
-    const sectionQuery = 'SELECT * FROM section WHERE section_id = $1';
-    const sectionResult = await db.query(sectionQuery, [section_id]);
-
-    if (sectionResult.rowCount === 0) {
-      return res.status(404).json({
-        error: 'Section not found',
-        section_id: section_id,
-      });
-    }
-
-    // Get lessons for the section, ordered by lesson_order
+    // Query that joins lesson, section, and course to fetch lesson and language_id
     const query = `
-      SELECT lesson_id, name, content, expected_output, xp
+      SELECT 
+        lesson.*, 
+        COALESCE(lesson.test_cases::json, '[{"input": "", "expected_output": ""}]'::json) as test_cases,
+        course.language_id -- Fetch language_id from the course table
       FROM lesson
-      WHERE section_id = $1
-      ORDER BY lesson_order ASC; -- Ensure lessons are ordered
+      JOIN section ON lesson.section_id = section.section_id
+      JOIN course ON section.course_id = course.course_id
+      WHERE lesson.lesson_id = $1;
     `;
-    const result = await db.query(query, [section_id]);
 
-    if (result.rowCount === 0) {
-      // Return an empty array with a friendly message
-      return res.status(200).json({
-        message: 'No lessons found for this section.',
-        section_id: section_id,
-        lessons: [],
-      });
+    const result = await db.query(query, [lessonId]);
+
+    if (result.rows.length === 0) {
+      console.error(`Lesson with ID ${lessonId} not found.`);
+      return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    res.status(200).json(result.rows);
+    // Extract lesson data
+    const lessonData = result.rows[0];
+
+    // Ensure test_cases is always an array
+    try {
+      lessonData.test_cases = Array.isArray(lessonData.test_cases)
+        ? lessonData.test_cases.map(testCase => ({
+            input: testCase.input || '',
+            expectedOutput: testCase.expected_output || '', // Convert to expectedOutput for frontend
+          }))
+        : [{ input: '', expectedOutput: '' }];
+    } catch (err) {
+      console.error('Error parsing test_cases:', err);
+      lessonData.test_cases = [{ input: '', expectedOutput: '' }];
+    }
+
+    console.log('Formatted lesson data with language_id:', lessonData);
+
+    res.status(200).json(lessonData);
   } catch (err) {
-    console.error('Error fetching lessons:', err);
-    res.status(500).json({
-      error: 'Failed to fetch lessons.',
-      details: err.message,
-      section_id: section_id,
-    });
+    console.error('Error fetching lesson:', err.message);
+    res.status(500).json({ error: 'Failed to fetch lesson data. Please try again later.' });
   }
 });
 
@@ -830,36 +901,74 @@ app.put('/api/section/:section_id', async (req, res) => {
 });
 
 
-app.delete('/api/section/:section_id', async (req, res) => {
+app.delete('/api/section/:section_id', authenticateToken, async (req, res) => {
+  const client = await db.connect();
+  
   try {
+    await client.query('BEGIN');
     const { section_id } = req.params;
 
-    const query = `DELETE FROM section WHERE section_id = $1 RETURNING section_id;`;
-    const result = await db.query(query, [section_id]);
-
-    if (result.rowCount === 0) {
+    // Get section name first
+    const getSectionQuery = 'SELECT name FROM section WHERE section_id = $1';
+    const sectionResult = await client.query(getSectionQuery, [section_id]);
+    
+    if (sectionResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Section not found.' });
     }
+    
+    const sectionName = sectionResult.rows[0].name;
 
-    res.status(200).json({ message: 'Section deleted successfully.', section_id });
+    // Delete associated lessons
+    const deleteLessonsQuery = `
+      DELETE FROM lesson 
+      WHERE section_id = $1 
+      RETURNING lesson_id
+    `;
+    await client.query(deleteLessonsQuery, [section_id]);
+
+    // Delete the section
+    const deleteSectionQuery = `
+      DELETE FROM section 
+      WHERE section_id = $1 
+      RETURNING section_id
+    `;
+    await client.query(deleteSectionQuery, [section_id]);
+
+    await client.query('COMMIT');
+    console.log('Section deleted:', sectionName);
+
+    await logActivity(
+      'Section', 
+      `Section "${sectionName}" deleted by user ID ${req.user.userId} Name (${req.user.name})`, 
+      req.user.userId
+    );
+
+    res.status(200).json({ message: 'Section and associated lessons deleted successfully.' });
+
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('Error deleting section:', err);
     res.status(500).json({ error: 'Failed to delete section.' });
+  } finally {
+    client.release();
   }
 });
 
 
+// In server.js
 app.post('/api/lessons', async (req, res) => {
   try {
-    const { section_id, name, content, expected_output, xp, test_cases } = req.body;
+    const { section_id, name, content, xp, test_cases } = req.body;
 
+    // Validate required fields
     if (!section_id || !name || !content) {
       return res.status(400).json({ error: 'section_id, name, and content are required.' });
     }
 
     const query = `
-      INSERT INTO lesson (section_id, name, content, expected_output, xp, test_cases)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO lesson (section_id, name, content, xp, test_cases)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *;
     `;
 
@@ -867,11 +976,11 @@ app.post('/api/lessons', async (req, res) => {
       section_id,
       name,
       content,
-      expected_output,
       xp || 0,
-      JSON.stringify(test_cases || []), // Convert test cases to JSON
+      JSON.stringify(test_cases || [])
     ];
-    console.log('Inserting testCases:', test_cases); // Debug log
+
+    console.log('Saving test cases:', test_cases); // Debug log
     const result = await db.query(query, values);
 
     res.status(201).json(result.rows[0]);
@@ -880,7 +989,6 @@ app.post('/api/lessons', async (req, res) => {
     res.status(500).json({ error: 'Failed to add lesson.' });
   }
 });
-
 
 
 
@@ -924,49 +1032,53 @@ app.get('/api/lessons', async (req, res) => {
 
 
 // In server.js - Update lessons PUT endpoint
-app.put('/api/lessons/:lesson_id', async (req, res) => {
-  const { lesson_id } = req.params;
-  const { name, content, section_id, xp, testCases } = req.body;
-
+// In server.js
+app.put('/api/lessons/:lesson_id', authenticateToken, async (req, res) => {
   try {
-    // Convert test cases to JSON
-    const test_cases_json = testCases
-      ? JSON.stringify(testCases.map(test => ({
-          input: test.input,
-          expected_output: test.expectedOutput // Convert frontend format to backend format
-        })))
-      : null;
+    const { lesson_id } = req.params;
+    const { name, content, xp, test_cases, section_id } = req.body;
 
-    // Update query
+    // Validate required fields
+    if (!name || !content || !section_id) {
+      return res.status(400).json({ error: 'Name, content and section_id are required' });
+    }
+
     const query = `
       UPDATE lesson 
-      SET name = $1, content = $2, section_id = $3, xp = $4, test_cases = $5
-      WHERE lesson_id = $6 
-      RETURNING lesson_id, name, content, section_id, xp, 
-                test_cases::json AS test_cases;
+      SET name = $1, 
+          content = $2, 
+          xp = $3, 
+          test_cases = $4,
+          section_id = $5
+         
+      WHERE lesson_id = $6
+      RETURNING *;
     `;
 
-    const result = await db.query(query, [
-      name, 
-      content, 
-      section_id, 
-      xp, 
-      test_cases_json, 
+    const values = [
+      name,
+      content,
+      xp || 0,
+      JSON.stringify(test_cases || []), // Ensure test_cases is always an array
+      section_id,
       lesson_id
-    ]);
+    ];
+
+    const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Lesson not found' });
     }
 
+    // Log successful update
     console.log('Updated lesson data:', result.rows[0]);
+    await logActivity('Lesson', `Lesson updated: ${name} by user ID ${req.user.userId} Name (${req.user.name})`, req.user.userId);
     res.json(result.rows[0]);
   } catch (err) {
     console.error('Error updating lesson:', err);
-    res.status(500).json({ error: 'Failed to update lesson. Please check your data.' });
+    res.status(500).json({ error: 'Failed to update lesson' });
   }
 });
-
 
 
 
@@ -986,7 +1098,7 @@ app.delete('/api/lessons/:lesson_id', async (req, res) => {
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Lesson not found.' });
     }
-
+    await logActivity('Lesson', `Lesson deleted: ${lessonId} by user ID ${req.user.userId} Name (${req.user.name})`, req.user.userId);
     res.status(200).json({ message: 'Lesson deleted successfully.', lesson_id });
   } catch (err) {
     console.error('Error deleting lesson:', err);
@@ -1131,90 +1243,93 @@ const { Buffer } = require('buffer'); // Node.js built-in module
 
 
 app.post('/api/run', authenticateToken, async (req, res) => {
-  const { lessonId, code, languageId } = req.body;
+  const { lessonId, code } = req.body;
 
-  if (!lessonId || !code || !languageId) {
-    return res.status(400).json({ error: 'Missing required fields: lessonId, code, or languageId' });
+  if (!lessonId || !code) {
+    return res.status(400).json({ error: 'Missing required fields: lessonId or code' });
   }
 
   try {
-    const query = `SELECT test_cases FROM public.lesson WHERE lesson_id = $1`;
-    const result = await db.query(query, [lessonId]);
+    // Get language ID and test cases in parallel
+    const [langResult, lessonResult] = await Promise.all([
+      db.query(`
+        SELECT c.language_id
+        FROM course c
+        JOIN section s ON c.course_id = s.course_id
+        JOIN lesson l ON s.section_id = l.section_id
+        WHERE l.lesson_id = $1
+      `, [lessonId]),
+      db.query('SELECT test_cases FROM lesson WHERE lesson_id = $1', [lessonId])
+    ]);
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Lesson not found' });
+    // Validate language ID
+    if (langResult.rowCount === 0 || !langResult.rows[0].language_id) {
+      return res.status(400).json({ error: 'Language ID not found for this lesson' });
     }
 
-    const testCases = result.rows[0].test_cases || [];
-    console.log('Retrieved test cases:', testCases);
-
-    if (!Array.isArray(testCases) || testCases.length === 0) {
-      return res.status(400).json({ error: 'No test cases found for this lesson.' });
+    // Validate lesson and test cases
+    if (lessonResult.rowCount === 0 || !Array.isArray(lessonResult.rows[0].test_cases)) {
+      return res.status(404).json({ error: 'Lesson or test cases not found' });
     }
 
-    const results = [];
+    const languageId = langResult.rows[0].language_id;
+    const testCases = lessonResult.rows[0].test_cases;
 
-    for (const testCase of testCases) {
+    // Process test cases
+    const results = await Promise.all(testCases.map(async testCase => {
       const { input, expectedOutput, expected_output } = testCase;
-      const normalizedExpectedOutput = expectedOutput || expected_output;
+      const normalizedExpectedOutput = (expectedOutput || expected_output || '').replace(/\\n/g, '\n');
 
-      if (!input || typeof input !== 'string') {
-        console.error('Invalid input for test case:', testCase);
-        return res.status(400).json({ error: 'Test case has invalid input.' });
+      // Validate test case
+      if (!input || !normalizedExpectedOutput) {
+        throw new Error('Invalid test case format');
       }
 
-      if (!normalizedExpectedOutput || typeof normalizedExpectedOutput !== 'string') {
-        console.error('Invalid expected_output for test case:', testCase);
-        return res.status(400).json({ error: 'Test case has invalid expected_output.' });
-      }
-
-      const finalExpectedOutput = normalizedExpectedOutput.replace(/\\n/g, '\n');
-
-      const base64Code = Buffer.from(code, 'utf8').toString('base64');
-      const base64Input = Buffer.from(input, 'utf8').toString('base64');
-      const base64ExpectedOutput = Buffer.from(finalExpectedOutput, 'utf8').toString('base64');
-
-      const submissionResponse = await axios.post(JUDGE0_API_URL, {
-        source_code: base64Code,
+      // Prepare submission
+      const submission = {
+        source_code: Buffer.from(code).toString('base64'),
         language_id: languageId,
-        stdin: base64Input,
-        expected_output: base64ExpectedOutput,
-      });
+        stdin: Buffer.from(input).toString('base64'),
+        expected_output: Buffer.from(normalizedExpectedOutput).toString('base64')
+      };
 
-      const submissionToken = submissionResponse.data.token;
+      // Submit code
+      const { data: { token } } = await axios.post(JUDGE0_API_URL, submission);
 
-      let executionResult = null;
-      while (!executionResult || executionResult.status.id < 3) {
-        const resultResponse = await axios.get(
-          `http://51.44.5.41:2358/submissions/${submissionToken}?base64_encoded=true`
+      // Poll for results
+      let result;
+      do {
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+        const response = await axios.get(
+          `http://51.44.5.41:2358/submissions/${token}?base64_encoded=true`
         );
-        executionResult = resultResponse.data;
+        result = response.data;
+      } while (result.status.id < 3);
 
-        if (executionResult.status.id < 3) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
-
-      const decodedStdout = executionResult.stdout
-        ? Buffer.from(executionResult.stdout, 'base64').toString('utf8')
+      // Process result
+      const actualOutput = result.stdout 
+        ? Buffer.from(result.stdout, 'base64').toString().trim()
         : '';
-      const isCorrect = decodedStdout.trim() === finalExpectedOutput.trim();
 
-      results.push({
+      return {
         input,
-        expected_output: finalExpectedOutput,
-        actual_output: decodedStdout,
-        status: isCorrect ? 'Passed' : 'Failed',
-      });
-    }
+        expected_output: normalizedExpectedOutput.trim(),
+        actual_output: actualOutput,
+        status: actualOutput === normalizedExpectedOutput.trim() ? 'Passed' : 'Failed',
+        error: result.stderr ? Buffer.from(result.stderr, 'base64').toString() : null
+      };
+    }));
 
     res.json({ results });
+
   } catch (error) {
-    console.error('Error in /api/run:', error.response?.data || error.message);
-    res.status(500).json({ error: 'An error occurred while running the code.' });
+    console.error('Error in /api/run:', error);
+    res.status(500).json({ 
+      error: 'Code execution failed',
+      details: error.response?.data || error.message 
+    });
   }
 });
-
 
 app.post('/api/sections/reorder', async (req, res) => {
   const { sections } = req.body; // Expect an array of { section_id, order }

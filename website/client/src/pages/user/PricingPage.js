@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import 'styles/PricingPage.css';
 import Navbar from 'components/Navbar';
+import { useAuth } from 'AuthContext'; // Ensure you import useAuth
 
 const PricingPage = () => {
+  const { user } = useAuth(); // Get user from useAuth context
   const [isMonthly, setIsMonthly] = useState(true);
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,7 +20,7 @@ const PricingPage = () => {
         amount_paid: isMonthly ? 20 : 168, // Only send the amount_paid
       }, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
+          Authorization: `Bearer ${user.token}`, // Include token
         },
       });
 

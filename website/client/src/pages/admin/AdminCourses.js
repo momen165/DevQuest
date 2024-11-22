@@ -23,25 +23,25 @@ const AdminCourses = () => {
     setError(message);
   };
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      if (token) {
-        setLoading(true);
-        try {
-          const response = await axios.get('http://localhost:5000/api/courses', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setCourses(response.data);
-        } catch (err) {
-          handleError(err, 'Failed to fetch courses.');
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
+const fetchCourses = async () => {
+  if (token) {
+    setLoading(true);
+    try {
+      const response = await axios.get('http://localhost:5000/api/courses', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCourses(response.data);
+    } catch (err) {
+      handleError(err, 'Failed to fetch courses.');
+    } finally {
+      setLoading(false);
+    }
+  }
+};
 
-    fetchCourses();
-  }, [token]);
+useEffect(() => {
+  fetchCourses();
+}, [token]);
 
   const handleEditSections = async (course) => {
     setEditingCourse(course);
@@ -140,7 +140,18 @@ const AdminCourses = () => {
             onClose={handleCloseSections}
           />
         ) : editingCourse || isAddingCourse ? (
-          <EditCourseForm course={editingCourse} onClose={() => setEditingCourse(null)} />
+          <EditCourseForm 
+  course={editingCourse} 
+  onClose={() => {
+    setEditingCourse(null);
+    setIsAddingCourse(false);
+  }}
+  onSave={() => {
+    fetchCourses();
+    setEditingCourse(null);
+    setIsAddingCourse(false);
+  }}
+/>
         ) : (
           <table className="course-table">
             <thead>
