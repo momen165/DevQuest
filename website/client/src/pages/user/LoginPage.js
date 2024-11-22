@@ -36,7 +36,7 @@ const LoginPage = () => {
   
 
   return (
-    <div className="container">
+    <div className="Auth_container">
       <div className="form-container">
         <h1>Log in</h1>
         <p>Don't have an account? <a href="/RegistrationPage">Sign up</a></p>

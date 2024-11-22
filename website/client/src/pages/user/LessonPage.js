@@ -37,13 +37,22 @@ const LessonPage = () => {
       setLoading(true);
       setError('');
       try {
-        const response = await axios.get(`http://localhost:5000/api/lesson/${lessonId}`);
+        const response = await axios.get(`http://localhost:5000/api/lesson/${lessonId}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`, // Pass the token in headers
+          },
+        });
+        
         const lessonData = response.data;
         setLesson(lessonData);
         setLanguageId(lessonData.language_id); // Set language_id for code editor
         
         // Fetch lessons in the same section for navigation
-        const lessonsResponse = await axios.get(`http://localhost:5000/api/lessons?section_id=${lessonData.section_id}`);
+        const lessonsResponse = await axios.get(`http://localhost:5000/api/lesson?section_id=${lessonData.section_id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`, // Pass the token in headers
+          },
+        });
         setLessons(lessonsResponse.data || []);
         setTotalLessons(lessonsResponse.data.length); // Dynamically set total lessons
       } catch (err) {
@@ -53,15 +62,21 @@ const LessonPage = () => {
         setLoading(false);
       }
     };
-  
+    console.log('Lesson Data:', lesson);
+    console.log('Test Cases:', lesson?.test_cases);
     fetchLesson();
   }, [lessonId]);
-
+  
+  
   // Fetch all lessons for navigation
   useEffect(() => {
     const fetchAllLessons = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/lessons?section_id=${lesson?.section_id}`);
+        const response = await axios.get(`http://localhost:5000/api/lesson?section_id=${lesson?.section_id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`, // Pass the token in headers
+          },
+        });
         setLessons(response.data || []);
         setTotalLessons(response.data.length); // Update total lessons count
       } catch (err) {

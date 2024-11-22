@@ -32,7 +32,7 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="container">
+    <div className="Auth_container">
       <div className="form-container">
         <h1>Create an account</h1>
         <p>Already have an account? <a href="/LoginPage">Log in</a></p>
