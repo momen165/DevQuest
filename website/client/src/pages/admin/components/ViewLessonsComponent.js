@@ -6,42 +6,33 @@ import LessonEditAddComponent from './LessonEditAddComponent';
 import 'pages/admin/styles/ViewLessonsComponent.css';
 import ErrorAlert from './ErrorAlert';
 
+import { useAuth } from 'AuthContext';
+
 const ViewLessonsComponent = ({ section, onClose }) => {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editingLesson, setEditingLesson] = useState(null);
   const [isAddingLesson, setIsAddingLesson] = useState(false);
-
+  const { user } = useAuth();
   const fetchLessons = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get(
-        `http://localhost:5000/api/lessons?section_id=${section.section_id}`
-      );
-
-      // Ensure response.data is an array
-      const lessonsData = Array.isArray(response.data) ? response.data : 
-                         response.data.lessons || [];
-
-      // Map and normalize test cases
-      const lessonsWithTestCases = lessonsData.map(lesson => ({
-        ...lesson,
-        test_cases: lesson.test_cases ? (
-          Array.isArray(lesson.test_cases) ? 
-            lesson.test_cases : 
-            JSON.parse(lesson.test_cases)
-        ).map(test => ({
-          input: test.input || '',
-          expectedOutput: test.expected_output || test.expectedOutput || ''
-        })) : []
-      }));
+      if (!user?.token) {
+        throw new Error('Authentication token is missing. Please log in again.');
+      }
+  
+      const response = await axios.get(`http://localhost:5000/api/lesson?section_id=${section.section_id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        }
+      });
       
-      setLessons(lessonsWithTestCases);
+      setLessons(response.data || []);
     } catch (err) {
-      console.error('Error fetching lessons:', err);
-      setError('Failed to fetch lessons. Please try again.');
+      setError(err.message || 'Failed to fetch lessons');
+      setLessons([]);
     } finally {
       setLoading(false);
     }
@@ -70,14 +61,14 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       if (lessonData.lesson_id) {
         // Update existing lesson
         await axios.put(
-          `http://localhost:5000/api/lessons/${lessonData.lesson_id}`,
+          `http://localhost:5000/api/lesson/${lessonData.lesson_id}`,
           lessonData,
           config
         );
       } else {
         // Create new lesson
         await axios.post(
-          'http://localhost:5000/api/lessons',
+          'http://localhost:5000/api/lesson',
           lessonData,
           config
         );
@@ -94,9 +85,30 @@ const ViewLessonsComponent = ({ section, onClose }) => {
   };
 
   const handleDeleteLesson = async (lessonId) => {
-    if (window.confirm('Are you sure you want to delete this lesson?')) {
-      await axios.delete(`http://localhost:5000/api/lessons/${lessonId}`);
+    setLoading(true);
+    setError('');
+    try {
+      if (!user?.token) {
+        throw new Error('Authentication token is missing. Please log in again.');
+      }
+  
+      await axios.delete(`http://localhost:5000/api/lesson/${lessonId}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      });
+  
+      // Refresh lessons list after successful delete
       await fetchLessons();
+  
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError('Unauthorized. Please log in again.');
+      } else {
+        setError(err.message || 'Failed to delete lesson');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -116,7 +128,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
     }));
   
     try {
-      await axios.post('http://localhost:5000/api/lessons/reorder', { lessons: payload });
+      await axios.post('http://localhost:5000/api/lesson/reorder', { lessons: payload });
       console.log('Reorder successful');
     } catch (err) {
       console.error('Error updating lesson order:', err);

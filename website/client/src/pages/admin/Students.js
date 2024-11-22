@@ -8,13 +8,13 @@ const StudentSubscriptionTable = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [students, setStudents] = useState([]); // Ensure it's always an array
-  const [loading, setLoading] = useState(true);
+  
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        setLoading(true);
+       
         const userData = JSON.parse(localStorage.getItem('user'));
         const token = userData ? userData.token : null;
 
@@ -32,7 +32,7 @@ const StudentSubscriptionTable = () => {
         setError(err.response?.data?.error || 'Failed to fetch students.');
         setStudents([]); // Fallback to empty array
       } finally {
-        setLoading(false);
+        
       }
     };
 
@@ -51,7 +51,7 @@ const StudentSubscriptionTable = () => {
       )
     : [];
 
-  if (loading) return <div>Loading students...</div>;
+
   if (error) return <div>{error}</div>;
 
   return (

@@ -15,7 +15,7 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="container">
+    <div className="Auth_container">
       <div className="form-container">
         <h1>Forgot Password</h1>
         <p>Enter your email address to receive a password reset link.</p>

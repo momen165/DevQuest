@@ -4,30 +4,45 @@ import Navbar from 'components/Navbar';
 import LessonList from 'components/LessonSection';
 import axios from 'axios';
 import 'styles/CourseSections.css';
+import { useAuth } from 'AuthContext';
 
 const CourseSection = () => {
-  const { courseId } = useParams();
+  const { courseId } = useParams(); // Extract courseId from route params
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Get the current user from AuthContext
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchSections = async () => {
       setLoading(true);
       setError('');
       try {
-        const response = await axios.get(`http://localhost:5000/api/section?course_id=${courseId}`);
-        setSections(response.data);
+        // Ensure user is authenticated and token is available
+        if (!user || !user.token) {
+          setError('User is not authenticated.');
+          return;
+        }
+
+        // Fetch sections for the given course
+        const response = await axios.get(`http://localhost:5000/api/section?course_id=${courseId}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`, // Pass the token in headers
+          },
+        });
+        setSections(response.data); // Update state with sections data
       } catch (err) {
         setError('Failed to fetch sections.');
         console.error('Error fetching sections:', err);
       } finally {
-        setLoading(false);
+        setLoading(false); // Stop the loading spinner
       }
     };
 
     fetchSections();
-  }, [courseId]);
+  }, [courseId, user]); // Re-run if courseId or user changes
 
   return (
     <>
