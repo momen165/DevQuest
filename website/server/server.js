@@ -772,7 +772,7 @@ app.get('/api/lessons', async (req, res) => {
 app.get('/api/section', async (req, res) => {
   try {
     const { course_id } = req.query;
-    console.log('Received course_id:', course_id);
+    
 
     if (!course_id || isNaN(course_id)) {
       return res.status(400).json({ error: 'Invalid or missing course_id' });
@@ -923,55 +923,49 @@ app.get('/api/lessons', async (req, res) => {
 
 
 
+// In server.js - Update lessons PUT endpoint
 app.put('/api/lessons/:lesson_id', async (req, res) => {
+  const { lesson_id } = req.params;
+  const { name, content, section_id, xp, testCases } = req.body;
+
   try {
-    const { lesson_id } = req.params;
-    const { name, content, expected_output, xp, testCases } = req.body;
+    // Convert test cases to JSON
+    const test_cases_json = testCases
+      ? JSON.stringify(testCases.map(test => ({
+          input: test.input,
+          expected_output: test.expectedOutput // Convert frontend format to backend format
+        })))
+      : null;
 
-    // Normalize testCases to test_cases
-    const test_cases = testCases || [];
-
-    if (testCases === undefined) {
-      console.warn('Warning: testCases is undefined. Defaulting to empty array.');
-    }
-
-    console.log('Received testCases:', testCases); // Debug log
-    console.log('Normalized test_cases:', test_cases); // Debug log
-
-    if (!name || !content) {
-      return res.status(400).json({ error: 'name and content are required.' });
-    }
-
+    // Update query
     const query = `
-      UPDATE lesson
-      SET name = $1, content = $2, expected_output = $3, xp = $4, test_cases = $5
-      WHERE lesson_id = $6
-      RETURNING *;
+      UPDATE lesson 
+      SET name = $1, content = $2, section_id = $3, xp = $4, test_cases = $5
+      WHERE lesson_id = $6 
+      RETURNING lesson_id, name, content, section_id, xp, 
+                test_cases::json AS test_cases;
     `;
 
-    const values = [
-      name,
-      content,
-      expected_output,
-      xp || 0,
-      JSON.stringify(test_cases), // Convert to JSON for database
-      lesson_id,
-    ];
+    const result = await db.query(query, [
+      name, 
+      content, 
+      section_id, 
+      xp, 
+      test_cases_json, 
+      lesson_id
+    ]);
 
-    const result = await db.query(query, values);
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Lesson not found.' });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    res.status(200).json(result.rows[0]);
+    console.log('Updated lesson data:', result.rows[0]);
+    res.json(result.rows[0]);
   } catch (err) {
     console.error('Error updating lesson:', err);
-    res.status(500).json({ error: 'Failed to update lesson.' });
+    res.status(500).json({ error: 'Failed to update lesson. Please check your data.' });
   }
 });
-
-
 
 
 
@@ -1001,36 +995,50 @@ app.delete('/api/lessons/:lesson_id', async (req, res) => {
 });
 
 
+
 app.get('/api/lesson/:lessonId', async (req, res) => {
   const { lessonId } = req.params;
 
   try {
     const query = `
       SELECT 
-        lesson.lesson_id, 
-        lesson.name, 
-        lesson.content, 
-        lesson.section_id, 
-        lesson.test_cases, -- Include test_cases
-        course.language_id -- Fetch language_id from the course
-      FROM lesson
-      JOIN section ON lesson.section_id = section.section_id
-      JOIN course ON section.course_id = course.course_id
-      WHERE lesson.lesson_id = $1;
+        lesson.*, 
+        COALESCE(lesson.test_cases::json, '[{"input": "", "expected_output": ""}]'::json) as test_cases
+      FROM lesson 
+      WHERE lesson_id = $1;
     `;
+
     const result = await db.query(query, [lessonId]);
 
     if (result.rows.length === 0) {
+      console.error(`Lesson with ID ${lessonId} not found.`);
       return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    res.status(200).json(result.rows[0]);
+    // Extract lesson data
+    const lessonData = result.rows[0];
+
+    // Ensure test_cases is always an array
+    try {
+      lessonData.test_cases = Array.isArray(lessonData.test_cases)
+        ? lessonData.test_cases.map(testCase => ({
+            input: testCase.input || '',
+            expectedOutput: testCase.expected_output || '', // Convert to expectedOutput for frontend
+          }))
+        : [{ input: '', expectedOutput: '' }];
+    } catch (err) {
+      console.error('Error parsing test_cases:', err);
+      lessonData.test_cases = [{ input: '', expectedOutput: '' }];
+    }
+
+    console.log('Formatted lesson data:', lessonData);
+
+    res.status(200).json(lessonData);
   } catch (err) {
-    console.error('Error fetching lesson:', err);
-    res.status(500).json({ error: 'Failed to fetch lesson data' });
+    console.error('Error fetching lesson:', err.message);
+    res.status(500).json({ error: 'Failed to fetch lesson data. Please try again later.' });
   }
 });
-
 
 
 app.post('/api/subscribe', authenticateToken, async (req, res) => {
