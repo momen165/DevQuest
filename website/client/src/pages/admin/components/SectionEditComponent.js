@@ -5,10 +5,12 @@ import { FaEye, FaTrash, FaPlusCircle, FaEdit } from 'react-icons/fa';
 import ViewLessonsComponent from './ViewLessonsComponent';
 import AddEditSectionComponent from './AddEditSectionComponent';
 import 'pages/admin/styles/SectionEditComponent.css';
+import ErrorAlert from './ErrorAlert';
 
 const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSection, onClose }) => {
   const [editingSection, setEditingSection] = useState(null);
   const [viewingSection, setViewingSection] = useState(null);
+  const [saveError, setSaveError] = useState('');
 
   // Handle drag-and-drop reordering
   const handleDragEnd = async (result) => {
@@ -42,11 +44,26 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
   // Save section (add or edit)
   const handleSaveSection = async (sectionData) => {
     try {
+      // Get auth token from localStorage
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const token = userData?.token;
+
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      };
+
       if (sectionData.section_id) {
         // Update existing section
         const response = await axios.put(
-          `http://localhost:5000/api/section/${sectionData.section_id}`,
-          sectionData
+          `http://localhost:5000/api/sections/${sectionData.section_id}`,
+          sectionData,
+          config
         );
         onSectionUpdate(
           sections.map((section) =>
@@ -56,15 +73,19 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
       } else {
         // Add new section
         const response = await axios.post(
-          `http://localhost:5000/api/section`,
-          sectionData
+          `http://localhost:5000/api/sections`,
+          sectionData,
+          config
         );
         onSectionUpdate([...sections, response.data]);
       }
-      setEditingSection(null); // Reset editing state
+      setEditingSection(null);
     } catch (err) {
       console.error('Error saving section:', err);
-      alert('Failed to save the section. Please try again.');
+      const errorMessage = err.message === 'Authentication token not found' 
+        ? 'Please log in to continue'
+        : 'Failed to save the section. Please try again.';
+      setSaveError(errorMessage);
     }
   };
 
@@ -82,6 +103,12 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
     />
   ) : (
     <div className="section-edit-container">
+      {saveError && (
+        <ErrorAlert 
+          message={saveError}
+          onClose={() => setSaveError('')}
+        />
+      )}
       <h3>Manage Sections</h3>
       <div className="add-section-container">
         <button className="add-section-button" onClick={handleAddSection}>

@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import 'pages/admin/styles/AddEditCourseComponent.css';
 import { FaUpload } from 'react-icons/fa';
+import ErrorAlert from './ErrorAlert';
 
-const EditCourseForm = ({ course, onClose }) => {
+const EditCourseForm = ({ course, onClose, onSave }) => {
   const [title, setTitle] = useState(course ? course.title : '');
   const [description, setDescription] = useState(course ? course.description : '');
   const [status, setStatus] = useState(course?.status || 'Published');
@@ -61,7 +62,9 @@ const EditCourseForm = ({ course, onClose }) => {
           }
         );
       }
+
       onClose();
+      onSave();
     } catch (err) {
       setError('Failed to save the course. Please try again.');
       console.error('Error saving course:', err);
@@ -79,12 +82,10 @@ const EditCourseForm = ({ course, onClose }) => {
       <h2>{course ? 'Edit Course' : 'Add New Course'}</h2>
 
       {error && (
-        <div className="alert">
-          {error}
-          <span className="closebtn" onClick={handleCloseError}>
-            &times;
-          </span>
-        </div>
+        <ErrorAlert 
+          message={error}
+          onClose={() => setError('')}
+        />
       )}
 
       <div>
@@ -156,7 +157,17 @@ const EditCourseForm = ({ course, onClose }) => {
       <button onClick={handleSave} disabled={loading}>
         {loading ? 'Saving...' : 'Save'}
       </button>
-      <button onClick={onClose}>Cancel</button>
+      <button
+          type="button"
+          className="cancel-button"
+          onClick={() => {
+            if (typeof onClose === 'function') {
+              onClose();
+            }
+          }}
+        >
+          Cancel
+        </button>
     </div>
   );
 };

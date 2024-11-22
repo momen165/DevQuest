@@ -26,7 +26,7 @@ const LessonPage = () => {
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [code, setCode] = useState('// Write your code here');
+  const [code, setCode] = useState('');
   const [consoleOutput, setConsoleOutput] = useState('Output will appear here...');
   const [languageId, setLanguageId] = useState(null); // To store language_id
   const [lessons, setLessons] = useState([]); // For navigation
@@ -158,6 +158,7 @@ const LessonPage = () => {
               extensions={[languageExtensions[languageId] || javascript()]} // Dynamically set the extension
               onChange={(value) => setCode(value)} // Update code state
             />
+
             <button className="run-btn" onClick={() => runCode(user)}>
               Run
             </button>
