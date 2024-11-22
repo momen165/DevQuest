@@ -1,40 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaTrash } from 'react-icons/fa';
 import axios from 'axios';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import DOMPurify from 'dompurify';
 import 'pages/admin/styles/LessonEditAddComponent.css';
+import CustomEditor from '../../../components/CustomEditor';
 
-const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCancel }) => {
+const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDelete }) => {
   const [lessonName, setLessonName] = useState(lesson?.name || '');
   const [editorData, setEditorData] = useState(lesson?.content || '');
-  const [expectedOutput, setExpectedOutput] = useState(lesson?.expected_output || '');
   const [xp, setXp] = useState(lesson?.xp || 0);
-  const [testCases, setTestCases] = useState(
-    lesson?.testCases?.length > 0 ? lesson.testCases : [{ input: '', expectedOutput: '' }]
-  );
-  
+  const [test_cases, setTestCases] = useState(() => {
+    if (lesson?.test_cases) {
+      try {
+        const cases = Array.isArray(lesson.test_cases)
+          ? lesson.test_cases
+          : JSON.parse(lesson.test_cases);
+        return cases.map(test => ({
+          input: test.input || '',
+          expectedOutput: test.expectedOutput || '',
+        }));
+      } catch (error) {
+        console.error('Error parsing initial test cases:', error);
+      }
+    }
+    return [{ input: '', expectedOutput: '' }];
+  });
+
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (lesson) {
+      console.log('Lesson data received from API:', lesson);
       setLessonName(lesson.name || '');
       setEditorData(lesson.content || '');
-      setExpectedOutput(lesson.expected_output || '');
       setXp(lesson.xp || 0);
-      setTestCases(lesson.testCases || [{ input: '', expectedOutput: '' }]);
+      if (lesson.test_cases) {
+        try {
+          const parsedCases = Array.isArray(lesson.test_cases)
+            ? lesson.test_cases
+            : JSON.parse(lesson.test_cases);
+          setTestCases(
+            parsedCases.map(test => ({
+              input: test.input || '',
+              expectedOutput: test.expectedOutput || '',
+            }))
+          );
+        } catch (error) {
+          console.error('Error parsing test cases:', error);
+          setTestCases([{ input: '', expectedOutput: '' }]);
+        }
+      } else {
+        setTestCases([{ input: '', expectedOutput: '' }]);
+      }
     }
   }, [lesson]);
 
-  const validate = () => {
+  const validateTestCases = () => {
     const newErrors = {};
-  
-    if (!lessonName.trim()) newErrors.lessonName = 'Lesson name is required.';
-    if (testCases.length === 0) {
+    if (test_cases.length === 0) {
       newErrors.testCases = 'At least one test case is required.';
     } else {
-      testCases.forEach((testCase, index) => {
+      test_cases.forEach((testCase, index) => {
         if (!testCase.input.trim()) {
           newErrors[`testCaseInput${index}`] = `Test case ${index + 1} input is required.`;
         }
@@ -43,29 +70,36 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
         }
       });
     }
-  
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors
+    return newErrors;
   };
-  
+
+  const validate = () => {
+    const errors = {
+      ...validateTestCases(),
+      ...(lessonName.trim() ? {} : { lessonName: 'Lesson name is required.' }),
+    };
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSave = async () => {
     if (!validate()) return;
-  
+
     setIsSaving(true);
     try {
       const payload = {
         name: lessonName,
-        content: editorData,
+        content: DOMPurify.sanitize(editorData),
         section_id: section.section_id,
         xp,
-        testCases: testCases.map((testCase) => ({
+        testCases: test_cases.map((testCase) => ({
           input: testCase.input,
-          expectedOutput: testCase.expectedOutput.replace(/\\n/g, '\n'), // Convert camel case to snake case
+          expectedOutput: testCase.expectedOutput.replace(/\\n/g, '\n'),
         })),
       };
-      
-      console.log('Payload to API:', payload); // Debug log
-      
+
+      console.log('Sending payload:', payload);
+
       let savedLesson;
       if (lesson?.lesson_id) {
         const response = await axios.put(
@@ -73,21 +107,33 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
           payload
         );
         savedLesson = response.data;
+
+        if (savedLesson.test_cases) {
+          const parsedTestCases = Array.isArray(savedLesson.test_cases)
+            ? savedLesson.test_cases
+            : JSON.parse(savedLesson.test_cases);
+
+          setTestCases(parsedTestCases.map(test => ({
+            input: test.input || '',
+            expectedOutput: test.expectedOutput || '',
+          })));
+        }
       } else {
-        const response = await axios.post('http://localhost:5000/api/lessons', payload);
+        const response = await axios.post(
+          `http://localhost:5000/api/lessons`,
+          payload
+        );
         savedLesson = response.data;
       }
-  
+
       onSave(savedLesson);
     } catch (err) {
       console.error('Error saving lesson:', err);
+      alert('Failed to save lesson. Please try again.');
     } finally {
       setIsSaving(false);
     }
-    console.log('Final Test Cases:', testCases);
-
   };
-  
 
   const handleDelete = async () => {
     if (!lesson?.lesson_id) return;
@@ -97,26 +143,28 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
       onDelete(lesson.lesson_id);
     } catch (err) {
       console.error('Error deleting lesson:', err);
+      alert('Failed to delete lesson.');
     }
   };
 
   const handleAddTestCase = () => {
-    setTestCases([...testCases, { input: '', expectedOutput: '' }]);
+    setTestCases([...test_cases, { input: '', expectedOutput: '' }]);
   };
 
   const handleTestCaseChange = (index, updatedTestCase) => {
-    const updatedTestCases = [...testCases];
-    updatedTestCases[index] = updatedTestCase; // Replace the specific test case
+    const updatedTestCases = [...test_cases];
+    updatedTestCases[index] = updatedTestCase;
     setTestCases(updatedTestCases);
   };
-  
+
   const handleRemoveTestCase = (index) => {
-    const updatedTestCases = testCases.filter((_, i) => i !== index);
+    const updatedTestCases = test_cases.filter((_, i) => i !== index);
     setTestCases(updatedTestCases);
   };
 
   return (
-    <div className="lesson-edit-add-container">
+    <div className={`lesson-edit-add-container ${isSaving ? 'loading' : ''}`}>
+      {isSaving && <div className="loader">Saving...</div>}
       <h3 className="form-title">{lesson ? 'Edit Lesson' : 'Add Lesson'}</h3>
       <form className="lesson-form">
         <div className="form-group">
@@ -131,10 +179,13 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
         </div>
 
         <div className="editor-container">
-          <CKEditor
-            editor={ClassicEditor}
-            data={editorData}
-            onChange={(event, editor) => setEditorData(editor.getData())}
+          <CustomEditor
+            initialData={editorData}
+            onChange={(data) => setEditorData(data)}
+            className="lesson-editor"
+            config={{
+              placeholder: "Enter lesson content here...",
+            }}
           />
         </div>
 
@@ -150,7 +201,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
 
         <div className="form-group">
           <label>Test Cases:</label>
-          {testCases.map((testCase, index) => (
+          {test_cases.map((testCase, index) => (
             <div key={index} className="test-case">
               <input
                 type="text"
@@ -160,9 +211,6 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
                 }
                 placeholder={`Input ${index + 1}`}
               />
-              {errors[`testCaseInput${index}`] && (
-                <p className="error">{errors[`testCaseInput${index}`]}</p>
-              )}
               <input
                 type="text"
                 value={testCase.expectedOutput}
@@ -171,9 +219,6 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onDelete, onCa
                 }
                 placeholder={`Expected Output ${index + 1}`}
               />
-              {errors[`testCaseOutput${index}`] && (
-                <p className="error">{errors[`testCaseOutput${index}`]}</p>
-              )}
               <button
                 type="button"
                 className="remove-test-case-button"
