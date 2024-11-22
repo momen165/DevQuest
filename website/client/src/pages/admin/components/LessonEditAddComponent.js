@@ -4,23 +4,27 @@ import axios from 'axios';
 import DOMPurify from 'dompurify';
 import 'pages/admin/styles/LessonEditAddComponent.css';
 import CustomEditor from '../../../components/CustomEditor';
+import ErrorAlert from './ErrorAlert';
 
 const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDelete }) => {
   const [lessonName, setLessonName] = useState(lesson?.name || '');
   const [editorData, setEditorData] = useState(lesson?.content || '');
   const [xp, setXp] = useState(lesson?.xp || 0);
+  const [error, setError] = useState('');
   const [test_cases, setTestCases] = useState(() => {
+    // Initialize test cases properly
     if (lesson?.test_cases) {
       try {
-        const cases = Array.isArray(lesson.test_cases)
-          ? lesson.test_cases
+        const cases = Array.isArray(lesson.test_cases) 
+          ? lesson.test_cases 
           : JSON.parse(lesson.test_cases);
         return cases.map(test => ({
           input: test.input || '',
-          expectedOutput: test.expectedOutput || '',
+          expectedOutput: test.expected_output || test.expectedOutput || ''
         }));
       } catch (error) {
-        console.error('Error parsing initial test cases:', error);
+        console.error('Error parsing test cases:', error);
+        return [{ input: '', expectedOutput: '' }];
       }
     }
     return [{ input: '', expectedOutput: '' }];
@@ -28,7 +32,10 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
 
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
-
+  useEffect(() => {
+    console.log('Lesson data:', lesson);
+    console.log('Parsed test cases:', test_cases);
+  }, [lesson, test_cases]);
   useEffect(() => {
     if (lesson) {
       console.log('Lesson data received from API:', lesson);
@@ -82,54 +89,73 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     return Object.keys(errors).length === 0;
   };
 
-  const handleSave = async () => {
-    if (!validate()) return;
-
-    setIsSaving(true);
-    try {
-      const payload = {
-        name: lessonName,
-        content: DOMPurify.sanitize(editorData),
-        section_id: section.section_id,
-        xp,
-        testCases: test_cases.map((testCase) => ({
-          input: testCase.input,
-          expectedOutput: testCase.expectedOutput.replace(/\\n/g, '\n'),
-        })),
-      };
-
-      console.log('Sending payload:', payload);
-
-      let savedLesson;
-      if (lesson?.lesson_id) {
-        const response = await axios.put(
-          `http://localhost:5000/api/lessons/${lesson.lesson_id}`,
-          payload
-        );
-        savedLesson = response.data;
-
-        if (savedLesson.test_cases) {
-          const parsedTestCases = Array.isArray(savedLesson.test_cases)
-            ? savedLesson.test_cases
-            : JSON.parse(savedLesson.test_cases);
-
-          setTestCases(parsedTestCases.map(test => ({
-            input: test.input || '',
-            expectedOutput: test.expectedOutput || '',
-          })));
-        }
-      } else {
-        const response = await axios.post(
-          `http://localhost:5000/api/lessons`,
-          payload
-        );
-        savedLesson = response.data;
+  const validateForm = () => {
+    const errors = [];
+    
+    if (!lessonName.trim()) {
+      errors.push('Lesson name is required');
+    }
+    
+    if (!editorData.trim()) {
+      errors.push('Lesson content is required');
+    }
+    
+    if (!xp || xp <= 0) {
+      errors.push('XP must be a positive number');
+    }
+  
+    // Validate test cases if they exist
+    if (test_cases.length > 0) {
+      const invalidTests = test_cases.some(test => !test.input.trim() || !test.expectedOutput.trim());
+      if (invalidTests) {
+        errors.push('All test cases must have both input and expected output');
       }
+    }
+  
+    return errors;
+  };
 
-      onSave(savedLesson);
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setError('');
+  
+      // Validate required fields
+      if (!lessonName.trim()) {
+        setError('Lesson name is required');
+        return;
+      }
+  
+      if (!editorData.trim()) {
+        setError('Lesson content is required');
+        return;
+      }
+  
+      // Format test cases - remove empty ones and format properly
+      const formattedTestCases = test_cases
+        .filter(test => test.input.trim() && test.expectedOutput.trim())
+        .map(test => ({
+          input: test.input.trim(),
+          expected_output: test.expectedOutput.trim() // Match database column name
+        }));
+  
+      // Prepare lesson data
+      const lessonData = {
+        name: lessonName.trim(),
+        content: editorData.trim(),
+        section_id: section.section_id,
+        xp: parseInt(xp) || 0,
+        test_cases: formattedTestCases // Send formatted test cases
+      };
+  
+      if (lesson?.lesson_id) {
+        lessonData.lesson_id = lesson.lesson_id;
+      }
+  
+      await onSave(lessonData);
+      setError('');
     } catch (err) {
-      console.error('Error saving lesson:', err);
-      alert('Failed to save lesson. Please try again.');
+      setError(err.message || 'Failed to save lesson');
     } finally {
       setIsSaving(false);
     }
@@ -151,9 +177,12 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     setTestCases([...test_cases, { input: '', expectedOutput: '' }]);
   };
 
-  const handleTestCaseChange = (index, updatedTestCase) => {
+  const handleTestCaseChange = (index, field, value) => {
     const updatedTestCases = [...test_cases];
-    updatedTestCases[index] = updatedTestCase;
+    updatedTestCases[index] = {
+      ...updatedTestCases[index],
+      [field]: value
+    };
     setTestCases(updatedTestCases);
   };
 
@@ -165,6 +194,12 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
   return (
     <div className={`lesson-edit-add-container ${isSaving ? 'loading' : ''}`}>
       {isSaving && <div className="loader">Saving...</div>}
+      {error && (
+        <ErrorAlert 
+          message={error}
+          onClose={() => setError('')}
+        />
+      )}
       <h3 className="form-title">{lesson ? 'Edit Lesson' : 'Add Lesson'}</h3>
       <form className="lesson-form">
         <div className="form-group">
@@ -207,7 +242,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
                 type="text"
                 value={testCase.input}
                 onChange={(e) =>
-                  handleTestCaseChange(index, { ...testCase, input: e.target.value })
+                  handleTestCaseChange(index, 'input', e.target.value)
                 }
                 placeholder={`Input ${index + 1}`}
               />
@@ -215,7 +250,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
                 type="text"
                 value={testCase.expectedOutput}
                 onChange={(e) =>
-                  handleTestCaseChange(index, { ...testCase, expectedOutput: e.target.value })
+                  handleTestCaseChange(index, 'expectedOutput', e.target.value)
                 }
                 placeholder={`Expected Output ${index + 1}`}
               />
@@ -240,7 +275,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
 
         <div className="form-actions">
           <button type="button" onClick={handleSave} disabled={isSaving} className="save-button">
-            Save <FaSave />
+            {isSaving ? 'Saving...' : 'Save'} <FaSave />
           </button>
           {lesson?.lesson_id && (
             <button type="button" onClick={handleDelete} className="delete-button">
