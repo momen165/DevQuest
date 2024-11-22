@@ -97,7 +97,7 @@ function ProfilePage() {
 
     try {
         const response = await fetch('http://localhost:5000/api/updateProfile', {
-            method: 'POST', // Change to POST if backend uses POST
+            method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${user.token}`,
