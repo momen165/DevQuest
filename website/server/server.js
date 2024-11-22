@@ -968,24 +968,34 @@ app.get('/api/lesson/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch lesson data.' });
   }
 });
-=======
 
 app.post('/api/subscribe', authenticateToken, async (req, res) => {
-  const { amount_paid } = req.body;
+  const { amount_paid } = req.body; // Amount paid (20 for Monthly, 168 for Yearly)
   const userId = req.user.userId; // Extracted from the token
 
+  // Determine subscription type
+  const subscriptionType = amount_paid === 20 ? 'Monthly' : 'Yearly';
+
   try {
-    // Step 1: Insert the subscription into the `subscription` table
+    // Insert subscription into `subscription` table
     const subscriptionQuery = `
-      INSERT INTO subscription (subscription_start_date, amount_paid, status)
-      VALUES (CURRENT_DATE, $1, 'Completed')
+      INSERT INTO subscription (subscription_start_date, subscription_end_date, subscription_type, amount_paid, status)
+      VALUES (
+        CURRENT_DATE,
+        CASE 
+          WHEN $1 = 'Monthly' THEN CURRENT_DATE + INTERVAL '1 month'
+          WHEN $1 = 'Yearly' THEN CURRENT_DATE + INTERVAL '1 year'
+        END,
+        $1,
+        $2,
+        'Completed'
+      )
       RETURNING subscription_id;
     `;
-    const { rows: subscriptionRows } = await db.query(subscriptionQuery, [amount_paid]);
-
+    const { rows: subscriptionRows } = await db.query(subscriptionQuery, [subscriptionType, amount_paid]);
     const subscriptionId = subscriptionRows[0].subscription_id;
 
-    // Step 2: Link user to subscription in `user_subscription`
+    // Link user to subscription in `user_subscription`
     const userSubscriptionQuery = `
       INSERT INTO user_subscription (user_id, subscription_id)
       VALUES ($1, $2);
@@ -994,14 +1004,16 @@ app.post('/api/subscribe', authenticateToken, async (req, res) => {
 
     res.status(201).json({ subscription_id: subscriptionId });
   } catch (error) {
-    console.error('Error creating subscription:', error); // Debug log
+    console.error('Error creating subscription:', error);
     res.status(500).json({ error: 'Failed to create subscription.' });
   }
 });
 
 
+
 app.get('/api/subscriptions', authenticateToken, async (req, res) => {
   if (!req.user.admin) {
+    console.error('Access denied: User is not an admin.');
     return res.status(403).json({ error: 'Access denied. Admins only.' });
   }
 
@@ -1012,40 +1024,120 @@ app.get('/api/subscriptions', authenticateToken, async (req, res) => {
         u.name AS student_name,
         s.amount_paid,
         s.subscription_start_date,
-        s.status,
+        s.subscription_type,
+        s.status
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       JOIN users u ON us.user_id = u.user_id;
     `;
     const { rows } = await db.query(query);
+    if (rows.length === 0) {
+      console.warn('No subscriptions found.');
+      return res.status(200).json([]);
+    }
+
     res.status(200).json(rows);
   } catch (error) {
-    console.error('Error fetching subscriptions:', error);
+    console.error('Error fetching subscriptions:', error.stack); // Log stack trace
     res.status(500).json({ error: 'Failed to fetch subscriptions.' });
   }
 });
 
-app.get('/api/feedbackad', async (req, res) => {
+
+app.get('/api/feedbackad', authenticateToken, async (req, res) => {
   try {
+    // Role-based access control
+    if (!req.user.admin) {
+      console.error(`Access denied for user: ${req.user.userId}`);
+      return res.status(403).json({ error: 'Access denied. Admins only.' });
+    }
+
     const query = `
       SELECT 
         f.feedback_id, 
         u.name AS student_name, 
         c.name AS course_name, 
         f.comment AS feedback, 
-        f.rating, 
-        f.created_at AS date
+        f.rating
       FROM feedback f
       JOIN users u ON f.user_id = u.user_id
       JOIN course c ON f.course_id = c.course_id
-      ORDER BY f.created_at DESC;
+      ORDER BY f.feedback_id DESC;
     `;
 
     const { rows } = await db.query(query);
+    if (rows.length === 0) {
+      return res.status(200).json([]); // Return empty array if no feedback exists
+    }
     res.status(200).json(rows);
   } catch (error) {
-    console.error('Error fetching feedback:', error);
+    console.error('Error fetching feedback:', error.message);
     res.status(500).json({ error: 'Failed to fetch feedback' });
   }
 });
 
+
+
+
+app.post('/api/feedbackFormStudent', authenticateToken, async (req, res) => {
+  console.log('Feedback request received:', req.body);
+
+  const { course_id, rating, comment } = req.body;
+  const userId = req.user.userId;
+
+  // Validate input
+  if (!course_id || !rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Invalid input. Please provide a valid course ID and a rating between 1 and 5.' });
+  }
+
+  try {
+      // Check if the course exists
+      const courseQuery = `SELECT course_id FROM course WHERE course_id = $1`;
+      const courseCheck = await db.query(courseQuery, [course_id]);
+
+      if (courseCheck.rowCount === 0) {
+          return res.status(404).json({ error: 'Course not found. Please provide a valid course ID.' });
+      }
+
+      // Insert feedback
+      const feedbackQuery = `
+          INSERT INTO feedback (user_id, course_id, rating, comment)
+          VALUES ($1, $2, $3, $4)
+          RETURNING *;
+      `;
+      const values = [userId, course_id, rating, comment || null];
+      const { rows } = await db.query(feedbackQuery, values);
+
+      res.status(201).json({
+          message: 'Feedback submitted successfully!',
+          feedback: rows[0],
+      });
+  } catch (error) {
+      console.error('Error submitting feedback:', error);
+      console.error('Error executing query:', error.message);
+console.error('Stack Trace:', error.stack);
+
+      res.status(500).json({ error: 'Failed to submit feedback. Please try again later.' });
+  }
+});
+
+
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const { rows } = await db.query('SELECT * FROM users LIMIT 1;');
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Database connection test failed:', error);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
+app.get('/api/debug-query', async (req, res) => {
+  try {
+    const query = 'SELECT * FROM feedback LIMIT 1;';
+    const { rows } = await db.query(query);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Error testing query:', error.message);
+    res.status(500).json({ error: 'Query test failed' });
+  }
+});

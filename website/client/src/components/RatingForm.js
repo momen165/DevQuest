@@ -1,31 +1,54 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { useAuth } from 'AuthContext'; // Assuming you use an Auth context
 import 'styles/RatingForm.css';
 
-const RatingForm = () => {
+const RatingForm = ({ courseId }) => {
     const [rating, setRating] = useState(0);
-    const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState('');
+    const [message, setMessage] = useState('');
+    const [hoverRating, setHoverRating] = useState(0); // Added for hover effect
+    const { token } = useAuth(); // Retrieve token from context
+    console.log('Token from AuthContext:', token);
 
-    const handleRating = (value) => {
-        setRating(value);
-    };
+    // Handle rating selection
+    const handleRating = (star) => setRating(star);
 
-    const handleMouseEnter = (value) => {
-        setHoverRating(value);
-    };
+    // Handle hover effects
+    const handleMouseEnter = (star) => setHoverRating(star);
+    const handleMouseLeave = () => setHoverRating(0);
 
-    const handleMouseLeave = () => {
-        setHoverRating(0);
-    };
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // Prevent form reload
+        console.log('Token being sent:', token);
 
-    const handleCommentChange = (e) => {
-        setComment(e.target.value);
-    };
+        try {
+            const feedbackData = {
+                course_id: courseId,
+                rating,
+                comment,
+            };
 
-    const handleSubmit = () => {
-        console.log('Rating:', rating);
-        console.log('Comment:', comment);
-        // Add submit logic here
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            const response = await axios.post(
+                'http://localhost:5000/api/feedbackFormStudent',
+                feedbackData,
+                config
+            );
+
+            setMessage('Feedback submitted successfully!');
+            setRating(0); // Reset rating
+            setComment(''); // Reset comment
+        } catch (error) {
+            setMessage('Error submitting feedback. Please try again.');
+            console.error('Error submitting feedback:', error);
+        }
     };
 
     return (
@@ -48,10 +71,13 @@ const RatingForm = () => {
             <textarea
                 placeholder="Add your comments..."
                 value={comment}
-                onChange={handleCommentChange}
+                onChange={(e) => setComment(e.target.value)}
                 className="comment-box"
             />
-            <button onClick={handleSubmit} className="submit-button">Submit</button>
+            <button onClick={handleSubmit} className="submit-button">
+                Submit
+            </button>
+            {message && <p className="message">{message}</p>}
         </div>
     );
 };
