@@ -44,24 +44,27 @@ const CoursesPage = () => {
   }, []);
   
   // Handle filter change
-  const handleFilterChange = (filter) => {
-    if (filter === 'All Courses') {
-      setFilteredCourses(courses);
-    } else if (filter === 'Popular') {
-      setFilteredCourses(
-        courses.filter((course) => ratings[course.course_id] >= 4.5)
-      );
-    } else if (filter === 'Difficulty') {
-      setFilteredCourses(
-        [...courses].sort((a, b) => {
-          const levels = { Beginner: 1, Intermediate: 2, Advanced: 3 };
-          return levels[a.level] - levels[b.level];
-        })
-      );
-    } else if (filter === 'Beginner') {
-      setFilteredCourses(courses.filter((course) => course.level === 'Beginner'));
-    }
-  };
+  // In CoursesPage.js
+// Update the filter function
+const handleFilter = (filter) => {
+  if (filter === 'All') {
+    setFilteredCourses(courses);
+  } else if (filter === 'Name') {
+    setFilteredCourses([...courses].sort((a, b) => a.title?.localeCompare(b.title)));
+  } else if (filter === 'Difficulty') {
+    setFilteredCourses(
+      [...courses].sort((a, b) => {
+        const levels = { Beginner: 1, Intermediate: 2, Advanced: 3 };
+        return (levels[a.difficulty] || 0) - (levels[b.difficulty] || 0);
+      })
+    );
+  } else if (filter === 'Beginner') {
+    setFilteredCourses(courses.filter((course) => course.difficulty === 'Beginner'));
+  }
+};
+
+// Update the debug logging
+console.log("Course Difficulties:", courses.map(course => course.difficulty));
 
   if (loading) {
     return <div>Loading courses...</div>;
@@ -70,7 +73,7 @@ const CoursesPage = () => {
   if (error) {
     return <div>{error}</div>;
   }
-
+  console.log("Course Levels:", courses.map(course => course.difficulty));
   return (
     <div className="courses-page">
       <Navbar />
@@ -81,7 +84,7 @@ const CoursesPage = () => {
           <br />
           You can find there everything from self-developing to sciences, for any knowledge levels.
         </p>
-        <FilterTabs onFilterChange={handleFilterChange} />
+        <FilterTabs onFilterChange={handleFilter} />
       </header>
       <section className="courses-grid">
         {filteredCourses.map((course) => (
@@ -89,7 +92,8 @@ const CoursesPage = () => {
             key={course.course_id}
             courseId={course.course_id}
             title={course.title}
-            level={course.level}
+            level={course.difficulty}
+            
             rating={ratings[course.course_id] || 'N/A'}  // Show average rating or 'N/A'
             students={course.users || 0} // Assuming `users` contains the student count
             description={course.description}
