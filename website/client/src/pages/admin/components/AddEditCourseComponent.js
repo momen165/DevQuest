@@ -10,7 +10,7 @@ const EditCourseForm = ({ course, onClose, onSave }) => {
   const [status, setStatus] = useState(course?.status || 'Published');
   const [difficulty, setDifficulty] = useState(course?.level || '');
   const [image, setImage] = useState(null);
-  const [languageId, setLanguageId] = useState(course?.language_id || ''); // New state for language_id
+const [languageId, setLanguageId] = useState(course ? course.language_id?.toString() : '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
