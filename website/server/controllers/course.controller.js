@@ -24,10 +24,10 @@ const addCourse = async (req, res) => {
     }
 
     const query = `
-      INSERT INTO course (name, description, status, difficulty, language_id, image)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *;
-    `;
+  INSERT INTO course (name, description, status, difficulty, language_id, image)
+  VALUES ($1, $2, $3, $4, $5, $6)
+  RETURNING *;
+`;
     const result = await db.query(query, [title, description, status, difficulty, language_id, imagePath]);
 
     if (result.rowCount === 0) {
@@ -77,11 +77,11 @@ const editCourse = async (req, res) => {
     }
 
     const query = `
-      UPDATE course
-      SET name = $1, description = $2, status = $3, difficulty = $4, language_id = $5, image = COALESCE($6, image)
-      WHERE course_id = $7
-      RETURNING *;
-    `;
+  UPDATE course
+  SET name = $1, description = $2, status = $3, difficulty = $4, language_id = $5, image = COALESCE($6, image)
+  WHERE course_id = $7
+  RETURNING *;
+`;
     const result = await db.query(query, [title, description, status, difficulty, language_id, imagePath, course_id]);
 
     if (result.rowCount === 0) {
@@ -99,6 +99,7 @@ const editCourse = async (req, res) => {
 };
 
 // Get all courses
+// In course.controller.js
 const getCourses = async (req, res) => {
   try {
     const query = `
@@ -107,13 +108,18 @@ const getCourses = async (req, res) => {
         course.name AS title, 
         course.description, 
         course.image,
+        course.difficulty,
         COUNT(enrollment.user_id) AS users
       FROM course
       LEFT JOIN enrollment ON course.course_id = enrollment.course_id
-      GROUP BY course.course_id;
+      GROUP BY 
+        course.course_id, 
+        course.name, 
+        course.description, 
+        course.image,
+        course.difficulty;
     `;
     const result = await db.query(query);
-
     res.status(200).json(result.rows);
   } catch (err) {
     console.error('Error fetching courses:', err);
