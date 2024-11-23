@@ -104,6 +104,7 @@ const getCourses = async (req, res) => {
   try {
     const query = `
       SELECT 
+        course.language_id,
         course.course_id, 
         course.name AS title, 
         course.description, 
