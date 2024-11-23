@@ -5,6 +5,7 @@ import { FaUpload } from 'react-icons/fa';
 import ErrorAlert from './ErrorAlert';
 
 const EditCourseForm = ({ course, onClose, onSave }) => {
+  console.log("Incoming course data:", course);
   const [title, setTitle] = useState(course ? course.title : '');
   const [description, setDescription] = useState(course ? course.description : '');
   const [status, setStatus] = useState(course?.status || 'Published');
@@ -13,7 +14,7 @@ const EditCourseForm = ({ course, onClose, onSave }) => {
 const [languageId, setLanguageId] = useState(course ? course.language_id?.toString() : '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
+console.log("Language ID:", languageId); // Debugging line
   const handleSave = async () => {
     setError('');
 
@@ -76,6 +77,8 @@ const [languageId, setLanguageId] = useState(course ? course.language_id?.toStri
   const handleCloseError = () => {
     setError('');
   };
+
+  
 
   return (
     <div className="edit-course-form">
