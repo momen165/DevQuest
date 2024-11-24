@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaTrash } from 'react-icons/fa';
 import axios from 'axios';
-import DOMPurify from 'dompurify';
+
 import 'pages/admin/styles/LessonEditAddComponent.css';
 import CustomEditor from '../../../components/CustomEditor';
 import ErrorAlert from './ErrorAlert';
@@ -165,7 +165,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     if (!lesson?.lesson_id) return;
     if (!window.confirm('Are you sure you want to delete this lesson?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/lesson/${lesson.lesson_id}`);
+      await axios.delete(`/api/lesson/${lesson.lesson_id}`);
       onDelete(lesson.lesson_id);
     } catch (err) {
       console.error('Error deleting lesson:', err);

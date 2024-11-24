@@ -21,7 +21,7 @@ const SignupPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/signup', formData);
+      const response = await axios.post('/api/signup', formData);
 
       console.log(response.data.message);
       // You could redirect to login page here

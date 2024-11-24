@@ -34,7 +34,7 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
         order: index,
       }));
       await axios.post(
-        'http://localhost:5000/api/sections/reorder',
+        '/api/sections/reorder',
         { sections: payload },
         {
           headers: { Authorization: `Bearer ${token}` }, // Use token from context
@@ -67,7 +67,7 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
       if (sectionData.section_id) {
         // Update existing section
         const response = await axios.put(
-          `http://localhost:5000/api/sections/${sectionData.section_id}`,
+          `/api/sections/${sectionData.section_id}`,
           sectionData,
           config
         );
@@ -79,7 +79,7 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
       } else {
         // Add new section
         const response = await axios.post(
-          `http://localhost:5000/api/sections`,
+          `/api/sections`,
           sectionData,
           config
         );

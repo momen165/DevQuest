@@ -27,7 +27,7 @@ const DashboardContent = () => {
         };
 
         // Fetch students data
-        const studentsResponse = await axios.get('http://localhost:5000/api/students', { headers });
+        const studentsResponse = await axios.get('/api/students', { headers });
         const { students = [], count = 0 } = studentsResponse.data || {};
 
         // Validate data
@@ -51,11 +51,11 @@ const DashboardContent = () => {
         setNewStudentsList(newStudents);
 
         // Fetch courses data
-        const coursesResponse = await axios.get('http://localhost:5000/api/courses', { headers });
+        const coursesResponse = await axios.get('/api/courses', { headers });
         setCoursesCount(coursesResponse.data.length);
 
         // Fetch recent activity
-        const activityResponse = await axios.get('http://localhost:5000/api/activities/recent', { headers });
+        const activityResponse = await axios.get('/api/activities/recent', { headers });
         setRecentActivity(activityResponse.data);
       } catch (err) {
         console.error('Error fetching dashboard data:', err.response?.data || err.message);

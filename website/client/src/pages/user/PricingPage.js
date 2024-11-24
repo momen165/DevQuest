@@ -16,7 +16,7 @@ const PricingPage = () => {
     setLoading(true);
     setErrorMessage(""); // Reset error message
     try {
-      const response = await axios.post('http://localhost:5000/api/subscribe', {
+      const response = await axios.post('/api/subscribe', {
         amount_paid: isMonthly ? 20 : 168, // Only send the amount_paid
       }, {
         headers: {

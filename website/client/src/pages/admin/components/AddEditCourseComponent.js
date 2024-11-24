@@ -42,7 +42,7 @@ console.log("Language ID:", languageId); // Debugging line
 
       if (course && course.course_id) {
         const response = await axios.put(
-          `http://localhost:5000/api/editCourses/${course.course_id}`,
+          `/api/editCourses/${course.course_id}`,
           formData,
           {
             headers: {
@@ -53,7 +53,7 @@ console.log("Language ID:", languageId); // Debugging line
         );
       } else {
         const response = await axios.post(
-          'http://localhost:5000/api/addCourses',
+          '/api/addCourses',
           formData,
           {
             headers: {

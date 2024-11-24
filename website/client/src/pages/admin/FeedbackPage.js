@@ -8,7 +8,7 @@ const FeedbackPage = () => {
   useEffect(() => {
     const fetchFeedbacks = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/feedbackad'); // Backend endpoint
+        const response = await axios.get('/api/feedbackad'); // Backend endpoint
         setFeedbacks(response.data);
       } catch (err) {
         console.error('Error fetching feedback:', err);
