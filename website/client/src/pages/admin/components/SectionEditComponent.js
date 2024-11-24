@@ -6,11 +6,15 @@ import ViewLessonsComponent from './ViewLessonsComponent';
 import AddEditSectionComponent from './AddEditSectionComponent';
 import 'pages/admin/styles/SectionEditComponent.css';
 import ErrorAlert from './ErrorAlert';
+import { useAuth } from 'AuthContext'; // Import useAuth for context
 
 const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSection, onClose }) => {
   const [editingSection, setEditingSection] = useState(null);
   const [viewingSection, setViewingSection] = useState(null);
   const [saveError, setSaveError] = useState('');
+
+  const { user } = useAuth(); // Get user from context
+  const token = user?.token; // Extract token from context
 
   // Handle drag-and-drop reordering
   const handleDragEnd = async (result) => {
@@ -29,7 +33,13 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
         section_id: section.section_id,
         order: index,
       }));
-      await axios.post('http://localhost:5000/api/sections/reorder', { sections: payload });
+      await axios.post(
+        'http://localhost:5000/api/sections/reorder',
+        { sections: payload },
+        {
+          headers: { Authorization: `Bearer ${token}` }, // Use token from context
+        }
+      );
     } catch (err) {
       console.error('Error reordering sections:', err);
       alert('Failed to reorder sections. Please try again.');
@@ -44,18 +54,14 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
   // Save section (add or edit)
   const handleSaveSection = async (sectionData) => {
     try {
-      // Get auth token from localStorage
-      const userData = JSON.parse(localStorage.getItem('user'));
-      const token = userData?.token;
-
       if (!token) {
         throw new Error('Authentication token not found');
       }
 
       const config = {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`, // Use token from context
+        },
       };
 
       if (sectionData.section_id) {
@@ -82,9 +88,10 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
       setEditingSection(null);
     } catch (err) {
       console.error('Error saving section:', err);
-      const errorMessage = err.message === 'Authentication token not found' 
-        ? 'Please log in to continue'
-        : 'Failed to save the section. Please try again.';
+      const errorMessage =
+        err.message === 'Authentication token not found'
+          ? 'Please log in to continue'
+          : 'Failed to save the section. Please try again.';
       setSaveError(errorMessage);
     }
   };
@@ -104,7 +111,7 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
   ) : (
     <div className="section-edit-container">
       {saveError && (
-        <ErrorAlert 
+        <ErrorAlert
           message={saveError}
           onClose={() => setSaveError('')}
         />
@@ -146,7 +153,7 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
                             title="View Lessons"
                           />
                           <FaEdit
-                             className="icon edit-section-icon"
+                            className="icon edit-section-icon"
                             onClick={() => setEditingSection(section)}
                             title="Edit Section"
                           />
