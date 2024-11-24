@@ -2,36 +2,51 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import 'styles/PricingPage.css';
 import Navbar from 'components/Navbar';
-import { useAuth } from 'AuthContext'; // Ensure you import useAuth
+import { useAuth } from 'AuthContext'; // Import the Auth context
 
 const PricingPage = () => {
-  const { user } = useAuth(); // Get user from useAuth context
   const [isMonthly, setIsMonthly] = useState(true);
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const { user } = useAuth(); // Get the user and token from AuthContext
 
   const handleChoosePlan = async () => {
     setLoading(true);
-    setErrorMessage(""); // Reset error message
+    setErrorMessage(''); // Reset error message
+
     try {
-      const response = await axios.post('/api/subscribe', {
-        amount_paid: isMonthly ? 20 : 168, // Only send the amount_paid
-      }, {
-        headers: {
-          Authorization: `Bearer ${user.token}`, // Include token
+      const token = user?.token; // Retrieve the token from AuthContext
+
+      if (!token) {
+        setErrorMessage('No token found. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await axios.post(
+        'http://localhost:5000/api/subscribe',
+        {
+          amount_paid: isMonthly ? 20 : 168, // Send the amount_paid based on plan
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Use the token from AuthContext
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (response.status === 201) {
-        setSuccessMessage("Subscription successful! Thank you for subscribing.");
+        setSuccessMessage('Subscription successful! Thank you for subscribing.');
         setTimeout(() => window.location.reload(), 2000); // Optional redirect or reload
       }
     } catch (err) {
-      console.error("Subscription error:", err);
-      setErrorMessage(err.response?.data?.error || "Subscription failed. Please try again.");
+      console.error('Subscription error:', err);
+      setErrorMessage(err.response?.data?.error || 'Subscription failed. Please try again.');
     }
+
     setLoading(false);
   };
 
@@ -41,8 +56,8 @@ const PricingPage = () => {
 
   const closePopup = () => {
     setShowPopup(false);
-    setSuccessMessage("");
-    setErrorMessage("");
+    setSuccessMessage('');
+    setErrorMessage('');
   };
 
   return (
@@ -84,13 +99,15 @@ const PricingPage = () => {
           <div className="popup-content">
             <h2>Confirm Your Subscription</h2>
             <p>
-              You have selected the <strong>{isMonthly ? "Monthly" : "Yearly"}</strong> plan for 
-              <strong> ${isMonthly ? "20/month" : "14/month (billed yearly)"}</strong>.
+              You have selected the <strong>{isMonthly ? 'Monthly' : 'Yearly'}</strong> plan for
+              <strong> ${isMonthly ? '20/month' : '14/month (billed yearly)'}</strong>.
             </p>
             <button className="confirm-button" onClick={handleChoosePlan} disabled={loading}>
-              {loading ? "Processing..." : "Confirm"}
+              {loading ? 'Processing...' : 'Confirm'}
             </button>
-            <button className="cancel-button" onClick={closePopup}>Cancel</button>
+            <button className="cancel-button" onClick={closePopup}>
+              Cancel
+            </button>
             {successMessage && <p className="success-message">{successMessage}</p>}
             {errorMessage && <p className="error-message">{errorMessage}</p>}
           </div>

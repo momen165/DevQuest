@@ -3,14 +3,14 @@ import 'styles/CoursesPage.css';
 import CourseCard from 'components/CourseCard';
 import FilterTabs from 'components/FilterTabs';
 import Navbar from 'components/Navbar';
-
+import { useAuth } from 'AuthContext';
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const { user, setUser } = useAuth();
   // Fetch courses and ratings from the API
   useEffect(() => {
     const fetchCoursesAndRatings = async () => {
@@ -21,7 +21,13 @@ const CoursesPage = () => {
         }
         const coursesData = await coursesResponse.json();
   
-        const ratingsResponse = await fetch('/api/feedback'); // Use the new GET API for feedback
+        const ratingsResponse = await fetch('/api/feedback',{
+       
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+      }); // Use the new GET API for feedback
+
         if (!ratingsResponse.ok) {
           throw new Error('Failed to fetch feedback');
         }
