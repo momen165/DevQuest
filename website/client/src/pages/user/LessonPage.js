@@ -37,7 +37,7 @@ const LessonPage = () => {
       setLoading(true);
       setError('');
       try {
-        const response = await axios.get(`http://localhost:5000/api/lesson/${lessonId}`, {
+        const response = await axios.get(`/api/lesson/${lessonId}`, {
           headers: {
             Authorization: `Bearer ${user.token}`, // Pass the token in headers
           },
@@ -48,7 +48,7 @@ const LessonPage = () => {
         setLanguageId(lessonData.language_id); // Set language_id for code editor
         
         // Fetch lessons in the same section for navigation
-        const lessonsResponse = await axios.get(`http://localhost:5000/api/lesson?section_id=${lessonData.section_id}`, {
+        const lessonsResponse = await axios.get(`/api/lesson?section_id=${lessonData.section_id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`, // Pass the token in headers
           },
@@ -72,7 +72,7 @@ const LessonPage = () => {
   useEffect(() => {
     const fetchAllLessons = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/lesson?section_id=${lesson?.section_id}`, {
+        const response = await axios.get(`/api/lesson?section_id=${lesson?.section_id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`, // Pass the token in headers
           },
@@ -110,7 +110,7 @@ const LessonPage = () => {
       console.log('Payload sent to API:', payload);
   
       const response = await axios.post(
-        'http://localhost:5000/api/run',
+        '/api/run',
         payload,
         {
           headers: {

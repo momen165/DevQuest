@@ -23,7 +23,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
         throw new Error('Authentication token is missing. Please log in again.');
       }
   
-      const response = await axios.get(`http://localhost:5000/api/lesson?section_id=${section.section_id}`, {
+      const response = await axios.get(`/api/lesson?section_id=${section.section_id}`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         }
@@ -61,14 +61,14 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       if (lessonData.lesson_id) {
         // Update existing lesson
         await axios.put(
-          `http://localhost:5000/api/lesson/${lessonData.lesson_id}`,
+          `/api/lesson/${lessonData.lesson_id}`,
           lessonData,
           config
         );
       } else {
         // Create new lesson
         await axios.post(
-          'http://localhost:5000/api/lesson',
+          '/api/lesson',
           lessonData,
           config
         );
@@ -92,7 +92,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
         throw new Error('Authentication token is missing. Please log in again.');
       }
   
-      await axios.delete(`http://localhost:5000/api/lesson/${lessonId}`, {
+      await axios.delete(`/api/lesson/${lessonId}`, {
         headers: {
           Authorization: `Bearer ${user.token}`
         }
@@ -128,7 +128,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
     }));
   
     try {
-      await axios.post('http://localhost:5000/api/lesson/reorder', { lessons: payload });
+      await axios.post('/api/lesson/reorder', { lessons: payload });
       console.log('Reorder successful');
     } catch (err) {
       console.error('Error updating lesson order:', err);
