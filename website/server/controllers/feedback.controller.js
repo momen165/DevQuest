@@ -1,28 +1,61 @@
-const db = require('../config/database');
+const db = require('../config/database'); // Adjust path to your DB connection
 
-/**
- * Fetches the average feedback rating for each course.
- */
-const getFeedbackRatings = async (req, res) => {
+// Get all feedback for admins
+const getFeedback = async (req, res) => {
   try {
+    if (!req.user.admin) {
+      console.error(`Access denied for user: ${req.user.userId}`);
+      return res.status(403).json({ error: 'Access denied. Admins only.' });
+    }
+
     const query = `
-      SELECT course_id, ROUND(AVG(rating), 1) as average_rating 
-      FROM feedback 
-      GROUP BY course_id;
+      SELECT 
+        f.feedback_id, 
+        u.name AS student_name, 
+        c.name AS course_name, 
+        f.comment AS feedback, 
+        f.rating
+      FROM feedback f
+      JOIN users u ON f.user_id = u.user_id
+      JOIN course c ON f.course_id = c.course_id
+      ORDER BY f.feedback_id DESC;
     `;
-    const result = await db.query(query);
-
-    // Transform the result into a key-value object
-    const ratings = result.rows.reduce((acc, row) => {
-      acc[row.course_id] = row.average_rating;
-      return acc;
-    }, {});
-
-    res.status(200).json(ratings); // Return course_id as key and average_rating as value
+    const { rows } = await db.query(query);
+    res.status(200).json(rows.length ? rows : []);
   } catch (error) {
     console.error('Error fetching feedback:', error.message);
     res.status(500).json({ error: 'Failed to fetch feedback' });
   }
 };
 
-module.exports = { getFeedbackRatings };
+// Submit feedback
+const submitFeedback = async (req, res) => {
+  const { course_id, rating, comment } = req.body;
+  const userId = req.user.userId;
+
+  if (!course_id || !rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ error: 'Invalid input. Provide a valid course ID and a rating between 1 and 5.' });
+  }
+
+  try {
+    const courseQuery = `SELECT course_id FROM course WHERE course_id = $1`;
+    const courseCheck = await db.query(courseQuery, [course_id]);
+
+    if (courseCheck.rowCount === 0) {
+      return res.status(404).json({ error: 'Course not found.' });
+    }
+
+    const feedbackQuery = `
+      INSERT INTO feedback (user_id, course_id, rating, comment)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *;
+    `;
+    const { rows } = await db.query(feedbackQuery, [userId, course_id, rating, comment || null]);
+    res.status(201).json({ message: 'Feedback submitted successfully!', feedback: rows[0] });
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    res.status(500).json({ error: 'Failed to submit feedback.' });
+  }
+};
+
+module.exports = { getFeedback, submitFeedback };
