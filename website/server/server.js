@@ -3,7 +3,10 @@ const cors = require('cors');
 const helmet = require('helmet');
 const fs = require('fs');
 const path = require('path');
+
 require('dotenv').config();
+
+
 
 // Initialize app
 const app = express();
@@ -20,17 +23,6 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-app.use('/uploads', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000'); // Allow requests from your frontend
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // Enable cross-origin sharing for static files
-  next();
-}, express.static(uploadDir));
-
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -42,6 +34,7 @@ const subscriptionRoutes = require('./routes/subscription.routes');
 const feedbackRoutes = require('./routes/feedback.routes');
 const activityRoutes = require('./routes/activity.routes');
 const codeExecutionRoutes = require('./routes/codeExecution.routes');
+const uploadRoutes = require('./routes/upload.routes');
 
 // Use routes
 app.use('/api', authRoutes);
@@ -53,6 +46,10 @@ app.use('/api', subscriptionRoutes);
 app.use('/api', feedbackRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
+app.use('/api', uploadRoutes);
+// Mount routes
+
+
 
 app.get('/api/health', async (req, res) => {
   try {
@@ -97,5 +94,12 @@ db.query('SELECT NOW()', (err, res) => {
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
+  }
+});
+
+
+app._router.stack.forEach((middleware) => {
+  if (middleware.route) {
+    console.log('Route:', middleware.route.path, 'Methods:', middleware.route.methods);
   }
 });

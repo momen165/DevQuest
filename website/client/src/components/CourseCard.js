@@ -4,7 +4,7 @@ import 'styles/CourseCard.css';
 
 const CourseCard = ({ title, level, rating, students, description, courseId, image }) => {
   const navigate = useNavigate();
-  const fullImageUrl = image ? `http://localhost:5000${image}` : '/default-placeholder.png';
+  const fullImageUrl = image   ;
 
   return (
     <div className="course-card">

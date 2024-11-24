@@ -59,6 +59,25 @@ const AdminCourses = () => {
     }
   };
 
+  const handleFileUpload = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file); // Key must match the backend upload API
+
+      const response = await axios.post('/api/upload', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data.fileUrl; // Return the uploaded file's URL
+    } catch (err) {
+      handleError(err, 'Failed to upload file.');
+      throw err;
+    }
+  };
+
   const deleteSection = async (sectionId) => {
     try {
       await axios.delete(`/api/section/${sectionId}`, {
@@ -161,6 +180,7 @@ const AdminCourses = () => {
               setEditingCourse(null);
               setIsAddingCourse(false);
             }}
+            onFileUpload={handleFileUpload} // Pass the file upload function
           />
         ) : (
           <table className="course-table">

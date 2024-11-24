@@ -2,10 +2,23 @@ const db = require('../config/database');
 const logActivity = require('../utils/logger');
 const sharp = require('sharp');
 
-// Add a new course
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+
+const { v4: uuidv4 } = require('uuid');
+
+
+// Configure AWS S3
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
 const addCourse = async (req, res) => {
   const { title, description, status, difficulty, language_id } = req.body;
-  let imagePath = null;
+  let imageUrl = null;
 
   try {
     // Validate required fields
@@ -13,22 +26,38 @@ const addCourse = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Process and save the image if provided
+    // Process and upload the image to S3 if provided
     if (req.file) {
-      const filename = `course_${Date.now()}_${req.file.originalname.replace(/\s/g, '_')}`;
-      imagePath = `/uploads/${filename}`;
-      await sharp(req.file.buffer)
-        .resize(800)
-        .png({ quality: 80 })
-        .toFile(`uploads/${filename}`);
+      const filename = `course_${uuidv4()}.png`;
+
+      // Process the image using sharp
+      const processedBuffer = await sharp(req.file.buffer)
+        .resize(800) // Resize to a max width of 800px
+        .png({ quality: 80 }) // Convert to PNG format with quality
+        .toBuffer();
+
+      // Upload the image to S3
+      const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: `uploads/${filename}`, // Folder structure in the bucket
+        Body: processedBuffer,
+        ContentType: 'image/png', // MIME type
+      };
+
+      const command = new PutObjectCommand(params);
+      await s3Client.send(command);
+
+      // Generate the public URL for the uploaded image
+      imageUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${filename}`;
     }
 
+    // Insert course details into the database
     const query = `
-  INSERT INTO course (name, description, status, difficulty, language_id, image)
-  VALUES ($1, $2, $3, $4, $5, $6)
-  RETURNING *;
-`;
-    const result = await db.query(query, [title, description, status, difficulty, language_id, imagePath]);
+      INSERT INTO course (name, description, status, difficulty, language_id, image)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `;
+    const result = await db.query(query, [title, description, status, difficulty, language_id, imageUrl]);
 
     if (result.rowCount === 0) {
       return res.status(400).json({ error: 'Failed to add course' });
@@ -37,12 +66,14 @@ const addCourse = async (req, res) => {
     // Log activity
     await logActivity('Course', `New course added: ${title} by user ID ${req.user.userId}`, req.user.userId);
 
+    // Send the newly created course as the response
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Error adding course:', err);
     res.status(500).json({ error: 'Failed to add course' });
   }
 };
+
 
 // Edit a course
 const editCourse = async (req, res) => {
@@ -64,31 +95,62 @@ const editCourse = async (req, res) => {
     }
 
     const oldCourse = oldCourseResult.rows[0];
-    let imagePath = null;
+    let imageUrl = null;
 
-    // Process image if provided
+    // Process image and upload to S3 if provided
     if (req.file) {
-      const filename = `course_${Date.now()}_${req.file.originalname.replace(/\s/g, '_')}`;
-      imagePath = `/uploads/${filename}`;
-      await sharp(req.file.buffer)
-        
-        .png({ quality: 80 })
-        .toFile(`uploads/${filename}`);
+      const filename = `course_${uuidv4()}.png`;
+
+      // Process the image using sharp
+      const processedBuffer = await sharp(req.file.buffer)
+        .resize(800) // Resize to a max width of 800px
+        .png({ quality: 80 }) // Convert to PNG format with quality
+        .toBuffer();
+
+      // Upload the image to S3
+      const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: `uploads/${filename}`, // Folder structure in the bucket
+        Body: processedBuffer,
+        ContentType: 'image/png', // MIME type
+      };
+
+      const command = new PutObjectCommand(params);
+      await s3Client.send(command);
+
+      // Generate the public URL for the uploaded image
+      imageUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${filename}`;
     }
 
+    // Update the course in the database
     const query = `
-  UPDATE course
-  SET name = $1, description = $2, status = $3, difficulty = $4, language_id = $5, image = COALESCE($6, image)
-  WHERE course_id = $7
-  RETURNING *;
-`;
-    const result = await db.query(query, [title, description, status, difficulty, language_id, imagePath, course_id]);
+      UPDATE course
+      SET name = $1, 
+          description = $2, 
+          status = $3, 
+          difficulty = $4, 
+          language_id = $5, 
+          image = COALESCE($6, image) 
+      WHERE course_id = $7
+      RETURNING *;
+    `;
+    const result = await db.query(query, [
+      title,
+      description,
+      status,
+      difficulty,
+      language_id,
+      imageUrl, // Use the new S3 URL if provided, else keep the old image
+      course_id,
+    ]);
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Course not found' });
     }
 
     const updatedCourse = result.rows[0];
+
+    // Log the update activity
     await logActivity('Course', `Course updated: ${title} by user ID ${req.user.userId}`, req.user.userId);
 
     res.status(200).json(updatedCourse);
@@ -97,6 +159,7 @@ const editCourse = async (req, res) => {
     res.status(500).json({ error: 'Failed to update course' });
   }
 };
+
 
 // Get all courses
 // In course.controller.js
