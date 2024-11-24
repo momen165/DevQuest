@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from 'pages/admin/components/Sidebar';
 import 'pages/admin/styles/PaymentInfo.css';
-
+import { useAuth } from 'AuthContext'; 
 
 const PaymentDetails = () => {
   const [payments, setPayments] = useState([]);
-
+  const { user } = useAuth();
   useEffect(() => {
     const fetchPayments = async () => {
       try {
         const response = await fetch('/api/subscriptions', {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${user.token}`,
           },
         });
         const data = await response.json();
