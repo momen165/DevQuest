@@ -2,7 +2,7 @@ const express = require('express');
 const authController = require('../controllers/auth.controller');
 const authenticateToken = require('../middleware/auth');
 const { body } = require('express-validator');
-const upload = require('../config/multer'); // Import multer configuration
+
 
 const router = express.Router();
 
@@ -17,14 +17,9 @@ const validateSignup = [
 // Routes
 router.post('/signup', validateSignup, authController.signup);
 router.post('/login', authController.login);
-router.post(
-  '/uploadProfilePic',
-  authenticateToken,
-  upload.single('profilePic'), // Use the multer configuration
-  authController.uploadProfilePic
-);
-router.delete('/removeProfilePic', authenticateToken, authController.removeProfilePic);
+
+
 router.post('/changePassword', authenticateToken, authController.changePassword);
-router.post('/updateProfile', authenticateToken, authController.updateProfile);
+
 
 module.exports = router;

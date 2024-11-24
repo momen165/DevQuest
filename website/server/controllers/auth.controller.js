@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 const { validationResult } = require('express-validator');
 const logActivity = require('../utils/logger');
-const { processAndSaveImage, deleteImage } = require('../config/upload'); // Import utilities
+
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
@@ -109,37 +109,6 @@ const updateProfile = async (req, res) => {
 
 
 
-const removeProfilePic = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-
-    // Retrieve the current profile picture URL from the database
-    const querySelect = 'SELECT profileimage FROM users WHERE user_id = $1';
-    const { rows } = await db.query(querySelect, [userId]);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const profileimage = rows[0].profileimage;
-
-    if (profileimage) {
-      // Delete the file and update the database
-      const filePath = path.join(__dirname, '../uploads', profileimage);
-      deleteImage(filePath); // Use utility function to delete the file
-
-      const queryUpdate = 'UPDATE users SET profileimage = NULL WHERE user_id = $1';
-      await db.query(queryUpdate, [userId]);
-
-      res.status(200).json({ message: 'Profile picture removed successfully' });
-    } else {
-      res.status(400).json({ error: 'No profile picture to remove' });
-    }
-  } catch (err) {
-    console.error('Error removing profile picture:', err);
-    res.status(500).json({ error: 'Failed to remove profile picture' });
-  }
-};
 
 
 // Change Password
@@ -180,32 +149,13 @@ const changePassword = async (req, res) => {
 
 
 
-const uploadProfilePic = async (req, res) => {
-  try {
-    const userId = req.user.userId; // Authenticated user's ID
-    const filename = `profile_${userId}.jpg`; // Use consistent naming
-    const profileimage = await processAndSaveImage(req.file.buffer, filename); // Use utility function
-
-    // Update the database with the profile image URL
-    const query = 'UPDATE users SET profileimage = $1 WHERE user_id = $2';
-    await db.query(query, [`/${profileimage}`, userId]);
-
-    res.status(200).json({
-      message: 'Profile picture uploaded successfully',
-      profileimage: `/${profileimage}`,
-    });
-  } catch (err) {
-    console.error('Error uploading profile picture:', err);
-    res.status(500).json({ error: 'Failed to upload profile picture' });
-  }
-};
 
 
 module.exports = {
   signup,
   login,
   updateProfile,
-  removeProfilePic,
+  
   changePassword,
-  uploadProfilePic, // Export the new method
+   
 };
