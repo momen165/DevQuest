@@ -27,7 +27,7 @@ const StudentDetailTable = ({ studentId }) => {
 
         // Fetch student details
         const studentResponse = await axios.get(
-          `http://localhost:5000/api/students/${studentId}`,
+          `/api/students/${studentId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -40,7 +40,7 @@ const StudentDetailTable = ({ studentId }) => {
         // Fetch courses associated with the student
         try {
           const coursesResponse = await axios.get(
-            `http://localhost:5000/api/students/${studentId}/courses`,
+            `/api/students/${studentId}/courses`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,

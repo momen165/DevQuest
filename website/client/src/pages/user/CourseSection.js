@@ -27,7 +27,7 @@ const CourseSection = () => {
         }
 
         // Fetch sections for the given course
-        const response = await axios.get(`http://localhost:5000/api/section?course_id=${courseId}`, {
+        const response = await axios.get(`/api/section?course_id=${courseId}`, {
           headers: {
             Authorization: `Bearer ${user.token}`, // Pass the token in headers
           },

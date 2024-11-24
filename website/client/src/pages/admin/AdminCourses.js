@@ -28,7 +28,7 @@ const AdminCourses = () => {
     if (token) {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:5000/api/courses', {
+        const response = await axios.get('/api/courses', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCourses(response.data);
@@ -50,7 +50,7 @@ const AdminCourses = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/section?course_id=${course.course_id}`,
+        `/api/section?course_id=${course.course_id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSections(response.data);
@@ -61,7 +61,7 @@ const AdminCourses = () => {
 
   const deleteSection = async (sectionId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/section/${sectionId}`, {
+      await axios.delete(`/api/section/${sectionId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSections((prev) => prev.filter((section) => section.section_id !== sectionId));
@@ -86,7 +86,7 @@ const AdminCourses = () => {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      await axios.delete(`http://localhost:5000/api/courses/${courseId}`, { headers });
+      await axios.delete(`/api/courses/${courseId}`, { headers });
       setCourses((prev) => prev.filter((course) => course.course_id !== courseId));
     } catch (err) {
       handleError(err, 'Failed to delete course.');
@@ -129,7 +129,7 @@ const AdminCourses = () => {
               }));
               axios
                 .post(
-                  'http://localhost:5000/api/sections/reorder',
+                  '/api/sections/reorder',
                   { sections: payload },
                   {
                     headers: { Authorization: `Bearer ${token}` },
@@ -137,7 +137,7 @@ const AdminCourses = () => {
                 )
                 .then(() =>
                   axios.get(
-                    `http://localhost:5000/api/section?course_id=${editingCourse?.course_id}`,
+                    `/api/section?course_id=${editingCourse?.course_id}`,
                     {
                       headers: { Authorization: `Bearer ${token}` },
                     }

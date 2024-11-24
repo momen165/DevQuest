@@ -23,7 +23,7 @@ const StudentSubscriptionTable = () => {
         }
 
         const headers = { Authorization: `Bearer ${token}` };
-        const response = await axios.get('http://localhost:5000/api/students', { headers });
+        const response = await axios.get('/api/students', { headers });
 
         console.log('Fetched Students:', response.data); // Debug fetched students
         setStudents(response.data.students || []); // Use `students` or fallback to empty array

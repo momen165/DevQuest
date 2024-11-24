@@ -15,13 +15,13 @@ const CoursesPage = () => {
   useEffect(() => {
     const fetchCoursesAndRatings = async () => {
       try {
-        const coursesResponse = await fetch('http://localhost:5000/api/courses');
+        const coursesResponse = await fetch('/api/courses');
         if (!coursesResponse.ok) {
           throw new Error('Failed to fetch courses');
         }
         const coursesData = await coursesResponse.json();
   
-        const ratingsResponse = await fetch('http://localhost:5000/api/feedback'); // Use the new GET API for feedback
+        const ratingsResponse = await fetch('/api/feedback'); // Use the new GET API for feedback
         if (!ratingsResponse.ok) {
           throw new Error('Failed to fetch feedback');
         }
