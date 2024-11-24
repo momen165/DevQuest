@@ -5,6 +5,7 @@ import 'pages/admin/styles/AdminCourses.css';
 import EditCourseForm from 'pages/admin/components/AddEditCourseComponent';
 import SectionEditComponent from 'pages/admin/components/SectionEditComponent';
 import axios from 'axios';
+import { useAuth } from 'AuthContext';
 
 const AdminCourses = () => {
   const [loading, setLoading] = useState(false);
@@ -15,33 +16,33 @@ const AdminCourses = () => {
   const [sections, setSections] = useState([]);
   const [isAddingCourse, setIsAddingCourse] = useState(false);
 
-  const userData = JSON.parse(localStorage.getItem('user'));
-  const token = userData?.token;
+  const { user } = useAuth(); // Get user from AuthContext
+  const token = user?.token; // Extract token from user context
 
   const handleError = (err, message = 'An error occurred') => {
     console.error(message, err.response?.data || err.message);
     setError(message);
   };
 
-const fetchCourses = async () => {
-  if (token) {
-    setLoading(true);
-    try {
-      const response = await axios.get('http://localhost:5000/api/courses', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCourses(response.data);
-    } catch (err) {
-      handleError(err, 'Failed to fetch courses.');
-    } finally {
-      setLoading(false);
+  const fetchCourses = async () => {
+    if (token) {
+      setLoading(true);
+      try {
+        const response = await axios.get('http://localhost:5000/api/courses', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCourses(response.data);
+      } catch (err) {
+        handleError(err, 'Failed to fetch courses.');
+      } finally {
+        setLoading(false);
+      }
     }
-  }
-};
+  };
 
-useEffect(() => {
-  fetchCourses();
-}, [token]);
+  useEffect(() => {
+    fetchCourses();
+  }, [token]);
 
   const handleEditSections = async (course) => {
     setEditingCourse(course);
@@ -127,12 +128,21 @@ useEffect(() => {
                 order: index,
               }));
               axios
-                .post('http://localhost:5000/api/sections/reorder', { sections: payload }, {
-                  headers: { Authorization: `Bearer ${token}` },
-                })
-                .then(() => axios.get(`http://localhost:5000/api/section?course_id=${editingCourse?.course_id}`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                }))
+                .post(
+                  'http://localhost:5000/api/sections/reorder',
+                  { sections: payload },
+                  {
+                    headers: { Authorization: `Bearer ${token}` },
+                  }
+                )
+                .then(() =>
+                  axios.get(
+                    `http://localhost:5000/api/section?course_id=${editingCourse?.course_id}`,
+                    {
+                      headers: { Authorization: `Bearer ${token}` },
+                    }
+                  )
+                )
                 .then((response) => setSections(response.data))
                 .catch((err) => handleError(err, 'Failed to reorder sections.'));
             }}
@@ -140,18 +150,18 @@ useEffect(() => {
             onClose={handleCloseSections}
           />
         ) : editingCourse || isAddingCourse ? (
-          <EditCourseForm 
-  course={editingCourse} 
-  onClose={() => {
-    setEditingCourse(null);
-    setIsAddingCourse(false);
-  }}
-  onSave={() => {
-    fetchCourses();
-    setEditingCourse(null);
-    setIsAddingCourse(false);
-  }}
-/>
+          <EditCourseForm
+            course={editingCourse}
+            onClose={() => {
+              setEditingCourse(null);
+              setIsAddingCourse(false);
+            }}
+            onSave={() => {
+              fetchCourses();
+              setEditingCourse(null);
+              setIsAddingCourse(false);
+            }}
+          />
         ) : (
           <table className="course-table">
             <thead>
