@@ -6,7 +6,6 @@ import { useAuth } from 'AuthContext';
 import 'styles/AccountSettings.css';
 import defaultProfilePic from '../../assets/images/default-profile-pic.png';
 
-
 function ProfilePage() {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
@@ -19,29 +18,26 @@ function ProfilePage() {
     if (!user || !user.token) {
       navigate('/');
     } else {
-      console.log('User data:', user); // Debugging
+     
       if (user.name) setName(user.name);
       if (user.country) setCountry(user.country);
       if (user.bio) setBio(user.bio);
     }
   }, [user, navigate]);
 
-
   const handleRemoveProfilePic = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/removeProfilePic', {
+      const response = await fetch('/api/removeProfilePic', {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${user.token}`,
+          'Authorization': `Bearer ${user.token}`, // Ensure the token is included
         },
       });
   
       if (response.ok) {
-        // Remove the profileimage from the user object
         const updatedUser = { ...user, profileimage: null };
         setUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
-  
         alert('Profile picture removed successfully');
       } else {
         const errorData = await response.json();
@@ -54,71 +50,69 @@ function ProfilePage() {
     }
   };
   
-
-  const handleProfilePicChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append('profilePic', file);
-
-  try {
-    const response = await fetch('http://localhost:5000/api/uploadProfilePic', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${user.token}`,
-      },
-      body: formData,
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      const profileimage = data.profileimage;
-
-      const updatedUser = { ...user, profileimage };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-
-      alert('Profile picture updated successfully');
-    } else {
-      console.error('Failed to upload profile picture');
-      alert('Failed to upload profile picture');
-    }
-  } catch (error) {
-    console.error('Error uploading profile picture:', error);
-    alert('An error occurred while uploading your profile picture');
-  }
-};
-
   
-
+  const handleProfilePicChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append('profilePic', file); // Ensure this matches the backend field name
+  
+    try {
+      const response = await fetch('/api/uploadProfilePic', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+        body: formData,
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        const profileimage = data.profileimage; // S3 URL of the uploaded image
+  
+        const updatedUser = { ...user, profileimage };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        alert('Profile picture updated successfully');
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to upload profile picture:', errorData.error);
+        alert(`Failed to upload profile picture: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      alert('An error occurred while uploading your profile picture');
+    }
+  };
+  
   const handleSaveChanges = async (e) => {
     e.preventDefault();
 
     try {
-        const response = await fetch('/api/updateProfile', {
-            method: 'POST', 
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.token}`,
-            },
-            body: JSON.stringify({ name, country, bio }),
-        });
+      const response = await fetch('/api/updateProfile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ name, country, bio }),
+      });
 
-        if (response.ok) {
-            const updatedUser = { ...user, name, country, bio };
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            alert('Profile updated successfully');
-        } else {
-            console.error('Failed to update profile');
-            alert('Failed to update profile');
-        }
+      if (response.ok) {
+        const updatedUser = { ...user, name, country, bio };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        alert('Profile updated successfully');
+      } else {
+        console.error('Failed to update profile');
+        alert('Failed to update profile');
+      }
     } catch (error) {
-        console.error('Error updating profile:', error);
-        alert('An error occurred while updating your profile');
+      console.error('Error updating profile:', error);
+      alert('An error occurred while updating your profile');
     }
-};
+  };
 
   return (
     <>
@@ -127,18 +121,17 @@ function ProfilePage() {
         <Sidebar activeLink="profile" />
 
         <div className="profile-content">
-        <h2>{name ? `Welcome, ${name}!` : 'Loading...'}</h2>
+          <h2>{name ? `Welcome, ${name}!` : 'Loading...'}</h2>
           <div className="profile-header">
-           
             <div className="profile-avatar">
-            <img
-            src={
-              user.profileimage
-                ? `http://localhost:5000${user.profileimage}?${new Date().getTime()}`
-                : defaultProfilePic
-            }
-            alt="Profile"
-          />
+              <img
+                src={
+                  user.profileimage
+                    ? `${user.profileimage}?${new Date().getTime()}`
+                    : defaultProfilePic
+                }
+                alt="Profile"
+              />
 
               <input
                 type="file"
@@ -146,11 +139,15 @@ function ProfilePage() {
                 style={{ display: 'none' }}
                 onChange={handleProfilePicChange}
               />
-              <button className="update-btn" onClick={() => document.getElementById('profilePicInput').click()}>
+              <button
+                className="update-btn"
+                onClick={() => document.getElementById('profilePicInput').click()}
+              >
                 Update
               </button>
-              <button className="remove-btn" onClick={handleRemoveProfilePic}>Remove</button>
-
+              <button className="remove-btn" onClick={handleRemoveProfilePic}>
+                Remove
+              </button>
             </div>
           </div>
 
@@ -174,7 +171,6 @@ function ProfilePage() {
               <option value="Jordan">Jordan</option>
               <option value="USA">USA</option>
               <option value="UK">UK</option>
-              {/* Add more countries as needed */}
             </select>
 
             <label htmlFor="bio">Bio</label>
@@ -186,7 +182,13 @@ function ProfilePage() {
 
             <div className="form-buttons">
               <button type="submit" className="save-btn">Save Changes</button>
-              <button type="button" className="cancel-btn" onClick={() => navigate('/AccountSettings')}>Cancel</button>
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => navigate('/AccountSettings')}
+              >
+                Cancel
+              </button>
             </div>
           </form>
         </div>
