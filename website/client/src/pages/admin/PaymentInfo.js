@@ -6,23 +6,47 @@ import { useAuth } from 'AuthContext';
 const PaymentDetails = () => {
   const [payments, setPayments] = useState([]);
   const { user } = useAuth();
+
   useEffect(() => {
     const fetchPayments = async () => {
       try {
-        const response = await fetch('/api/subscriptions', {
+        const token = user?.token;
+    
+        if (!token) {
+          setError('No token found. Please log in again.');
+          return;
+        }
+    
+        const response = await fetch('http://localhost:5000/api/subscriptions', {
           headers: {
             Authorization: `Bearer ${user.token}`,
+
           },
         });
-        const data = await response.json();
+    
+        console.log('Raw Response:', response);
+    
+        if (!response.ok) {
+          console.error(`HTTP Error: ${response.status}`);
+          throw new Error(`HTTP Error: ${response.status}`);
+        }
+    
+        const data = await response.json(); // This is where the error occurs
+        console.log('Fetched Data:', data);
         setPayments(data);
-      } catch (error) {
-        console.error('Error fetching payment details:', error);
+      } catch (err) {
+        console.error('Error fetching payment details:', err.message);
+        setError('Failed to fetch payment details. Please try again later.');
       }
     };
+    
 
     fetchPayments();
-  }, []);
+  }, [user]);
+
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
 
   return (
     <div className="container">
@@ -46,7 +70,9 @@ const PaymentDetails = () => {
                 <td>{payment.subscription_id}</td>
                 <td>{payment.student_name}</td>
                 <td>${payment.amount_paid}</td>
-                <td>{new Date(payment.subscription_start_date).toLocaleDateString()}</td>
+                <td>
+                  {new Date(payment.subscription_start_date).toLocaleDateString()}
+                </td>
                 <td>{payment.subscription_type}</td>
                 <td>
                   <span
