@@ -18,8 +18,10 @@ const validateSignup = [
 router.post('/signup', validateSignup, authController.signup);
 router.post('/login', authController.login);
 
-
+router.put('/updateProfile', authenticateToken, authController.updateProfile);
 router.post('/changePassword', authenticateToken, authController.changePassword);
+
+
 
 
 module.exports = router;
