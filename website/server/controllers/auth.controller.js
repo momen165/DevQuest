@@ -7,6 +7,8 @@ const logActivity = require('../utils/logger');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
+const authenticateToken = require('../middleware/auth');
+
 
 const signup = async (req, res) => {
   const errors = validationResult(req);

@@ -8,7 +8,7 @@ const EnrollmentPage = () => {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [isUsingFallback, setIsUsingFallback] = useState(false); // Add this state
   // Fetch course data based on courseId
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -51,6 +51,19 @@ const EnrollmentPage = () => {
     navigate(`/course/${courseId}`); // Navigate to the course sections page
   };
 
+
+  const handleImageError = (e) => {
+    if (!isUsingFallback) { // Only set fallback if we haven't already
+      console.error('Image failed to load, falling back to placeholder');
+      setIsUsingFallback(true);
+      e.target.src = '/fallback-image.png';
+    } else {
+      // If fallback also fails, show broken image icon
+      e.target.style.display = 'none'; // Or replace with a div showing "Image Unavailable"
+      console.error('Both original and fallback images failed to load');
+    }
+  };
+
   return (
     <div className="enrollment-page">
       <div className="enroll-info">
@@ -68,18 +81,15 @@ const EnrollmentPage = () => {
 
       {/* Dynamic Image with Fallback */}
       <div className="enroll-img">
-        <img
-          src={fullImageUrl}
-          alt={`Course: ${course.title}`}
-          style={{
-            width: '700px', // Smaller width
-            height: 'auto', // Maintain aspect ratio
-          }}
-          onError={(e) => {
-            console.error('Image failed to load, falling back to placeholder');
-            e.target.src = '/fallback-image.png';
-          }}
-        />
+      <img
+      src={fullImageUrl}
+      alt={`Course: ${course.title}`}
+      style={{
+        width: '700px',
+        height: 'auto',
+      }}
+      onError={handleImageError}
+    />
       </div>
     </div>
   );
