@@ -43,7 +43,7 @@ const EnrollmentPage = () => {
   }
 
   const fullImageUrl = course.image
-    ? `http://localhost:5000${course.image}`
+    ? course.image
     : '/fallback-image.png';
 
   // Handle "Start Learning" button click
