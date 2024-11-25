@@ -25,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // Import routes
+const passwordResetRoutes = require('./routes/passwordreset.routes');
 const authRoutes = require('./routes/auth.routes');
 const courseRoutes = require('./routes/course.routes');
 const lessonRoutes = require('./routes/lesson.routes');
@@ -47,6 +48,9 @@ app.use('/api', feedbackRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
 app.use('/api', uploadRoutes);
+
+// server.js
+app.use('/api', passwordResetRoutes);
 // Mount routes
 
 
