@@ -1,5 +1,5 @@
 /* Container */
-.container {
+.Auth_container {
   display: flex;
   min-height: 100vh;
   background-image: url('assets/images/registerationimage.png'); /* Update with the actual path to your image */

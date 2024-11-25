@@ -4,7 +4,7 @@ import axios from 'axios';
 const StudentDetailTable = ({ studentId }) => {
   const [student, setStudent] = useState(null);
   const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ const StudentDetailTable = ({ studentId }) => {
 
     const fetchStudentDetails = async () => {
       try {
-        setLoading(true);
+       
         const userData = JSON.parse(localStorage.getItem('user'));
         const token = userData ? userData.token : null;
 
@@ -27,7 +27,7 @@ const StudentDetailTable = ({ studentId }) => {
 
         // Fetch student details
         const studentResponse = await axios.get(
-          `http://localhost:5000/api/students/${studentId}`,
+          `/api/students/${studentId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -40,7 +40,7 @@ const StudentDetailTable = ({ studentId }) => {
         // Fetch courses associated with the student
         try {
           const coursesResponse = await axios.get(
-            `http://localhost:5000/api/students/${studentId}/courses`,
+            `/api/students/${studentId}/courses`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -62,7 +62,7 @@ const StudentDetailTable = ({ studentId }) => {
         console.error('Error fetching student details:', err);
         setError('Failed to load student details.');
       } finally {
-        setLoading(false);
+        
       }
     };
 
@@ -70,7 +70,7 @@ const StudentDetailTable = ({ studentId }) => {
   }, [studentId]);
 
   if (!studentId) return <div>Please select a valid student to view details.</div>;
-  if (loading) return <div>Loading student details...</div>;
+ 
   if (error) return <div>{error}</div>;
 
   return (

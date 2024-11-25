@@ -1,157 +1,219 @@
 import React, { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FaEdit, FaTrash, FaPlusCircle } from 'react-icons/fa';
 import axios from 'axios';
 import LessonEditAddComponent from './LessonEditAddComponent';
 import 'pages/admin/styles/ViewLessonsComponent.css';
+import ErrorAlert from './ErrorAlert';
+
+import { useAuth } from 'AuthContext';
 
 const ViewLessonsComponent = ({ section, onClose }) => {
-  const [lessons, setLessons] = useState([]); // Lessons state
+  const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [editingLesson, setEditingLesson] = useState(null); // Track lesson being edited
-  const [isAddingLesson, setIsAddingLesson] = useState(false); // Track if adding a new lesson
-
-  // Fetch lessons for the given section
-  useEffect(() => {
-    const fetchLessons = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/lessons?section_id=${section.section_id}`
-          
-        );
-        
-        // Handle empty lessons array
-        if (response.data.length === 0) {
-          setError('No lessons found for this section.');
-        } else {
-          setLessons(response.data); // Populate lessons if successful
-        }
-      } catch (err) {
-        console.error('Error fetching lessons:', err);
-        setError('Failed to fetch lessons.');
-      } finally {
-        setLoading(false);
+  const [editingLesson, setEditingLesson] = useState(null);
+  const [isAddingLesson, setIsAddingLesson] = useState(false);
+  const { user } = useAuth();
+  const fetchLessons = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      if (!user?.token) {
+        throw new Error('Authentication token is missing. Please log in again.');
       }
-    };
-    
-    
-    
-    if (section?.section_id) {
-      fetchLessons();
+  
+      const response = await axios.get(`/api/lesson?section_id=${section.section_id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        }
+      });
+      
+      setLessons(response.data || []);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch lessons');
+      setLessons([]);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (section?.section_id) fetchLessons();
   }, [section]);
 
-  // Handle save operation from LessonEditAddComponent
-  const handleSaveLesson = (lesson) => {
-    if (lesson.lesson_id) {
-      // Update existing lesson in the list
-      setLessons((prevLessons) =>
-        prevLessons.map((l) => (l.lesson_id === lesson.lesson_id ? lesson : l))
-      );
-    } else {
-      // Add a new lesson to the list
-      setLessons((prevLessons) => [...prevLessons, lesson]);
-    }
-    setEditingLesson(null); // Close the edit form
-    setIsAddingLesson(false); // Close the add form
-  };
-
-  // Handle delete operation for lessons
-  const handleDeleteLesson = async (lessonId) => {
+  
+  const handleSaveLesson = async (lessonData) => {
     try {
-      await axios.delete(`http://localhost:5000/api/lessons/${lessonId}`);
-      setLessons((prevLessons) =>
-        prevLessons.filter((lesson) => lesson.lesson_id !== lessonId)
-      );
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const token = userData?.token;
+  
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+  
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      };
+  
+      if (lessonData.lesson_id) {
+        // Update existing lesson
+        await axios.put(
+          `/api/lesson/${lessonData.lesson_id}`,
+          lessonData,
+          config
+        );
+      } else {
+        // Create new lesson
+        await axios.post(
+          '/api/lesson',
+          lessonData,
+          config
+        );
+      }
+  
+      await fetchLessons(); // Refresh lessons list
+      setEditingLesson(null);
+      setIsAddingLesson(false);
     } catch (err) {
-      console.error('Error deleting lesson:', err);
-      setError('Failed to delete lesson.');
+      console.error('Error saving lesson:', err);
+      setError(err.response?.data?.error || 'Failed to save lesson');
+      throw err; // Propagate error to LessonEditAddComponent
     }
   };
 
-  // Open Add Lesson form
-  const handleAddLesson = () => {
-    setEditingLesson(null); // Clear any editing state
-    setIsAddingLesson(true); // Enable Add mode
+  const handleDeleteLesson = async (lessonId) => {
+    setLoading(true);
+    setError('');
+    try {
+      if (!user?.token) {
+        throw new Error('Authentication token is missing. Please log in again.');
+      }
+  
+      await axios.delete(`/api/lesson/${lessonId}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      });
+  
+      // Refresh lessons list after successful delete
+      await fetchLessons();
+  
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError('Unauthorized. Please log in again.');
+      } else {
+        setError(err.message || 'Failed to delete lesson');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Open Edit Lesson form
-  const handleEditLesson = (lesson) => {
-    setEditingLesson(lesson); // Set the lesson being edited
-    setIsAddingLesson(false); // Ensure not in add mode
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+  
+    const reorderedLessons = Array.from(lessons);
+    const [movedLesson] = reorderedLessons.splice(result.source.index, 1);
+    reorderedLessons.splice(result.destination.index, 0, movedLesson);
+  
+    setLessons(reorderedLessons);
+  
+    // Map the lessons array to only include lesson_id and order
+    const payload = reorderedLessons.map((lesson, index) => ({
+      lesson_id: lesson.lesson_id,
+      order: index,
+    }));
+  
+    try {
+      await axios.post('/api/lesson/reorder', { lessons: payload });
+      console.log('Reorder successful');
+    } catch (err) {
+      console.error('Error updating lesson order:', err);
+    }
   };
-
-  // Close Add/Edit Lesson form
-  const handleCancel = () => {
-    setEditingLesson(null);
-    setIsAddingLesson(false);
-  };
+  
 
   return (
     <div className="view-lessons-container">
+      {error && <ErrorAlert message={error} onClose={() => setError('')} />}
       <h3>{section.name} Lessons</h3>
-  
-      <div className="add-lesson-container">
-        <button
-          className="add-lesson-button"
-          onClick={handleAddLesson} // Trigger Add Lesson form
-        >
-          Add Lesson <FaPlusCircle />
-        </button>
-      </div>
-  
+      <button className="add-lesson-button" onClick={() => setIsAddingLesson(true)}>
+        Add Lesson <FaPlusCircle />
+      </button>
+
       {loading ? (
         <p>Loading lessons...</p>
       ) : error ? (
-        <p className="error">{error}</p> // Display the error message if set
+        <p className="error">{error}</p>
       ) : isAddingLesson || editingLesson ? (
         <LessonEditAddComponent
           section={section}
-          lesson={editingLesson} // Pass lesson if editing, null if adding
-          onSave={handleSaveLesson} // Save handler
-          onDelete={handleDeleteLesson} // Delete handler (only for edit mode)
-          onCancel={handleCancel} // Cancel handler
+          lesson={editingLesson}
+          onSave={handleSaveLesson}
+          onDelete={handleDeleteLesson}
+          onCancel={() => {
+            setEditingLesson(null);
+            setIsAddingLesson(false);
+          }}
         />
       ) : lessons.length > 0 ? (
-        <table className="lesson-table">
-          <thead>
-            <tr>
-              <th>Lesson Name</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lessons.map((lesson) => (
-              <tr key={lesson.lesson_id}>
-                <td>{lesson.name}</td>
-                <td>
-                  <FaEdit
-                    className="icon edit-lesson-icon"
-                    onClick={() => handleEditLesson(lesson)} // Open Edit Lesson form
-                    title="Edit Lesson"
-                  />
-                  <FaTrash
-                    className="icon delete-lesson-icon"
-                    onClick={() => handleDeleteLesson(lesson.lesson_id)} // Trigger delete
-                    title="Delete Lesson"
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="lessons">
+            {(provided) => (
+              <table className="lesson-table" ref={provided.innerRef} {...provided.droppableProps}>
+                <thead>
+                  <tr>
+                    <th>Lesson Name</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lessons.map((lesson, index) => (
+                    <Draggable
+                      key={lesson.lesson_id}
+                      draggableId={String(lesson.lesson_id)}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <tr
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <td>{lesson.name}</td>
+                          <td>
+                            <FaEdit
+                              className="icon edit-section-icon"
+                              onClick={() => setEditingLesson(lesson)}
+                              title="Edit Lesson"
+                            />
+                            <FaTrash
+                              className="icon delete-section-icon"
+                              onClick={() => handleDeleteLesson(lesson.lesson_id)}
+                              title="Delete Lesson"
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </tbody>
+              </table>
+            )}
+          </Droppable>
+        </DragDropContext>
       ) : (
-        <p>No lessons available for this section.</p> // Show message if no lessons are present
+        <p>No lessons available for this section.</p>
       )}
-  
-      <button className="save-button" onClick={onClose}>
+      <button className="close-button" onClick={onClose}>
         Close
       </button>
     </div>
   );
-  
 };
 
 export default ViewLessonsComponent;
