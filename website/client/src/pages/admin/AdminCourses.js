@@ -5,37 +5,42 @@ import 'pages/admin/styles/AdminCourses.css';
 import EditCourseForm from 'pages/admin/components/AddEditCourseComponent';
 import SectionEditComponent from 'pages/admin/components/SectionEditComponent';
 import axios from 'axios';
+import { useAuth } from 'AuthContext';
 
 const AdminCourses = () => {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [courses, setCourses] = useState([]);
   const [editingCourse, setEditingCourse] = useState(null);
   const [editingSections, setEditingSections] = useState(false);
   const [sections, setSections] = useState([]);
   const [isAddingCourse, setIsAddingCourse] = useState(false);
-  const [editingLessons, setEditingLessons] = useState(false);
-  const [selectedSection, setSelectedSection] = useState(null);
 
-  const userData = JSON.parse(localStorage.getItem('user'));
-  const token = userData ? userData.token : null;
+  const { user } = useAuth(); // Get user from AuthContext
+  const token = user?.token; // Extract token from user context
+
+  const handleError = (err, message = 'An error occurred') => {
+    console.error(message, err.response?.data || err.message);
+    setError(message);
+  };
+
+  const fetchCourses = async () => {
+    if (token) {
+      setLoading(true);
+      try {
+        const response = await axios.get('/api/courses', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCourses(response.data);
+      } catch (err) {
+        handleError(err, 'Failed to fetch courses.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      if (token) {
-        setLoading(true);
-        try {
-          const response = await axios.get('http://localhost:5000/api/courses', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setCourses(response.data);
-        } catch (err) {
-          console.error('Error fetching courses:', err);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
     fetchCourses();
   }, [token]);
 
@@ -45,85 +50,44 @@ const AdminCourses = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/section?course_id=${course.course_id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `/api/section?course_id=${course.course_id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setSections(response.data);
     } catch (err) {
-      console.error('Error fetching sections:', err);
+      handleError(err, 'Failed to fetch sections.');
     }
   };
-  
-  const addSection = async (newSection) => {
+
+  const handleFileUpload = async (file) => {
     try {
-      console.log('Payload being sent to API:', newSection); // Debugging line
-      const response = await axios.post('http://localhost:5000/api/section', newSection, {
-        headers: { Authorization: `Bearer ${token}` },
+      const formData = new FormData();
+      formData.append('file', file); // Key must match the backend upload API
+
+      const response = await axios.post('/api/upload', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      setSections((prevSections) => [...prevSections, response.data]);
-    } catch (err) {
-      console.error('Error adding section:', err.response?.data || err.message);
-    }
-  };
-  
-  const handleEditLessons = (section) => {
-    setSelectedSection(section); // Set the selected section for lesson editing
-    setEditingLessons(true); // Show the lesson editing view
-  };
 
-  const handleSaveLesson = async (lessonData) => {
-    try {
-      const response = await axios.post('http://localhost:5000/api/lessons', {
-        ...lessonData,
-        section_id: selectedSection.section_id,
-      });
-      console.log('Lesson saved successfully:', response.data);
-      setEditingLessons(false); // Close the lesson editor
+      return response.data.fileUrl; // Return the uploaded file's URL
     } catch (err) {
-      console.error('Error saving lesson:', err.response?.data || err.message);
+      handleError(err, 'Failed to upload file.');
+      throw err;
     }
   };
 
-  const handleCloseLessons = () => {
-    setEditingLessons(false); // Close lesson editing
-    setSelectedSection(null);
-  };
-
-
-  const editSection = async (updatedSection) => {
-    try {
-      const response = await axios.put(
-        `http://localhost:5000/api/section/${updatedSection.section_id}`,
-        updatedSection,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setSections((prevSections) =>
-        prevSections.map((section) =>
-          section.section_id === updatedSection.section_id ? response.data : section
-        )
-      );
-    } catch (err) {
-      console.error('Error updating section:', err);
-    }
-  };
-  
   const deleteSection = async (sectionId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/section/${sectionId}`, {
+      await axios.delete(`/api/section/${sectionId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSections((prevSections) =>
-        prevSections.filter((section) => section.section_id !== sectionId)
-      );
+      setSections((prev) => prev.filter((section) => section.section_id !== sectionId));
     } catch (err) {
-      console.error('Error deleting section:', err);
+      handleError(err, 'Failed to delete section.');
     }
   };
-  
 
   const handleCloseSections = () => {
     setEditingSections(false);
@@ -131,32 +95,20 @@ const AdminCourses = () => {
     setSections([]);
   };
 
-  const handleEditClick = (course) => {
-    setIsAddingCourse(false);
-    setEditingCourse(course);
-  };
-
   const handleAddCourseClick = () => {
     setIsAddingCourse(true);
     setEditingCourse(null);
   };
 
-  const closeEditForm = () => {
-    setEditingCourse(null);
-    setIsAddingCourse(false);
-  };
-
   const handleDeleteCourse = async (courseId) => {
-    if (!window.confirm('Are you sure you want to delete this course?')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this course?')) return;
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      await axios.delete(`http://localhost:5000/api/courses/${courseId}`, { headers });
-      setCourses((prevCourses) => prevCourses.filter((course) => course.course_id !== courseId));
+      await axios.delete(`/api/courses/${courseId}`, { headers });
+      setCourses((prev) => prev.filter((course) => course.course_id !== courseId));
     } catch (err) {
-      console.error('Error deleting course:', err.response?.data || err.message);
+      handleError(err, 'Failed to delete course.');
     }
   };
 
@@ -181,24 +133,55 @@ const AdminCourses = () => {
           )}
         </div>
 
-        {editingSections ? (
+        {error && <p className="error-message">{error}</p>}
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : editingSections ? (
           <SectionEditComponent
             sections={sections}
-            courseId={editingCourse?.course_id} // Pass the course_id from editingCourse
+            courseId={editingCourse?.course_id}
             onSectionUpdate={(updatedSections) => {
-              updatedSections.forEach((section) => {
-                if (section.section_id) {
-                  editSection(section);
-                } else {
-                  addSection(section);
-                }
-              });
+              const payload = updatedSections.map((section, index) => ({
+                section_id: section.section_id,
+                order: index,
+              }));
+              axios
+                .post(
+                  '/api/sections/reorder',
+                  { sections: payload },
+                  {
+                    headers: { Authorization: `Bearer ${token}` },
+                  }
+                )
+                .then(() =>
+                  axios.get(
+                    `/api/section?course_id=${editingCourse?.course_id}`,
+                    {
+                      headers: { Authorization: `Bearer ${token}` },
+                    }
+                  )
+                )
+                .then((response) => setSections(response.data))
+                .catch((err) => handleError(err, 'Failed to reorder sections.'));
             }}
             onDeleteSection={deleteSection}
             onClose={handleCloseSections}
           />
         ) : editingCourse || isAddingCourse ? (
-          <EditCourseForm course={editingCourse} onClose={closeEditForm} />
+          <EditCourseForm
+            course={editingCourse}
+            onClose={() => {
+              setEditingCourse(null);
+              setIsAddingCourse(false);
+            }}
+            onSave={() => {
+              fetchCourses();
+              setEditingCourse(null);
+              setIsAddingCourse(false);
+            }}
+            onFileUpload={handleFileUpload} // Pass the file upload function
+          />
         ) : (
           <table className="course-table">
             <thead>
@@ -210,8 +193,8 @@ const AdminCourses = () => {
               </tr>
             </thead>
             <tbody>
-              {courses.map((course, index) => (
-                <tr key={index}>
+              {courses.map((course) => (
+                <tr key={course.course_id}>
                   <td>{course.title}</td>
                   <td>{course.users || '0'}</td>
                   <td>
@@ -225,7 +208,7 @@ const AdminCourses = () => {
                     <FaEdit
                       className="icon edit-icon"
                       title="Edit Course"
-                      onClick={() => handleEditClick(course)}
+                      onClick={() => setEditingCourse(course)}
                     />
                     <FaTrash
                       className="icon delete-icon"

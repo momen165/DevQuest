@@ -33,7 +33,7 @@ function ChangePassword() {
   
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/changePassword',
+        '/api/changePassword',
         { currentPassword, newPassword },
         {
           headers: {

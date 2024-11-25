@@ -21,7 +21,7 @@
 .form-group {
   margin-bottom: 15px;
 }
-p {
+.lesson-edit-add-container p {
   color: #000;
 }
 label {
@@ -76,14 +76,6 @@ textarea {
   outline: none;
 }
 
-/* Editor container */
-.editor-container {
-  border: 1px solid #ddd;
-  min-height: 200px;
-  padding: 10px;
-  border-radius: 5px;
-  background-color: #fff;
-}
 
 /* Test cases section */
 .test-case {
@@ -196,12 +188,3 @@ textarea {
   outline: none;
 }
 
-/* Editor container */
-.editor-container {
-  border: 1px solid #ddd;
-  min-height: 200px;
-  padding: 10px;
-  border-radius: 5px;
-  background-color: #fff;
-  margin-top: 10px;
-}

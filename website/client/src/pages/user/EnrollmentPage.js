@@ -13,7 +13,7 @@ const EnrollmentPage = () => {
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/courses/${courseId}`);
+        const response = await fetch(`/api/courses/${courseId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch course data');
         }
