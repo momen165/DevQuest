@@ -1,51 +1,72 @@
-.dashboard-content {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
-.dashboard-header {
+.dashboard-content {
+  /* Ensure full-page coverage and expand horizontally */
+  min-height: 100vh;
+  width: 100vw; /* Force full viewport width */
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 20px 40px; /* Increased horizontal padding for better layout */
+  box-sizing: border-box;
+
+  /* Background and font styling */
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #f9f9f9;
+}
+
+.dashboard-content .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 20px;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
-.dashboard-header h1 {
-  font-size: 1.5rem;
+.dashboard-content .dashboard-header h1 {
+  font-size: 2rem;
   font-weight: bold;
   color: #333;
 }
 
-.profile {
+.dashboard-content .profile {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
 }
 
-.profile span {
-  font-size: 1.1rem;
+.dashboard-content .profile span {
+  font-size: 1.2rem;
   font-weight: bold;
 }
 
-.profile p {
-  font-size: 0.9rem;
+.dashboard-content .profile p {
+  font-size: 1rem;
   color: #888;
 }
 
-.stats-cards {
+.dashboard-content .stats-cards {
   display: flex;
-  gap: 20px;
+  gap: 40px; /* Larger spacing between cards */
+  width: 100%; /* Ensure it stretches full width */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
-.card {
+.dashboard-content .card {
   flex: 1;
   background-color: #fff;
-  padding: 20px;
+  padding: 30px; /* Slightly larger padding for a more spacious feel */
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -54,88 +75,90 @@
   text-align: center;
 }
 
-.card .icon {
-  font-size: 2.5rem;
+.dashboard-content .card .icon {
+  font-size: 3rem;
   color: #007bff;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
-.card h3 {
-  font-size: 2rem;
+.dashboard-content .card h3 {
+  font-size: 2.5rem;
   color: #007bff;
   margin: 0;
 }
 
-.card p {
-  font-size: 1rem;
+.dashboard-content .card p {
+  font-size: 1.2rem;
   color: #666;
-  margin: 5px 0 0;
+  margin-top: 10px;
 }
 
-/* Changing to grid layout for independent spacing */
-.activity-section {
+.dashboard-content .activity-section {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 900px;
+  grid-template-columns: 2fr 1fr; /* Keep proportions but allow full width */
+  gap: 40px;
+  flex-grow: 1; /* Allow this section to grow and fill remaining space */
+  width: 100%; /* Ensure it stretches full width */
 }
 
-.recent-activity,
-.new-students {
+.dashboard-content .recent-activity,
+.dashboard-content .new-students {
   background-color: #fff;
-  padding: 20px;
+  padding: 30px; /* Increased padding for better spacing */
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto; /* Allow scrolling if content overflows */
 }
 
-.activity-header {
+.dashboard-content .activity-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
-.recent-activity h2,
-.new-students h2 {
-  font-size: 1.2rem;
+.dashboard-content .recent-activity h2,
+.dashboard-content .new-students h2 {
+  font-size: 1.4rem;
   color: #333;
 }
 
-.see-all-button {
+.dashboard-content .see-all-button {
   background-color: #007bff;
   color: #fff;
   border: none;
   border-radius: 20px;
-  padding: 5px 15px;
-  font-size: 0.9rem;
+  padding: 8px 20px;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.see-all-button:hover {
+.dashboard-content .see-all-button:hover {
   background-color: #0056b3;
 }
 
-.recent-activity ul,
-.new-students ul {
+.dashboard-content .recent-activity ul,
+.dashboard-content .new-students ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
 }
 
-.recent-activity li,
-.new-students li {
-  font-size: 0.95rem;
+.dashboard-content .recent-activity li,
+.dashboard-content .new-students li {
+  font-size: 1rem;
   color: #555;
-  padding: 5px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #eee;
 }
 
-.recent-activity li:last-child,
-.new-students li:last-child {
+.dashboard-content .recent-activity li:last-child,
+.dashboard-content .new-students li:last-child {
   border-bottom: none;
 }
 
-.modal {
+.dashboard-content .modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -147,9 +170,9 @@
   align-items: center;
 }
 
-.modal-content {
+.dashboard-content .modal-content {
   background: #fff;
-  padding: 20px;
+  padding: 30px;
   border-radius: 8px;
   width: 400px;
   max-width: 90%;
@@ -157,7 +180,7 @@
   position: relative;
 }
 
-.close-button {
+.dashboard-content .close-button {
   position: absolute;
   top: 10px;
   right: 10px;

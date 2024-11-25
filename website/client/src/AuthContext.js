@@ -11,17 +11,23 @@ export const AuthProvider = ({ children }) => {
     const storedUserData = localStorage.getItem('user');
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
-      const decodedToken = jwtDecode(parsedData.token);
+      try {
+        const decodedToken = jwtDecode(parsedData.token);
 
-      // Check if the token has expired
-      if (decodedToken.exp * 1000 < Date.now()) {
-        console.log('Token expired. Logging out...');
+        // Check if the token has expired
+        if (decodedToken.exp * 1000 < Date.now()) {
+         
+          logout();
+        } else {
+          setUser({
+            ...parsedData,
+            user_id: decodedToken.userId, // Normalize userId to user_id
+          });
+        }
+      } catch (error) {
         logout();
-      } else {
-        setUser(parsedData);
       }
     } else {
-      console.log('No user found in localStorage');
     }
     setLoading(false);
   }, []);
@@ -30,13 +36,22 @@ export const AuthProvider = ({ children }) => {
     try {
       const decodedToken = jwtDecode(token);
       const { userId, name, country, bio, admin, profileimage } = decodedToken;
-      const userData = { token, userId, name, country, bio, admin, profileimage };
+
+      const userData = {
+        token,
+        user_id: userId, // Normalize userId to user_id
+        name,
+        country,
+        bio,
+        admin,
+        profileimage,
+      };
 
       // Store the token and user data in localStorage
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
     } catch (error) {
-      console.error('Error decoding token:', error);
+      
       throw new Error('Invalid token');
     }
   };
@@ -47,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   if (loading) {
-    return null; // Don't block rendering
+    return null; // Avoid rendering children until loading is complete
   }
 
   return (

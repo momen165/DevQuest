@@ -76,7 +76,10 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: 2px solid #ffffff;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+  background-color: transparent; /* Ensure no background color */
+  object-fit: cover; /* Maintain aspect ratio and crop to fit */
 }
+
 
 .navbar-profile-picture:hover {
   transform: scale(1.1);

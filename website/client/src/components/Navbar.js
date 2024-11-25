@@ -58,7 +58,7 @@ const Navbar = () => {
           {user ? (
             <li className="navbar-item dropdown" ref={dropdownRef}>
               <img
-                src={user.profileimage  ? `http://localhost:5000${user.profileimage}?${new Date().getTime()}` : defaultProfilePic}
+                src={user.profileimage ? user.profileimage : defaultProfilePic}
                 alt="User Profile"
                 className="navbar-profile-picture"
                 onClick={toggleDropdown} // Toggle dropdown on click

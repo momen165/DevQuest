@@ -24,7 +24,7 @@ const LoginPage = () => {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:5000/api/login', formData);
+      const response = await axios.post('/api/login', formData);
       const { token } = response.data; // Extract token and role from response
       login(token); // Pass both token and role to login function
       setSuccess(true);
@@ -36,7 +36,7 @@ const LoginPage = () => {
   
 
   return (
-    <div className="container">
+    <div className="Auth_container">
       <div className="form-container">
         <h1>Log in</h1>
         <p>Don't have an account? <a href="/RegistrationPage">Sign up</a></p>

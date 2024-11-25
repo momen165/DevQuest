@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from 'pages/admin/components/Sidebar';
 import 'pages/admin/styles/PaymentInfo.css';
-import { useAuth } from 'AuthContext'; // Import AuthContext for token management
+import { useAuth } from 'AuthContext'; 
 
 const PaymentDetails = () => {
   const [payments, setPayments] = useState([]);
-  const [error, setError] = useState(null);
-  const { user } = useAuth(); // Retrieve the token and user data from AuthContext
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -20,7 +19,8 @@ const PaymentDetails = () => {
     
         const response = await fetch('http://localhost:5000/api/subscriptions', {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${user.token}`,
+
           },
         });
     

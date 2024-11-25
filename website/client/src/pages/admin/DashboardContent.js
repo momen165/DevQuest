@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaUserGraduate, FaUserPlus, FaBook } from 'react-icons/fa';
 import 'pages/admin/styles/DashboardContent.css';
 import axios from 'axios';
-
+import { useAuth } from 'AuthContext';
 const DashboardContent = () => {
   const [studentsCount, setStudentsCount] = useState(0);
   const [newStudentsCount, setNewStudentsCount] = useState(0);
@@ -14,7 +14,7 @@ const DashboardContent = () => {
 
   // Retrieve token from localStorage
   const token = JSON.parse(localStorage.getItem('user'))?.token;
-
+  const { user } = useAuth();
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -26,9 +26,14 @@ const DashboardContent = () => {
           Authorization: `Bearer ${token}`,
         };
 
-        // Fetch students data (for total count and new students list)
-        const studentsResponse = await axios.get('http://localhost:5000/api/students', { headers });
-        const { students, count } = studentsResponse.data;
+        // Fetch students data
+        const studentsResponse = await axios.get('/api/students', { headers });
+        const { students = [], count = 0 } = studentsResponse.data || {};
+
+        // Validate data
+        if (!Array.isArray(students)) {
+          throw new Error('Invalid students data received');
+        }
 
         setStudentsCount(count);
 
@@ -37,19 +42,20 @@ const DashboardContent = () => {
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
         const newStudents = students.filter((student) => {
-          const createdAt = student.created_at ? new Date(student.created_at) : null;
+          const createdAt = student?.created_at ? new Date(student.created_at) : null;
           return createdAt && createdAt >= oneWeekAgo;
         });
 
         setNewStudentsCount(newStudents.length);
+        setNewStudentsCount(newStudents.length);
         setNewStudentsList(newStudents);
 
         // Fetch courses data
-        const coursesResponse = await axios.get('http://localhost:5000/api/courses', { headers });
+        const coursesResponse = await axios.get('/api/courses', { headers });
         setCoursesCount(coursesResponse.data.length);
 
         // Fetch recent activity
-        const activityResponse = await axios.get('http://localhost:5000/api/activities/recent', { headers });
+        const activityResponse = await axios.get('/api/activities/recent', { headers });
         setRecentActivity(activityResponse.data);
       } catch (err) {
         console.error('Error fetching dashboard data:', err.response?.data || err.message);
@@ -78,7 +84,7 @@ const DashboardContent = () => {
       <header className="dashboard-header">
         <h1>Dashboard</h1>
         <div className="profile">
-          <span>John Doe</span>
+        <span>{user?.name }</span>
           <p>Admin</p>
         </div>
       </header>

@@ -1,24 +1,34 @@
 import React, { useState } from 'react';
 import 'pages/admin/styles/SectionEditComponent.css';
+import ErrorAlert from './ErrorAlert';
 
 const AddEditSectionComponent = ({ section, courseId, onSave, onCancel }) => {
   const [sectionName, setSectionName] = useState(section?.name || '');
   const [sectionDescription, setSectionDescription] = useState(section?.description || '');
+  const [error, setError] = useState('');
 
   const handleSave = () => {
     if (sectionName.trim()) {
       onSave({
-        section_id: section?.section_id || null, // Null if adding a new section
-        course_id: courseId, // Ensure course_id is passed when adding
+        section_id: section?.section_id || null,
+        course_id: courseId,
         name: sectionName,
         description: sectionDescription,
       });
+    } else {
+      setError('Section name is required.');
     }
   };
 
   return (
     <div className="edit-course-form">
-      <h2>{section ? 'Edit Section' : 'Add Section'}</h2>
+      <h2>{section?.section_id ? 'Edit Section' : 'Add Section'}</h2>
+      {error && (
+        <ErrorAlert 
+          message={error}
+          onClose={() => setError('')}
+        />
+      )}
       <label>Section Name</label>
       <input
         type="text"
