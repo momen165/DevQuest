@@ -103,3 +103,4 @@ app._router.stack.forEach((middleware) => {
     console.log('Route:', middleware.route.path, 'Methods:', middleware.route.methods);
   }
 });
+
