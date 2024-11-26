@@ -22,6 +22,7 @@ router.put('/updateProfile', authenticateToken, authController.updateProfile);
 router.post('/changePassword', authenticateToken, authController.changePassword);
 
 
-
+router.post('/password-reset', authController.sendPasswordResetEmail);
+router.post('/reset-password', authController.resetPassword);
 
 module.exports = router;

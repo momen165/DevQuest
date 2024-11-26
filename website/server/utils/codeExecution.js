@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com/submissions';
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
-const POLL_INTERVAL = 2000; // Polling interval in milliseconds
+const POLL_INTERVAL = 5000; // Polling interval in milliseconds
 
 const runCode = async (lessonId, code) => {
   if (!lessonId || !code) {
