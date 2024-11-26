@@ -6,6 +6,7 @@ import { useAuth } from 'AuthContext';
 const PaymentDetails = () => {
   const [payments, setPayments] = useState([]);
   const { user } = useAuth();
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchPayments = async () => {
