@@ -24,7 +24,7 @@ import CourseSection from 'pages/user/CourseSection'; // Import CourseSections
 import ProfilePage from 'pages/user/ProfilePage'; // Import ProfilePage
 import LessonPage from 'pages/user/LessonPage';
 import Unauthorized from 'pages/user/Unauthorized';
-
+import ResetPasswordPage from './pages/user/ResetPasswordPage';
 import './App.css';
 
 function App() {
@@ -44,6 +44,7 @@ function App() {
         <Route path="/LoginPage" element={<LoginPage />} />
         <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage />} />
         <Route path="/Unauthorized" element={<Unauthorized />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         {/* Admin Routes (Protected for Admins) */}
         <Route path="/Dashboard" element={<ProtectedRoute adminRequired={true}><Dashboard /></ProtectedRoute>} />
         <Route path="/Students" element={<ProtectedRoute adminRequired={true}><Students /></ProtectedRoute>} />

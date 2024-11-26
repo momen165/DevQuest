@@ -91,7 +91,7 @@ function ProfilePage() {
 
     try {
       const response = await fetch('/api/updateProfile', {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user.token}`,
