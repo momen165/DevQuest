@@ -53,8 +53,8 @@ asset-manifest.json
 .idea
 
 
-qodana.sarif.json
-qodana.yaml
+/qodana.sarif.json
+/qodana.yaml
 
 
 
