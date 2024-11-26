@@ -1,44 +1,71 @@
-/* FeedbackPage styles scoped under .feedback-page */
+/* Base container styles */
+.feedback-page {
+  min-height: 100vh;
+  background-color: #f9f9f9;
+}
+
 .feedback-page .container {
   display: flex;
-  color: black;
+  gap: 2rem;
+  padding: 2rem;
 }
 
 .feedback-page .main-content {
   flex: 1;
-  padding: 20px;
-  background-color: #f9f9f9; /* Matches Payment Page background */
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* Header styles */
 .feedback-page h2 {
-  margin-bottom: 20px;
-  color: #333; /* Standard text color for headers */
+  margin-bottom: 2rem;
+  color: #000000;
+  font-size: 1.8rem;
+  font-weight: 600;
 }
 
-.feedback-page .feedback-table {
+/* Table styles */
+.feedback-table {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background-color: #fff; /* White background for table */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow for better visibility */
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1.5rem;
 }
 
-.feedback-page .feedback-table th,
-.feedback-page .feedback-table td {
-  padding: 10px;
+.feedback-table th {
+  background-color: #f8f9fa;
+  color: #000000;
+  font-weight: 600;
+  padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #ccc; /* Consistent with Payment Page table borders */
+  border-bottom: 2px solid #e9ecef;
 }
 
-.feedback-page .feedback-table th {
-  background-color: #f0f0f0; /* Light gray header background */
-  color: #555; /* Subtle text color for headers */
+.feedback-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  color: #000000;
 }
 
-.feedback-page .feedback-table tr:last-child td {
-  border-bottom: none; /* Remove bottom border from the last row */
+.feedback-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
 }
 
-.feedback-page .feedback-table tr:hover {
-  background-color: #f5f5f5; /* Light hover effect for rows */
+/* Loading and error states */
+.feedback-page .loading {
+  text-align: center;
+  padding: 2rem;
+  color: #718096;
+  }
+
+.feedback-page .error {
+  color: #e53e3e;
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: #fff5f5;
+  border-radius: 4px;
+  border: 1px solid #fed7d7;
 }

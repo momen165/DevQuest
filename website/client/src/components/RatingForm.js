@@ -20,37 +20,35 @@ const handleMouseLeave = () => setHoverRating(0);
 const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent form reload
     setMessage(''); // Clear previous message
+
+    try {
+        const feedbackData = {
+            course_id: courseId,
+            rating,
+            comment,
+        };
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${user.token}`,
+                'Content-Type': 'application/json',
+            },
+        };
+
+        await axios.post(
+            'http://localhost:5000/api/feedbackFormStudent',
+            feedbackData,
+            config
+        );
+
+        setMessage('Feedback submitted successfully!');
+        setRating(0); // Reset rating
+        setComment(''); // Reset comment
+    } catch (error) {
+        setMessage('Error submitting feedback. Please try again.');
+        console.error('Error submitting feedback:', error);
+    }
 };
-
-        try {
-            const feedbackData = {
-                course_id: courseId,
-                rating,
-                comment,
-            };
-
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-
-                    'Content-Type': 'application/json',
-                },
-            };
-
-            const response = await axios.post(
-                'http://localhost:5000/api/feedbackFormStudent',
-                feedbackData,
-                config
-            );
-
-            setMessage('Feedback submitted successfully!');
-            setRating(0); // Reset rating
-            setComment(''); // Reset comment
-        } catch (error) {
-            setMessage('Error submitting feedback. Please try again.');
-            console.error('Error submitting feedback:', error);
-        }
-    };
 
     return (
         <div className="rating-form">
