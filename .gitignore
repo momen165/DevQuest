@@ -49,11 +49,16 @@ public/static/
 service-worker.js
 asset-manifest.json
 
+
 .idea
 
 
+qodana.sarif.json
+qodana.yaml
 
 
 
 
 
+
+/.github
