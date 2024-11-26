@@ -8,20 +8,19 @@ const RatingForm = ({ courseId }) => {
     const [comment, setComment] = useState('');
     const [message, setMessage] = useState('');
     const [hoverRating, setHoverRating] = useState(0); // Added for hover effect
- 
-    const { user } = useAuth();
+const { user } = useAuth();
 
+// Handle rating selection
+const handleRating = (star) => setRating(star);
 
-    // Handle rating selection
-    const handleRating = (star) => setRating(star);
+// Handle hover effects
+const handleMouseEnter = (star) => setHoverRating(star);
+const handleMouseLeave = () => setHoverRating(0);
 
-    // Handle hover effects
-    const handleMouseEnter = (star) => setHoverRating(star);
-    const handleMouseLeave = () => setHoverRating(0);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault(); // Prevent form reload
-       setMessage(''); // Clear previous message
+const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent form reload
+    setMessage(''); // Clear previous message
+};
 
         try {
             const feedbackData = {
@@ -33,6 +32,7 @@ const RatingForm = ({ courseId }) => {
             const config = {
                 headers: {
                     Authorization: `Bearer ${user.token}`,
+
                     'Content-Type': 'application/json',
                 },
             };
