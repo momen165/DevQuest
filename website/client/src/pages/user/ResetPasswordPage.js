@@ -64,47 +64,45 @@ const ResetPasswordPage = () => {
 
     return (
         <div className="reset-password-container">
-            <div className="reset-password-box">
-                <h1 className='h1-reset-password'>Reset Password</h1>
-                
-                {error && <div className="error-message">{error}</div>}
-                {message && <div className="success-message">{message}</div>}
-                
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label className='label-reset-password' htmlFor="password">New Password</label>
-                        <inputreset-password
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            disabled={loading}
-                            required
-                        />
-                    </div>
-                    
-                    <div className="form-group">
-                        <label htmlFor="confirmPassword">Confirm Password</label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            disabled={loading}
-                            required
-                        />
-                    </div>
-
-                    <button 
-                        type="submit" 
-                        className="submit-button"
-                        disabled={loading || !token}
-                    >
-                        {loading ? 'Resetting...' : 'Reset Password'}
-                    </button>
-                </form>
+    <div className="reset-password-box">
+        <h1 className='h1-reset-password'>Reset Password</h1>
+        
+        {error && <div className="error-message">{error}</div>}
+        {message && <div className="success-message">{message}</div>}
+        
+        <form onSubmit={handleSubmit}>
+            <div className="form-group">
+                <label className='label-reset-password' htmlFor="password">New Password</label>
+                <input
+                    className="reset-password"
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                    required
+                />
             </div>
-        </div>
+            
+            <div className="form-group">
+                <label className='label-reset-password' htmlFor="confirmPassword">Confirm Password</label>
+                <input
+                    className="reset-password"
+                    type="password"
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={loading}
+                    required
+                />
+            </div>
+            
+            <button className="submit-button" type="submit" disabled={loading}>
+                {loading ? 'Submitting...' : 'Submit'}
+            </button>
+        </form>
+    </div>
+</div>
     );
 };
 
