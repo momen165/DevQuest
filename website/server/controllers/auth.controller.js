@@ -7,7 +7,7 @@ const mailjet = require('node-mailjet');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
-const authenticateToken = require('../middleware/auth');
+
 
 
 const signup = async (req, res) => {
