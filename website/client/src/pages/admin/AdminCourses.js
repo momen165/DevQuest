@@ -80,7 +80,7 @@ const AdminCourses = () => {
 
   const deleteSection = async (sectionId) => {
     try {
-      await axios.delete(`/api/section/${sectionId}`, {
+      await axios.delete(`/api/sections/${sectionId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSections((prev) => prev.filter((section) => section.section_id !== sectionId));

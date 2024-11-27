@@ -17,6 +17,7 @@ const addSection = async (req, res) => {
       FROM section 
       WHERE course_id = $1;
     `;
+    
     const orderResult = await db.query(orderQuery, [course_id]);
     const nextOrder = orderResult.rows[0].next_order;
 

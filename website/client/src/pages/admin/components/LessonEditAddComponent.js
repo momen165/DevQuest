@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaTrash } from 'react-icons/fa';
 import axios from 'axios';
-
 import 'pages/admin/styles/LessonEditAddComponent.css';
 import CustomEditor from '../../../components/CustomEditor';
 import ErrorAlert from './ErrorAlert';
+import { useAuth } from 'AuthContext'; // Import useAuth for context
 
 const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDelete }) => {
   const [lessonName, setLessonName] = useState(lesson?.name || '');
   const [editorData, setEditorData] = useState(lesson?.content || '');
   const [xp, setXp] = useState(lesson?.xp || 0);
   const [error, setError] = useState('');
+  const { user } = useAuth(); // Get user from context
+
   const [test_cases, setTestCases] = useState(() => {
     // Initialize test cases properly
     if (lesson?.test_cases) {
@@ -165,7 +167,9 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     if (!lesson?.lesson_id) return;
     if (!window.confirm('Are you sure you want to delete this lesson?')) return;
     try {
-      await axios.delete(`/api/lesson/${lesson.lesson_id}`);
+      await axios.delete(`/api/lesson/${lesson.lesson_id}`,{
+        headers: { Authorization: `Bearer ${user.token}` }, // Use token from context
+      });
       onDelete(lesson.lesson_id);
     } catch (err) {
       console.error('Error deleting lesson:', err);
