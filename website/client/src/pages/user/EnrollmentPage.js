@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useParams, useNavigate } from 'react-router-dom';
 import 'styles/EnrollmentPage.css';
+import { useAuth } from 'AuthContext';
 
 const EnrollmentPage = () => {
-  const { courseId } = useParams(); // Get the courseId from the URL
-  const navigate = useNavigate(); // Hook for programmatic navigation
+  const { courseId } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isUsingFallback, setIsUsingFallback] = useState(false); // Add this state
-  // Fetch course data based on courseId
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const { user } = useAuth();
+
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
@@ -18,7 +21,16 @@ const EnrollmentPage = () => {
           throw new Error('Failed to fetch course data');
         }
         const data = await response.json();
-        setCourse(data); // Set the fetched course data
+        setCourse(data);
+
+        // Check if the user is already enrolled in the course
+        const enrollmentResponse = await fetch(`/api/enrollments/${user.user_id}/${courseId}`);
+        if (!enrollmentResponse.ok) {
+          throw new Error('Failed to check enrollment status');
+        }
+        const enrollmentData = await enrollmentResponse.json();
+        setIsEnrolled(enrollmentData.isEnrolled);
+
         setLoading(false);
       } catch (err) {
         console.error('Error:', err);
@@ -28,7 +40,7 @@ const EnrollmentPage = () => {
     };
 
     fetchCourseData();
-  }, [courseId]); // Fetch course data whenever courseId changes
+  }, [courseId, user.user_id]);
 
   if (loading) {
     return <div>Loading course data...</div>;
@@ -42,56 +54,69 @@ const EnrollmentPage = () => {
     return <div>Course not found</div>;
   }
 
-  const fullImageUrl = course.image
-    ? course.image
-    : '/fallback-image.png';
+  const fullImageUrl = course.image ? course.image : '/fallback-image.png';
 
-  // Handle "Start Learning" button click
   const handleStartLearning = () => {
-    navigate(`/course/${courseId}`); // Navigate to the course sections page
+    if (!isEnrolled) {
+      fetch('/api/enrollCourse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({
+          user_id: user.user_id,
+          course_id: courseId,
+        }),
+      })
+          .then(response => {
+            if (!response.ok) {
+              return response.text().then(text => { throw new Error(text) });
+            }
+            return response.json();
+          })
+          .then(data => {
+            setIsEnrolled(true);
+            navigate(`/course/${courseId}`);
+          })
+          .catch(error => {
+            console.error('Error enrolling in course:', error);
+          });
+    } else {
+      navigate(`/course/${courseId}`);
+    }
   };
 
-
   const handleImageError = (e) => {
-    if (!isUsingFallback) { // Only set fallback if we haven't already
-      console.error('Image failed to load, falling back to placeholder');
+    if (!isUsingFallback) {
       setIsUsingFallback(true);
       e.target.src = '/fallback-image.png';
     } else {
-      // If fallback also fails, show broken image icon
-      e.target.style.display = 'none'; // Or replace with a div showing "Image Unavailable"
-      console.error('Both original and fallback images failed to load');
+      e.target.style.display = 'none';
     }
   };
 
   return (
-    <div className="enrollment-page">
-      <div className="enroll-info">
-        <header className="enrollment-header">
-          <h2 className="course-intro">Introduction to {course.title}</h2>
-          <h1 className="course-titl">Master the Language of the Future</h1>
-          <p className="course-description">{course.description || 'Course description goes here.'}</p>
-
-          {/* Start Learning Button */}
-          <button className="start-button" onClick={handleStartLearning}>
-            Start learning {course.title}
-          </button>
-        </header>
+      <div className="enrollment-page">
+        <div className="enroll-info">
+          <header className="enrollment-header">
+            <h2 className="course-intro">Introduction to {course.title}</h2>
+            <h1 className="course-titl">Master the Language of the Future</h1>
+            <p className="course-description">{course.description || 'Course description goes here.'}</p>
+            <button className="start-button" onClick={handleStartLearning}>
+              {isEnrolled ? 'Continue learning' : 'Start learning'} {course.title}
+            </button>
+          </header>
+        </div>
+        <div className="enroll-img">
+          <img
+              src={fullImageUrl}
+              alt={`Course: ${course.title}`}
+              style={{ width: '700px', height: 'auto' }}
+              onError={handleImageError}
+          />
+        </div>
       </div>
-
-      {/* Dynamic Image with Fallback */}
-      <div className="enroll-img">
-      <img
-      src={fullImageUrl}
-      alt={`Course: ${course.title}`}
-      style={{
-        width: '700px',
-        height: 'auto',
-      }}
-      onError={handleImageError}
-    />
-      </div>
-    </div>
   );
 };
 

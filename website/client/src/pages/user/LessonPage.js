@@ -32,6 +32,15 @@ const LessonPage = () => {
   const [lessons, setLessons] = useState([]); // For navigation
   const [totalLessons, setTotalLessons] = useState(0); // Dynamically set total lessons
 
+  const resetState = () => {
+    setCode('');
+    setConsoleOutput('Output will appear here...');
+    setIsAnswerCorrect(false);
+    setLesson(null);
+    setLoading(true);
+    setError('');
+  };
+
   useEffect(() => {
     const fetchLesson = async () => {
       setLoading(true);
@@ -86,48 +95,52 @@ const LessonPage = () => {
 
     if (lesson?.section_id) fetchAllLessons();
   }, [lesson?.section_id]);
-  
+
+  // Add this state to track if the user's answer is correct
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
+
   const runCode = async () => {
     try {
       setConsoleOutput('Running code...');
-      
+
       if (!languageId) {
         setConsoleOutput('Language ID not available. Cannot run the code.');
         return;
       }
-  
+
       if (!user || !user.token) {
         setConsoleOutput('Authorization token is missing. Please log in again.');
         return;
       }
-  
+
       const payload = {
         lessonId: parseInt(lessonId, 10),
         code,
         languageId,
       };
-  
+
       console.log('Payload sent to API:', payload);
-  
+
       const response = await axios.post(
-        '/api/run',
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
+          '/api/run',
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
       );
-  
+
       console.log('Response from API:', response.data);
-  
+
       const { results } = response.data;
       if (!results || results.length === 0) {
         setConsoleOutput('No results received from the server.');
         return;
       }
-  
+
       let output = 'Test Case Results:\n';
+      let allPassed = true;
       results.forEach((testCase, index) => {
         const { input, expected_output, actual_output, status } = testCase;
         output += `Test Case ${index + 1}:\n`;
@@ -135,67 +148,74 @@ const LessonPage = () => {
         output += `Expected Output:\n${expected_output.trim()}\n`;
         output += `Actual Output:\n${actual_output.trim()}\n`;
         output += `Status: ${status}\n\n`;
+        if (status !== 'Passed') {
+          allPassed = false;
+        }
       });
-  
+
       setConsoleOutput(output);
-  
+      setIsAnswerCorrect(allPassed); // Update the state based on test case results
+
     } catch (err) {
       console.error('Error running code:', err.response?.data || err.message);
       setConsoleOutput('An error occurred while running the code. Please try again.');
     }
   };
-  
-  
+
+
+
+
+
 
   if (loading) return <p className="loading">Loading lesson...</p>;
   if (error) return <p className="error">{error}</p>;
 
   return (
-    <>
-      <Navbar />
-      <div className="lesson-page">
-        <div className="lesson-instructions">
-          <h1>{lesson.name}</h1>
-          <p>{lesson.description}</p>
-          <div
-            className="lesson-content"
-            dangerouslySetInnerHTML={{ __html: lesson.content }}
-          ></div>
-        </div>
-
-        <div className="lesson-code-area">
-          <div className="code-editor">
-            <h3>// Write code below 👇</h3>
-            <CodeMirror
-              value={code}
-              height="400px"
-              theme="dark"
-              extensions={[languageExtensions[languageId] || javascript()]} // Dynamically set the extension
-              onChange={(value) => setCode(value)} // Update code state
-            />
-
-            <button className="run-btn" onClick={() => runCode(user)}>
-              Run
-            </button>
+      <>
+        <Navbar />
+        <div className="lesson-page">
+          <div className="lesson-instructions">
+            <h1>{lesson.name}</h1>
+            <p>{lesson.description}</p>
+            <div
+                className="lesson-content"
+                dangerouslySetInnerHTML={{ __html: lesson.content }}
+            ></div>
           </div>
-          <div className="console">
-            <h3>Console</h3>
-            <pre id="console-output" className="console-output">
+
+          <div className="lesson-code-area">
+            <div className="code-editor">
+              <h3>// Write code below 👇</h3>
+              <CodeMirror
+                  value={code}
+                  height="400px"
+                  theme="dark"
+                  extensions={[languageExtensions[languageId] || javascript()]} // Dynamically set the extension
+                  onChange={(value) => setCode(value)} // Update code state
+              />
+
+              <button className="run-btn" onClick={() => runCode(user)}>
+                Run
+              </button>
+            </div>
+            <div className="console">
+              <h3>Console</h3>
+              <pre id="console-output" className="console-output">
               {consoleOutput}
             </pre>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Lesson Navigation with all lessons */}
-      <LessonNavigation
-        currentLessonId={parseInt(lessonId)}
-        lessons={lessons} // Pass lessons array for navigation
-        
-      />
-      {/* Debugging Logs */}
-    
-    </>
+        {/* Lesson Navigation with all lessons */}
+        <LessonNavigation
+            currentLessonId={parseInt(lessonId)}
+            lessons={lessons} // Pass lessons array for navigation
+            isAnswerCorrect={isAnswerCorrect}
+            onNext={resetState} // Pass the reset function
+        />
+        {/* Debugging Logs */}
+      </>
   );
 };
 

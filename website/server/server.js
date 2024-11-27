@@ -24,6 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
+
 // Import routes
 
 const authRoutes = require('./routes/auth.routes');
