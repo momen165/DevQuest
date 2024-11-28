@@ -6,9 +6,10 @@ const JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com/submissions';
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY; // Store in .env
 const POLL_INTERVAL = 2000; // Polling interval in milliseconds
 
+
 const runCode = async (req, res) => {
   const { lessonId, code } = req.body;
-
+    const isBase64Encoded = req.query.base64_encoded === 'true';
   if (!lessonId || !code) {
     return res.status(400).json({ error: 'Missing required fields: lessonId or code' });
   }
@@ -42,11 +43,17 @@ const runCode = async (req, res) => {
     const languageId = langResult.rows[0].language_id;
     const testCases = lessonResult.rows[0].test_cases;
 
+      // Decode Base64 encoded code if necessary
+      const decodedCode = isBase64Encoded ? atob(code) : code;
+
+
     // Process each test case
     const results = await Promise.all(
       testCases.map(async (testCase) => {
         const { input, expectedOutput, expected_output } = testCase;
         const normalizedExpectedOutput = (expectedOutput || expected_output || '').replace(/\\n/g, '\n');
+
+
 
         // Validate test case format
         if (!input || !normalizedExpectedOutput) {
@@ -54,12 +61,12 @@ const runCode = async (req, res) => {
         }
 
         // Prepare submission payload
-        const submission = {
-          source_code: code,
-          language_id: languageId,
-          stdin: input,
-          expected_output: normalizedExpectedOutput,
-        };
+          const submission = {
+              source_code: decodedCode, // Use the decoded code here
+              language_id: languageId,
+              stdin: input,
+              expected_output: normalizedExpectedOutput,
+          };
 
         // Submit to Judge0
         const { data: { token } } = await axios.post(JUDGE0_API_URL, submission, {
