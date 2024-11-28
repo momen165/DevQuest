@@ -30,6 +30,9 @@ const CourseSection = () => {
         fetchSections();
     }, [courseId]);
 
+
+
+
     return (
         <>
             <Navbar />

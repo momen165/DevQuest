@@ -231,14 +231,13 @@ const reorderLessons = async (req, res) => {
  * associated with the lesson.
  */
 const updateLessonProgress = async (req, res) => {
-  const { user_id, lesson_id, completed } = req.body;
+  const { user_id, lesson_id, completed, submitted_code } = req.body;
 
   if (!user_id || !lesson_id || completed === undefined) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
 
   try {
-    // Step 1: Get the course_id associated with the lesson_id
     const courseQuery = `
       SELECT course.course_id
       FROM course
@@ -254,7 +253,6 @@ const updateLessonProgress = async (req, res) => {
 
     const courseId = courseResult.rows[0].course_id;
 
-    // Step 2: Check if a progress record exists
     const checkQuery = `
       SELECT * FROM lesson_progress
       WHERE user_id = $1 AND lesson_id = $2;
@@ -262,31 +260,28 @@ const updateLessonProgress = async (req, res) => {
     const checkResult = await db.query(checkQuery, [user_id, lesson_id]);
 
     if (checkResult.rows.length > 0) {
-      // If the record exists, update the completion status
       const updateQuery = `
         UPDATE lesson_progress
-        SET completed = $1, completed_at = $2
-        WHERE user_id = $3 AND lesson_id = $4
+        SET completed = $1, completed_at = $2, submitted_code = $3
+        WHERE user_id = $4 AND lesson_id = $5
         RETURNING *;
       `;
-      const updateValues = [completed, completed ? new Date() : null, user_id, lesson_id];
+      const updateValues = [completed, completed ? new Date() : null, submitted_code, user_id, lesson_id];
       const updateResult = await db.query(updateQuery, updateValues);
 
       if (updateResult.rows.length === 0) {
         return res.status(404).json({ error: 'Error updating progress.' });
       }
     } else {
-      // If no record exists, insert a new one
       const insertQuery = `
-        INSERT INTO lesson_progress (user_id, lesson_id, completed, completed_at, course_id)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO lesson_progress (user_id, lesson_id, completed, completed_at, course_id, submitted_code)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
       `;
-      const insertValues = [user_id, lesson_id, completed, completed ? new Date() : null, courseId];
+      const insertValues = [user_id, lesson_id, completed, completed ? new Date() : null, courseId, submitted_code];
       const insertResult = await db.query(insertQuery, insertValues);
     }
 
-    // Step 3: Calculate the overall progress
     const totalLessonsQuery = `
       SELECT COUNT(*) AS total_lessons
       FROM lesson
@@ -306,7 +301,6 @@ const updateLessonProgress = async (req, res) => {
 
     const progress = (completedLessons / totalLessons) * 100;
 
-    // Step 4: Update the enrollment table
     const updateEnrollmentQuery = `
       UPDATE enrollment
       SET progress = $1
@@ -327,7 +321,31 @@ const updateLessonProgress = async (req, res) => {
   }
 };
 
+const getLessonProgress = async (req, res) => {
+  const { user_id, lesson_id } = req.query;
 
+  if (!user_id || !lesson_id) {
+    return res.status(400).json({ error: 'user_id and lesson_id are required.' });
+  }
+
+  try {
+    const query = `
+      SELECT completed, completed_at, submitted_code
+      FROM lesson_progress
+      WHERE user_id = $1 AND lesson_id = $2;
+    `;
+    const { rows } = await db.query(query, [user_id, lesson_id]);
+
+    if (rows.length === 0) {
+      return res.status(200).json({ completed: false, completed_at: null, submitted_code: '' });
+    }
+
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching lesson progress:', err);
+    res.status(500).json({ error: 'Failed to fetch lesson progress.' });
+  }
+};
 
 module.exports = {
   addLesson,
@@ -337,4 +355,5 @@ module.exports = {
   deleteLesson,
   reorderLessons,
   updateLessonProgress,
+  getLessonProgress,
 };
