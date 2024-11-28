@@ -15,5 +15,5 @@ router.post('/lesson/reorder', authenticateToken, lessonController.reorderLesson
 
 // Update progress
 router.put('/update-lesson-progress', lessonController.updateLessonProgress); // Ensure this route is correct
-
+router.get('/lesson-progress', lessonController.getLessonProgress);
 module.exports = router;

@@ -9,28 +9,27 @@ import { java } from '@codemirror/lang-java';
 import 'styles/LessonPage.css';
 import Navbar from 'components/Navbar';
 import LessonNavigation from 'components/LessonNavigation';
-import { useAuth } from 'AuthContext'; // Ensure you import useAuth
-
-
+import { useAuth } from 'AuthContext';
 
 const languageExtensions = {
-  71: python(), // Python
-  74: javascript(), // JavaScript
-  54: cpp(), // C++
-  62: java(), // Java
+  71: python(),
+  74: javascript(),
+  54: cpp(),
+  62: java(),
 };
 
 const LessonPage = () => {
   const { lessonId } = useParams();
-  const { user } = useAuth(); // Access user from AuthContext
+  const { user } = useAuth();
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [code, setCode] = useState('');
   const [consoleOutput, setConsoleOutput] = useState('Output will appear here...');
-  const [languageId, setLanguageId] = useState(null); // To store language_id
-  const [lessons, setLessons] = useState([]); // For navigation
-  const [totalLessons, setTotalLessons] = useState(0); // Dynamically set total lessons
+  const [languageId, setLanguageId] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
 
   const resetState = () => {
     setCode('');
@@ -48,22 +47,31 @@ const LessonPage = () => {
       try {
         const response = await axios.get(`/api/lesson/${lessonId}`, {
           headers: {
-            Authorization: `Bearer ${user.token}`, // Pass the token in headers
+            Authorization: `Bearer ${user.token}`,
           },
         });
-        
+
         const lessonData = response.data;
         setLesson(lessonData);
-        setLanguageId(lessonData.language_id); // Set language_id for code editor
-        
-        // Fetch lessons in the same section for navigation
+        setLanguageId(lessonData.language_id);
+
         const lessonsResponse = await axios.get(`/api/lesson?section_id=${lessonData.section_id}`, {
           headers: {
-            Authorization: `Bearer ${user.token}`, // Pass the token in headers
+            Authorization: `Bearer ${user.token}`,
           },
         });
         setLessons(lessonsResponse.data || []);
-        setTotalLessons(lessonsResponse.data.length); // Dynamically set total lessons
+        setTotalLessons(lessonsResponse.data.length);
+
+        const progressResponse = await axios.get(`/api/lesson-progress?user_id=${user.user_id}&lesson_id=${lessonId}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (progressResponse.data.submitted_code) {
+          setCode(progressResponse.data.submitted_code);
+        }
       } catch (err) {
         setError('Failed to fetch lesson data.');
         console.error('Error fetching lesson:', err);
@@ -71,33 +79,9 @@ const LessonPage = () => {
         setLoading(false);
       }
     };
-    console.log('Lesson Data:', lesson);
-    console.log('Test Cases:', lesson?.test_cases);
+
     fetchLesson();
   }, [lessonId]);
-  
-  
-  // Fetch all lessons for navigation
-  useEffect(() => {
-    const fetchAllLessons = async () => {
-      try {
-        const response = await axios.get(`/api/lesson?section_id=${lesson?.section_id}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`, // Pass the token in headers
-          },
-        });
-        setLessons(response.data || []);
-        setTotalLessons(response.data.length); // Update total lessons count
-      } catch (err) {
-        console.error('Failed to fetch lessons for navigation:', err);
-      }
-    };
-
-    if (lesson?.section_id) fetchAllLessons();
-  }, [lesson?.section_id]);
-
-  // Add this state to track if the user's answer is correct
-  const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
 
   const runCode = async () => {
     try {
@@ -119,8 +103,6 @@ const LessonPage = () => {
         languageId,
       };
 
-      console.log('Payload sent to API:', payload);
-
       const response = await axios.post(
           '/api/run',
           payload,
@@ -130,8 +112,6 @@ const LessonPage = () => {
             },
           }
       );
-
-      console.log('Response from API:', response.data);
 
       const { results } = response.data;
       if (!results || results.length === 0) {
@@ -154,18 +134,24 @@ const LessonPage = () => {
       });
 
       setConsoleOutput(output);
-      setIsAnswerCorrect(allPassed); // Update the state based on test case results
+      setIsAnswerCorrect(allPassed);
+
+      await axios.put('/api/update-lesson-progress', {
+        user_id: user.user_id,
+        lesson_id: lessonId,
+        completed: allPassed,
+        submitted_code: code,
+      }, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
 
     } catch (err) {
       console.error('Error running code:', err.response?.data || err.message);
       setConsoleOutput('An error occurred while running the code. Please try again.');
     }
   };
-
-
-
-
-
 
   if (loading) return <p className="loading">Loading lesson...</p>;
   if (error) return <p className="error">{error}</p>;
@@ -190,8 +176,8 @@ const LessonPage = () => {
                   value={code}
                   height="400px"
                   theme="dark"
-                  extensions={[languageExtensions[languageId] || javascript()]} // Dynamically set the extension
-                  onChange={(value) => setCode(value)} // Update code state
+                  extensions={[languageExtensions[languageId] || javascript()]}
+                  onChange={(value) => setCode(value)}
               />
 
               <button className="run-btn" onClick={() => runCode(user)}>
@@ -207,14 +193,13 @@ const LessonPage = () => {
           </div>
         </div>
 
-        {/* Lesson Navigation with all lessons */}
         <LessonNavigation
             currentLessonId={parseInt(lessonId)}
-            lessons={lessons} // Pass lessons array for navigation
+            lessons={lessons}
             isAnswerCorrect={isAnswerCorrect}
-            onNext={resetState} // Pass the reset function
+            onNext={resetState}
+            code={code} // Pass the code state here
         />
-        {/* Debugging Logs */}
       </>
   );
 };

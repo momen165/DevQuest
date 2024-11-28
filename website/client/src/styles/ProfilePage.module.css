@@ -1,16 +1,13 @@
 /* ProfilePage.module.css */
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom, #0A1128, #091236, #1A2A6C);
-  color: white;
-}
-
 .profilePageContainer {
   display: flex;
   justify-content: center;
   padding: 20px;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom, #0A1128, #091236, #1A2A6C);
+  color: white;
   min-height: 100vh;
 }
 
@@ -66,17 +63,13 @@ body {
   margin-top: 10px;
 }
 
-/* ProfilePage.module.css */
-
-/* ProfilePage.module.css */
-
 .statusSection {
   background: #1b1b1b;
   padding: 20px;
   color: white;
   margin-top: 20px;
   text-align: center;
-  max-width: 350px; /* Adjust the max-width as needed */
+  max-width: 350px;
 }
 
 .statusTitle {
@@ -89,22 +82,22 @@ body {
 .statusCards {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Space between rows */
+  gap: 10px;
 }
 
 .statusRow {
   display: flex;
   justify-content: space-between;
-  gap: 10px; /* Space between cards in each row */
+  gap: 10px;
 }
 
 .statusCard {
   background: #252525;
   padding: 15px 10px;
-  width: 120px; /* Increased width for a wider look */
+  width: 120px;
   text-align: center;
   color: white;
-  border-radius: 0; /* Remove rounded corners */
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -113,87 +106,159 @@ body {
 .statusNumber {
   font-size: 1.6em;
   font-weight: bold;
-  color: #76ff03; /* Default green color for other numbers */
+  color: #76ff03;
   margin-bottom: 5px;
 }
 
-/* Specific color for the Course XP number */
 .statusCard.xpCard .statusNumber {
   color: #AFE5AF;
 }
 
 .statusCard p {
   font-size: 0.9em;
-  color: #cccccc; /* Lighter color for label text */
+  color: #cccccc;
   text-transform: capitalize;
   margin: 0;
 }
 
-
-
-.coursesTitle {
-  font-weight: bold;
-  font-size: 1.5em;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.courseCard {
-  background: #f8f8f8;
-  color: black;
-  border-radius: 10px;
+.courseCardprofile {
+  background-color: #FFFACD; /* Light yellow */
   padding: 20px;
-  margin-bottom: 20px;
-  position: relative;
-}
-
-.courseCardYellow {
-  background: #FFFACD;
-}
-
-.courseCardBlue {
-  background: #ADD8E6;
-}
-
-.courseCard h4 {
-  font-weight: bold;
-  font-size: 1.5em;
-  margin-bottom: 10px;
-}
-
-.courseCard p {
-  font-size: 1em;
-  color: #333;
-  margin-bottom: 15px;
-}
-
-.progress {
-  background: #ddd;
-  border-radius: 5px;
-  overflow: hidden;
-  height: 8px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px !important; /* Add space between cards */
+  text-align: left;
   width: 100%;
-  margin-bottom: 15px;
+  max-width: 500px;
+  margin: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.courseCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.courseCardTitle {
+  font-weight: bold;
+  font-size: 1.8rem;
+  color: black;
+  text-align: left; /* Align title to the top left */
+}
+
+.courseDescription {
+  font-size: 1rem;
+  color: black;
+  margin-bottom: 20px;
+  max-width: 50%;
+  text-align: right;
+}
+
+.progressContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  justify-content: flex-start;
+}
+
+.progressText {
+  color: black;
+  margin-right: 25px;
 }
 
 .progressBar {
-  background: black;
-  height: 100%;
-}
-
-.continueBtn {
-  background: black;
-  color: white;
-  border: none;
-  padding: 8px 15px;
+  width: 40%; /* Make the progress bar shorter */
+  background-color: #e0e0e0;
+  height: 6px;
   border-radius: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
+  overflow: hidden;
 }
 
-.continueBtn:hover {
-  background: #333;
+.progress {
+  width: 40%; /* Replace with dynamic progress percentage */
+  height: 100%;
+  background-color: black;
+}
+
+.continueButton {
+  background-color: black;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  text-transform: lowercase;
+  cursor: pointer;
+  margin-top: 15px;
+  text-align: center;
+  display: block;
+  width: fit-content;
+  position: absolute; /* Move button to bottom right */
+  bottom: 10px;
+  right: 10px;
+}
+
+.continueButton:hover {
+  background-color: #333;
+}
+
+
+
+
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .profileContentContainer {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .leftColumn, .rightColumn {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .statusSection {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .profileName {
+    font-size: 1.5em;
+  }
+
+  .bioText {
+    padding: 10px;
+  }
+
+  .statusCard {
+    width: 100px;
+  }
+
+
+}
+
+@media (max-width: 576px) {
+  .profileAvatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profileName {
+    font-size: 1.2em;
+  }
+
+  .bioText {
+    font-size: 0.9em;
+  }
+
+  .statusCard {
+    width: 80px;
+  }
+
+
 }

@@ -47,6 +47,7 @@ const getStudentById = async (req, res) => {
         u.name,
         u.email,
         u.bio,
+        u.streak,
         CASE
           WHEN us.subscription_id IS NOT NULL THEN 'Active'
           ELSE 'Inactive'
@@ -64,14 +65,17 @@ const getStudentById = async (req, res) => {
     // Fetch courses the student is enrolled in
     const coursesQuery = `
       SELECT
-        c.course_id,
+        c.course_id AS course_id,
         c.name AS course_name,
-        e.progress
+        e.progress,
+        c.description as course_description
       FROM enrollment e
       JOIN course c ON e.course_id = c.course_id
       WHERE e.user_id = $1
     `;
     const { rows: coursesRows } = await db.query(coursesQuery, [studentId]);
+
+
 
     // Combine student details and courses
     const studentData = studentRows[0];
