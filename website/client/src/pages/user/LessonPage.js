@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import CodeMirror from '@uiw/react-codemirror';
@@ -10,6 +10,7 @@ import 'styles/LessonPage.css';
 import Navbar from 'components/Navbar';
 import LessonNavigation from 'components/LessonNavigation';
 import { useAuth } from 'AuthContext';
+import LessonContent from 'components/LessonContent';
 
 const languageExtensions = {
   71: python(),
@@ -45,6 +46,7 @@ const LessonPage = () => {
       setLoading(true);
       setError('');
       try {
+        console.log(`Fetching lesson data for lessonId: ${lessonId}`);
         const response = await axios.get(`/api/lesson/${lessonId}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -82,9 +84,9 @@ const LessonPage = () => {
 
     fetchLesson();
   }, [lessonId]);
-
   const runCode = async () => {
     try {
+      console.log('Running code...');
       setConsoleOutput('Running code...');
 
       if (!languageId) {
@@ -97,21 +99,29 @@ const LessonPage = () => {
         return;
       }
 
+      // Base64 encode the code if needed
+      const encodedCode = btoa(code);  // Encode the code in base64 format
+
       const payload = {
         lessonId: parseInt(lessonId, 10),
-        code,
+        code: encodedCode,  // Use the base64 encoded code
         languageId,
       };
 
+      console.log('Sending request to run code with payload:', payload);
+
       const response = await axios.post(
-          '/api/run',
+          '/api/run?base64_encoded=true',  // Ensure the correct API endpoint
           payload,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
+              'Content-Type': 'application/json',
             },
           }
       );
+
+      console.log('Received response from server:', response.data);
 
       const { results } = response.data;
       if (!results || results.length === 0) {
@@ -136,6 +146,7 @@ const LessonPage = () => {
       setConsoleOutput(output);
       setIsAnswerCorrect(allPassed);
 
+      // Update lesson progress
       await axios.put('/api/update-lesson-progress', {
         user_id: user.user_id,
         lesson_id: lessonId,
@@ -149,9 +160,10 @@ const LessonPage = () => {
 
     } catch (err) {
       console.error('Error running code:', err.response?.data || err.message);
-      setConsoleOutput('An error occurred while running the code. Please try again.');
+      setConsoleOutput(err.message);
     }
   };
+
 
   if (loading) return <p className="loading">Loading lesson...</p>;
   if (error) return <p className="error">{error}</p>;
@@ -163,10 +175,7 @@ const LessonPage = () => {
           <div className="lesson-instructions">
             <h1>{lesson.name}</h1>
             <p>{lesson.description}</p>
-            <div
-                className="lesson-content"
-                dangerouslySetInnerHTML={{ __html: lesson.content }}
-            ></div>
+            <LessonContent content={lesson.content} />
           </div>
 
           <div className="lesson-code-area">
@@ -180,10 +189,11 @@ const LessonPage = () => {
                   onChange={(value) => setCode(value)}
               />
 
-              <button className="run-btn" onClick={() => runCode(user)}>
+              <button className="run-btn" onClick={runCode}>
                 Run
               </button>
             </div>
+
             <div className="console">
               <h3>Console</h3>
               <pre id="console-output" className="console-output">
@@ -198,7 +208,7 @@ const LessonPage = () => {
             lessons={lessons}
             isAnswerCorrect={isAnswerCorrect}
             onNext={resetState}
-            code={code} // Pass the code state here
+            code={code}
         />
       </>
   );
