@@ -36,6 +36,7 @@ const CourseSection = () => {
     return (
         <>
             <Navbar />
+
             <div className="Page">
                 <div className="Section">
                     <h1>Course Sections</h1>

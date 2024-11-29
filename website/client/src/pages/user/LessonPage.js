@@ -6,6 +6,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { cpp } from '@codemirror/lang-cpp';
 import { java } from '@codemirror/lang-java';
+import { FaPlay, FaCopy } from 'react-icons/fa'; // Import icons
 import 'styles/LessonPage.css';
 import Navbar from 'components/Navbar';
 import LessonNavigation from 'components/LessonNavigation';
@@ -84,6 +85,7 @@ const LessonPage = () => {
 
     fetchLesson();
   }, [lessonId]);
+
   const runCode = async () => {
     try {
       console.log('Running code...');
@@ -99,19 +101,18 @@ const LessonPage = () => {
         return;
       }
 
-      // Base64 encode the code if needed
-      const encodedCode = btoa(code);  // Encode the code in base64 format
+      const encodedCode = btoa(code);
 
       const payload = {
         lessonId: parseInt(lessonId, 10),
-        code: encodedCode,  // Use the base64 encoded code
+        code: encodedCode,
         languageId,
       };
 
       console.log('Sending request to run code with payload:', payload);
 
       const response = await axios.post(
-          '/api/run?base64_encoded=true',  // Ensure the correct API endpoint
+          '/api/run?base64_encoded=true',
           payload,
           {
             headers: {
@@ -132,21 +133,20 @@ const LessonPage = () => {
       let output = 'Test Case Results:\n';
       let allPassed = true;
       results.forEach((testCase, index) => {
-        const { input, expected_output, actual_output, status } = testCase;
+        const { input, expected_output, actual_output, status, compileError, error } = testCase;
         output += `Test Case ${index + 1}:\n`;
         output += `Input:\n${input}\n`;
         output += `Expected Output:\n${expected_output.trim()}\n`;
         output += `Actual Output:\n${actual_output.trim()}\n`;
-        output += `Status: ${status}\n\n`;
-        if (status !== 'Passed') {
-          allPassed = false;
-        }
+        output += `Status: ${status}\n`;
+        if (error) output += `Error: ${error}\n`;
+        if (compileError) output += `Compile Error: ${compileError}\n`;
+        output += `\n`;
       });
 
       setConsoleOutput(output);
       setIsAnswerCorrect(allPassed);
 
-      // Update lesson progress
       await axios.put('/api/update-lesson-progress', {
         user_id: user.user_id,
         lesson_id: lessonId,
@@ -164,6 +164,13 @@ const LessonPage = () => {
     }
   };
 
+  const copyCodeToClipboard = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      alert('Code copied to clipboard!');
+    }).catch(err => {
+      console.error('Failed to copy code: ', err);
+    });
+  };
 
   if (loading) return <p className="loading">Loading lesson...</p>;
   if (error) return <p className="error">{error}</p>;
@@ -188,9 +195,11 @@ const LessonPage = () => {
                   extensions={[languageExtensions[languageId] || javascript()]}
                   onChange={(value) => setCode(value)}
               />
-
               <button className="run-btn" onClick={runCode}>
-                Run
+                Run <FaPlay />
+              </button>
+              <button className="copy-btn" onClick={copyCodeToClipboard}>
+                Copy Code <FaCopy />
               </button>
             </div>
 
