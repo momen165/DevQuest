@@ -1,0 +1,27 @@
+﻿.unique-copy-btn {
+    margin-top: 5px;
+    padding: 5px 10px;
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 0.8rem;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.unique-copy-btn:hover {
+    background-color: #2963b3;
+}
+
+.unique-icon {
+    font-size: 1rem;
+}
+
+
+.unique-copy-btn:active {
+ transform: scale(0.9);
+    box-shadow: 3px 2px 22px 1px rgba(0, 0, 0, 0.24);
+}
