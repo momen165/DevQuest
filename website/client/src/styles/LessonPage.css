@@ -19,8 +19,29 @@
     flex: 2;
     padding: 20px;
     background: linear-gradient(to bottom,  #1f2e5a 30%, #09112A 70%);
-
+    overflow-y: scroll;
+    scrollbar-color: #377EF0 #0d1117; /* For Firefox */
   }
+
+
+.lesson-instructions::-webkit-scrollbar {
+  width: 12px;
+}
+
+.lesson-instructions::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+
+.lesson-instructions::-webkit-scrollbar-thumb {
+  background-color: #377EF0;
+  border-radius: 10px;
+  border: 2px solid #0d1117;
+
+}
+
+
+
+
 
   .lesson-instructions h1 {
 
@@ -62,22 +83,52 @@
     font-size: 1.2rem;
     color: #f7b731;
   }
-  
-  .run-btn {
-    margin-top: 10px;
-    padding: 10px 20px;
-    background-color: #377EF0;
-    border: none;
-    color: white;
-    font-size: 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .run-btn:hover {
-    background-color: #2963b3;
-  }
-  
+
+.run-btn, .copy-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background-color: #377EF0;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.run-btn:hover, .copy-btn:hover {
+  background-color: #2963b3;
+}
+
+.run-btn:active {
+  transform: scale(0.9);
+  box-shadow: 3px 2px 22px 1px rgba(0, 0, 0, 0.24);
+}
+
+
+.copy-btn{
+    background-color: #0d1117;
+    color: #ffffff;
+    border: 1px solid #377EF0;
+    margin-right: 10px;
+}
+
+
+
+.copy-btn:active {
+  transform: scale(0.9);
+  box-shadow: 3px 2px 22px 1px rgba(0, 0, 0, 0.24);
+}
+
+.run-btn {
+  margin-right: 10px; /* Add margin to the right of the run button */
+
+}
+.run-btn svg, .copy-btn svg {
+  margin-left: 8px;
+}
+
   /* Console */
   .console {
     background-color: #161925;
