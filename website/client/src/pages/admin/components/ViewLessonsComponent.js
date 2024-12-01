@@ -128,7 +128,13 @@ const ViewLessonsComponent = ({ section, onClose }) => {
     }));
   
     try {
-      await axios.post('/api/lesson/reorder', { lessons: payload });
+      await axios.post('/api/lesson/reorder', {
+        lessons: payload },
+          {
+          headers: { Authorization: `Bearer ${user.token}` }
+          }
+
+      );
       console.log('Reorder successful');
     } catch (err) {
       console.error('Error updating lesson order:', err);

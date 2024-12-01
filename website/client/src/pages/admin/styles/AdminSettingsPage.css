@@ -9,7 +9,7 @@
   flex: 1; /* Ensures the main content takes up the remaining space */
   padding: 20px;
   background-color: #ffffff; /* White background for the main content */
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for contrast */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for contrast */
   margin: 20px; /* Adds spacing between the content and the edge */
   border-radius: 8px; /* Smooth corners for aesthetic */
 }

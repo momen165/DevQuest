@@ -129,5 +129,10 @@
   color: white; /* Ensure this rule is stronger */
 }
 
+.close-button{
+  margin-top: 25px;
+  background-color: #007bff;
+  color: #ffffff;
 
+}
 

@@ -28,8 +28,10 @@ const LessonList = ({ sectionName, sectionId }) => {
         });
         // Ensure response.data is an array
         const lessons = Array.isArray(response.data) ? response.data : [];
+        console.log('Lessons:', lessons);
         // Optionally, sort lessons if the server doesn't return them in order
         const sortedLessons = lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
+
         setLessons(sortedLessons);
       } catch (err) {
         setError('Failed to fetch lessons.');

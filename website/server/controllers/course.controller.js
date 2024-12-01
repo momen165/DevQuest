@@ -173,7 +173,7 @@ const getCourses = async (req, res) => {
         course.description, 
         course.image,
         course.difficulty,
-        COUNT(enrollment.user_id) AS users
+        COUNT(enrollment.user_id) AS userscount
       FROM course
       LEFT JOIN enrollment ON course.course_id = enrollment.course_id
       GROUP BY 
@@ -235,22 +235,30 @@ const deleteCourse = async (req, res) => {
   const { course_id } = req.params;
 
   try {
-    // Delete course and related data (sections, lessons, enrollments)
+    // Delete lessons related to sections of the course
+    const deleteLessons = `
+      DELETE FROM lesson
+      WHERE section_id IN (
+        SELECT section_id FROM section WHERE course_id = $1
+      );
+    `;
+    await db.query(deleteLessons, [course_id]);
+
+    // Delete sections related to the course
+    const deleteSections = `
+      DELETE FROM section WHERE course_id = $1;
+    `;
+    await db.query(deleteSections, [course_id]);
+
+    // Delete enrollments related to the course
     const deleteEnrollments = 'DELETE FROM enrollment WHERE course_id = $1';
     await db.query(deleteEnrollments, [course_id]);
 
-    const deleteSections = `
-      DELETE FROM section
-      WHERE course_id = $1
-      RETURNING section_id
-    `;
-    const sections = await db.query(deleteSections, [course_id]);
+    // Delete feedback related to the course
+    const deleteFeedback = 'DELETE FROM feedback WHERE course_id = $1';
+    await db.query(deleteFeedback, [course_id]);
 
-    for (const section of sections.rows) {
-      const deleteLessons = 'DELETE FROM lesson WHERE section_id = $1';
-      await db.query(deleteLessons, [section.section_id]);
-    }
-
+    // Delete the course
     const deleteCourse = 'DELETE FROM course WHERE course_id = $1 RETURNING name';
     const result = await db.query(deleteCourse, [course_id]);
 
@@ -268,10 +276,68 @@ const deleteCourse = async (req, res) => {
   }
 };
 
+
+
+
+const enrollUserInCourse = async (user_id, course_id) => {
+  const query = `
+    INSERT INTO enrollment (user_id, course_id, enrollment_date)
+    VALUES ($1, $2, NOW())
+    RETURNING *;
+  `;
+  const result = await db.query(query, [user_id, course_id]);
+  return result.rows[0];
+};
+
+const enrollCourse = async (req, res) => {
+  try {
+    const { user_id, course_id } = req.body;
+    console.log('Request body:', req.body);
+
+    if (!user_id || !course_id) {
+      return res.status(400).json({ error: 'user_id and course_id are required' });
+    }
+
+    const result = await enrollUserInCourse(user_id, course_id);
+
+    res.status(200).json({ message: 'Enrollment successful', result });
+  } catch (error) {
+    console.error('Error enrolling in course:', error);
+    res.status(500).json({ error: 'Failed to enroll in course' });
+  }
+};
+
+
+const checkEnrollmentStatus = async (req, res) => {
+  const { user_id, course_id } = req.params;
+
+  try {
+    const query = `
+      SELECT * FROM enrollment
+      WHERE user_id = $1 AND course_id = $2
+    `;
+    const result = await db.query(query, [user_id, course_id]);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ isEnrolled: true });
+    } else {
+      res.status(200).json({ isEnrolled: false });
+    }
+  } catch (error) {
+    console.error('Error checking enrollment status:', error);
+    res.status(500).json({ error: 'Failed to check enrollment status' });
+  }
+};
+
+
+
 module.exports = {
   addCourse,
   editCourse,
   getCourses,
   getCourseById,
   deleteCourse,
+  enrollCourse,
+  checkEnrollmentStatus,
+
 };

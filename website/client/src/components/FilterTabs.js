@@ -11,7 +11,7 @@ const FilterTabs = ({ onFilterChange }) => {
 
   return (
     <div className="filter-tabs">
-      {['All Courses', 'Popular', 'Difficulty', 'Beginner'].map((tab) => (
+      {['All Courses', 'Popular', 'Difficulty', 'Beginner','rating'].map((tab) => (
         <button
           key={tab}
           className={`filter-tab ${activeTab === tab ? 'active' : ''}`}
