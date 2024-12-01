@@ -53,5 +53,7 @@
     "sharp": "^0.33.5",
     "web-vitals": "^2.1.4"
   },
+
   "proxy": "http://localhost:5000"
+
 }
