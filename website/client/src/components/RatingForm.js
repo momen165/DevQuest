@@ -36,7 +36,7 @@ const handleSubmit = async (e) => {
         };
 
         await axios.post(
-            'http://localhost:5000/api/feedbackFormStudent',
+            'http://localhost:5000/api/feedback',
             feedbackData,
             config
         );

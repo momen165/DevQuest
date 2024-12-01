@@ -5,7 +5,7 @@ const authenticateToken = require('../middleware/auth'); // Add your authenticat
 const router = express.Router();
 
 router.get('/feedback', authenticateToken, getFeedback);
-router.post('/feedbackFormStudent', authenticateToken, submitFeedback);
+router.post('/feedback', authenticateToken, submitFeedback);
 
 router.get('/getCoursesWithRatings',  getCoursesWithRatings);
 module.exports = router;
