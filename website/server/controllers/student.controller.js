@@ -40,27 +40,48 @@ const getStudentById = async (req, res) => {
   }
 
   try {
-    const query = `
-      SELECT 
-        u.user_id, 
-        u.name, 
-        u.email, 
-        CASE 
+    // Fetch student details
+    const studentQuery = `
+      SELECT
+        u.user_id,
+        u.name,
+        u.email,
+        u.bio,
+        u.streak,
+        CASE
           WHEN us.subscription_id IS NOT NULL THEN 'Active'
           ELSE 'Inactive'
-        END AS subscription
+          END AS subscription
       FROM users u
-      LEFT JOIN user_subscription us ON u.user_id = us.user_id
+             LEFT JOIN user_subscription us ON u.user_id = us.user_id
       WHERE u.user_id = $1
     `;
+    const { rows: studentRows } = await db.query(studentQuery, [studentId]);
 
-    const { rows } = await db.query(query, [studentId]);
-
-    if (rows.length === 0) {
+    if (studentRows.length === 0) {
       return res.status(404).json({ error: 'Student not found.' });
     }
 
-    res.status(200).json(rows[0]);
+    // Fetch courses the student is enrolled in
+    const coursesQuery = `
+      SELECT
+        c.course_id AS course_id,
+        c.name AS course_name,
+        e.progress,
+        c.description as course_description
+      FROM enrollment e
+      JOIN course c ON e.course_id = c.course_id
+      WHERE e.user_id = $1
+    `;
+    const { rows: coursesRows } = await db.query(coursesQuery, [studentId]);
+
+
+
+    // Combine student details and courses
+    const studentData = studentRows[0];
+    studentData.courses = coursesRows;
+
+    res.status(200).json(studentData);
   } catch (err) {
     console.error('Error fetching student details:', err.message || err);
     res.status(500).json({ error: 'Failed to fetch student details.' });

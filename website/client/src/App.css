@@ -1,18 +1,21 @@
 .App {
   text-align: center;
 }
+
 @font-face {
   font-family: 'Chivo Thin Italic';
   src: url('assets/fonts/chivo/Chivo-ThinItalic.ttf') format('truetype');
   font-weight: 100;
   font-style: italic;
 }
+
 @font-face {
   font-family: 'LibreFranklin-ExtraBold';
   src: url('assets/fonts/librefranklinfont/LibreFranklin-ExtraBold.ttf') format('truetype');
   font-weight: 100;
   font-style: italic;
 }
+
 @font-face {
   font-family: 'LibreFranklin-Medium';
   src: url('assets/fonts/librefranklinfont/LibreFranklin-Medium.ttf') format('truetype');
@@ -52,5 +55,42 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+  .App-header {
+    font-size: calc(8px + 2vmin);
+  }
+  .App-logo {
+    height: 35vmin;
+  }
+}
+
+@media (max-width: 992px) {
+  .App-header {
+    font-size: calc(6px + 2vmin);
+  }
+  .App-logo {
+    height: 30vmin;
+  }
+}
+
+@media (max-width: 768px) {
+  .App-header {
+    font-size: calc(4px + 2vmin);
+  }
+  .App-logo {
+    height: 25vmin;
+  }
+}
+
+@media (max-width: 576px) {
+  .App-header {
+    font-size: calc(2px + 2vmin);
+  }
+  .App-logo {
+    height: 20vmin;
   }
 }

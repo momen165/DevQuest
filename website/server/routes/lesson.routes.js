@@ -13,4 +13,7 @@ router.delete('/lesson/:lesson_id', authenticateToken, lessonController.deleteLe
 // Reordering Lessons
 router.post('/lesson/reorder', authenticateToken, lessonController.reorderLessons); // Reorder lessons
 
+// Update progress
+router.put('/update-lesson-progress', lessonController.updateLessonProgress); // Ensure this route is correct
+router.get('/lesson-progress', lessonController.getLessonProgress);
 module.exports = router;

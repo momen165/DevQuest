@@ -49,7 +49,8 @@ const getLessonsBySection = async (req, res) => {
     const query = `
       SELECT lesson_id, name, content, xp, test_cases
       FROM lesson
-      WHERE section_id = $1;
+      WHERE section_id = $1
+      order by lesson_order ;
     `;
     const { rows } = await db.query(query, [section_id]);
 
@@ -221,6 +222,131 @@ const reorderLessons = async (req, res) => {
   }
 };
 
+/**
+ * Updates the progress of a lesson for a user.
+ *
+ * This asynchronous function updates a user's progress for a specific lesson.
+ * It handles both the creation of new progress records and updates to existing ones.
+ * Additionally, it calculates and updates the user's overall progress for the course
+ * associated with the lesson.
+ */
+const updateLessonProgress = async (req, res) => {
+  const { user_id, lesson_id, completed, submitted_code } = req.body;
+
+  if (!user_id || !lesson_id || completed === undefined) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  try {
+    const courseQuery = `
+      SELECT course.course_id
+      FROM course
+             JOIN section ON course.course_id = section.course_id
+             JOIN lesson ON section.section_id = lesson.section_id
+      WHERE lesson.lesson_id = $1;
+    `;
+    const courseResult = await db.query(courseQuery, [lesson_id]);
+
+    if (courseResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Lesson not found or not linked to a course.' });
+    }
+
+    const courseId = courseResult.rows[0].course_id;
+
+    const checkQuery = `
+      SELECT * FROM lesson_progress
+      WHERE user_id = $1 AND lesson_id = $2;
+    `;
+    const checkResult = await db.query(checkQuery, [user_id, lesson_id]);
+
+    if (checkResult.rows.length > 0) {
+      const updateQuery = `
+        UPDATE lesson_progress
+        SET completed = $1, completed_at = $2, submitted_code = $3
+        WHERE user_id = $4 AND lesson_id = $5
+        RETURNING *;
+      `;
+      const updateValues = [completed, completed ? new Date() : null, submitted_code, user_id, lesson_id];
+      const updateResult = await db.query(updateQuery, updateValues);
+
+      if (updateResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Error updating progress.' });
+      }
+    } else {
+      const insertQuery = `
+        INSERT INTO lesson_progress (user_id, lesson_id, completed, completed_at, course_id, submitted_code)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *;
+      `;
+      const insertValues = [user_id, lesson_id, completed, completed ? new Date() : null, courseId, submitted_code];
+      const insertResult = await db.query(insertQuery, insertValues);
+    }
+
+    const totalLessonsQuery = `
+      SELECT COUNT(*) AS total_lessons
+      FROM lesson
+             JOIN section ON lesson.section_id = section.section_id
+      WHERE section.course_id = $1;
+    `;
+    const totalLessonsResult = await db.query(totalLessonsQuery, [courseId]);
+    const totalLessons = totalLessonsResult.rows[0].total_lessons;
+
+    const completedLessonsQuery = `
+      SELECT COUNT(*) AS completed_lessons
+      FROM lesson_progress
+      WHERE user_id = $1 AND course_id = $2 AND completed = true;
+    `;
+    const completedLessonsResult = await db.query(completedLessonsQuery, [user_id, courseId]);
+    const completedLessons = completedLessonsResult.rows[0].completed_lessons;
+
+    const progress = (completedLessons / totalLessons) * 100;
+
+    const updateEnrollmentQuery = `
+      UPDATE enrollment
+      SET progress = $1
+      WHERE user_id = $2 AND course_id = $3
+      RETURNING *;
+    `;
+    const updateEnrollmentValues = [progress, user_id, courseId];
+    const updateEnrollmentResult = await db.query(updateEnrollmentQuery, updateEnrollmentValues);
+
+    if (updateEnrollmentResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Enrollment not found.' });
+    }
+
+    res.status(200).json({ message: 'Lesson progress and enrollment updated.', data: updateEnrollmentResult.rows[0] });
+  } catch (err) {
+    console.error('Error updating lesson progress:', err);
+    res.status(500).json({ error: 'Internal server error. Please try again later.' });
+  }
+};
+
+const getLessonProgress = async (req, res) => {
+  const { user_id, lesson_id } = req.query;
+
+  if (!user_id || !lesson_id) {
+    return res.status(400).json({ error: 'user_id and lesson_id are required.' });
+  }
+
+  try {
+    const query = `
+      SELECT completed, completed_at, submitted_code
+      FROM lesson_progress
+      WHERE user_id = $1 AND lesson_id = $2;
+    `;
+    const { rows } = await db.query(query, [user_id, lesson_id]);
+
+    if (rows.length === 0) {
+      return res.status(200).json({ completed: false, completed_at: null, submitted_code: '' });
+    }
+
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching lesson progress:', err);
+    res.status(500).json({ error: 'Failed to fetch lesson progress.' });
+  }
+};
+
 module.exports = {
   addLesson,
   getLessonsBySection,
@@ -228,4 +354,6 @@ module.exports = {
   editLesson,
   deleteLesson,
   reorderLessons,
+  updateLessonProgress,
+  getLessonProgress,
 };
