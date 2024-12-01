@@ -3,6 +3,12 @@ const logActivity = require('../utils/logger');
 
 // Add a new lesson
 const addLesson = async (req, res) => {
+  // Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
+
   try {
     const { section_id, name, content, xp, test_cases } = req.body;
 
@@ -117,6 +123,12 @@ const getLessonById = async (req, res) => {
 
 
 const editLesson = async (req, res) => {
+  // Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
+
   try {
     const { lesson_id } = req.params;
     const { name, content, xp, test_cases, section_id } = req.body;
@@ -193,6 +205,13 @@ const editLesson = async (req, res) => {
 
 // Delete a lesson
 const deleteLesson = async (req, res) => {
+  // Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
+
+
   const { lesson_id } = req.params;
 
   try {

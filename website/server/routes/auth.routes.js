@@ -4,6 +4,7 @@ const authenticateToken = require('../middleware/auth');
 const { body } = require('express-validator');
 
 
+
 const router = express.Router();
 
 // Validation middleware
@@ -24,5 +25,5 @@ router.post('/changePassword', authenticateToken, authController.changePassword)
 
 router.post('/password-reset', authController.sendPasswordResetEmail);
 router.post('/reset-password', authController.resetPassword);
-
+router.get('/check-auth', authController.checkAuth);
 module.exports = router;

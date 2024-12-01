@@ -299,12 +299,44 @@ const resetPassword = async (req, res) => {
 
 
 
+
+const checkAuth = async (req, res) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userQuery = 'SELECT * FROM users WHERE user_id = $1';
+        const { rows } = await db.query(userQuery, [decoded.userId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const adminQuery = 'SELECT 1 FROM admins WHERE admin_id = $1';
+        const adminResult = await db.query(adminQuery, [decoded.userId]);
+        const isAdmin = adminResult.rowCount > 0;
+
+        res.status(200).json({ isAuthenticated: true, isAdmin });
+    } catch (err) {
+        console.error('Token verification error:', err);
+        res.status(401).json({ message: 'Invalid token' });
+    }
+};
+
+
+
 module.exports = {
   signup,
   login,
   updateProfile,
   
   changePassword,
-  sendPasswordResetEmail
-    ,resetPassword
+  sendPasswordResetEmail,
+    resetPassword,
+    checkAuth,
 };
