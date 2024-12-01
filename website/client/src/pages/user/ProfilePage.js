@@ -4,6 +4,8 @@ import styles from 'styles/ProfilePage.module.css';
 import { useAuth } from 'AuthContext';
 import defaultProfilePic from "../../assets/images/default-profile-pic.png";
 import { useNavigate } from 'react-router-dom';
+
+
 function ProfilePage() {
   const { user } = useAuth();
   const [profileData, setProfileData] = useState(null);
