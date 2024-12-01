@@ -20,7 +20,7 @@ router.get('/courses/:course_id', courseController.getCourseById);
 // Delete a course
 router.delete('/courses/:course_id', authenticateToken, courseController.deleteCourse);
 
-    router.post('/courses/enroll', authenticateToken, courseController.enrollCourse);
+router.post('/courses/enroll', authenticateToken, courseController.enrollCourse);
 
 router.get('/courses/:course_id/enrollments/:user_id', courseController.checkEnrollmentStatus);
 

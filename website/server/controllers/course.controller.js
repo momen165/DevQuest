@@ -46,6 +46,11 @@ const validateCourseFields = (fields) => {
 };
 
 const addCourse = async (req, res) => {
+  // Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
   const { title, description, status, difficulty, language_id } = req.body;
   let imageUrl = null;
 
@@ -76,6 +81,11 @@ const addCourse = async (req, res) => {
 };
 
 const editCourse = async (req, res) => {
+  // Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
   const { course_id } = req.params;
   const { title, description, status, difficulty, language_id } = req.body;
 
@@ -203,6 +213,12 @@ const getCourseById = async (req, res) => {
 
 // Delete a course
 const deleteCourse = async (req, res) => {
+  // Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
+
   const { course_id } = req.params;
 
   try {
