@@ -59,7 +59,7 @@ const EnrollmentPage = () => {
 
   const handleStartLearning = () => {
     if (!isEnrolled) {
-      fetch('/api/enrollCourse', {
+      fetch('/api/courses/enroll', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
