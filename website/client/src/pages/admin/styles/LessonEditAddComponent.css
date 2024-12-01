@@ -46,8 +46,12 @@ input[type="number"] {
 }
 
 textarea {
-  resize: vertical;
-  min-height: 120px;
+  resize: none;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  /* or */
+  overflow-y: auto; /* Allow vertical scrolling */
 }
 
 /* Toolbar styling */

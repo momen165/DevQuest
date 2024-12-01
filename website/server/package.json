@@ -22,5 +22,5 @@
   "pg": "^8.13.1",
  "sharp": "^0.33.5"
  },
- "proxy": "http://localhost:5000"
+  "proxy": "http://localhost:5000"
 }

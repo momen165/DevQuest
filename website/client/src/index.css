@@ -1,17 +1,31 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont,libre-franklin,'LibreFranklin-ExtraBold','LibreFranklin-Black','LibreFranklin-Medium','Chivo Thin Italic' , 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, libre-franklin, 'LibreFranklin-ExtraBold', 'LibreFranklin-Black', 'LibreFranklin-Medium', 'Chivo Thin Italic', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Responsive styles */
+@media (max-width: 1200px) {
+  body {
+    font-size: 16px;
+  }
 }
-/* Explore our wide range of courses and take your skills to the next level. */
 
+@media (max-width: 992px) {
+  body {
+    font-size: 14px;
+  }
+}
 
+@media (max-width: 768px) {
+  body {
+    font-size: 12px;
+  }
+}
 
+@media (max-width: 576px) {
+  body {
+    font-size: 10px;
+  }
+}

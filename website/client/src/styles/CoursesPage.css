@@ -56,8 +56,27 @@
 }
 
 .courses-grid {
-  display: grid;
+  display: grid; /* Important: Keep display: grid */
   grid-template-columns: repeat(3, 1fr);
-  background: linear-gradient(to bottom,  #1f2e5a 30%, #09112A 70%);
-  height: 100vh;
+  gap: 20px;
+  background: linear-gradient(to bottom, #1f2e5a 30%, #09112a 70%);
+  overflow: hidden; /* Optional: Prevents content overflow when zoomed out */
+}
+
+.courses-grid > div {
+  height: auto; /* Ensure no fixed height on the container */
+}
+
+/* For tablet-sized screens and smaller */
+@media (max-width: 768px) {
+  .courses-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+  }
+}
+
+/* For phone-sized screens */
+@media (max-width: 480px) {
+  .courses-grid {
+    grid-template-columns: 1fr; /* 1 column */
+  }
 }
