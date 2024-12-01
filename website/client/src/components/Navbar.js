@@ -65,6 +65,8 @@ const Navbar = () => {
               />
               <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
                 <Link to="/AccountSettings">Account Settings</Link>
+                <Link to="/ProfilePage">Profile Page</Link> {/* Add Profile Page link */}
+
                 {user && user.admin && (
                   <Link className="navbar-dropdown-item" to="/dashboard">Dashboard</Link>
                 )}
