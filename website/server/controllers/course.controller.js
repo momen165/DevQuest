@@ -7,7 +7,7 @@ const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { v4: uuidv4 } = require('uuid');
 
 
-// Configure AWS S3
+// Configure AsWS S3
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
