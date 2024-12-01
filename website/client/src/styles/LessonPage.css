@@ -21,11 +21,13 @@
     background: linear-gradient(to bottom,  #1f2e5a 30%, #09112A 70%);
     overflow-y: scroll;
     scrollbar-color: #377EF0 #0d1117; /* For Firefox */
+    scrollbar-width: thin; /* For Firefox */
+
   }
 
 
 .lesson-instructions::-webkit-scrollbar {
-  width: 12px;
+  width: 5px;
 }
 
 .lesson-instructions::-webkit-scrollbar-track {
@@ -35,7 +37,7 @@
 .lesson-instructions::-webkit-scrollbar-thumb {
   background-color: #377EF0;
   border-radius: 10px;
-  border: 2px solid #0d1117;
+  border: 1px solid #0d1117;
 
 }
 
@@ -43,26 +45,7 @@
 
 
 
-  .lesson-instructions h1 {
 
-    margin-bottom: 10px;
-  }
-
-  .lesson-instructions h2 {
-
-    margin-bottom: 15px;
-    color: #ffffff;
-  }
-
-  .lesson-instructions p {
-
-    color: #ffffff;
-  }
-
-  .lesson-content {
-
-    color: #ffffff;
-  }
   
   /* Right Section: Code Area */
   .lesson-code-area {
@@ -153,5 +136,9 @@
     height: 150px;
     overflow: auto;
     white-space: pre-wrap;
+  }
+
+  .pre{
+    color: #ffffff;
   }
   

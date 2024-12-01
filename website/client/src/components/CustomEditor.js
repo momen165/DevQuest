@@ -141,7 +141,7 @@ const DEFAULT_CONFIG = {
 		supportAllValues: true
 	},
 	fontSize: {
-		options: [10, 12, 14, 'default', 18, 20, 22],
+		options: ['Default',10, 12, 14, 18, 20, 22,24,26,28,30,32],
 		supportAllValues: true
 	},
 	heading: {
