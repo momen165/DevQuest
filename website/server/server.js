@@ -36,6 +36,8 @@ const feedbackRoutes  = require('./routes/feedback.routes');
 const activityRoutes = require('./routes/activity.routes');
 const codeExecutionRoutes = require('./routes/codeExecution.routes');
 const uploadRoutes = require('./routes/upload.routes');
+const userInforoutes = require('./routes/userInfo.routes');
+
 
 // Use routes
 app.use('/api', authRoutes);
@@ -48,6 +50,7 @@ app.use('/api', feedbackRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
 app.use('/api', uploadRoutes);
+app.use('/api', userInforoutes);
 
 // server.js
 
