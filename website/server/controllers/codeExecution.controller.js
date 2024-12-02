@@ -2,8 +2,13 @@ const axios = require('axios');
 const db = require('../config/database');
 const { Buffer } = require('buffer'); // Node.js built-in module
 
-const JUDGE0_API_URL = 'http://localhost:2358/submissions'; // Adjusted URL
+// const JUDGE0_API_URL = 'http://localhost:2358/submissions'; // Adjusted URL
+
+const JUDGE0_RAPID_API_HOST = 'judge0-ce.p.rapidapi.com';
+const JUDGE0_RAPID_API_KEY = '179f6770f5msh61cd752c25cd483p180d42jsn40216ba79f4a'; // Replace with your actual RapidAPI key
+
 const POLL_INTERVAL = 2000; // Polling interval in milliseconds
+
 
 const runCode = async (req, res) => {
     const { lessonId, code } = req.body;
@@ -18,12 +23,12 @@ const runCode = async (req, res) => {
         const [langResult, lessonResult] = await Promise.all([
             db.query(
                 `
-        SELECT c.language_id
-        FROM course c
-        JOIN section s ON c.course_id = s.course_id
-        JOIN lesson l ON s.section_id = l.section_id
-        WHERE l.lesson_id = $1
-        `,
+                    SELECT c.language_id
+                    FROM course c
+                             JOIN section s ON c.course_id = s.course_id
+                             JOIN lesson l ON s.section_id = l.section_id
+                    WHERE l.lesson_id = $1
+                `,
                 [lessonId]
             ),
             db.query('SELECT test_cases FROM lesson WHERE lesson_id = $1', [lessonId]),
@@ -58,20 +63,32 @@ const runCode = async (req, res) => {
                     expected_output: Buffer.from(normalizedExpectedOutput).toString('base64'),
                 };
 
-                const { data: { token } } = await axios.post(`${JUDGE0_API_URL}?base64_encoded=true`, submission, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                });
+                // Create submission
+                const {data: {token}} = await axios.post(
+                    `https://${JUDGE0_RAPID_API_HOST}/submissions?base64_encoded=true`,
+                    submission,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-RapidAPI-Host': JUDGE0_RAPID_API_HOST,
+                            'X-RapidAPI-Key': JUDGE0_RAPID_API_KEY,
+                        },
+                    }
+                );
 
                 let result;
                 do {
                     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
-                    const response = await axios.get(`${JUDGE0_API_URL}/${token}?base64_encoded=true`, {
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                    });
+                    const response = await axios.get(
+                        `https://${JUDGE0_RAPID_API_HOST}/submissions/${token}?base64_encoded=true`,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-RapidAPI-Host': JUDGE0_RAPID_API_HOST,
+                                'X-RapidAPI-Key': JUDGE0_RAPID_API_KEY,
+                            },
+                        }
+                    );
                     result = response.data;
                 } while (result.status.id < 3);
 
@@ -85,7 +102,7 @@ const runCode = async (req, res) => {
                     actual_output: actualOutput,
                     status: actualOutput === normalizedExpectedOutput.trim() ? 'Passed' : 'Failed',
                     error: error,
-                    compileError: compileError
+                    compileError: compileError,
                 };
             })
         );
