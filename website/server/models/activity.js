@@ -24,7 +24,7 @@ const logActivity = async (actionType, actionDescription, userId = null) => {
  * @param {number} limit - Number of recent activities to fetch (default: 10).
  * @returns {Promise<Array>} - List of recent activities.
  */
-const getRecentActivities = async (limit = 10) => {
+const getRecentActivities = async (limit = 30) => {
   try {
     const query = `
       SELECT activity_id, action_type, action_description, user_id, created_at

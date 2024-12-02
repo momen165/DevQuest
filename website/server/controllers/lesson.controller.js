@@ -3,6 +3,12 @@ const logActivity = require('../utils/logger');
 
 // Add a new lesson
 const addLesson = async (req, res) => {
+  // Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
+
   try {
     const { section_id, name, content, xp, test_cases } = req.body;
 
@@ -25,7 +31,7 @@ const addLesson = async (req, res) => {
       JSON.stringify(test_cases || []),
     ];
 
-    console.log('Saving test cases:', test_cases); // Debug log
+
     const result = await db.query(query, values);
 
     res.status(201).json(result.rows[0]);
@@ -105,7 +111,7 @@ const getLessonById = async (req, res) => {
       lessonData.test_cases = [{ input: '', expectedOutput: '' }];
     }
 
-    console.log('Formatted lesson data with language_id:', lessonData);
+
 
     res.status(200).json(lessonData);
   } catch (err) {
@@ -116,24 +122,37 @@ const getLessonById = async (req, res) => {
 
 
 
-// Update a lesson
 const editLesson = async (req, res) => {
+  // Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
+
   try {
     const { lesson_id } = req.params;
     const { name, content, xp, test_cases, section_id } = req.body;
 
     // Validate required fields
     if (!name || !content || !section_id) {
-      return res
-        .status(400)
-        .json({ error: 'Name, content, and section_id are required' });
+      return res.status(400).json({ error: 'Name, content, and section_id are required' });
     }
 
+    // Fetch the old lesson data
+    const oldLessonQuery = 'SELECT * FROM lesson WHERE lesson_id = $1';
+    const oldLessonResult = await db.query(oldLessonQuery, [lesson_id]);
+
+    if (oldLessonResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+
+    const oldLesson = oldLessonResult.rows[0];
+
     const query = `
-      UPDATE lesson 
-      SET name = $1, 
-          content = $2, 
-          xp = $3, 
+      UPDATE lesson
+      SET name = $1,
+          content = $2,
+          xp = $3,
           test_cases = $4,
           section_id = $5
       WHERE lesson_id = $6
@@ -155,23 +174,44 @@ const editLesson = async (req, res) => {
       return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    // Log successful update
-    console.log('Updated lesson data:', result.rows[0]);
+    const newLesson = result.rows[0];
+
+    // Compare old and new lesson data and log changes
+    const changes = [];
+    for (const key in oldLesson) {
+      if (oldLesson[key] !== newLesson[key]) {
+        if (key === 'test_cases') {
+          changes.push(`${key}: ${JSON.stringify(oldLesson[key], null, 2)} -> ${JSON.stringify(newLesson[key], null, 2)}`);
+        } else {
+          changes.push(`${key}: ${oldLesson[key]} -> ${newLesson[key]}`);
+        }
+      }
+    }
+
+    const formattedDate = new Date().toLocaleString();
+
     await logActivity(
-      'Lesson',
-      `Lesson updated: ${name} by user ID ${req.user.userId} Name (${req.user.name})`,
-      req.user.userId
+        'Lesson',
+        `Lesson updated: ${name} by user ID ${req.user.userId} Name (${req.user.name}). Changes: ${changes.join(', ')}\n\nDate: ${formattedDate}`,
+        req.user.userId
     );
-    res.json(result.rows[0]);
+
+    res.json(newLesson);
   } catch (err) {
     console.error('Error updating lesson:', err);
     res.status(500).json({ error: 'Failed to update lesson' });
   }
 };
 
-
 // Delete a lesson
 const deleteLesson = async (req, res) => {
+  // Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
+
+
   const { lesson_id } = req.params;
 
   try {

@@ -3,33 +3,54 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 const ProtectedRoute = ({ children, adminRequired = false }) => {
-  const { user, loading: authLoading } = useAuth(); // Assuming `useAuth` provides a `loading` state
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!authLoading) {
-      setLoading(false); // Stop loading when `useAuth` finishes loading user data
-    }
-  }, [authLoading]);
+    const checkServerAuth = async () => {
+      try {
+        const response = await fetch('/api/check-auth', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${user?.token}`,
+          },
+        });
 
-  // Show a loading indicator while checking user state
+        if (response.ok) {
+          const data = await response.json();
+          setIsAuthenticated(data.isAuthenticated);
+          setIsAdmin(data.isAdmin);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Failed to check server authentication:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!authLoading) {
+      checkServerAuth();
+    }
+  }, [authLoading, user]);
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  // Redirect to login page if the user is not logged in
-  if (!user) {
+  if (!isAuthenticated) {
     return <Navigate to="/LoginPage" replace />;
   }
 
-  // Redirect to unauthorized page if admin access is required and the user is not an admin
-  if (adminRequired && !user.admin) {
+  if (adminRequired && !isAdmin) {
     return <Navigate to="/Unauthorized" replace />;
   }
 
-  // Render the children if all checks pass
   return children;
 };
 
 export default ProtectedRoute;
-  

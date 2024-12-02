@@ -91,6 +91,11 @@ const getStudentById = async (req, res) => {
 // Fetch courses for a specific student
 const getCoursesByStudentId = async (req, res) => {
   const { studentId } = req.params;
+// Role-based access control
+  if (!req.user.admin) {
+    console.error(`Access denied for user: ${req.user.userId}`);
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
 
   if (!studentId || isNaN(studentId)) {
     return res.status(400).json({ error: 'Invalid student ID.' });
