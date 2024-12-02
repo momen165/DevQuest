@@ -2,20 +2,21 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Sidebar from 'pages/admin/components/Sidebar';
 import 'pages/admin/styles/FeedbackPage.css';
+import { useAuth } from 'AuthContext'; // Assuming you use an Auth context
 
 const FeedbackPage = () => {
   const [feedbacks, setFeedbacks] = useState([]); // Feedback data
   const [loading, setLoading] = useState(true); // Loading state
   const [error, setError] = useState(null); // Error state
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
       try {
         setLoading(true); // Start loading
-        const userData = JSON.parse(localStorage.getItem('user'));
-        const token = userData ? userData.token : null;
+        console.log(user.token);
 
-        if (!token) {
+        if (!user.token) {
           setError('No token found. Please log in again.');
           setLoading(false);
           return;
@@ -23,7 +24,7 @@ const FeedbackPage = () => {
 
         const response = await axios.get('http://localhost:5000/api/feedback', {
 
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${user.token}` },
         });
 
         if (response.data.length === 0) {
