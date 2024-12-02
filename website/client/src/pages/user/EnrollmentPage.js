@@ -24,7 +24,8 @@ const EnrollmentPage = () => {
         setCourse(data);
 
         // Check if the user is already enrolled in the course
-        const enrollmentResponse = await fetch(`/api/enrollments/${user.user_id}/${courseId}`);
+        ///courses/:course_id/enrollments/:user_id
+        const enrollmentResponse = await fetch(`/api/courses/${courseId}/enrollments/${user.user_id}`);
         if (!enrollmentResponse.ok) {
           throw new Error('Failed to check enrollment status');
         }
@@ -58,7 +59,7 @@ const EnrollmentPage = () => {
 
   const handleStartLearning = () => {
     if (!isEnrolled) {
-      fetch('/api/enrollCourse', {
+      fetch('/api/courses/enroll', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
