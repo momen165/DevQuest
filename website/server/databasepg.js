@@ -1,6 +1,6 @@
 const {Pool} = require('pg');
 const bcrypt = require('bcrypt');
-
+// connect to the database
 const pool = new Pool({
     host: 'localhost',
     user: 'postgres',
