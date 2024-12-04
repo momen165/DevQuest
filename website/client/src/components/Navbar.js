@@ -5,6 +5,7 @@ import Logo from 'assets/icons/logo.svg';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import defaultProfilePic from '../assets/images/default-profile-pic.png';
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -34,58 +35,58 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <Link className="navbar-logo" to="/">
-          <img src={Logo} alt="DevQuest Logo" className="navbar-logo-image" />
-        </Link>
-        <ul className="navbar-links navbar-left-links">
-          <li className="navbar-item">
-            <Link className="navbar-link" to="/">Home</Link>
-          </li>
-          <li className="navbar-item">
-            <Link className="navbar-link" to="/CoursesPage">Courses</Link>
-          </li>
-        </ul>
-
-        <input type="search" className="navbar-search" placeholder="Search..." />
-
-        <ul className="navbar-links navbar-right-links">
-          <li className="navbar-item">
-            <Link className="navbar-link" to="/pricing">Pricing</Link>
-          </li>
-
-          {user ? (
-            <li className="navbar-item dropdown" ref={dropdownRef}>
-              <img
-                src={user.profileimage ? user.profileimage : defaultProfilePic}
-                alt="User Profile"
-                className="navbar-profile-picture"
-                onClick={toggleDropdown} // Toggle dropdown on click
-              />
-              <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
-                <Link to="/AccountSettings">Account Settings</Link>
-                <Link to="/ProfilePage">Profile Page</Link> {/* Add Profile Page link */}
-
-                {user && user.admin && (
-                  <Link className="navbar-dropdown-item" to="/dashboard">Dashboard</Link>
-                )}
-                <button onClick={handleLogout} className="logout-button">Log out</button>
-              </div>
+      <nav className="navbar">
+        <div className="navbar-container">
+          <Link className="navbar-logo" to="/">
+            <img src={Logo} alt="DevQuest Logo" className="navbar-logo-image"/>
+          </Link>
+          <ul className="navbar-links navbar-left-links">
+            <li className="navbar-item">
+              <Link className="navbar-link" to="/">Home</Link>
             </li>
-          ) : (
-            <>
-              <li className="navbar-item">
-                <Link className="navbar-link" to="/LoginPage">Log in</Link>
-              </li>
-              <li className="navbar-item">
-                <Link className="navbar-link" to="/RegistrationPage">Sign up</Link>
-              </li>
-            </>
-          )}
-        </ul>
-      </div>
-    </nav>
+            <li className="navbar-item">
+              <Link className="navbar-link" to="/CoursesPage">Courses</Link>
+            </li>
+          </ul>
+
+          <input type="search" className="navbar-search" placeholder="Search..."/>
+
+          <ul className="navbar-links navbar-right-links">
+            <li className="navbar-item">
+              <Link className="navbar-link" to="/pricing">Pricing</Link>
+            </li>
+
+            {user ? (
+                <li className="navbar-item dropdown" ref={dropdownRef}>
+                  <img
+                      src={user.profileimage ? user.profileimage : defaultProfilePic}
+                      alt="User Profile"
+                      className="navbar-profile-picture"
+                      onClick={toggleDropdown} // Toggle dropdown on click
+                  />
+                  <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
+                    <Link to="/AccountSettings">Account Settings</Link>
+                    <Link to="/ProfilePage">Profile Page</Link> {/* Add Profile Page link */}
+
+                    {user && user.admin && (
+                        <Link className="navbar-dropdown-item" to="/dashboard">Dashboard</Link>
+                    )}
+                    <button onClick={handleLogout} className="logout-button">Log out</button>
+                  </div>
+                </li>
+            ) : (
+                <>
+                  <li className="navbar-item">
+                    <Link className="navbar-link" to="/LoginPage">Log in</Link>
+                  </li>
+                  <li className="navbar-item">
+                    <Link className="navbar-link" to="/RegistrationPage">Sign up</Link>
+                  </li>
+                </>
+            )}
+          </ul>
+        </div>
+      </nav>
   );
 };
 
