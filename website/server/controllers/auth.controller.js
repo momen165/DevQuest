@@ -4,30 +4,61 @@ const db = require('../config/database');
 const { validationResult } = require('express-validator');
 const logActivity = require('../utils/logger');
 const mailjet = require('node-mailjet');
-const path = require('path');
-const fs = require('fs');
+
 require('dotenv').config();
 
 
 
 const signup = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({errors: errors.array()});
+    }
 
-  const { name, email, password, country } = req.body;
+    const {name, email, password, country} = req.body;
 
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const query = 'INSERT INTO users (name, email, password, country) VALUES ($1, $2, $3, $4) RETURNING user_id';
-    const { rows } = await db.query(query, [name, email, hashedPassword, country]);
-    await logActivity('User', `New user registered: ${name} (${email})`, rows[0].user_id);
-    res.status(201).json({ message: 'User created successfully' });
-  } catch (err) {
-    console.error('Error creating user:', err);
-    res.status(500).json({ error: 'Failed to create user' });
-  }
+    try {
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert the user into the database (inactive status by default)
+        const query = 'INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id';
+        const {rows} = await db.query(query, [name, email, hashedPassword, country, false]);
+        const userId = rows[0].user_id;
+
+        // Generate verification token
+        const verificationToken = generateToken(userId);
+
+        // Construct verification link
+        const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+        // Send verification email
+        await sendEmail(
+            email,
+            'Verify Your Email Address',
+            `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #333;">Verify Your Email Address</h1>
+          <p>Thank you for signing up! Please verify your email address by clicking the button below:</p>
+          <div style="margin: 20px 0;">
+              <a href="${verificationLink}" 
+                 style="background-color: #007bff; color: white; padding: 10px 20px; 
+                        text-decoration: none; border-radius: 5px; display: inline-block;">
+                  Verify Email
+              </a>
+          </div>
+          <p>If you did not sign up, please ignore this email.</p>
+      </div>`
+        );
+
+        await logActivity('User', `Verification email sent to: ${email}`, userId);
+
+        res.status(201).json({
+            message: 'User registered successfully. Please verify your email to activate your account.',
+        });
+    } catch (err) {
+        console.error('Error during signup:', err);
+        res.status(500).json({error: 'Failed to register user'});
+    }
 };
 
 const login = async (req, res) => {
@@ -329,12 +360,41 @@ const checkAuth = async (req, res) => {
 };
 
 
+const verifyEmail = async (req, res) => {
+    const {token} = req.query;
+
+    if (!token) {
+        return res.status(400).json({message: 'Verification token is required'});
+    }
+
+    try {
+        // Verify and decode the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Update user status in the database
+        const query = 'UPDATE users SET is_verified = $1 WHERE user_id = $2 RETURNING *';
+        const {rows} = await db.query(query, [true, decoded.id]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({message: 'User not found or already verified'});
+        }
+
+        res.status(200).json({message: 'Email verified successfully. You can now log in.'});
+    } catch (err) {
+        console.error('Email verification error:', err);
+        res.status(400).json({message: 'Invalid or expired token'});
+    }
+};
+
+
+
+
 
 module.exports = {
   signup,
   login,
   updateProfile,
-  
+    verifyEmail,
   changePassword,
   sendPasswordResetEmail,
     resetPassword,

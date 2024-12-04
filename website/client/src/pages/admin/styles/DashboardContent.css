@@ -149,6 +149,7 @@
 .dashboard-content .recent-activity li:last-child,
 .dashboard-content .new-students li:last-child {
   border-bottom: none;
+  overflow-y: scroll;
 }
 
 .dashboard-content .modal {
@@ -161,6 +162,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+
 }
 
 .dashboard-content .modal-content {
@@ -171,6 +173,7 @@
   max-width: 90%;
   text-align: center;
   position: relative;
+
 }
 
 .dashboard-content .close-button {
