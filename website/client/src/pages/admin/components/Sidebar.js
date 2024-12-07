@@ -56,6 +56,11 @@ const Sidebar = () => {
             <FaComment /> <span>Feedback</span>
           </li>
         </Link>
+        <Link to="/Support" className="link">
+          <li className={location.pathname === '/Support' ? 'sidebar-item active' : 'sidebar-item'}>
+            <FaComment /> <span>Support</span>
+          </li>
+        </Link>
 
         <Link to="/AdminSettingsPage" className="link">
           <li className={location.pathname === '/AdminSettingsPage' ? 'sidebar-item active' : 'sidebar-item'}>
