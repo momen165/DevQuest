@@ -1,4 +1,75 @@
-/* Profile Picture and Dropdown Styles */
+/* Navbar Base Styles */
+.navbar {
+  width: 100%;
+  height: 80px;
+  background: linear-gradient(to bottom, #1E3C90 0%, #25459e 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "LibreFranklin-Medium";
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0 20px;
+  box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.219);
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  margin-right: 50px;
+}
+
+.navbar-logo-image {
+  margin-right: 8px;
+}
+
+.navbar-links {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-weight: 100;
+  font-size: 26px;
+}
+
+.navbar-left-links {
+  margin-right: 40px;
+  gap: 20px;
+  margin-left: 100px;
+}
+
+.navbar-right-links {
+  margin-left: auto;
+  margin-right: 10px;
+  gap: 20px;
+}
+
+.navbar-item {
+  margin: 0;
+}
+
+.navbar-link {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.navbar-search {
+  width: 500px;
+  height: 50px;
+  margin: 0px 20px 0px 200px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  background-color: rgb(219, 219, 219);
+}
+
+/* Profile Picture */
 .navbar-profile-picture {
   width: 40px;
   height: 40px;
@@ -16,26 +87,23 @@
   box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Dropdown Styles */
-.dropdown {
-  position: relative;
-  margin-right: 10px;
-}
+/* Dropdown container */
+/* ...existing code... */
 
 .dropdown-content {
   display: none;
   position: absolute;
   right: 0;
-  top: 100%;
-  background-color: #0d1117; /* Merged to use the beta background color */
+  background-color: #0d1117;
   min-width: 200px;
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
-  border-radius: 10px; /* Merged radius for a modern look */
-  padding: 10px 0; /* Merged padding for better spacing */
+  z-index: 1;
+  border-radius: 10px;
+  padding: 10px 0;
   opacity: 0;
   transform: translateY(-10px);
   transition: opacity 0.3s ease, transform 0.3s ease;
-  z-index: 1002;
+  overflow: hidden;
 }
 
 .dropdown-show {
@@ -44,46 +112,98 @@
   transform: translateY(0);
 }
 
-.dropdown-content a,
-.dropdown-content button {
-  color: #ffffff; /* Harmonized text color with the navbar theme */
-  padding: 12px 20px;
-  text-decoration: none;
-  display: block;
-  text-align: left;
-  cursor: pointer;
-  background: none;
+.value {
+  font-size: 15px;
+  background-color: transparent;
   border: none;
-  font-size: 16px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 10px;
+  color: white;
+  display: flex;
+  position: relative;
+  gap: 5px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: 1s;
+  box-sizing: border-box;
 }
 
-.dropdown-content a:hover,
-.dropdown-content button:hover {
-  background-color: rgba(255, 255, 255, 0.1); /* Subtle hover effect */
+.value:not(:active):hover,
+.value:focus {
+  display: flex;
+  box-sizing: border-box;
+  border: 2px solid #1a1f24;
+  color: #637185;
 }
 
-.logout-button {
-  color: #ff4c4c;
-  font-weight: 600;
+.value:focus,
+.value:active {
+  background-color: #1a1f24;
+  outline: none;
+  margin-left: 17px;
 }
 
-.logout-button:hover {
-  color: #ff1c1c;
-  background-color: #fff0f0;
+.value::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: -15px;
+  width: 5px;
+  height: 80%;
+  background-color: #2f81f7;
+  border-radius: 5px;
+  opacity: 0;
+  transition: 1s;
 }
 
-/* Responsive Dropdown Connector */
-@media (max-width: 768px) {
-  .dropdown-content {
-    position: static;
-    width: 90%;
-    margin: 10px auto;
-    transform: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
+.value:focus::before,
+.value:active::before {
+  opacity: 1;
+}
 
-  .dropdown-content.show {
-    transform: none;
-  }
+.value svg {
+  width: 20px;
+}
+
+.input:hover > :not(.value:hover) {
+  transition: 300ms;
+  filter: blur(1.5px);
+  transform: scale(0.95, 0.95);
+}
+
+/* ...existing code... */
+
+/* ...existing code... */
+
+.value.active {
+  background-color: #1a1f24;
+  color: #637185;
+  border: 2px solid #1a1f24;
+  margin-left: 17px;
+}
+
+.value.active::before {
+  opacity: 1;
+}
+
+/* ...existing code... */
+
+/* ...existing code... */
+/* ...existing code... */
+
+
+.dropdown-connector {
+  position: absolute;
+  top: -75px;
+  right: calc(50% - 90px);
+  width: 0;
+  height: 0;
+  /* border-left: 20px solid #0d1117;
+  border-right: 20px solid #0d1117;
+  border-bottom: 20px solid #0d1117; */
+  border: 20px solid #0d1117;
+  border-bottom: 60px solid #0d1117;
+  border-left: 40px solid #0d1117;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  z-index: 0;
 }
