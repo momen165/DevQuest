@@ -1,21 +1,16 @@
 const axios = require('axios');
 const db = require('../config/database');
-const { Buffer } = require('buffer'); // Node.js built-in module
+const {Buffer} = require('buffer'); // Node.js built-in module
 
-// const JUDGE0_API_URL = 'http://localhost:2358/submissions'; // Adjusted URL
-
-const JUDGE0_RAPID_API_HOST = 'judge0-ce.p.rapidapi.com';
-const JUDGE0_RAPID_API_KEY = '179f6770f5msh61cd752c25cd483p180d42jsn40216ba79f4a'; // Replace with your actual RapidAPI key
-
+const JUDGE0_API_URL = 'http://localhost:2358/submissions'; // Adjusted URL
 const POLL_INTERVAL = 2000; // Polling interval in milliseconds
 
-
 const runCode = async (req, res) => {
-    const { lessonId, code } = req.body;
+    const {lessonId, code} = req.body;
     const isBase64Encoded = req.query.base64_encoded === 'true';
 
     if (!lessonId || !code) {
-        return res.status(400).json({ error: 'Missing required fields: lessonId or code' });
+        return res.status(400).json({error: 'Missing required fields: lessonId or code'});
     }
 
     try {
@@ -35,11 +30,11 @@ const runCode = async (req, res) => {
         ]);
 
         if (langResult.rowCount === 0 || !langResult.rows[0].language_id) {
-            return res.status(400).json({ error: 'Language ID not found for this lesson' });
+            return res.status(400).json({error: 'Language ID not found for this lesson'});
         }
 
         if (lessonResult.rowCount === 0 || !Array.isArray(lessonResult.rows[0].test_cases)) {
-            return res.status(404).json({ error: 'Lesson or test cases not found' });
+            return res.status(404).json({error: 'Lesson or test cases not found'});
         }
 
         const languageId = langResult.rows[0].language_id;
@@ -49,7 +44,7 @@ const runCode = async (req, res) => {
 
         const results = await Promise.all(
             testCases.map(async (testCase) => {
-                const { input, expectedOutput, expected_output } = testCase;
+                const {input, expectedOutput, expected_output} = testCase;
                 const normalizedExpectedOutput = (expectedOutput || expected_output || '').replace(/\\n/g, '\n');
 
                 if (!normalizedExpectedOutput) {
@@ -63,32 +58,20 @@ const runCode = async (req, res) => {
                     expected_output: Buffer.from(normalizedExpectedOutput).toString('base64'),
                 };
 
-                // Create submission
-                const {data: {token}} = await axios.post(
-                    `https://${JUDGE0_RAPID_API_HOST}/submissions?base64_encoded=true`,
-                    submission,
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-RapidAPI-Host': JUDGE0_RAPID_API_HOST,
-                            'X-RapidAPI-Key': JUDGE0_RAPID_API_KEY,
-                        },
-                    }
-                );
+                const {data: {token}} = await axios.post(`${JUDGE0_API_URL}?base64_encoded=true`, submission, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                });
 
                 let result;
                 do {
                     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
-                    const response = await axios.get(
-                        `https://${JUDGE0_RAPID_API_HOST}/submissions/${token}?base64_encoded=true`,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-RapidAPI-Host': JUDGE0_RAPID_API_HOST,
-                                'X-RapidAPI-Key': JUDGE0_RAPID_API_KEY,
-                            },
-                        }
-                    );
+                    const response = await axios.get(`${JUDGE0_API_URL}/${token}?base64_encoded=true`, {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                    });
                     result = response.data;
                 } while (result.status.id < 3);
 
@@ -102,12 +85,12 @@ const runCode = async (req, res) => {
                     actual_output: actualOutput,
                     status: actualOutput === normalizedExpectedOutput.trim() ? 'Passed' : 'Failed',
                     error: error,
-                    compileError: compileError,
+                    compileError: compileError
                 };
             })
         );
 
-        res.json({ results });
+        res.json({results});
     } catch (error) {
         console.error('Error in /api/run:', error.message || error);
         res.status(500).json({
@@ -117,4 +100,4 @@ const runCode = async (req, res) => {
     }
 };
 
-module.exports = { runCode };
+module.exports = {runCode};

@@ -25,15 +25,14 @@ import ProfilePage from 'pages/user/ProfilePage'; // Import ProfilePage
 import LessonPage from 'pages/user/LessonPage';
 import Unauthorized from 'pages/user/Unauthorized';
 import ResetPasswordPage from './pages/user/ResetPasswordPage';
+import VerifyEmail from './pages/user/VerifyEmail';
 import './App.css';
 import Support from 'pages/admin/Support';
 
 function App() {
-
-  
-
   return (
-    <Router>
+
+    <Router future={{v7_startTransition: true, v7_relativeSplatPath: true}}>
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
@@ -70,6 +69,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
+
   );
 }
 
