@@ -104,7 +104,48 @@ function ProfilePage() {
                 <h3 className={styles.coursesTitle}>My Courses</h3>
                 {profileData && profileData.courses && profileData.courses.length > 0 ? (
                     profileData.courses.map(course => (
-                        <div key={course.course_id} className={styles.courseCardprofile}>
+                      <div key={course.course_id} className={styles.courseCardprofile}>
+                      <div className={styles.leftsectionCourseCard}>
+                        <p className={styles.courseProgcardtext}>COURSE</p>
+                        <h1 className={styles.courseProgCardTitle}>{course.course_name}</h1>
+                        <h4 className={styles.ViewProgCardLessons}>
+                          view all lessons <i className="fa-solid fa-chevron-right" />
+                        </h4>
+                      </div>
+                      <div className={styles.rightProgCardSection}>
+                        <div className={styles.progressBarheader}>
+                          <h1 className={styles.sectionNameProgCard}>Section Name</h1>
+                          <div className={styles.progressbarcontainer} >
+                            <div className={styles.progressbarbackground}>
+                              <div className={styles.progressbarfill} style={{width: `${course.progress}%`}}/>
+                            </div>
+                            {/* <p className="progress-text">6/9 Challenges</p> */}
+                          </div>
+                        </div>
+                        <h1 className={styles.lessontitleProgCard}>Callbacks &amp; Closures</h1>
+                        <input type="button" defaultValue="Continue" className={styles.continuebuttonProgCard} onClick={() => navigate(`/course/${course.course_id}`)} />
+                      </div>
+                    </div>
+                    ))
+                ) : (
+                    <p>No courses available</p>
+                )}
+              </div>
+              
+  
+
+
+            </div>
+          </div>
+        </div>
+      </>
+  );
+}
+
+export default ProfilePage;
+
+
+{/* <div key={course.course_id} className={styles.courseCardprofile}>
                           <div className={styles.courseCardHeader}>
                             <h4 className={styles.courseCardTitle}>{course.course_name}</h4>
                             <p className={styles.courseDescription}>{course.course_description}</p>
@@ -118,17 +159,4 @@ function ProfilePage() {
                           <button className={styles.continueButton}
                                   onClick={() => navigate(`/course/${course.course_id}`)}>continue learning
                           </button>
-                        </div>
-                    ))
-                ) : (
-                    <p>No courses available</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-  );
-}
-
-export default ProfilePage;
+                        </div> */}

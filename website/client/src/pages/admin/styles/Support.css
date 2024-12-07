@@ -1,0 +1,103 @@
+/* Base container styles */
+.support-page {
+  min-height: 100vh;
+  background-color: #f9f9f9;
+}
+
+.support-page .container {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.support-page .main-content {
+  flex: 1;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Header styles */
+.support-page h2 {
+  margin-bottom: 2rem;
+  color: #000000;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+/* Table styles */
+.support-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1.5rem;
+}
+
+.support-table th {
+  background-color: #f8f9fa;
+  color: #000000;
+  font-weight: 600;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.support-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  color: #000000;
+}
+
+.support-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+/* Loading and error states */
+.support-page .loading {
+  text-align: center;
+  padding: 2rem;
+  color: #718096;
+}
+
+.support-page .error {
+  color: #e53e3e;
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: #fff5f5;
+  border-radius: 4px;
+  border: 1px solid #fed7d7;
+}
+
+.support-table textarea {
+  width: 100%;
+  height: 50px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.support-table button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}

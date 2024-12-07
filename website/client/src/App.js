@@ -26,6 +26,7 @@ import LessonPage from 'pages/user/LessonPage';
 import Unauthorized from 'pages/user/Unauthorized';
 import ResetPasswordPage from './pages/user/ResetPasswordPage';
 import './App.css';
+import Support from 'pages/admin/Support';
 
 function App() {
 
@@ -52,6 +53,7 @@ function App() {
         <Route path="/PaymentInfo" element={<ProtectedRoute adminRequired={true}><PaymentInfo /></ProtectedRoute>} />
         <Route path="/Feedback" element={<ProtectedRoute adminRequired={true}><Feedback /></ProtectedRoute>} />
         <Route path="/AdminSettingsPage" element={<ProtectedRoute adminRequired={true}><AdminSettingsPage /></ProtectedRoute>} />
+        <Route path="/Support" element={<ProtectedRoute adminRequired={true}><Support /></ProtectedRoute>} />
 
 
 
@@ -60,8 +62,8 @@ function App() {
         <Route path="/AccountSettings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
         <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
         <Route path="/Billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-        <Route path="/CourseSection/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
         <Route path="/ProfilePage" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/CourseSection/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
         <Route path="/course/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
         <Route path="/lesson/:lessonId" element={<ProtectedRoute><LessonPage /></ProtectedRoute>} />
         {/* Catch-all route for 404 Not Found */}

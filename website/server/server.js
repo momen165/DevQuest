@@ -5,10 +5,9 @@ const authenticateToken = require('./middleware/auth');
 const updateUserStreak = require('./middleware/updateUserStreak');
 const fs = require('fs');
 const path = require('path');
+const db = require('./config/database'); // Ensure db is imported before use
 
 require('dotenv').config();
-
-
 
 // Initialize app
 const app = express();
@@ -25,12 +24,11 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(authenticateToken); // Apply authentication middleware
+// Apply authentication middleware
+app.use(authenticateToken); 
 app.use(updateUserStreak);  // Apply updateUserStreak middleware
 
-
 // Import routes
-
 const authRoutes = require('./routes/auth.routes');
 const courseRoutes = require('./routes/course.routes');
 const lessonRoutes = require('./routes/lesson.routes');
@@ -41,8 +39,7 @@ const feedbackRoutes  = require('./routes/feedback.routes');
 const activityRoutes = require('./routes/activity.routes');
 const codeExecutionRoutes = require('./routes/codeExecution.routes');
 const uploadRoutes = require('./routes/upload.routes');
-const userInforoutes = require('./routes/userInfo.routes');
-
+const supportRoutes = require('./routes/support.routes'); // Import support routes
 
 // Use routes
 app.use('/api', authRoutes);
@@ -55,14 +52,9 @@ app.use('/api', feedbackRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
 app.use('/api', uploadRoutes);
-app.use('/api', userInforoutes);
+app.use('/api', supportRoutes); // Ensure support routes are used
 
-// server.js
-
-// Mount routes
-
-
-
+// Health check route
 app.get('/api/health', async (req, res) => {
   try {
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Database timeout')), 3000));
@@ -85,7 +77,6 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = err.status || 500;
@@ -96,7 +87,6 @@ app.use((err, req, res, next) => {
 });
 
 // Database connection
-const db = require('./config/database');
 db.query('SELECT NOW()', (err, res) => {
   if (err) {
     console.error('Database connection error:', err);
@@ -108,7 +98,6 @@ db.query('SELECT NOW()', (err, res) => {
     });
   }
 });
-
 
 app._router.stack.forEach((middleware) => {
   if (middleware.route) {
