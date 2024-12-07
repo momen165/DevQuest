@@ -27,43 +27,49 @@ import Unauthorized from 'pages/user/Unauthorized';
 import ResetPasswordPage from './pages/user/ResetPasswordPage';
 import VerifyEmail from './pages/user/VerifyEmail';
 import './App.css';
+import Support from 'pages/admin/Support';
 
 function App() {
   return (
-      <Router future={{v7_startTransition: true, v7_relativeSplatPath: true}}>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<HomePage/>}/>
-          <Route path="/CoursesPage" element={<CoursesPage/>}/>
-          <Route path="/enroll/:courseId" element={<EnrollmentPage/>}/>
-          <Route path="/faq" element={<FAQPage/>}/>
-          <Route path="/pricing" element={<PricingPage/>}/>
-          <Route path="/RegistrationPage" element={<RegistrationPage/>}/>
-          <Route path="/LoginPage" element={<LoginPage/>}/>
-          <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage/>}/>
-          <Route path="/Unauthorized" element={<Unauthorized/>}/>
-          <Route path="/reset-password" element={<ResetPasswordPage/>}/>
-          <Route path="/verify-email" element={<VerifyEmail/>}/>
-          {/* Admin Routes (Protected for Admins) */}
-          <Route path="/Dashboard" element={<ProtectedRoute adminRequired={true}><Dashboard/></ProtectedRoute>}/>
-          <Route path="/Students" element={<ProtectedRoute adminRequired={true}><Students/></ProtectedRoute>}/>
-          <Route path="/AdminCourses" element={<ProtectedRoute adminRequired={true}><AdminCourses/></ProtectedRoute>}/>
-          <Route path="/PaymentInfo" element={<ProtectedRoute adminRequired={true}><PaymentInfo/></ProtectedRoute>}/>
-          <Route path="/Feedback" element={<ProtectedRoute adminRequired={true}><Feedback/></ProtectedRoute>}/>
-          <Route path="/AdminSettingsPage"
-                 element={<ProtectedRoute adminRequired={true}><AdminSettingsPage/></ProtectedRoute>}/>
-          {/* Protected Routes for Users */}
-          <Route path="/AccountSettings" element={<ProtectedRoute><AccountSettings/></ProtectedRoute>}/>
-          <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword/></ProtectedRoute>}/>
-          <Route path="/Billing" element={<ProtectedRoute><Billing/></ProtectedRoute>}/>
-          <Route path="/CourseSection/:courseId" element={<ProtectedRoute><CourseSection/></ProtectedRoute>}/>
-          <Route path="/ProfilePage" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>}/>
-          <Route path="/course/:courseId" element={<ProtectedRoute><CourseSection/></ProtectedRoute>}/>
-          <Route path="/lesson/:lessonId" element={<ProtectedRoute><LessonPage/></ProtectedRoute>}/>
-          {/* Catch-all route for 404 Not Found */}
-          <Route path="*" element={<NotFoundPage/>}/>
-        </Routes>
-      </Router>
+
+    <Router future={{v7_startTransition: true, v7_relativeSplatPath: true}}>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/CoursesPage" element={<CoursesPage />} />
+        <Route path="/enroll/:courseId" element={<EnrollmentPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/RegistrationPage" element={<RegistrationPage />} />
+        <Route path="/LoginPage" element={<LoginPage />} />
+        <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage />} />
+        <Route path="/Unauthorized" element={<Unauthorized />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        {/* Admin Routes (Protected for Admins) */}
+        <Route path="/Dashboard" element={<ProtectedRoute adminRequired={true}><Dashboard /></ProtectedRoute>} />
+        <Route path="/Students" element={<ProtectedRoute adminRequired={true}><Students /></ProtectedRoute>} />
+        <Route path="/AdminCourses" element={<ProtectedRoute adminRequired={true}><AdminCourses /></ProtectedRoute>} />
+        <Route path="/PaymentInfo" element={<ProtectedRoute adminRequired={true}><PaymentInfo /></ProtectedRoute>} />
+        <Route path="/Feedback" element={<ProtectedRoute adminRequired={true}><Feedback /></ProtectedRoute>} />
+        <Route path="/AdminSettingsPage" element={<ProtectedRoute adminRequired={true}><AdminSettingsPage /></ProtectedRoute>} />
+        <Route path="/Support" element={<ProtectedRoute adminRequired={true}><Support /></ProtectedRoute>} />
+
+
+
+
+        {/* Protected Routes for Users */}
+        <Route path="/AccountSettings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
+        <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+        <Route path="/Billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+        <Route path="/ProfilePage" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/CourseSection/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
+        <Route path="/course/:courseId" element={<ProtectedRoute><CourseSection /></ProtectedRoute>} />
+        <Route path="/lesson/:lessonId" element={<ProtectedRoute><LessonPage /></ProtectedRoute>} />
+        {/* Catch-all route for 404 Not Found */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Router>
+
   );
 }
 
