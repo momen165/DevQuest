@@ -47,8 +47,8 @@ const validateCourseFields = (fields) => {
 
 const addCourse = async (req, res) => {
   // Role-based access control
-  if (!req.user.admin) {
-    console.error(`Access denied for user: ${req.user.userId}`);
+  if (!req.user || !req.user.admin) {
+    console.error(`Access denied for user: ${req.user ? req.user.userId : 'unknown'}`);
     return res.status(403).json({ error: 'Access denied. Admins only.' });
   }
   const { title, description, status, difficulty, language_id } = req.body;
@@ -82,8 +82,8 @@ const addCourse = async (req, res) => {
 
 const editCourse = async (req, res) => {
   // Role-based access control
-  if (!req.user.admin) {
-    console.error(`Access denied for user: ${req.user.userId}`);
+  if (!req.user || !req.user.admin) {
+    console.error(`Access denied for user: ${req.user ? req.user.userId : 'unknown'}`);
     return res.status(403).json({ error: 'Access denied. Admins only.' });
   }
   const { course_id } = req.params;
@@ -141,6 +141,59 @@ const editCourse = async (req, res) => {
   }
 };
 
+const deleteCourse = async (req, res) => {
+  // Role-based access control
+  if (!req.user || !req.user.admin) {
+    console.error(`Access denied for user: ${req.user ? req.user.userId : 'unknown'}`);
+    return res.status(403).json({error: 'Access denied. Admins only.'});
+  }
+
+  const {course_id} = req.params;
+
+  try {
+    // Delete lessons related to sections of the course
+    const deleteLessons = `
+      DELETE
+      FROM lesson
+      WHERE section_id IN (SELECT section_id
+                           FROM section
+                           WHERE course_id = $1);
+    `;
+    await db.query(deleteLessons, [course_id]);
+
+    // Delete sections related to the course
+    const deleteSections = `
+      DELETE
+      FROM section
+      WHERE course_id = $1;
+    `;
+    await db.query(deleteSections, [course_id]);
+
+    // Delete enrollments related to the course
+    const deleteEnrollments = 'DELETE FROM enrollment WHERE course_id = $1';
+    await db.query(deleteEnrollments, [course_id]);
+
+    // Delete feedback related to the course
+    const deleteFeedback = 'DELETE FROM feedback WHERE course_id = $1';
+    await db.query(deleteFeedback, [course_id]);
+
+    // Delete the course
+    const deleteCourse = 'DELETE FROM course WHERE course_id = $1 RETURNING name';
+    const result = await db.query(deleteCourse, [course_id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({error: 'Course not found'});
+    }
+
+    const courseName = result.rows[0].name;
+    await logActivity('Course', `Course deleted: ${courseName} by user ID ${req.user.userId}`, req.user.userId);
+
+    res.status(200).json({message: 'Course and related data deleted successfully.'});
+  } catch (err) {
+    console.error('Error deleting course:', err);
+    res.status(500).json({error: 'Failed to delete course'});
+  }
+};
 
 // Get all courses
 // In course.controller.js
@@ -211,57 +264,6 @@ const getCourseById = async (req, res) => {
   }
 };
 
-// Delete a course
-const deleteCourse = async (req, res) => {
-  // Role-based access control
-  if (!req.user.admin) {
-    console.error(`Access denied for user: ${req.user.userId}`);
-    return res.status(403).json({ error: 'Access denied. Admins only.' });
-  }
-
-  const { course_id } = req.params;
-
-  try {
-    // Delete lessons related to sections of the course
-    const deleteLessons = `
-      DELETE FROM lesson
-      WHERE section_id IN (
-        SELECT section_id FROM section WHERE course_id = $1
-      );
-    `;
-    await db.query(deleteLessons, [course_id]);
-
-    // Delete sections related to the course
-    const deleteSections = `
-      DELETE FROM section WHERE course_id = $1;
-    `;
-    await db.query(deleteSections, [course_id]);
-
-    // Delete enrollments related to the course
-    const deleteEnrollments = 'DELETE FROM enrollment WHERE course_id = $1';
-    await db.query(deleteEnrollments, [course_id]);
-
-    // Delete feedback related to the course
-    const deleteFeedback = 'DELETE FROM feedback WHERE course_id = $1';
-    await db.query(deleteFeedback, [course_id]);
-
-    // Delete the course
-    const deleteCourse = 'DELETE FROM course WHERE course_id = $1 RETURNING name';
-    const result = await db.query(deleteCourse, [course_id]);
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Course not found' });
-    }
-
-    const courseName = result.rows[0].name;
-    await logActivity('Course', `Course deleted: ${courseName} by user ID ${req.user.userId}`, req.user.userId);
-
-    res.status(200).json({ message: 'Course and related data deleted successfully.' });
-  } catch (err) {
-    console.error('Error deleting course:', err);
-    res.status(500).json({ error: 'Failed to delete course' });
-  }
-};
 
 
 

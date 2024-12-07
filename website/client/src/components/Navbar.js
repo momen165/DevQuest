@@ -1,5 +1,4 @@
-// /src/components/Navbar.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import 'styles/Navbar.css';
 import Logo from 'assets/icons/logo.svg';
 import { Link } from 'react-router-dom';
@@ -9,17 +8,30 @@ import defaultProfilePic from '../assets/images/default-profile-pic.png';
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null); // Reference for the dropdown
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState(user?.profileimage ? `${user.profileimage}?${new Date().getTime()}` : defaultProfilePic);
+  const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+
+  useEffect(() => {
+    setProfileImage(user?.profileimage ? `${user.profileimage}?${new Date().getTime()}` : defaultProfilePic);
+  }, [user]);
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prevState) => !prevState);
   };
 
-  // Close dropdown when clicking outside
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((prevState) => !prevState);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -29,10 +41,32 @@ const Navbar = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const handleLogout = () => {
     logout();
-    window.location.reload(); // Refresh the page after logging out
+    setIsDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+    window.location.reload();
   };
+
+  useEffect(() => {
+    document.body.classList.add('body-padding-top-80');
+    return () => {
+      document.body.classList.remove('body-padding-top-80');
+    };
+  }, []);
 
   return (
       <nav className="navbar">
@@ -40,51 +74,116 @@ const Navbar = () => {
           <Link className="navbar-logo" to="/">
             <img src={Logo} alt="DevQuest Logo" className="navbar-logo-image"/>
           </Link>
-          <ul className="navbar-links navbar-left-links">
-            <li className="navbar-item">
-              <Link className="navbar-link" to="/">Home</Link>
-            </li>
-            <li className="navbar-item">
-              <Link className="navbar-link" to="/CoursesPage">Courses</Link>
-            </li>
-          </ul>
 
-          <input type="search" className="navbar-search" placeholder="Search..."/>
+          <button
+              className={`mobile-menu-button ${isMobileMenuOpen ? 'active' : ''}`}
+              onClick={toggleMobileMenu}
+              aria-label="Toggle mobile menu"
+          >
+            <span className="menu-icon"></span>
+          </button>
 
-          <ul className="navbar-links navbar-right-links">
-            <li className="navbar-item">
-              <Link className="navbar-link" to="/pricing">Pricing</Link>
-            </li>
+          <div className={`mobile-menu-container ${isMobileMenuOpen ? 'active' : ''}`} ref={mobileMenuRef}>
+            <ul className={`navbar-links navbar-left-links ${isMobileMenuOpen ? 'active' : ''}`}>
+              <li className="navbar-item">
+                <Link className="navbar-link" to="/" onClick={() => setIsMobileMenuOpen(false)}>
+                  Home
+                </Link>
+              </li>
+              <li className="navbar-item">
+                <Link className="navbar-link" to="/CoursesPage" onClick={() => setIsMobileMenuOpen(false)}>
+                  Courses
+                </Link>
+              </li>
+            </ul>
 
-            {user ? (
-                <li className="navbar-item dropdown" ref={dropdownRef}>
-                  <img
-                      src={user.profileimage ? user.profileimage : defaultProfilePic}
-                      alt="User Profile"
-                      className="navbar-profile-picture"
-                      onClick={toggleDropdown} // Toggle dropdown on click
-                  />
-                  <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
-                    <Link to="/AccountSettings">Account Settings</Link>
-                    <Link to="/ProfilePage">Profile Page</Link> {/* Add Profile Page link */}
+            <input
+                type="search"
+                className="navbar-search"
+                placeholder="Search..."
+                aria-label="Search"
+            />
 
-                    {user && user.admin && (
-                        <Link className="navbar-dropdown-item" to="/dashboard">Dashboard</Link>
-                    )}
-                    <button onClick={handleLogout} className="logout-button">Log out</button>
-                  </div>
-                </li>
-            ) : (
-                <>
-                  <li className="navbar-item">
-                    <Link className="navbar-link" to="/LoginPage">Log in</Link>
+            <ul className={`navbar-links navbar-right-links ${isMobileMenuOpen ? 'active' : ''}`}>
+              <li className="navbar-item">
+                <Link
+                    className="navbar-link"
+                    to="/pricing"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
+              </li>
+
+              {user ? (
+                  <li className="navbar-item dropdown" ref={dropdownRef}>
+                    <div className="profile-container" onClick={toggleDropdown}>
+                      <img
+                          src={profileImage}
+                          alt="User Profile"
+                          className="navbar-profile-picture"
+                      />
+                    </div>
+                    <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
+                      <Link
+                          to="/AccountSettings"
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            setIsMobileMenuOpen(false);
+                          }}
+                      >
+                        Account Settings
+                      </Link>
+                      <Link
+                          to="/ProfilePage"
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            setIsMobileMenuOpen(false);
+                          }}
+                      >
+                        Profile Page
+                      </Link>
+                      {user && user.admin && (
+                          <Link
+                              className="navbar-dropdown-item"
+                              to="/dashboard"
+                              onClick={() => {
+                                setIsDropdownOpen(false);
+                                setIsMobileMenuOpen(false);
+                              }}
+                          >
+                            Dashboard
+                          </Link>
+                      )}
+                      <button onClick={handleLogout} className="logout-button">
+                        Log out
+                      </button>
+                    </div>
                   </li>
-                  <li className="navbar-item">
-                    <Link className="navbar-link" to="/RegistrationPage">Sign up</Link>
-                  </li>
-                </>
-            )}
-          </ul>
+              ) : (
+                  <>
+                    <li className="navbar-item">
+                      <Link
+                          className="navbar-link"
+                          to="/LoginPage"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Log in
+                      </Link>
+                    </li>
+                    <li className="navbar-item">
+                      <Link
+                          className="navbar-link"
+                          to="/RegistrationPage"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Sign up
+                      </Link>
+                    </li>
+                  </>
+              )}
+            </ul>
+          </div>
         </div>
       </nav>
   );

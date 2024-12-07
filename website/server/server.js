@@ -1,48 +1,74 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const authenticateToken = require('./middleware/auth');
 const updateUserStreak = require('./middleware/updateUserStreak');
 const fs = require('fs');
 const path = require('path');
-
+const sanitizeInput = require('./middleware/sanitizeInput');
 require('dotenv').config();
-
-
 
 // Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Enable trust proxy
+app.set('trust proxy', 1); // Trust the first proxy
+
+
 // Middleware
-const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
 app.use(cors({
-  origin: corsOrigin,
+  origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Security headers
 app.use(helmet());
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"],
+    objectSrc: ["'none'"],
+    upgradeInsecureRequests: [],
+  },
+}));
+
+// Rate limiting to prevent brute force attacks
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Disable 'X-Powered-By' header
+app.disable('x-powered-by');
+
+// Input sanitization
+
+
+// Middleware for parsing JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(authenticateToken); // Apply authentication middleware
-app.use(updateUserStreak);  // Apply updateUserStreak middleware
-
-
+// Middleware for authentication and streak updates
+app.use(authenticateToken);
+app.use(updateUserStreak);
+app.use(sanitizeInput);
 // Import routes
-
 const authRoutes = require('./routes/auth.routes');
 const courseRoutes = require('./routes/course.routes');
 const lessonRoutes = require('./routes/lesson.routes');
 const sectionRoutes = require('./routes/section.routes');
 const studentRoutes = require('./routes/student.routes');
-const subscriptionRoutes  = require('./routes/subscription.routes');
-const feedbackRoutes  = require('./routes/feedback.routes');
+const subscriptionRoutes = require('./routes/subscription.routes');
+const feedbackRoutes = require('./routes/feedback.routes');
 const activityRoutes = require('./routes/activity.routes');
 const codeExecutionRoutes = require('./routes/codeExecution.routes');
 const uploadRoutes = require('./routes/upload.routes');
-const userInforoutes = require('./routes/userInfo.routes');
-
+const userInfoRoutes = require('./routes/userInfo.routes');
 
 // Use routes
 app.use('/api', authRoutes);
@@ -55,21 +81,12 @@ app.use('/api', feedbackRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
 app.use('/api', uploadRoutes);
-app.use('/api', userInforoutes);
+app.use('/api', userInfoRoutes);
 
-// server.js
-
-// Mount routes
-
-
-
+// Health check route
 app.get('/api/health', async (req, res) => {
   try {
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Database timeout')), 3000));
-    const queryPromise = db.query('SELECT NOW()');
-
-    const { rows } = await Promise.race([timeoutPromise, queryPromise]);
-
+    const {rows} = await db.query('SELECT NOW()');
     res.status(200).json({
       status: 'OK',
       database: 'Connected',
@@ -85,6 +102,20 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Block cloud metadata access
+app.use((req, res, next) => {
+  if (req.path.startsWith('/latest/meta-data')) {
+    return res.status(403).send('Access Denied');
+  }
+  next();
+});
+
+// Add additional security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Frame-Options', 'DENY'); // Prevent clickjacking
+  res.setHeader('X-Content-Type-Options', 'nosniff'); // Prevent MIME-type sniffing
+  next();
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -109,10 +140,14 @@ db.query('SELECT NOW()', (err, res) => {
   }
 });
 
-
+// Log all registered routes for debugging
 app._router.stack.forEach((middleware) => {
   if (middleware.route) {
     console.log('Route:', middleware.route.path, 'Methods:', middleware.route.methods);
   }
 });
+
+
+
+
 

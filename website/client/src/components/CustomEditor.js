@@ -56,6 +56,24 @@ import 'ckeditor5/ckeditor5.css';
 import 'styles/CustomEditor.css';
 
 const DEFAULT_CONFIG = {
+	codeBlock: {
+		languages: [
+			{language: 'plaintext', label: 'Plain text'},
+			{language: 'javascript', label: 'JavaScript'},
+			{language: 'css', label: 'CSS'},
+			{language: 'html', label: 'HTML'},
+			{language: 'python', label: 'Python'},
+			{language: 'java', label: 'Java'},
+			{language: 'csharp', label: 'C#'},
+			{language: 'php', label: 'PHP'},
+			{language: 'ruby', label: 'Ruby'},
+			{language: 'typescript', label: 'TypeScript'},
+			// Add custom languages here
+			{language: 'go', label: 'Go'},
+			{language: 'swift', label: 'Swift'},
+			{language: 'kotlin', label: 'Kotlin'}
+		]
+	},
 	toolbar: {
 		items: [
 			'undo',

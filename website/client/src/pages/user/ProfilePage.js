@@ -5,13 +5,13 @@ import { useAuth } from 'AuthContext';
 import defaultProfilePic from "../../assets/images/default-profile-pic.png";
 import { useNavigate } from 'react-router-dom';
 
-
 function ProfilePage() {
   const { user } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
@@ -56,7 +56,8 @@ function ProfilePage() {
               {/* Left Column: Profile Info and Status */}
               <div className={styles.leftColumn}>
                 <div className={styles.profileHeader}>
-                  <img src={user.profileimage ? user.profileimage : defaultProfilePic} alt="Profile Avatar"
+                  <img src={user.profileimage ? `${user.profileimage}?${new Date().getTime()}` : defaultProfilePic}
+                       alt="Profile Avatar"
                        className={styles.profileAvatar}/>
                   <h2 className={styles.profileName}>{user.name}</h2>
                   <p className={styles.bioTitle}>Bio</p>
