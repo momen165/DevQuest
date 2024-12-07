@@ -1,0 +1,129 @@
+.support-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.support-form {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 300px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.support-form textarea {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.support-form button {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.support-responses {
+    margin-top: 15px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.response-item {
+    background: #f5f5f5;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    border-left: 3px solid #007bff;
+}
+
+.response-item p {
+    margin: 5px 0;
+}
+
+.admin-reply {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-left: 3px solid #007bff;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.chat-container {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+.chat-message-container {
+    margin-bottom: 15px;
+}
+
+.user-message {
+    background: #e3f2fd;
+    padding: 10px;
+    border-radius: 10px 10px 10px 0;
+    margin-bottom: 8px;
+    max-width: 80%;
+}
+
+.admin-message {
+    background: #fff;
+    padding: 10px;
+    border-radius: 10px 10px 0 10px;
+    margin-bottom: 8px;
+    max-width: 80%;
+    margin-left: auto;
+    border-left: 3px solid #007bff;
+}
+
+.user-message small {
+    display: block;
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 5px;
+}
+
+.message-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.no-messages {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+}
