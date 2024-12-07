@@ -122,90 +122,104 @@
 }
 
 .courseCardprofile {
-  background-color: #FFFACD; /* Light yellow */
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  margin-bottom: 20px !important; /* Add space between cards */
-  text-align: left;
-  width: 100%;
-  max-width: 500px;
-  margin: auto;
+  height: 220px;
+    width: 700px;
+    background-color: #e2e8f0; /* slate-200 */
+    display: flex;
+    border-radius: 1rem; /* rounded-xl */
+    justify-content: space-between;
+    margin: 70px;
+}
+.leftsectionCourseCard {
+  height: 100%;
+  width: 250px;
+  padding: 1.75rem;
+  color: white;
+  background-color: #0096c7;
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+  margin-bottom:30px ;
+}
+.courseProgcardtext {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #cccccc;
+}
+.courseProgCardTitle {
+  font-size: 25px;
+  padding-top: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 25px;
+}
+.ViewProgCardLessons {
+  font-size: 12px;
+  padding-top: 3.125rem;
+  color: #cccccc;
+  cursor: pointer;
+}
+.rightProgCardSection {
+  padding: 1.75rem;
+  background-color: #a2d2ff;  
+  width: calc(100% - 250px);
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
   position: relative;
-  display: flex;
-  flex-direction: column;
+  height: 100%;
+  color: #333d29;
 }
 
-.courseCardHeader {
+.progressBarheader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+}
+.sectionNameProgCard {
+  color: #949494;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+.progressbarcontainer {
+  position: relative;
 }
 
-.courseCardTitle {
-  font-weight: bold;
-  font-size: 1.8rem;
-  color: black;
-  text-align: left; /* Align title to the top left */
-}
-
-.courseDescription {
-  font-size: 1rem;
-  color: black;
-  margin-bottom: 20px;
-  max-width: 50%;
-  text-align: right;
-}
-
-.progressContainer {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  justify-content: flex-start;
-}
-
-.progressText {
-  color: black;
-  margin-right: 25px;
-}
-
-.progressBar {
-  width: 40%; /* Make the progress bar shorter */
-  background-color: #e0e0e0;
+.progressbarbackground {
   height: 6px;
-  border-radius: 5px;
-  overflow: hidden;
+  width: 200px;
+  background-color: #e2e8f0; /* slate-200 */
+  border-radius: 1rem;
 }
 
-.progress {
-  width: 40%; /* Replace with dynamic progress percentage */
-  height: 100%;
-  background-color: black;
+.progressbarfill {
+  height: 6px;
+  width: 120px;
+  background-color: #261a6b;
+  border-radius: 1rem;
+}
+.lessontitleProgCard {
+  font-size: 28px;
+  padding-top: 0.5rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }
 
-.continueButton {
-  background-color: black;
+.continuebuttonProgCard {
+  height: 40px;
+  width: 120px;
+  background-color: #0096c7;
   color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  font-size: 0.9rem;
-  text-transform: lowercase;
+  border-radius: 1.5rem;
+  letter-spacing: 0.05em;
+  position: absolute;
+  right: 2.5rem;
+  bottom: 1.75rem;
   cursor: pointer;
-  margin-top: 15px;
-  text-align: center;
-  display: block;
-  width: fit-content;
-  position: absolute; /* Move button to bottom right */
-  bottom: 10px;
-  right: 10px;
 }
 
-.continueButton:hover {
-  background-color: #333;
+.continuebuttonProgCard:hover {
+  background-color: #4938b6e8;
 }
 
-
+/**old style from here and down**/
 
 
 

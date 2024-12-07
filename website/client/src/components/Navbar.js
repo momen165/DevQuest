@@ -1,20 +1,20 @@
-// /src/components/Navbar.js
 import React, { useState, useEffect, useRef } from 'react';
 import 'styles/Navbar.css';
 import Logo from 'assets/icons/logo.svg';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import defaultProfilePic from '../assets/images/default-profile-pic.png';
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null); // Reference for the dropdown
+  const dropdownRef = useRef(null);
+  const location = useLocation();
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prevState) => !prevState);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -22,15 +22,15 @@ const Navbar = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
   const handleLogout = () => {
     logout();
-    window.location.reload(); // Refresh the page after logging out
+    window.location.reload();
   };
 
   return (
@@ -61,17 +61,36 @@ const Navbar = () => {
                 src={user.profileimage ? user.profileimage : defaultProfilePic}
                 alt="User Profile"
                 className="navbar-profile-picture"
-                onClick={toggleDropdown} // Toggle dropdown on click
+                onClick={toggleDropdown}
               />
-              <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
-                <Link to="/AccountSettings">Account Settings</Link>
-                <Link to="/ProfilePage">Profile Page</Link> {/* Add Profile Page link */}
-
-                {user && user.admin && (
-                  <Link className="navbar-dropdown-item" to="/dashboard">Dashboard</Link>
-                )}
-                <button onClick={handleLogout} className="logout-button">Log out</button>
-              </div>
+              {isDropdownOpen && (
+                <div className="dropdown-content dropdown-show">
+                  <div className="dropdown-connector"></div>
+                  <button
+                    className={`value ${location.pathname === '/AccountSettings' ? 'active' : ''}`}
+                    onClick={() => window.location.href = '/AccountSettings'}
+                  >
+                    Account Settings
+                  </button>
+                  <button
+                    className={`value ${location.pathname === '/ProfilePage' ? 'active' : ''}`}
+                    onClick={() => window.location.href = '/ProfilePage'}
+                  >
+                    Profile Page
+                  </button>
+                  {user && user.admin && (
+                    <button
+                      className={`value ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                      onClick={() => window.location.href = '/dashboard'}
+                    >
+                      Dashboard
+                    </button>
+                  )}
+                  <button onClick={handleLogout} className="value logout-button">
+                    Log out
+                  </button>
+                </div>
+              )}
             </li>
           ) : (
             <>
