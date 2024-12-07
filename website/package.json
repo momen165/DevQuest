@@ -21,6 +21,7 @@
     "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-python": "^6.1.6",
     "@hello-pangea/dnd": "^17.0.0",
+    "@monaco-editor/react": "^4.6.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -51,8 +52,12 @@
     "react-router-dom": "^6.28.0",
     "react-scripts": "5.0.1",
     "sharp": "^0.33.5",
+
     "styled-components": "^6.1.13",
     "web-vitals": "^2.1.4"
+
+    "xss": "^1.0.15"
+
   },
   "proxy": "http://localhost:5000"
 }

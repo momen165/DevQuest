@@ -1,23 +1,37 @@
+// website/client/src/pages/user/LessonPage.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import CodeMirror from '@uiw/react-codemirror';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { cpp } from '@codemirror/lang-cpp';
-import { java } from '@codemirror/lang-java';
-import { FaPlay, FaCopy } from 'react-icons/fa'; // Import icons
+import {FaPlay, FaCopy} from 'react-icons/fa';
 import 'styles/LessonPage.css';
 import Navbar from 'components/Navbar';
 import LessonNavigation from 'components/LessonNavigation';
 import { useAuth } from 'AuthContext';
 import LessonContent from 'components/LessonContent';
+import MonacoEditorComponent from 'components/MonacoEditorComponent';
 
-const languageExtensions = {
-  71: python(),
-  74: javascript(),
-  54: cpp(),
-  62: java(),
+const languageMappings = {
+  71: 'python',
+  74: 'javascript',
+  54: 'cpp',
+  62: 'java',
+  1: 'plaintext',
+  2: 'markdown',
+  3: 'html',
+  4: 'css',
+  5: 'json',
+  6: 'typescript',
+  7: 'xml',
+  8: 'sql',
+  9: 'ruby',
+  60: 'go',
+  11: 'php',
+  12: 'shell',
+  13: 'kotlin',
+  14: 'r',
+  15: 'csharp',
+  16: 'swift',
+  17: 'dart',
 };
 
 const LessonPage = () => {
@@ -86,92 +100,6 @@ const LessonPage = () => {
     fetchLesson();
   }, [lessonId]);
 
-  const runCode = async () => {
-    try {
-      console.log('Running code...');
-      setConsoleOutput('Running code...');
-
-      if (!languageId) {
-        setConsoleOutput('Language ID not available. Cannot run the code.');
-        return;
-      }
-
-      if (!user || !user.token) {
-        setConsoleOutput('Authorization token is missing. Please log in again.');
-        return;
-      }
-
-      const encodedCode = btoa(code);
-
-      const payload = {
-        lessonId: parseInt(lessonId, 10),
-        code: encodedCode,
-        languageId,
-      };
-
-      console.log('Sending request to run code with payload:', payload);
-
-      const response = await axios.post(
-          '/api/run?base64_encoded=true',
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-      );
-
-      console.log('Received response from server:', response.data);
-
-      const { results } = response.data;
-      if (!results || results.length === 0) {
-        setConsoleOutput('No results received from the server.');
-        return;
-      }
-
-      let output = 'Test Case Results:\n';
-      let allPassed = true;
-      results.forEach((testCase, index) => {
-        const { input, expected_output, actual_output, status, compileError, error } = testCase;
-        output += `Test Case ${index + 1}:\n`;
-        output += `Input:\n${input}\n`;
-        output += `Expected Output:\n${expected_output.trim()}\n`;
-        output += `Actual Output:\n${actual_output.trim()}\n`;
-        output += `Status: ${status}\n`;
-        if (error) output += `Error: ${error}\n`;
-        if (compileError) output += `Compile Error: ${compileError}\n`;
-        output += `\n`;
-      });
-
-      setConsoleOutput(output);
-      setIsAnswerCorrect(allPassed);
-
-      await axios.put('/api/update-lesson-progress', {
-        user_id: user.user_id,
-        lesson_id: lessonId,
-        completed: allPassed,
-        submitted_code: code,
-      }, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
-    } catch (err) {
-      console.error('Error running code:', err.response?.data || err.message);
-      setConsoleOutput(err.message);
-    }
-  };
-
-  const copyCodeToClipboard = () => {
-    navigator.clipboard.writeText(code).then(() => {
-      alert('Code copied to clipboard!');
-    }).catch(err => {
-      console.error('Failed to copy code: ', err);
-    });
-  };
-
   if (loading) return <p className="loading">Loading lesson...</p>;
   if (error) return <p className="error">{error}</p>;
 
@@ -188,19 +116,18 @@ const LessonPage = () => {
           <div className="lesson-code-area">
             <div className="code-editor">
               <h3>// Write code below 👇</h3>
-              <CodeMirror
-                  value={code}
-                  height="400px"
-                  theme="dark"
-                  extensions={[languageExtensions[languageId] || javascript()]}
-                  onChange={(value) => setCode(value)}
+
+              <MonacoEditorComponent
+                  language={languageMappings[languageId] || 'plaintext'}
+                  code={code}
+                  setCode={setCode}
+                  user={user}
+                  lessonId={lessonId}
+                  languageId={languageId}
+                  setConsoleOutput={setConsoleOutput}
+                  setIsAnswerCorrect={setIsAnswerCorrect}
               />
-              <button className="run-btn" onClick={runCode}>
-                Run <FaPlay />
-              </button>
-              <button className="copy-btn" onClick={copyCodeToClipboard}>
-                Copy Code <FaCopy />
-              </button>
+
             </div>
 
             <div className="console">
