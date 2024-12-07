@@ -1,7 +1,7 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import 'styles/Navbar.css';
 import Logo from 'assets/icons/logo.svg';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import defaultProfilePic from '../assets/images/default-profile-pic.png';
 
@@ -12,6 +12,7 @@ const Navbar = () => {
   const [profileImage, setProfileImage] = useState(user?.profileimage ? `${user.profileimage}?${new Date().getTime()}` : defaultProfilePic);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const location = useLocation();
 
   useEffect(() => {
     setProfileImage(user?.profileimage ? `${user.profileimage}?${new Date().getTime()}` : defaultProfilePic);
@@ -35,9 +36,9 @@ const Navbar = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -69,123 +70,92 @@ const Navbar = () => {
   }, []);
 
   return (
-      <nav className="navbar">
-        <div className="navbar-container">
-          <Link className="navbar-logo" to="/">
-            <img src={Logo} alt="DevQuest Logo" className="navbar-logo-image"/>
-          </Link>
+    <nav className="navbar">
+      <div className="navbar-container">
+        <Link className="navbar-logo" to="/">
+          <img src={Logo} alt="DevQuest Logo" className="navbar-logo-image" />
+        </Link>
 
-          <button
-              className={`mobile-menu-button ${isMobileMenuOpen ? 'active' : ''}`}
-              onClick={toggleMobileMenu}
-              aria-label="Toggle mobile menu"
-          >
-            <span className="menu-icon"></span>
-          </button>
+        <button
+          className={`mobile-menu-button ${isMobileMenuOpen ? 'active' : ''}`}
+          onClick={toggleMobileMenu}
+          aria-label="Toggle mobile menu"
+        >
+          <span className="menu-icon"></span>
+        </button>
 
-          <div className={`mobile-menu-container ${isMobileMenuOpen ? 'active' : ''}`} ref={mobileMenuRef}>
-            <ul className={`navbar-links navbar-left-links ${isMobileMenuOpen ? 'active' : ''}`}>
-              <li className="navbar-item">
-                <Link className="navbar-link" to="/" onClick={() => setIsMobileMenuOpen(false)}>
-                  Home
-                </Link>
+        <div className={`mobile-menu-container ${isMobileMenuOpen ? 'active' : ''}`} ref={mobileMenuRef}>
+          <ul className={`navbar-links navbar-left-links ${isMobileMenuOpen ? 'active' : ''}`}>
+            <li className="navbar-item">
+              <Link className="navbar-link" to="/" onClick={() => setIsMobileMenuOpen(false)}>
+                Home
+              </Link>
+            </li>
+            <li className="navbar-item">
+              <Link className="navbar-link" to="/CoursesPage" onClick={() => setIsMobileMenuOpen(false)}>
+                Courses
+              </Link>
+            </li>
+          </ul>
+
+          <input type="search" className="navbar-search" placeholder="Search..." aria-label="Search" />
+
+          <ul className={`navbar-links navbar-right-links ${isMobileMenuOpen ? 'active' : ''}`}>
+            <li className="navbar-item">
+              <Link className="navbar-link" to="/pricing" onClick={() => setIsMobileMenuOpen(false)}>
+                Pricing
+              </Link>
+            </li>
+
+            {user ? (
+              <li className="navbar-item dropdown" ref={dropdownRef}>
+                <div className="profile-container" onClick={toggleDropdown}>
+                  <img src={profileImage} alt="User Profile" className="navbar-profile-picture" />
+                </div>
+                <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
+                  <button
+                    className={`value ${location.pathname === '/AccountSettings' ? 'active' : ''}`}
+                    onClick={() => window.location.href = '/AccountSettings'}
+                  >
+                    Account Settings
+                  </button>
+                  <button
+                    className={`value ${location.pathname === '/ProfilePage' ? 'active' : ''}`}
+                    onClick={() => window.location.href = '/ProfilePage'}
+                  >
+                    Profile Page
+                  </button>
+                  {user && user.admin && (
+                    <button
+                      className={`value ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                      onClick={() => window.location.href = '/dashboard'}
+                    >
+                      Dashboard
+                    </button>
+                  )}
+                  <button onClick={handleLogout} className="value logout-button">
+                    Log out
+                  </button>
+                </div>
               </li>
-              <li className="navbar-item">
-                <Link className="navbar-link" to="/CoursesPage" onClick={() => setIsMobileMenuOpen(false)}>
-                  Courses
-                </Link>
-              </li>
-            </ul>
-
-            <input
-                type="search"
-                className="navbar-search"
-                placeholder="Search..."
-                aria-label="Search"
-            />
-
-            <ul className={`navbar-links navbar-right-links ${isMobileMenuOpen ? 'active' : ''}`}>
-              <li className="navbar-item">
-                <Link
-                    className="navbar-link"
-                    to="/pricing"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Pricing
-                </Link>
-              </li>
-
-              {user ? (
-                  <li className="navbar-item dropdown" ref={dropdownRef}>
-                    <div className="profile-container" onClick={toggleDropdown}>
-                      <img
-                          src={profileImage}
-                          alt="User Profile"
-                          className="navbar-profile-picture"
-                      />
-                    </div>
-                    <div className={`dropdown-content ${isDropdownOpen ? 'show' : ''}`}>
-                      <Link
-                          to="/AccountSettings"
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            setIsMobileMenuOpen(false);
-                          }}
-                      >
-                        Account Settings
-                      </Link>
-                      <Link
-                          to="/ProfilePage"
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            setIsMobileMenuOpen(false);
-                          }}
-                      >
-                        Profile Page
-                      </Link>
-                      {user && user.admin && (
-                          <Link
-                              className="navbar-dropdown-item"
-                              to="/dashboard"
-                              onClick={() => {
-                                setIsDropdownOpen(false);
-                                setIsMobileMenuOpen(false);
-                              }}
-                          >
-                            Dashboard
-                          </Link>
-                      )}
-                      <button onClick={handleLogout} className="logout-button">
-                        Log out
-                      </button>
-                    </div>
-                  </li>
-              ) : (
-                  <>
-                    <li className="navbar-item">
-                      <Link
-                          className="navbar-link"
-                          to="/LoginPage"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Log in
-                      </Link>
-                    </li>
-                    <li className="navbar-item">
-                      <Link
-                          className="navbar-link"
-                          to="/RegistrationPage"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Sign up
-                      </Link>
-                    </li>
-                  </>
-              )}
-            </ul>
-          </div>
+            ) : (
+              <>
+                <li className="navbar-item">
+                  <Link className="navbar-link" to="/LoginPage" onClick={() => setIsMobileMenuOpen(false)}>
+                    Log in
+                  </Link>
+                </li>
+                <li className="navbar-item">
+                  <Link className="navbar-link" to="/RegistrationPage" onClick={() => setIsMobileMenuOpen(false)}>
+                    Sign up
+                  </Link>
+                </li>
+              </>
+            )}
+          </ul>
         </div>
-      </nav>
+      </div>
+    </nav>
   );
 };
 
