@@ -1,31 +1,36 @@
-﻿.unique-copy-btn {
-    margin-top: 5px;
-    padding: 5px 10px;
-    background-color: transparent;
-    border: none;
-    color: white;
-    font-size: 0.8rem;
-    border-radius: 5px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    margin-bottom: 5px;
+﻿/* LessonContent.css */
+.code-block {
+  position: relative;
+}
+
+.unique-copy-btn {
+
+  top: 5px;
+  right: 5px;
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
 }
 
 .unique-copy-btn:hover {
-    background-color: #2963b3;
+  color: #377EF0;
 }
 
 .unique-icon {
-    font-size: 1rem;
+  font-size: 1rem;
 }
 
+pre {
+  background-color: #161925;
+  padding: 10px;
+  border-radius: 5px;
 
-.unique-copy-btn:active {
- transform: scale(0.9);
-    box-shadow: 3px 2px 22px 1px rgba(0, 0, 0, 0.24);
 }
 
-pre code.hljs {
-   font-size: 20px;
+code.hljs {
+  font-size: 16px;
 }
