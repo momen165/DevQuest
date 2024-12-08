@@ -1,12 +1,18 @@
+
 .lesson-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
-    justify-content: center; /* Center the buttons */
+    justify-content: center;
     align-items: center;
     padding: 10px 20px;
     background-color: #161925;
     border-top: 1px solid #282c34;
     flex-direction: row; /* Ensure buttons are in a row */
 }
+
 .nav-button {
     font-size: 1rem;
     padding: 10px 20px;
