@@ -1,51 +1,61 @@
-﻿import React, { useEffect, useRef } from 'react';
+﻿// LessonContent.js
+import React, {useEffect} from 'react';
+import parse, {domToReact} from 'html-react-parser';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/srcery.css';
 import { FaCopy } from 'react-icons/fa';
 import 'styles/LessonContent.css';
-import ReactDOM from 'react-dom';
 
 const LessonContent = ({ content }) => {
-    useEffect(() => {
-        document.querySelectorAll('.lesson-content pre code').forEach((block) => {
-            hljs.highlightElement(block);
+  const copyCodeToClipboard = (code) => {
+    navigator.clipboard.writeText(code)
+        .then(() => {
+          alert('Code copied to clipboard!');
+        })
+        .catch((err) => {
+          console.error('Failed to copy code: ', err);
         });
-    }, [content]);
+  };
 
-    const copyCodeToClipboard = (code) => {
-        navigator.clipboard.writeText(code).then(() => {
-            alert('Code copied to clipboard!');
-        }).catch(err => {
-            console.error('Failed to copy code: ', err);
-        });
-    };
+  useEffect(() => {
+    document.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightElement(block);
+    });
+  }, [content]);
 
-    useEffect(() => {
-        document.querySelectorAll('.lesson-content pre').forEach((pre) => {
-            if (!pre.querySelector('.unique-copy-btn')) {
-                const button = document.createElement('button');
-                button.className = 'unique-copy-btn';
-                button.onclick = () => copyCodeToClipboard(pre.innerText);
+  const options = {
+    replace: (node) => {
+      if (node.name === 'pre' && node.children.length > 0) {
+        const codeNode = node.children[0];
+        const className = codeNode.attribs.class || '';
+        const language = className.replace('language-', '');
 
-                // Create a span to hold the icon
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'unique-icon';
+        const codeText = codeNode.children[0]?.data || '';
 
-                // Use React to render the icon into the span
-                ReactDOM.render(<FaCopy />, iconSpan);
+        return (
+            <div className="code-block">
+              <button
+                  className="unique-copy-btn"
+                  onClick={() => copyCodeToClipboard(codeText)}
+              >
+                <FaCopy className="unique-icon"/>
+              </button>
+              <pre>
+              <code className={className}>
+                {codeText}
+              </code>
+            </pre>
+            </div>
+        );
+      }
+    },
+  };
 
-                button.appendChild(iconSpan);
-                pre.insertBefore(button, pre.firstChild);
-            }
-        });
-    }, [content]);
-
-    return (
-        <div
-            className="lesson-content"
-            dangerouslySetInnerHTML={{ __html: content }}
-        ></div>
-    );
+  return (
+      <div className="lesson-content">
+        {parse(content, options)}
+      </div>
+  );
 };
 
 export default LessonContent;
