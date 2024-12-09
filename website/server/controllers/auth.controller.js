@@ -232,6 +232,41 @@ const sendEmail = async (recipient, subject, htmlContent) => {
   }
 };
 
+const sendSupportEmail = async (recipient, subject, htmlContent) => {
+  // Validate environment variables
+  if (!process.env.SENDER_EMAIL_SUPPORT || !process.env.MAILJET_API_KEY || !process.env.MAILJET_SECRET_KEY) {
+      throw new Error('Missing required email configuration');
+  }
+
+  try {
+      const request = await mailjetClient
+          .post('send', { version: 'v3.1' })
+          .request({
+              Messages: [{
+                  From: {
+                      Email: process.env.SENDER_EMAIL_SUPPORT, // Use support email
+                      Name: 'Devquest Support'
+                  },
+                  To: [{
+                      Email: recipient,
+                      Name: recipient.split('@')[0] // Use email username as recipient name
+                  }],
+                  Subject: subject,
+                  HTMLPart: htmlContent,
+                  CustomID: `feedback-reply-${Date.now()}` // Add tracking ID
+              }]
+          });
+
+      if (request.response.status !== 200) {
+          throw new Error(`Email sending failed with status: ${request.response.status}`);
+      }
+
+      return true;
+  } catch (error) {
+      console.error('Email sending error:', error);
+      throw new Error('Failed to send email: ' + error.message);
+  }
+};
 
 const sendPasswordResetEmail = async (req,
 res) => {
@@ -387,7 +422,19 @@ const verifyEmail = async (req, res) => {
 };
 
 
+const sendFeedbackReplyEmail = async (email, name, comment, reply) => {
+  const subject = 'Reply to your feedback';
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h1 style="color: #333;">Reply to your feedback</h1>
+      <p>Dear ${name},</p>
+      <p>Thank you for your feedback: "${comment}".</p>
+      <p>Our reply: ${reply}</p>
+    </div>
+  `;
 
+  await sendSupportEmail(email, subject, htmlContent);
+};
 
 
 module.exports = {
@@ -399,4 +446,5 @@ module.exports = {
   sendPasswordResetEmail,
     resetPassword,
     checkAuth,
+  sendFeedbackReplyEmail, // Export the new function
 };
