@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from 'pages/admin/components/Sidebar';
 import 'pages/admin/styles/PaymentInfo.css';
-import { useAuth } from 'AuthContext'; 
+import { useAuth } from 'AuthContext';
 
 const PaymentDetails = () => {
   const [payments, setPayments] = useState([]);
@@ -12,26 +12,25 @@ const PaymentDetails = () => {
     const fetchPayments = async () => {
       try {
         const token = user?.token;
-    
+
         if (!token) {
           setError('No token found. Please log in again.');
           return;
         }
-    
+
         const response = await fetch('http://localhost:5000/api/subscriptions', {
           headers: {
             Authorization: `Bearer ${user.token}`,
-
           },
         });
-    
+
         console.log('Raw Response:', response);
-    
+
         if (!response.ok) {
           console.error(`HTTP Error: ${response.status}`);
           throw new Error(`HTTP Error: ${response.status}`);
         }
-    
+
         const data = await response.json(); // This is where the error occurs
         console.log('Fetched Data:', data);
         setPayments(data);
@@ -40,21 +39,20 @@ const PaymentDetails = () => {
         setError('Failed to fetch payment details. Please try again later.');
       }
     };
-    
 
     fetchPayments();
   }, [user]);
 
   if (error) {
-    return <div className="error-message">{error}</div>;
+    return <div className="admin-payment-error-message">{error}</div>;
   }
 
   return (
-    <div className="container">
+    <div className="admin-payment-container">
       <Sidebar />
-      <div className="main-content">
-        <h2>Payment Details</h2>
-        <table className="payment-table">
+      <div className="admin-payment-main-content">
+        <h2 className="admin-payment-h2">Payment Details</h2>
+        <table className="admin-payment-table">
           <thead>
             <tr>
               <th>Subscription ID</th>
@@ -79,8 +77,8 @@ const PaymentDetails = () => {
                   <span
                     className={
                       payment.status === 'Completed'
-                        ? 'status-completed'
-                        : 'status-pending'
+                        ? 'admin-payment-status-completed'
+                        : 'admin-payment-status-pending'
                     }
                   >
                     {payment.status}
