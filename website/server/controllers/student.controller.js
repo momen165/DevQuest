@@ -120,8 +120,39 @@ const getCoursesByStudentId = async (req, res) => {
   }
 };
 
+// Fetch enrollment status for a specific user and course
+
+
+// Fetch all enrollments for a specific user
+const getEnrollmentsByUserId = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId || isNaN(userId)) {
+    return res.status(400).json({ error: 'Invalid user ID.' });
+  }
+
+  try {
+    const query = `
+      SELECT course_id FROM enrollment
+      WHERE user_id = $1
+    `;
+    const { rows } = await db.query(query, [userId]);
+
+    const enrollments = rows.reduce((acc, row) => {
+      acc[row.course_id] = true;
+      return acc;
+    }, {});
+
+    res.status(200).json(enrollments);
+  } catch (err) {
+    console.error('Error fetching enrollments:', err.message || err);
+    res.status(500).json({ error: 'Failed to fetch enrollments.' });
+  }
+};
+
 module.exports = {
   getAllStudents,
   getStudentById,
   getCoursesByStudentId,
+  getEnrollmentsByUserId,
 };

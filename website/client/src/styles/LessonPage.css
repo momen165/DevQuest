@@ -30,24 +30,32 @@
   display: flex;
   flex-direction: column;
   background-color: #0d1117;
-  padding: 2%;
+  padding: 0; /* Remove padding */
   min-width: 300px; /* Ensures the section doesn't shrink too small */
 }
 
 .code-editor {
-  flex: 1;
-  margin-bottom: 20px; /* Adjust the bottom margin for a gap between code editor and console */
+  flex: 6; /* Takes 60% of the space */
+  margin: 0; /* Remove margin */
+  height: 60%; /* Ensure it fills 60% of the available height */
+  margin-bottom: 0; /* Remove bottom margin */
 }
 
-.code-editor h3 {
-  margin-bottom: 2px;
-  font-size: 1.2rem;
-
+.console {
+  flex: 4; /* Takes 40% of the space */
+  background-color: #161925;
+  padding: 0; /* Remove padding */
+  border-radius: 0; /* Remove border radius */
+  margin: 0; /* Remove margin */
+  height: 40%; /* Ensure it fills 40% of the available height */
 }
 
-.run-btn, .copy-btn {
+.run-btn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 1%;
-  padding: 1% 2%;
+  padding: 10px 20px;
   background-color: #377EF0;
   border: none;
   color: white;
@@ -56,6 +64,23 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  width: 140px;
+}
+.copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1%;
+  padding: 5px 10px; /* Make the button smaller */
+  background-color: #377EF0;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  width: 80px; /* Adjust width */
 }
 
 .run-btn:hover, .copy-btn:hover {
@@ -78,19 +103,26 @@
   margin-right: 10px; /* Add margin to the right of the run button */
 }
 
-.run-btn svg, .copy-btn svg {
+.run-btn svg {
   margin-left: 8px;
+}
+
+.copy-btn svg {
+  font-size: 1rem; /* Maintain the icon size */
 }
 
 .console {
   background-color: #161925;
-  padding: 20px;
-  border-radius: 5px;
-  margin-bottom: 5px; /* Reduced bottom margin */
+  padding: 0; /* Remove padding */
+  border-radius: 0; /* Remove border radius */
+  margin: 0; /* Remove margin */
+  height: 40%; /* Ensure it fills 40% of the available height */
 }
 
 .console h3 {
   font-size: 1.2rem;
+  margin: 0;
+  padding: 5px;
 
 }
 
@@ -102,7 +134,7 @@
   padding: 10px;
   font-family: monospace;
   border-radius: 5px;
-  height: 150px;
+  height: 90%;
   overflow: auto;
   white-space: pre-wrap;
 }
