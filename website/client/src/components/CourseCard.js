@@ -2,9 +2,17 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'styles/CourseCard.css';
 
-const CourseCard = ({ title, level, rating, students, description, courseId, image }) => {
+const CourseCard = ({ title, level, rating, students, description, courseId, image, isEnrolled }) => {
   const navigate = useNavigate();
-  const fullImageUrl = image   ;
+  const fullImageUrl = image;
+
+  const handleButtonClick = () => {
+    if (isEnrolled) {
+      navigate(`/course/${courseId}`);
+    } else {
+      navigate(`/enroll/${courseId}`);
+    }
+  };
 
   return (
     <div className="course-card">
@@ -27,9 +35,9 @@ const CourseCard = ({ title, level, rating, students, description, courseId, ima
       <div className="enroll-btn">
         <button
           className="enroll-button"
-          onClick={() => navigate(`/enroll/${courseId}`)}
+          onClick={handleButtonClick}
         >
-          Enroll now
+          {isEnrolled ? 'Continue learning' : 'Enroll now'}
         </button>
       </div>
     </div>

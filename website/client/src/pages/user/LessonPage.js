@@ -114,7 +114,6 @@ const LessonPage = () => {
 
           <div className="lesson-code-area">
             <div className="code-editor">
-              <h3>// Write code below 👇</h3>
               <MonacoEditorComponent
                   language={languageMappings[languageId] || 'plaintext'}
                   code={code}
