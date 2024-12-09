@@ -1,14 +1,13 @@
-// website/client/src/pages/user/LessonPage.js
+// LessonPage.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import {FaPlay, FaCopy} from 'react-icons/fa';
-import 'styles/LessonPage.css';
+import {useAuth} from 'AuthContext';
 import Navbar from 'components/Navbar';
 import LessonNavigation from 'components/LessonNavigation';
-import { useAuth } from 'AuthContext';
 import LessonContent from 'components/LessonContent';
 import MonacoEditorComponent from 'components/MonacoEditorComponent';
+import 'styles/LessonPage.css';
 
 const languageMappings = {
   71: 'python',
@@ -98,25 +97,24 @@ const LessonPage = () => {
     };
 
     fetchLesson();
-  }, [lessonId]);
+  }, [lessonId, user.token, user.user_id]);
 
   if (loading) return <p className="loading">Loading lesson...</p>;
   if (error) return <p className="error">{error}</p>;
 
   return (
       <>
-        <Navbar />
+        <Navbar/>
         <div className="lesson-page">
           <div className="lesson-instructions">
             <h1>{lesson.name}</h1>
             <p>{lesson.description}</p>
-            <LessonContent content={lesson.content} />
+            <LessonContent content={lesson.content}/>
           </div>
 
           <div className="lesson-code-area">
             <div className="code-editor">
               <h3>// Write code below 👇</h3>
-
               <MonacoEditorComponent
                   language={languageMappings[languageId] || 'plaintext'}
                   code={code}
@@ -127,7 +125,6 @@ const LessonPage = () => {
                   setConsoleOutput={setConsoleOutput}
                   setIsAnswerCorrect={setIsAnswerCorrect}
               />
-
             </div>
 
             <div className="console">

@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const logActivity = require('../utils/logger');
+const he = require('he');
 
 // Add a new lesson
 const addLesson = async (req, res) => {
@@ -270,6 +271,8 @@ const reorderLessons = async (req, res) => {
  * Additionally, it calculates and updates the user's overall progress for the course
  * associated with the lesson.
  */
+
+
 const updateLessonProgress = async (req, res) => {
   const { user_id, lesson_id, completed, submitted_code } = req.body;
 
@@ -299,6 +302,9 @@ const updateLessonProgress = async (req, res) => {
     `;
     const checkResult = await db.query(checkQuery, [user_id, lesson_id]);
 
+    // Decode submitted_code if needed
+    const sanitizedCode = he.decode(submitted_code);
+
     if (checkResult.rows.length > 0) {
       const updateQuery = `
         UPDATE lesson_progress
@@ -306,7 +312,13 @@ const updateLessonProgress = async (req, res) => {
         WHERE user_id = $4 AND lesson_id = $5
         RETURNING *;
       `;
-      const updateValues = [completed, completed ? new Date() : null, submitted_code, user_id, lesson_id];
+      const updateValues = [
+        completed,
+        completed ? new Date() : null,
+        sanitizedCode,
+        user_id,
+        lesson_id,
+      ];
       const updateResult = await db.query(updateQuery, updateValues);
 
       if (updateResult.rows.length === 0) {
@@ -318,10 +330,18 @@ const updateLessonProgress = async (req, res) => {
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
       `;
-      const insertValues = [user_id, lesson_id, completed, completed ? new Date() : null, courseId, submitted_code];
+      const insertValues = [
+        user_id,
+        lesson_id,
+        completed,
+        completed ? new Date() : null,
+        courseId,
+        sanitizedCode,
+      ];
       const insertResult = await db.query(insertQuery, insertValues);
     }
 
+    // Calculate progress
     const totalLessonsQuery = `
       SELECT COUNT(*) AS total_lessons
       FROM lesson
@@ -329,18 +349,22 @@ const updateLessonProgress = async (req, res) => {
       WHERE section.course_id = $1;
     `;
     const totalLessonsResult = await db.query(totalLessonsQuery, [courseId]);
-    const totalLessons = totalLessonsResult.rows[0].total_lessons;
+    const totalLessons = parseInt(totalLessonsResult.rows[0].total_lessons, 10);
 
     const completedLessonsQuery = `
       SELECT COUNT(*) AS completed_lessons
       FROM lesson_progress
       WHERE user_id = $1 AND course_id = $2 AND completed = true;
     `;
-    const completedLessonsResult = await db.query(completedLessonsQuery, [user_id, courseId]);
-    const completedLessons = completedLessonsResult.rows[0].completed_lessons;
+    const completedLessonsResult = await db.query(completedLessonsQuery, [
+      user_id,
+      courseId,
+    ]);
+    const completedLessons = parseInt(completedLessonsResult.rows[0].completed_lessons, 10);
 
     const progress = (completedLessons / totalLessons) * 100;
 
+    // Update enrollment progress
     const updateEnrollmentQuery = `
       UPDATE enrollment
       SET progress = $1
@@ -354,12 +378,18 @@ const updateLessonProgress = async (req, res) => {
       return res.status(404).json({ error: 'Enrollment not found.' });
     }
 
-    res.status(200).json({ message: 'Lesson progress and enrollment updated.', data: updateEnrollmentResult.rows[0] });
+    res.status(200).json({
+      message: 'Lesson progress and enrollment updated.',
+      data: updateEnrollmentResult.rows[0],
+    });
   } catch (err) {
     console.error('Error updating lesson progress:', err);
     res.status(500).json({ error: 'Internal server error. Please try again later.' });
   }
 };
+
+module.exports = {updateLessonProgress};
+
 
 const getLessonProgress = async (req, res) => {
   const { user_id, lesson_id } = req.query;
