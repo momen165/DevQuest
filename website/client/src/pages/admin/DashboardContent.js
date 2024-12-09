@@ -3,6 +3,7 @@ import { FaUserGraduate, FaUserPlus, FaBook } from 'react-icons/fa';
 import 'pages/admin/styles/DashboardContent.css';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
+import { Link } from 'react-router-dom';
 import ActivityWindow from 'pages/admin/components/ActivityWindow';
 
 const DashboardContent = () => {
@@ -89,7 +90,7 @@ const DashboardContent = () => {
           <h1>Dashboard</h1>
           <div className="profile">
             <span>{user?.name}</span>
-            <p>Admin</p>
+            <p><Link to="/" className='dashboard-to-homeLink'>Go back to the website</Link></p>
           </div>
         </header>
 

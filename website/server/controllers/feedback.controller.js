@@ -1,4 +1,5 @@
 const db = require('../config/database'); // Adjust path to your DB connection
+const { sendFeedbackReplyEmail } = require('./auth.controller'); // Import sendFeedbackReplyEmail from auth.controller
 
 // Get all feedback for admins
 const getFeedback = async (req, res) => {
@@ -27,8 +28,6 @@ const getFeedback = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch feedback' });
   }
 };
-
-
 
 const getCoursesWithRatings = async (req, res) => {
   try {
@@ -72,14 +71,6 @@ const getCoursesWithRatings = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-
 // Submit feedback
 const submitFeedback = async (req, res) => {
   const { course_id, rating, comment } = req.body;
@@ -110,4 +101,37 @@ const submitFeedback = async (req, res) => {
   }
 };
 
-module.exports = { getFeedback, submitFeedback, getCoursesWithRatings };
+const replyToFeedback = async (req, res) => {
+  const { feedback_id, reply } = req.body;
+  const adminId = req.user.userId;
+
+  if (!feedback_id || !reply) {
+    return res.status(400).json({ error: 'Feedback ID and reply message are required.' });
+  }
+
+  try {
+    const feedbackQuery = `
+      SELECT u.email, u.name, f.comment 
+      FROM feedback f 
+      JOIN users u ON f.user_id = u.user_id 
+      WHERE f.feedback_id = $1
+    `;
+    const { rows } = await db.query(feedbackQuery, [feedback_id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Feedback not found.' });
+    }
+
+    const { email, name, comment } = rows[0];
+
+    // Send reply email
+    await sendFeedbackReplyEmail(email, name, comment, reply);
+
+    res.status(200).json({ message: 'Reply sent successfully.' });
+  } catch (error) {
+    console.error('Error replying to feedback:', error.message);
+    res.status(500).json({ error: 'Failed to send reply.', details: error.message });
+  }
+};
+
+module.exports = { getFeedback, submitFeedback, getCoursesWithRatings, replyToFeedback };

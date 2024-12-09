@@ -58,17 +58,17 @@ const Support = () => {
   };
 
   if (loading) return <div>Loading support tickets...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (error) return <div className="admin-support-error">{error}</div>;
 
   return (
-    <div className="container">
+    <div className="admin-support-page admin-support-container">
       <Sidebar />
-      <div className="main-content">
-        <h2>Support Tickets</h2>
+      <div className="admin-support-main-content">
+        <h2 className="admin-support-h2">Support Tickets</h2>
         {tickets.length === 0 ? (
           <p>No support tickets available at the moment.</p>
         ) : (
-          <table className="support-table">
+          <table className="admin-support-table">
             <thead>
               <tr>
                 <th>Ticket ID</th>
@@ -88,19 +88,20 @@ const Support = () => {
                   <td>{new Date(ticket.expiration_time).toLocaleString()}</td>
                   <td>
                     {ticket.messages.map((msg, index) => (
-                      <div key={index} className={`message ${msg.sender_type}`}>
+                      <div key={index} className={`admin-support-message ${msg.sender_type}`}>
                         <p><strong>{msg.sender_type === 'admin' ? 'Admin Reply' : 'Message'}:</strong> {msg.message_content}</p>
                       </div>
                     ))}
                     <textarea
+                      className="admin-support-textarea"
                       placeholder="Enter your reply..."
                       value={reply[ticket.ticket_id] || ''}
                       onChange={(e) => handleReplyChange(ticket.ticket_id, e.target.value)}
                     />
-                    <button onClick={() => handleReply(ticket.ticket_id)}>Send</button>
+                    <button className="admin-support-button" onClick={() => handleReply(ticket.ticket_id)}>Send</button>
                   </td>
                   <td>
-                    <button onClick={() => handleDelete(ticket.ticket_id)}>Delete</button>
+                    <button className="admin-support-delete-btn" onClick={() => handleDelete(ticket.ticket_id)}>Delete</button>
                   </td>
                 </tr>
               ))}

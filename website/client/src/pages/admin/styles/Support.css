@@ -1,25 +1,23 @@
 /* Base container styles */
-.support-page {
+.admin-support-page {
   min-height: 100vh;
   background-color: #f9f9f9;
 }
 
-.support-page .container {
+.admin-support-container {
   display: flex;
   gap: 2rem;
-  padding: 2rem;
 }
 
-.support-page .main-content {
+.admin-support-main-content {
   flex: 1;
-  padding: 2rem;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Header styles */
-.support-page h2 {
+.admin-support-h2 {
   margin-bottom: 2rem;
   color: #000000;
   font-size: 1.8rem;
@@ -27,14 +25,14 @@
 }
 
 /* Table styles */
-.support-table {
+.admin-support-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 1.5rem;
 }
 
-.support-table th {
+.admin-support-table th {
   background-color: #f8f9fa;
   color: #000000;
   font-weight: 600;
@@ -43,25 +41,25 @@
   border-bottom: 2px solid #e9ecef;
 }
 
-.support-table td {
+.admin-support-table td {
   padding: 1rem;
   border-bottom: 1px solid #e9ecef;
   color: #000000;
 }
 
-.support-table tbody tr:hover {
+.admin-support-table tbody tr:hover {
   background-color: #f8f9fa;
   transition: background-color 0.2s ease;
 }
 
 /* Loading and error states */
-.support-page .loading {
+.admin-support-loading {
   text-align: center;
   padding: 2rem;
   color: #718096;
 }
 
-.support-page .error {
+.admin-support-error {
   color: #e53e3e;
   padding: 1rem;
   margin: 1rem 0;
@@ -70,7 +68,7 @@
   border: 1px solid #fed7d7;
 }
 
-.support-table textarea {
+.admin-support-table textarea {
   width: 100%;
   height: 50px;
   margin-bottom: 10px;
@@ -79,7 +77,7 @@
   border-radius: 4px;
 }
 
-.support-table button {
+.admin-support-table button {
   padding: 5px 10px;
   background-color: #007bff;
   color: white;
@@ -88,7 +86,7 @@
   cursor: pointer;
 }
 
-.delete-btn {
+.admin-support-delete-btn {
   background-color: #dc3545;
   color: white;
   border: none;
@@ -98,6 +96,6 @@
   margin-top: 5px;
 }
 
-.delete-btn:hover {
+.admin-support-delete-btn:hover {
   background-color: #c82333;
 }

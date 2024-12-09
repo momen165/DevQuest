@@ -117,13 +117,13 @@ function ProfilePage() {
   return (
     <>
       <Navbar />
-      <div className="profile-page">
+      <div className="account-settings-profile-page">
         <Sidebar activeLink="profile" />
 
-        <div className="profile-content">
+        <div className="account-settings-profile-content">
           <h2>{name ? `Welcome, ${name}!` : 'Loading...'}</h2>
-          <div className="profile-header">
-            <div className="profile-avatar">
+          <div className="account-settings-profile-header">
+            <div className="account-settings-profile-avatar">
               <img
                 src={
                   user.profileimage
@@ -140,22 +140,23 @@ function ProfilePage() {
                 onChange={handleProfilePicChange}
               />
               <button
-                className="update-btn"
+                className="account-settings-button account-settings-update-btn"
                 onClick={() => document.getElementById('profilePicInput').click()}
               >
                 Update
               </button>
-              <button className="remove-btn" onClick={handleRemoveProfilePic}>
+              <button className="account-settings-button account-settings-remove-btn" onClick={handleRemoveProfilePic}>
                 Remove
               </button>
             </div>
           </div>
 
-          <form className="profile-form" onSubmit={handleSaveChanges}>
+          <form className="account-settings-profile-form" onSubmit={handleSaveChanges}>
             <label htmlFor="name">Name</label>
             <input
               type="text"
               id="name"
+              className="account-settings-input"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -163,6 +164,7 @@ function ProfilePage() {
             <label htmlFor="country">Country</label>
             <select
               id="country"
+              className="account-settings-select"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
             >
@@ -176,15 +178,16 @@ function ProfilePage() {
             <label htmlFor="bio">Bio</label>
             <textarea
               id="bio"
+              className="account-settings-textarea"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
             ></textarea>
 
-            <div className="form-buttons">
-              <button type="submit" className="save-btn">Save Changes</button>
+            <div className="account-settings-form-buttons">
+              <button type="submit" className="account-settings-button account-settings-save-btn">Save Changes</button>
               <button
                 type="button"
-                className="cancel-btn"
+                className="account-settings-button account-settings-cancel-btn"
                 onClick={() => navigate('/AccountSettings')}
               >
                 Cancel
