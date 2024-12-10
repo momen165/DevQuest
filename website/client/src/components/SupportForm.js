@@ -64,7 +64,25 @@ const SupportForm = () => {
       </div>
       {isOpen && (
         <div className="support-form">
-          <form onSubmit={handleSendMessage}>
+          <div className="chat-container">
+            {tickets.length === 0 ? (
+              <p className="no-messages">No support tickets available.</p>
+            ) : (
+              tickets.map((ticket) =>
+                ticket.messages.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`chat-message-container ${
+                      msg.sender_type === 'admin' ? 'admin-message' : 'user-message'
+                    }`}
+                  >
+                    <p>{msg.message_content}</p>
+                  </div>
+                ))
+              )
+            )}
+          </div>
+          <form className="message-form" onSubmit={handleSendMessage}>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -74,22 +92,6 @@ const SupportForm = () => {
             <button type="submit">Send</button>
           </form>
           {responseMessage && <p className="response-message">{responseMessage}</p>}
-          <div className="ticket-list">
-            {tickets.length === 0 ? (
-              <p>No support tickets available.</p>
-            ) : (
-              tickets.map((ticket) => (
-                <div key={ticket.ticket_id} className="ticket">
-                  <p><strong>Time Opened:</strong> {new Date(ticket.time_opened).toLocaleString()}</p>
-                  {ticket.messages.map((msg, index) => (
-                    <div key={index} className={`message ${msg.sender_type}`}>
-                      <p><strong>{msg.sender_type === 'admin' ? 'Admin Reply' : 'Message'}:</strong> {msg.message_content}</p>
-                    </div>
-                  ))}
-                </div>
-              ))
-            )}
-          </div>
         </div>
       )}
     </>

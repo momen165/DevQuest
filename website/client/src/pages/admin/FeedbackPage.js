@@ -9,6 +9,8 @@ const FeedbackPage = () => {
   const [loading, setLoading] = useState(true); // Loading state
   const [error, setError] = useState(null); // Error state
   const { user } = useAuth();
+  const [reply, setReply] = useState('');
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -49,19 +51,40 @@ const FeedbackPage = () => {
     fetchFeedbacks();
   }, []);
 
+  const handleReplySubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedFeedback || !reply) return;
+
+    try {
+      await axios.post('http://localhost:5000/api/feedback/reply', {
+        feedback_id: selectedFeedback.feedback_id,
+        reply,
+      }, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+
+      setReply('');
+      setSelectedFeedback(null);
+      alert('Reply sent successfully.');
+    } catch (err) {
+      console.error('Error sending reply:', err.message);
+      alert(`Failed to send reply: ${err.response?.data?.error || err.message}`);
+    }
+  };
+
   // Conditional rendering for loading and errors
   if (loading) return <div>Loading feedback...</div>;
   if (error) return <div className="error-message">{error}</div>;
 
   return (
-    <div className="container">
+    <div className="admin-feedback-page admin-feedback-container">
       <Sidebar />
-      <div className="main-content">
-        <h2>Feedback</h2>
+      <div className="admin-feedback-main-content">
+        <h2 className="admin-feedback-h2">Feedback</h2>
         {feedbacks.length === 0 ? (
           <p>No feedback available at the moment.</p>
         ) : (
-          <table className="feedback-table">
+          <table className="admin-feedback-table">
             <thead>
               <tr>
                 <th>Feedback ID</th>
@@ -70,6 +93,7 @@ const FeedbackPage = () => {
                 <th>Rating</th>
                 <th>Course Name</th>
                 {/* <th>Date</th> */}
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -80,11 +104,26 @@ const FeedbackPage = () => {
                   <td>{feedback.feedback}</td>
                   <td>{feedback.rating}</td>
                   <td>{feedback.course_name}</td>
+                  <td>
+                    <button className="admin-feedback-button" onClick={() => setSelectedFeedback(feedback)}>Reply</button>
+                  </td>
                   {/* <td>{feedback.date}</td> */}
                 </tr>
               ))}
             </tbody>
           </table>
+        )}
+        {selectedFeedback && (
+          <form onSubmit={handleReplySubmit}>
+            <h3>Reply to Feedback #{selectedFeedback.feedback_id}</h3>
+            <textarea
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              placeholder="Type your reply here"
+            />
+            <button className="admin-feedback-button" type="submit">Send Reply</button>
+            <button className="admin-feedback-button" type="button" onClick={() => setSelectedFeedback(null)}>Cancel</button>
+          </form>
         )}
       </div>
     </div>
