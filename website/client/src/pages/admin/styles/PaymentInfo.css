@@ -1,45 +1,53 @@
-.container {
-    display: flex;
-    color: black;
-  }
-  
-  .main-content {
-    flex: 1;
-    padding: 20px;
-    background-color: #f9f9f9;
-    min-height : 100vh;
-  }
-  
-  h2 {
-    margin-bottom: 20px;
-  }
-  
-  .payment-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
-  
-  .payment-table th,
-  .payment-table td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #ccc;
-  }
-  
-  .payment-table th {
-    background-color: #f0f0f0;
-  }
-  
-  .payment-table tr:last-child td {
-    border-bottom: none;
-  }
-  
-  .status-completed {
-    color: green;
-  }
-  
-  .status-pending {
-    color: orange;
-  }
-  
+.admin-payment-container {
+  display: flex;
+  color: black;
+}
+
+.admin-payment-main-content {
+  flex: 1;
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+}
+
+.admin-payment-h2 {
+  margin-bottom: 20px;
+  color: #000000;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.admin-payment-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 20px;
+}
+
+.admin-payment-table th {
+  background-color: #f8f9fa;
+  color: #000000;
+  font-weight: 600;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.admin-payment-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  color: #000000;
+}
+
+.admin-payment-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+.admin-payment-status-completed {
+  color: green;
+}
+
+.admin-payment-status-pending {
+  color: orange;
+}

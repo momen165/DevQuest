@@ -185,3 +185,18 @@
   font-size: 18px;
   cursor: pointer;
 }
+
+.dashboard-to-homeLink {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-weight: 100;
+  font-size: 18px;
+  text-decoration: none;
+}
+.dashboard-to-homeLink:visited {
+  text-decoration: none;
+  color: #333;
+
+}

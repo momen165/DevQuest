@@ -1,25 +1,23 @@
 /* Base container styles */
-.feedback-page {
+.admin-feedback-page {
   min-height: 100vh;
   background-color: #f9f9f9;
 }
 
-.feedback-page .container {
+.admin-feedback-container {
   display: flex;
   gap: 2rem;
-  padding: 2rem;
 }
 
-.feedback-page .main-content {
+.admin-feedback-main-content {
   flex: 1;
-  padding: 2rem;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Header styles */
-.feedback-page h2 {
+.admin-feedback-h2 {
   margin-bottom: 2rem;
   color: #000000;
   font-size: 1.8rem;
@@ -27,45 +25,84 @@
 }
 
 /* Table styles */
-.feedback-table {
+.admin-feedback-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 1.5rem;
 }
 
-.feedback-table th {
+.admin-feedback-table th {
   background-color: #f8f9fa;
   color: #000000;
   font-weight: 600;
-  padding: 1rem;
   text-align: left;
   border-bottom: 2px solid #e9ecef;
 }
 
-.feedback-table td {
+.admin-feedback-table td {
   padding: 1rem;
   border-bottom: 1px solid #e9ecef;
   color: #000000;
 }
 
-.feedback-table tbody tr:hover {
+.admin-feedback-table tbody tr:hover {
   background-color: #f8f9fa;
   transition: background-color 0.2s ease;
 }
 
 /* Loading and error states */
-.feedback-page .loading {
+.admin-feedback-loading {
   text-align: center;
   padding: 2rem;
   color: #718096;
-  }
+}
 
-.feedback-page .error {
+.admin-feedback-error {
   color: #e53e3e;
   padding: 1rem;
   margin: 1rem 0;
   background-color: #fff5f5;
   border-radius: 4px;
   border: 1px solid #fed7d7;
+}
+
+/* Button Styles */
+.admin-feedback-button {
+  padding: 15px 25px;
+  border: unset;
+  border-radius: 15px;
+  color: #212121;
+  z-index: 1;
+  background: #e8e8e8;
+  position: relative;
+  font-weight: 1000;
+  font-size: 16px;
+  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  transition: all 250ms;
+  overflow: hidden;
+}
+
+.admin-feedback-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  border-radius: 15px;
+  background-color: #212121;
+  z-index: -1;
+  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  transition: all 250ms;
+}
+
+.admin-feedback-button:hover {
+  color: #e8e8e8;
+}
+
+.admin-feedback-button:hover::before {
+  width: 100%;
 }

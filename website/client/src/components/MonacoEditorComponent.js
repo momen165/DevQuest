@@ -4,6 +4,15 @@ import axios from 'axios';
 import {FaPlay, FaCopy} from 'react-icons/fa';
 import 'styles/LessonPage.css';
 
+const languageCommentMappings = {
+  python: '# Write code below 👇\n',
+  javascript: '// Write code below 👇\n',
+  cpp: '// Write code below 👇\n',
+  java: '// Write code below 👇\n',
+  plaintext: '// Write code below 👇\n',
+  // Add other languages as needed
+};
+
 const MonacoEditorComponent = ({
                                  language,
                                  code,
@@ -15,6 +24,7 @@ const MonacoEditorComponent = ({
                                  setIsAnswerCorrect
                                }) => {
   const editorRef = useRef(null);
+  const initialCommentSet = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -23,6 +33,14 @@ const MonacoEditorComponent = ({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!initialCommentSet.current && !code) {
+      const initialComment = languageCommentMappings[language] || '// Write code below 👇\n';
+      setCode(initialComment);
+      initialCommentSet.current = true;
+    }
+  }, [code, setCode, language]);
 
   const runCode = async () => {
     if (!code.trim()) {
@@ -120,9 +138,9 @@ const MonacoEditorComponent = ({
   };
 
   return (
-      <div>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <Editor
-            height="400px"
+            height="100%" // Adjust height to fill available space
             theme="vs-dark"
             language={language}
             options={{
@@ -136,12 +154,15 @@ const MonacoEditorComponent = ({
               editorRef.current = editor;
             }}
         />
-        <button className="run-btn" onClick={runCode}>
-          Run <FaPlay/>
-        </button>
-        <button className="copy-btn" onClick={copyCodeToClipboard}>
-          Copy Code <FaCopy/>
-        </button>
+        <div style={{ position: 'absolute', bottom: '10px', left: '10px', display: 'flex', gap: '10px' }}>
+          
+          <button className="run-btn" onClick={runCode}>
+            Run <FaPlay/>
+          </button>
+          <button className="copy-btn" onClick={copyCodeToClipboard}>
+            <FaCopy/>
+          </button>
+        </div>
       </div>
   );
 };

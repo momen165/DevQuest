@@ -18,8 +18,8 @@
     position: fixed;
     bottom: 80px;
     right: 20px;
-    width: 300px;
-    padding: 20px;
+    width: 320px;
+    padding: 10px;
     background-color: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
@@ -79,34 +79,34 @@
 .chat-container {
     flex: 1;
     overflow-y: auto;
-    max-height: 400px;
-    padding: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #eee;
-    border-radius: 4px;
+    max-height: 300px;
+    padding: 10px;
     background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
 }
 
 .chat-message-container {
-    margin-bottom: 15px;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 80%;
 }
 
 .user-message {
-    background: #e3f2fd;
-    padding: 10px;
-    border-radius: 10px 10px 10px 0;
-    margin-bottom: 8px;
-    max-width: 80%;
+    background: #007bff;
+    margin-left: auto;
+    border-radius: 10px 10px 0 10px;
+    color: white;
+    text-shadow: 0 0 5px rgba(0, 0, 0);
 }
 
 .admin-message {
-    background: #fff;
-    padding: 10px;
-    border-radius: 10px 10px 0 10px;
-    margin-bottom: 8px;
-    max-width: 80%;
-    margin-left: auto;
-    border-left: 3px solid #007bff;
+    background: #505355;
+    border-radius: 10px 10px 10px 0;
+    border-left: 3px solid #000000;
+    color: white;
 }
 
 .user-message small {
@@ -120,6 +120,24 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.message-form textarea {
+    width: 100%;
+    height: 60px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.message-form button {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
 }
 
 .no-messages {
