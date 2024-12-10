@@ -13,6 +13,7 @@ const CoursesPage = () => {
   const [error, setError] = useState(null);
   const { user, setUser } = useAuth();
   const [userscount, setUserscount] = useState({});
+  const [enrollments, setEnrollments] = useState({});
 
   useEffect(() => {
     const fetchCoursesAndRatings = async () => {
@@ -34,6 +35,13 @@ const CoursesPage = () => {
         setLoading(false);
         setUser(user);
         setUserscount(userscount);
+
+        const enrollmentsResponse = await fetch(`/api/students/${user.user_id}/enrollments`);
+        if (!enrollmentsResponse.ok) {
+          throw new Error('Failed to fetch enrollments');
+        }
+        const enrollmentsData = await enrollmentsResponse.json();
+        setEnrollments(enrollmentsData);
       } catch (err) {
         console.error('Error:', err);
         setError('Failed to load data');
@@ -42,7 +50,7 @@ const CoursesPage = () => {
     };
 
     fetchCoursesAndRatings();
-  }, []);
+  }, [user]);
 
   const handleFilter = (filter) => {
     if (filter === 'All') {
@@ -95,6 +103,7 @@ const CoursesPage = () => {
                   description={course.description}
                   image={course.image}
                   color="#FEFEF2"
+                  isEnrolled={!!enrollments[course.course_id]}
               />
           ))}
         </section>
