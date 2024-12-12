@@ -1,6 +1,6 @@
 
 .lesson-navigation {
-    position: fixed;
+    position: relative;
     bottom: 0;
     left: 0;
     right: 0;
@@ -11,6 +11,7 @@
     background-color: #161925;
     border-top: 1px solid #282c34;
     flex-direction: row; /* Ensure buttons are in a row */
+
 }
 
 .nav-button {
@@ -22,7 +23,7 @@
     color: white;
     background-color: #377EF0;
     transition: background-color 0.3s ease;
-    margin-right: 10px; /* Add space between buttons */
+    margin-right: 10px;
 }
 
 .nav-button:disabled {
@@ -40,4 +41,10 @@
 
 .complete-button:hover {
     background-color: #145dbf;
+}
+
+@media (max-width: 768px) {
+    .lesson-navigation {
+        margin-top: 15px;
+    }
 }
