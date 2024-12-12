@@ -145,12 +145,24 @@ const deleteCourse = async (req, res) => {
   // Role-based access control
   if (!req.user || !req.user.admin) {
     console.error(`Access denied for user: ${req.user ? req.user.userId : 'unknown'}`);
-    return res.status(403).json({error: 'Access denied. Admins only.'});
+      return res.status(403).json({error: 'Access denied. Admins only.'});
   }
 
-  const {course_id} = req.params;
+    const {course_id} = req.params;
 
   try {
+      // Delete lesson progress related to lessons of the course
+      const deleteLessonProgress = `
+          DELETE
+          FROM lesson_progress
+          WHERE lesson_id IN (SELECT lesson_id
+                              FROM lesson
+                              WHERE section_id IN (SELECT section_id
+                                                   FROM section
+                                                   WHERE course_id = $1));
+      `;
+      await db.query(deleteLessonProgress, [course_id]);
+
     // Delete lessons related to sections of the course
     const deleteLessons = `
       DELETE
@@ -182,16 +194,16 @@ const deleteCourse = async (req, res) => {
     const result = await db.query(deleteCourse, [course_id]);
 
     if (result.rowCount === 0) {
-      return res.status(404).json({error: 'Course not found'});
+        return res.status(404).json({error: 'Course not found'});
     }
 
     const courseName = result.rows[0].name;
     await logActivity('Course', `Course deleted: ${courseName} by user ID ${req.user.userId}`, req.user.userId);
 
-    res.status(200).json({message: 'Course and related data deleted successfully.'});
+      res.status(200).json({message: 'Course and related data deleted successfully.'});
   } catch (err) {
     console.error('Error deleting course:', err);
-    res.status(500).json({error: 'Failed to delete course'});
+      res.status(500).json({error: 'Failed to delete course'});
   }
 };
 

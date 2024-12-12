@@ -1,3 +1,4 @@
+
 .hero {
     display: flex;
     justify-content: space-between;
@@ -16,6 +17,7 @@
     color: white;
     align-items: center;
     margin-right: 30px;
+      min-height: 100vh; /* Ensures the page fills the viewport */
   }
   
   .hero h1 {

@@ -6,6 +6,7 @@ import EditCourseForm from 'pages/admin/components/AddEditCourseComponent';
 import SectionEditComponent from 'pages/admin/components/SectionEditComponent';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const AdminCourses = () => {
   const [loading, setLoading] = useState(false);
@@ -136,10 +137,12 @@ const AdminCourses = () => {
         {error && <p className="error-message">{error}</p>}
 
         {loading ? (
-          <p>Loading...</p>
+            <div className="centered-loader">
+                <CircularProgress/>
+            </div>
         ) : editingSections ? (
-          <SectionEditComponent
-            sections={sections}
+            <SectionEditComponent
+                sections={sections}
             courseId={editingCourse?.course_id}
             onSectionUpdate={(updatedSections) => {
               const payload = updatedSections.map((section, index) => ({

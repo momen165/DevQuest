@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import 'styles/EnrollmentPage.css';
 import { useAuth } from 'AuthContext';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const EnrollmentPage = () => {
   const { courseId } = useParams();
@@ -14,6 +15,11 @@ const EnrollmentPage = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) {
+      navigate('/loginPage');
+      return;
+    }
+
     const fetchCourseData = async () => {
       try {
         const response = await fetch(`/api/courses/${courseId}`);
@@ -24,12 +30,14 @@ const EnrollmentPage = () => {
         setCourse(data);
 
         // Check if the user is already enrolled in the course
-        const enrollmentResponse = await fetch(`/api/courses/${courseId}/enrollments/${user.user_id}`);
-        if (!enrollmentResponse.ok) {
-          throw new Error('Failed to check enrollment status');
+        if (user.user_id) {
+          const enrollmentResponse = await fetch(`/api/courses/${courseId}/enrollments/${user.user_id}`);
+          if (!enrollmentResponse.ok) {
+            throw new Error('Failed to check enrollment status');
+          }
+          const enrollmentData = await enrollmentResponse.json();
+          setIsEnrolled(enrollmentData.isEnrolled);
         }
-        const enrollmentData = await enrollmentResponse.json();
-        setIsEnrolled(enrollmentData.isEnrolled);
 
         setLoading(false);
       } catch (err) {
@@ -40,15 +48,8 @@ const EnrollmentPage = () => {
     };
 
     fetchCourseData();
-  }, [courseId, user.user_id]);
+  }, [courseId, user, navigate]);
 
-  if (loading) {
-    return <div>Loading course data...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
 
   if (!course) {
     return <div>Course not found</div>;

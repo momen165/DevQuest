@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Sidebar from 'pages/admin/components/Sidebar';
 import 'pages/admin/styles/FeedbackPage.css';
-import { useAuth } from 'AuthContext'; // Assuming you use an Auth context
+import {useAuth} from 'AuthContext';
+import CircularProgress from "@mui/material/CircularProgress"; // Assuming you use an Auth context
 
 const FeedbackPage = () => {
   const [feedbacks, setFeedbacks] = useState([]); // Feedback data
@@ -73,7 +74,9 @@ const FeedbackPage = () => {
   };
 
   // Conditional rendering for loading and errors
-  if (loading) return <div>Loading feedback...</div>;
+    if (loading) return <div className="centered-loader">
+        <CircularProgress/>
+    </div>;
   if (error) return <div className="error-message">{error}</div>;
 
   return (

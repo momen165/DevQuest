@@ -4,6 +4,8 @@ import Logo from 'assets/icons/logo.svg';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import defaultProfilePic from '../assets/images/default-profile-pic.png';
+import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -57,7 +59,7 @@ const Navbar = () => {
 
             {user ? (
                 <li className="navbar-item dropdown" ref={dropdownRef}>
-                  <img
+                    <Avatar
                       src={user.profileimage ? user.profileimage : defaultProfilePic}
                       alt="User Profile"
                       className="navbar-profile-picture"

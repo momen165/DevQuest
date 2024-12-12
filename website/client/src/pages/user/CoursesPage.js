@@ -4,6 +4,7 @@ import CourseCard from 'components/CourseCard';
 import FilterTabs from 'components/FilterTabs';
 import Navbar from 'components/Navbar';
 import { useAuth } from 'AuthContext';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -17,40 +18,56 @@ const CoursesPage = () => {
 
   useEffect(() => {
     const fetchCoursesAndRatings = async () => {
+      setLoading(true);
       try {
-        const response = await fetch('/api/getCoursesWithRatings', {
-          method: 'GET',
-        });
+        const cachedData = localStorage.getItem('coursesData');
+        const cachedEnrollments = localStorage.getItem(`enrollments_${user?.user_id}`);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch courses and ratings');
-        }
-
-        const data = await response.json();
-        const { courses, ratings, userscount } = data;
-
+        if (cachedData) {
+          const {courses, ratings, userscount} = JSON.parse(cachedData);
         setCourses(courses);
         setFilteredCourses(courses);
         setRatings(ratings);
-        setLoading(false);
-        setUser(user);
         setUserscount(userscount);
-
-        const enrollmentsResponse = await fetch(`/api/students/${user.user_id}/enrollments`);
-        if (!enrollmentsResponse.ok) {
-          throw new Error('Failed to fetch enrollments');
         }
-        const enrollmentsData = await enrollmentsResponse.json();
-        setEnrollments(enrollmentsData);
+
+        if (user?.user_id && cachedEnrollments) {
+          setEnrollments(JSON.parse(cachedEnrollments));
+        }
+
+        // Always fetch updated data
+        const [coursesResponse, enrollmentsResponse] = await Promise.all([
+          fetch('/api/getCoursesWithRatings').then(res => res.json()),
+          user?.user_id
+              ? fetch(`/api/students/${user.user_id}/enrollments`).then(res => res.json())
+              : Promise.resolve({}),
+        ]);
+
+        const {courses, ratings, userscount} = coursesResponse;
+
+        // Update state with fresh data
+        setCourses(courses);
+        setFilteredCourses(courses);
+        setRatings(ratings || {});
+        setUserscount(userscount || {});
+        setEnrollments(enrollmentsResponse || {});
+
+        // Cache the data
+        localStorage.setItem('coursesData', JSON.stringify({courses, ratings, userscount}));
+        if (user?.user_id) {
+          localStorage.setItem(`enrollments_${user.user_id}`, JSON.stringify(enrollmentsResponse));
+        }
       } catch (err) {
         console.error('Error:', err);
         setError('Failed to load data');
+      } finally {
         setLoading(false);
       }
     };
 
     fetchCoursesAndRatings();
   }, [user]);
+
 
   const handleFilter = (filter) => {
     if (filter === 'All') {
@@ -71,13 +88,7 @@ const CoursesPage = () => {
     }
   };
 
-  if (loading) {
-    return <div>Loading courses...</div>;
-  }
 
-  if (error) {
-    return <div>{error}</div>;
-  }
 
   return (
       <div className="courses-page">

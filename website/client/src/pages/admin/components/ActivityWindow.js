@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import 'pages/admin/styles/ActivityWindow.css';
+import parse from 'html-react-parser';
 
 const ActivityWindow = ({ activities, onClose }) => {
     return (
@@ -14,7 +15,7 @@ const ActivityWindow = ({ activities, onClose }) => {
                         activities.map((activity) => (
                             <li key={activity.activity_id}>
                                 <div className="activity-detail">
-                                    {activity.action_description}
+                                    {parse(activity.action_description)}
                                 </div>
                             </li>
                         ))

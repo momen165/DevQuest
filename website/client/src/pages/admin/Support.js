@@ -3,6 +3,7 @@ import axios from 'axios';
 import Sidebar from 'pages/admin/components/Sidebar';
 import 'pages/admin/styles/Support.css';
 import { useAuth } from 'AuthContext';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const Support = () => {
   const [tickets, setTickets] = useState([]);
@@ -57,7 +58,9 @@ const Support = () => {
     }
   };
 
-  if (loading) return <div>Loading support tickets...</div>;
+    if (loading) return <div className="centered-loader">
+        <CircularProgress/>
+    </div>;
   if (error) return <div className="admin-support-error">{error}</div>;
 
   return (
