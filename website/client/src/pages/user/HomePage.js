@@ -1,4 +1,3 @@
-// /src/pages/HomePage.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,7 +9,10 @@ import heroimg from 'assets/images/hero-image.svg';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const isLoggedIn = localStorage.getItem('user') !== null;
+    const user = localStorage.getItem('user');
+    const parsedUser = user ? JSON.parse(user) : null;
+    const hasToken = parsedUser && parsedUser.token;
+
   return (
     <>
       <Navbar />
@@ -20,7 +22,7 @@ const HomePage = () => {
           <p>Explore our wide range of courses and take your skills to the next level.</p>
           <div className="hero-buttons">
             <button className="btn browse-btn" onClick={() => navigate('/CoursesPage')}>Browse courses</button>
-            {!isLoggedIn && (
+              {!hasToken && (
               <button className="btn create-btn" onClick={() => navigate('/RegistrationPage')}>Create account</button>
             )}
           </div>
@@ -29,7 +31,7 @@ const HomePage = () => {
           <img src={heroimg} alt="Coding" />
         </div>
       </section>
-      <SupportForm />
+        {hasToken && <SupportForm/>}
       <FAQSection />
     </>
   );

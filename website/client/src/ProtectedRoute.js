@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const ProtectedRoute = ({ children, adminRequired = false }) => {
   const { user, loading: authLoading } = useAuth();
@@ -39,7 +40,9 @@ const ProtectedRoute = ({ children, adminRequired = false }) => {
   }, [authLoading, user]);
 
   if (loading) {
-    return <div>Loading...</div>;
+      return <div className="centered-loader">
+          <CircularProgress/>
+      </div>;
   }
 
   if (!isAuthenticated) {

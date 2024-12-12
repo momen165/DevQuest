@@ -7,6 +7,7 @@ import 'pages/admin/styles/ViewLessonsComponent.css';
 import ErrorAlert from './ErrorAlert';
 
 import { useAuth } from 'AuthContext';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const ViewLessonsComponent = ({ section, onClose }) => {
   const [lessons, setLessons] = useState([]);
@@ -151,9 +152,11 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       </button>
 
       {loading ? (
-        <p>Loading lessons...</p>
+          <div className="centered-loader">
+              <CircularProgress/>
+          </div>
       ) : error ? (
-        <p className="error">{error}</p>
+          <p className="error">{error}</p>
       ) : isAddingLesson || editingLesson ? (
         <LessonEditAddComponent
           section={section}

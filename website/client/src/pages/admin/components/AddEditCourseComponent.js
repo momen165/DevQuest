@@ -9,18 +9,20 @@ const EditCourseForm = ({
                           onClose,
                           onSave,
                           languageOptions = [
-                            { id: '71', name: 'Python (3.8.1)' },
+                              {id: '100', name: 'Python (3.12.5)'},
                             { id: '62', name: 'Java (OpenJDK 13.0.1)' },
-                            { id: '54', name: 'C++ (GCC 9.2.0)' },
-                            { id: '63', name: 'JavaScript (Node.js 12.14.0)' },
+                              {id: '105', name: 'C++ (GCC 14.1.0)'},
+                              {id: '102', name: 'JavaScript (Node.js 22.08.0)'},
                             { id: '68', name: 'PHP (7.4.1)' },
                             { id: '72', name: 'Ruby (2.7.0)' },
-                            { id: '50', name: 'C (GCC 9.2.0)' },
-                            { id: '74', name: 'TypeScript (3.7.4)' },
+                              {id: '104', name: 'C (Clang 18.1.8)'},
+                              {id: '101', name: 'TypeScript (5.6.2)'},
                             { id: '78', name: 'Kotlin (1.3.70)' },
                             { id: '73', name: 'Rust (1.40.0)' },
                             { id: '51', name: 'C# (Mono 6.6.0.161)' },
-                            { id: '60', name: 'Go (1.13.5)' },
+                              {id: '95', name: 'Go (1.18.5)'},
+                              {id: '83', name: 'Swift (5.2.3)'},
+                              {id: '61', name: 'Haskell (GHC 8.8.1)'},
                           ]
                         }) => {
   const [title, setTitle] = useState('');

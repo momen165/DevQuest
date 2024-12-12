@@ -2,6 +2,21 @@
   text-align: center;
 }
 
+.centered-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full screen height */
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden; /* Disable horizontal scrolling */
+}
+
+
 @font-face {
   font-family: 'Chivo Thin Italic';
   src: url('assets/fonts/chivo/Chivo-ThinItalic.ttf') format('truetype');

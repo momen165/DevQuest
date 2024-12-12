@@ -8,18 +8,18 @@ import LessonNavigation from 'components/LessonNavigation';
 import LessonContent from 'components/LessonContent';
 import MonacoEditorComponent from 'components/MonacoEditorComponent';
 import 'styles/LessonPage.css';
-
+import CircularProgress from '@mui/material/CircularProgress';
 const languageMappings = {
   71: 'python',
-  74: 'javascript',
+  63: 'javascript',
   54: 'cpp',
-  62: 'java',
+  102: 'java',
   1: 'plaintext',
   2: 'markdown',
   3: 'html',
   4: 'css',
   5: 'json',
-  6: 'typescript',
+  101: 'typescript',
   7: 'xml',
   8: 'sql',
   9: 'ruby',
@@ -99,7 +99,9 @@ const LessonPage = () => {
     fetchLesson();
   }, [lessonId, user.token, user.user_id]);
 
-  if (loading) return <p className="loading">Loading lesson...</p>;
+  if (loading) return <div className="centered-loader">
+    <CircularProgress/>
+  </div>;
   if (error) return <p className="error">{error}</p>;
 
   return (

@@ -6,14 +6,31 @@
   font-family: Arial, sans-serif;
   background-color: #1a1b26;
   color: white;
+
 }
 
 .lesson-page {
   display: flex;
   height: 100vh;
   color: white;
-  /*flex-wrap: wrap; !* Allows elements to wrap *!*/
+    overflow-y: hidden;
+    scrollbar-color: #377EF0 #1a1b26; /* Firefox */
 }
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1b26;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #377EF0;
+    border-radius: 10px;
+    border: 3px solid #1a1b26;
+}
+
 
 /* Left Section: Lesson Instructions */
 .lesson-instructions {
@@ -22,7 +39,8 @@
   padding-bottom: 2%; /* Add bottom padding */
   background: linear-gradient(to bottom, #1f2e5a 30%, #09112A 70%);
   overflow-y: scroll;
-  margin-bottom: 40px;
+    height: 100%;
+
 }
 
 .lesson-code-area {
@@ -127,15 +145,13 @@
 }
 
 .console-output {
-
   background-color: #030303;
-
   color: white;
   padding: 10px;
   font-family: monospace;
   border-radius: 5px;
   height: 90%;
-  overflow: auto;
+    overflow: scroll;
   white-space: pre-wrap;
 }
 
@@ -214,7 +230,19 @@
     padding: 1%;
   }
 
+    .lesson-page {
+        margin: 0;
+
+
+    }
   .console-output {
-    height: 80px; /* Adjust console height */
+      height: 70%;
   }
+}
+
+
+/* Ensure the lesson-page takes full width */
+.lesson-page {
+    width: 100%;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }

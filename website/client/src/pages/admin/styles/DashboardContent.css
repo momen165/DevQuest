@@ -1,8 +1,8 @@
 
 .dashboard-content {
   /* Ensure full-page coverage and expand horizontally */
-  min-height: 100vh;
-  width: 100vw; /* Force full viewport width */
+    min-height: 100%;
+    width: 100%;
   display: flex;
   flex-direction: column;
   gap: 40px;
