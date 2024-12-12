@@ -212,12 +212,23 @@ const deleteLesson = async (req, res) => {
     return res.status(403).json({ error: 'Access denied. Admins only.' });
   }
 
-
   const { lesson_id } = req.params;
 
   try {
-    const query = `DELETE FROM lesson WHERE lesson_id = $1 RETURNING lesson_id;`;
-    const { rows } = await db.query(query, [lesson_id]);
+      // Delete lesson progress related to the lesson
+      const deleteLessonProgress = `
+          DELETE
+          FROM lesson_progress
+          WHERE lesson_id = $1;
+      `;
+      await db.query(deleteLessonProgress, [lesson_id]);
+
+      // Delete the lesson
+      const deleteLessonQuery = `DELETE
+                                 FROM lesson
+                                 WHERE lesson_id = $1
+                                 RETURNING lesson_id;`;
+      const {rows} = await db.query(deleteLessonQuery, [lesson_id]);
 
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Lesson not found.' });

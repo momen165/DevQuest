@@ -45,16 +45,19 @@ const runCode = async (req, res) => {
         const languageId = langResult.rows[0].language_id;
         const testCases = lessonResult.rows[0].test_cases;
 
+        // Validate test cases
+        for (const testCase of testCases) {
+            if (!testCase.expected_output) {
+                return res.status(400).json({error: 'Invalid test case format: expected_output is required'});
+            }
+        }
+
         const decodedCode = isBase64Encoded ? Buffer.from(code, 'base64').toString('utf-8') : code;
 
         const results = await Promise.all(
             testCases.map(async (testCase) => {
-                const { input, expectedOutput, expected_output } = testCase;
-                const normalizedExpectedOutput = (expectedOutput || expected_output || '').replace(/\\n/g, '\n');
-
-                if (!normalizedExpectedOutput) {
-                    throw new Error('Invalid test case format: expected_output is required');
-                }
+                const {input, expected_output} = testCase;
+                const normalizedExpectedOutput = expected_output ? expected_output.trim() : '';
 
                 const submission = {
                     source_code: Buffer.from(decodedCode).toString('base64'),
@@ -62,6 +65,9 @@ const runCode = async (req, res) => {
                     stdin: input ? Buffer.from(input).toString('base64') : '',
                     expected_output: Buffer.from(normalizedExpectedOutput).toString('base64'),
                 };
+
+                // Log submission payload for debugging
+                console.log('Submission Payload:', submission);
 
                 // Create submission
                 const {data: {token}} = await axios.post(
@@ -77,7 +83,12 @@ const runCode = async (req, res) => {
                 );
 
                 let result;
+                const MAX_POLL_TIME = 20000; // 20 seconds
+                const startTime = Date.now();
                 do {
+                    if (Date.now() - startTime > MAX_POLL_TIME) {
+                        throw new Error('Polling timed out.');
+                    }
                     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
                     const response = await axios.get(
                         `https://${JUDGE0_RAPID_API_HOST}/submissions/${token}?base64_encoded=true`,
@@ -98,11 +109,11 @@ const runCode = async (req, res) => {
 
                 return {
                     input,
-                    expected_output: normalizedExpectedOutput.trim(),
+                    expected_output: normalizedExpectedOutput,
                     actual_output: actualOutput,
-                    status: actualOutput === normalizedExpectedOutput.trim() ? 'Passed' : 'Failed',
-                    error: error,
-                    compileError: compileError,
+                    status: actualOutput === normalizedExpectedOutput ? 'Passed' : 'Failed',
+                    error: error || compileError,
+                    status_description: result.status.description,
                 };
             })
         );
