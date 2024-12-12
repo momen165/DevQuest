@@ -12,6 +12,10 @@ const SupportForm = () => {
   const { user } = useAuth();
 
   const toggleForm = () => {
+      if (!user) {
+          console.error('User is not authenticated');
+          return;
+      }
     setIsOpen(!isOpen);
   };
 
