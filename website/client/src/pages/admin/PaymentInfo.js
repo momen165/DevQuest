@@ -24,18 +24,13 @@ const PaymentDetails = () => {
           },
         });
 
-        console.log('Raw Response:', response);
-
         if (!response.ok) {
-          console.error(`HTTP Error: ${response.status}`);
           throw new Error(`HTTP Error: ${response.status}`);
         }
 
-        const data = await response.json(); // This is where the error occurs
-        console.log('Fetched Data:', data);
+        const data = await response.json();
         setPayments(data);
       } catch (err) {
-        console.error('Error fetching payment details:', err.message);
         setError('Failed to fetch payment details. Please try again later.');
       }
     };
@@ -69,18 +64,10 @@ const PaymentDetails = () => {
                 <td>{payment.subscription_id}</td>
                 <td>{payment.student_name}</td>
                 <td>${payment.amount_paid}</td>
-                <td>
-                  {new Date(payment.subscription_start_date).toLocaleDateString()}
-                </td>
+                <td>{new Date(payment.subscription_start_date).toLocaleDateString()}</td>
                 <td>{payment.subscription_type}</td>
                 <td>
-                  <span
-                    className={
-                      payment.status === 'Completed'
-                        ? 'admin-payment-status-completed'
-                        : 'admin-payment-status-pending'
-                    }
-                  >
+                  <span className={payment.status === 'Completed' ? 'admin-payment-status-completed' : 'admin-payment-status-pending'}>
                     {payment.status}
                   </span>
                 </td>
