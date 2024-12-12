@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const sanitizeInput = require('./middleware/sanitizeInput');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Add this line
 
 // Initialize app
 const app = express();
@@ -15,7 +16,6 @@ const PORT = process.env.PORT || 5000;
 
 // Enable trust proxy
 app.set('trust proxy', 1); // Trust the first proxy
-
 
 // Middleware
 app.use(cors({
@@ -48,7 +48,6 @@ app.disable('x-powered-by');
 
 // Input sanitization
 
-
 // Middleware for parsing JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -68,8 +67,10 @@ const feedbackRoutes = require('./routes/feedback.routes');
 const activityRoutes = require('./routes/activity.routes');
 const codeExecutionRoutes = require('./routes/codeExecution.routes');
 const uploadRoutes = require('./routes/upload.routes');
-
 const supportRoutes = require('./routes/support.routes'); // Import support routes
+const stripeRoutes = require('./routes/stripe.routes'); // Import Stripe routes
+const paymentRoutes = require('./routes/payment.routes'); // Import payment routes
+const subscriptionController = require('./controllers/subscription.controller');
 
 // Use routes
 app.use('/api', authRoutes);
@@ -77,12 +78,15 @@ app.use('/api', courseRoutes);
 app.use('/api', lessonRoutes);
 app.use('/api', sectionRoutes);
 app.use('/api', studentRoutes);
-app.use('/api', subscriptionRoutes);
+app.use('/api', subscriptionRoutes); // Use subscription routes
 app.use('/api', feedbackRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', supportRoutes);
+app.use('/api', stripeRoutes); // Use Stripe routes
+app.use('/api', paymentRoutes); // Use payment routes
+app.post('/api/webhook', express.raw({ type: 'application/json' }), subscriptionController.handleStripeWebhook);
 
 // Health check route
 app.get('/api/health', async (req, res) => {

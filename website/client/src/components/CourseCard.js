@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'styles/CourseCard.css';
 
-const CourseCard = ({ title, level, rating, students, description, courseId, image, isEnrolled }) => {
+const CourseCard = ({ title, level, rating, students, description, courseId, image, isEnrolled, progress }) => {
   const navigate = useNavigate();
   const fullImageUrl = image;
 
@@ -33,6 +33,14 @@ const CourseCard = ({ title, level, rating, students, description, courseId, ima
         <div className="course-students">{students} students</div>
       </div>
       <div className="enroll-btn">
+        {isEnrolled && (
+          <div className="progress-container">
+            <div className="progress-circle" style={{ background: `conic-gradient(green 0% ${progress}%, #2e2e2e ${progress}% 100%)` }}>
+              <div className="circle-mid"></div>
+            </div>
+            <span className="progress-text">{progress}%</span>
+          </div>
+        )}
         <button
           className="enroll-button"
           onClick={handleButtonClick}
