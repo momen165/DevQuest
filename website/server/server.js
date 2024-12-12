@@ -8,14 +8,14 @@ const fs = require('fs');
 const path = require('path');
 const sanitizeInput = require('./middleware/sanitizeInput');
 require('dotenv').config();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Add this line
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Enable trust proxy
-app.set('trust proxy', 1); // Trust the first proxy
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors({
@@ -38,8 +38,8 @@ app.use(helmet.contentSecurityPolicy({
 
 // Rate limiting to prevent brute force attacks
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
 });
 app.use(limiter);
 
@@ -56,6 +56,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(authenticateToken);
 app.use(updateUserStreak);
 app.use(sanitizeInput);
+
 // Import routes
 const authRoutes = require('./routes/auth.routes');
 const courseRoutes = require('./routes/course.routes');
@@ -67,10 +68,11 @@ const feedbackRoutes = require('./routes/feedback.routes');
 const activityRoutes = require('./routes/activity.routes');
 const codeExecutionRoutes = require('./routes/codeExecution.routes');
 const uploadRoutes = require('./routes/upload.routes');
-const supportRoutes = require('./routes/support.routes'); // Import support routes
-const stripeRoutes = require('./routes/stripe.routes'); // Import Stripe routes
-const paymentRoutes = require('./routes/payment.routes'); // Import payment routes
+const supportRoutes = require('./routes/support.routes');
+const stripeRoutes = require('./routes/stripe.routes');
+const paymentRoutes = require('./routes/payment.routes');
 const subscriptionController = require('./controllers/subscription.controller');
+const checkoutRoutes = require('./routes/subscription.routes');
 
 // Use routes
 app.use('/api', authRoutes);
@@ -78,15 +80,15 @@ app.use('/api', courseRoutes);
 app.use('/api', lessonRoutes);
 app.use('/api', sectionRoutes);
 app.use('/api', studentRoutes);
-app.use('/api', subscriptionRoutes); // Use subscription routes
+app.use('/api', subscriptionRoutes);
 app.use('/api', feedbackRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', supportRoutes);
-app.use('/api', stripeRoutes); // Use Stripe routes
-app.use('/api', paymentRoutes); // Use payment routes
-app.post('/api/webhook', express.raw({ type: 'application/json' }), subscriptionController.handleStripeWebhook);
+app.use('/api', stripeRoutes);
+app.use('/api', paymentRoutes);
+app.use('/api', checkoutRoutes);
 
 // Health check route
 app.get('/api/health', async (req, res) => {
@@ -117,8 +119,8 @@ app.use((req, res, next) => {
 
 // Add additional security headers
 app.use((req, res, next) => {
-  res.setHeader('X-Frame-Options', 'DENY'); // Prevent clickjacking
-  res.setHeader('X-Content-Type-Options', 'nosniff'); // Prevent MIME-type sniffing
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   next();
 });
 
@@ -152,7 +154,5 @@ app._router.stack.forEach((middleware) => {
   }
 });
 
-
-
-
-
+// Webhook endpoint
+app.post('/api/webhook', express.raw({type: 'application/json'}), subscriptionController.handleStripeWebhook);

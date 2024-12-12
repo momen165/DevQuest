@@ -28,7 +28,7 @@ import ResetPasswordPage from './pages/user/ResetPasswordPage';
 import VerifyEmail from './pages/user/VerifyEmail';
 import './App.css';
 import Support from 'pages/admin/Support';
-
+import PaymentSuccessPage from 'pages/user/PaymentSuccessPage';
 
 function App() {
   return (
@@ -46,6 +46,7 @@ function App() {
         <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage />} />
         <Route path="/Unauthorized" element={<Unauthorized />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/success" element={<PaymentSuccessPage/>}/>
         {/* Admin Routes (Protected for Admins) */}
         <Route path="/Dashboard" element={<ProtectedRoute adminRequired={true}><Dashboard /></ProtectedRoute>} />
         <Route path="/Students" element={<ProtectedRoute adminRequired={true}><Students /></ProtectedRoute>} />
