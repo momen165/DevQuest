@@ -15,6 +15,7 @@ const CoursesPage = () => {
   const { user, setUser } = useAuth();
   const [userscount, setUserscount] = useState({});
   const [enrollments, setEnrollments] = useState({});
+  const [progress, setProgress] = useState({});
 
   useEffect(() => {
     const fetchCoursesAndRatings = async () => {
@@ -69,6 +70,28 @@ const CoursesPage = () => {
   }, [user]);
 
 
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        const response = await fetch(`/api/students/${user.user_id}/progress`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch progress');
+        }
+        const progressData = await response.json();
+        setProgress(progressData);
+      } catch (err) {
+        console.error('Error:', err);
+        setError('Failed to load progress data');
+      }
+    };
+
+    if (user) {
+      fetchProgress();
+    }
+  }, [user]);
+
+
+
   const handleFilter = (filter) => {
     if (filter === 'All') {
       setFilteredCourses([...courses].sort((a, b) => a.title?.localeCompare(b.title)));
@@ -115,6 +138,7 @@ const CoursesPage = () => {
                   image={course.image}
                   color="#FEFEF2"
                   isEnrolled={!!enrollments[course.course_id]}
+                  progress={progress[course.course_id] || 0}
               />
           ))}
         </section>

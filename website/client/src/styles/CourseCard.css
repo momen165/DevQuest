@@ -8,11 +8,11 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 490px;
+  justify-content: center;
+  height: 400px !important;
 
 
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for both scale and shadow */
-  flex-grow: 1; /* Add this */
-  height: auto; /* Make sure this is set or removed */
+  transition: transform 0.3s ease, box-shadow 0.8s ease; 
   margin: 20px; /* Reduced margin */
 
 }
@@ -28,18 +28,31 @@
 .course-info{
   display: flex;
   flex-direction: column;
+  width: 100%;
 
   align-items: center;
   margin-top:20px ;
   gap: 30px;
+
+  justify-content: center;
+
   padding: 20px;
 
   justify-content: space-between
   
 }
+
+
 .enroll-btn{
   display: flex;
   justify-content: right;
+  align-items: center; /* Align items vertically */
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  margin-right: auto; /* Push the container to the leftmost side */
 }
 
 .course-icon {
@@ -59,12 +72,9 @@
 .course-students{
   display: flex;
   align-self: flex-start;
+  padding: 20px 10px;
 }
-.card-p{
-  text-align: left;
-  padding-left: 0px !important; 
-  margin-left: 0px !important;
-}
+
 
 .enroll-button {
   background-color: #000000;
@@ -83,6 +93,35 @@
   box-shadow: 10px 10px rgba(255, 255, 255, 0.3) ; /* Increased shadow on hover */
 transform: scale(1.05); /* Slightly enlarge the card */
 
+}
+
+.progress-circle {
+  position: relative;
+  width: 35px; /* Adjust size as needed */
+  height: 35px; /* Adjust size as needed */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 10px; /* Space between circle and text */
+}
+
+.circle-mid {
+  position: relative;
+  width: 25px; /* Adjust size as needed */
+  height: 25px; /* Adjust size as needed */
+  border-radius: 50%;
+  background: #ffffff; /* White background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+.progress-text {
+  color: #000000;
+  font-size: 14px; /* Adjust size as needed */
 }
 
 

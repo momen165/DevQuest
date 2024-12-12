@@ -150,9 +150,37 @@ const getEnrollmentsByUserId = async (req, res) => {
   }
 };
 
+// Fetch progress for a specific user
+const getProgressByUserId = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId || isNaN(userId)) {
+    return res.status(400).json({ error: 'Invalid user ID.' });
+  }
+
+  try {
+    const query = `
+      SELECT course_id, progress FROM enrollment
+      WHERE user_id = $1
+    `;
+    const { rows } = await db.query(query, [userId]);
+
+    const progress = rows.reduce((acc, row) => {
+      acc[row.course_id] = row.progress;
+      return acc;
+    }, {});
+
+    res.status(200).json(progress);
+  } catch (err) {
+    console.error('Error fetching progress:', err.message || err);
+    res.status(500).json({ error: 'Failed to fetch progress.' });
+  }
+};
+
 module.exports = {
   getAllStudents,
   getStudentById,
   getCoursesByStudentId,
   getEnrollmentsByUserId,
+  getProgressByUserId,
 };

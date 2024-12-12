@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import 'styles/PricingPage.css';
 import Navbar from 'components/Navbar';
-import { useAuth } from 'AuthContext'; // Import the Auth context
+import { useAuth } from 'AuthContext';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe('pk_test_51MEwjHHxgK7P1VPXXJ1r4MdpeelwFLaBX9kslA7Z4O6V5CjE8B20DVkiSmp6XB0HPwKVnYFYacECLxYMZUOO4Fmm00m79WAvXD'); // Replace with your actual publishable key
 
 const PricingPage = () => {
   const [isMonthly, setIsMonthly] = useState(true);
@@ -14,40 +17,27 @@ const PricingPage = () => {
 
   const handleChoosePlan = async () => {
     setLoading(true);
-    setErrorMessage(''); // Reset error message
-
     try {
-      const token = user?.token; // Retrieve the token from AuthContext
-
-      if (!token) {
-        setErrorMessage('No token found. Please log in again.');
-        setLoading(false);
-        return;
-      }
-
-      const response = await axios.post(
-        'http://localhost:5000/api/subscribe',
-        {
-          amount_paid: isMonthly ? 20 : 168, // Send the amount_paid based on plan
+      const stripe = await stripePromise;
+      const { data } = await axios.post('http://localhost:5000/api/create-checkout-session', {
+        priceId: isMonthly ? 'price_1QV9vuHxgK7P1VPXGB14mjGT' : 'price_1QVBWXHxgK7P1VPX5pSXWJbG', // Use actual price IDs
+      }, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Use the token from AuthContext
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      });
 
-      if (response.status === 201) {
-        setSuccessMessage('Subscription successful! Thank you for subscribing.');
-        setTimeout(() => window.location.reload(), 2000); // Optional redirect or reload
+      const { error } = await stripe.redirectToCheckout({ sessionId: data.id });
+      if (error) {
+        console.error('Stripe checkout error:', error);
+        setErrorMessage('Failed to redirect to checkout.');
       }
-    } catch (err) {
-      console.error('Subscription error:', err);
-      setErrorMessage(err.response?.data?.error || 'Subscription failed. Please try again.');
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      setErrorMessage('Failed to create checkout session.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const openPopup = () => {
@@ -56,8 +46,6 @@ const PricingPage = () => {
 
   const closePopup = () => {
     setShowPopup(false);
-    setSuccessMessage('');
-    setErrorMessage('');
   };
 
   return (
@@ -85,12 +73,14 @@ const PricingPage = () => {
 
         {/* Pricing Card */}
         <div className="pricing-card">
-          <h2>${isMonthly ? '20' : '14'}</h2>
+          <h2>${isMonthly ? 10 : 100}</h2> {/* Use fixed prices */}
           <p>/ {isMonthly ? 'month' : 'month (billed yearly)'}</p>
           <button className="choose-plan-button" onClick={openPopup}>
             Choose Plan
           </button>
         </div>
+
+        <div id="card-container"></div>
       </div>
 
       {/* Popup for Subscription Confirmation */}
@@ -100,7 +90,7 @@ const PricingPage = () => {
             <h2>Confirm Your Subscription</h2>
             <p>
               You have selected the <strong>{isMonthly ? 'Monthly' : 'Yearly'}</strong> plan for
-              <strong> ${isMonthly ? '20/month' : '14/month (billed yearly)'}</strong>.
+              <strong> ${isMonthly ? 10 : 100}/month</strong>.
             </p>
             <button className="confirm-button" onClick={handleChoosePlan} disabled={loading}>
               {loading ? 'Processing...' : 'Confirm'}
