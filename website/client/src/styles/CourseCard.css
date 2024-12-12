@@ -33,9 +33,16 @@
   align-items: center;
   margin-top:20px ;
   gap: 30px;
+
   justify-content: center;
+
+  padding: 20px;
+
+  justify-content: space-between
   
 }
+
+
 .enroll-btn{
   display: flex;
   justify-content: right;

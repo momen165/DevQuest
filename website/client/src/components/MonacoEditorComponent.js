@@ -3,13 +3,14 @@ import {Editor} from '@monaco-editor/react';
 import axios from 'axios';
 import {FaPlay, FaCopy} from 'react-icons/fa';
 import 'styles/LessonPage.css';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const languageCommentMappings = {
-  python: '# Write code below 👇\n',
-  javascript: '// Write code below 👇\n',
-  cpp: '// Write code below 👇\n',
-  java: '// Write code below 👇\n',
-  plaintext: '// Write code below 👇\n',
+    python: '# Write code below \n',
+    javascript: '// Write code below \n',
+    cpp: '// Write code below \n',
+    java: '// Write code below \n',
+    plaintext: '// Write code below \n',
   // Add other languages as needed
 };
 
@@ -36,98 +37,100 @@ const MonacoEditorComponent = ({
 
   useEffect(() => {
     if (!initialCommentSet.current && !code) {
-      const initialComment = languageCommentMappings[language] || '// Write code below 👇\n';
+        const initialComment = languageCommentMappings[language] || '// Write code below\n';
       setCode(initialComment);
       initialCommentSet.current = true;
     }
   }, [code, setCode, language]);
 
-  const runCode = async () => {
-    if (!code.trim()) {
-      setConsoleOutput('Please enter some code before running.');
-      return;
-    }
-
-    try {
-      console.log('Running code...');
-      setConsoleOutput('Running code...');
-
-      if (!languageId) {
-        setConsoleOutput('Language ID not available. Cannot run the code.');
-        return;
-      }
-
-      if (!user || !user.token) {
-        setConsoleOutput('Authorization token is missing. Please log in again.');
-        return;
-      }
-
-      const encodedCode = btoa(code);
-
-      const payload = {
-        lessonId: parseInt(lessonId, 10),
-        code: encodedCode,
-        languageId,
-      };
-
-      console.log('Sending request to run code with payload:', payload);
-
-      const response = await axios.post(
-          '/api/run?base64_encoded=true',
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-      );
-
-      console.log('Received response from server:', response.data);
-
-      const {results} = response.data;
-      if (!results || results.length === 0) {
-        setConsoleOutput('No results received from the server.');
-        return;
-      }
-
-      let output = 'Test Case Results:\n';
-      let allPassed = true;
-      results.forEach((testCase, index) => {
-        const {input, expected_output, actual_output, status, compileError, error} = testCase;
-        const isCorrect = actual_output.trim() === expected_output.trim();
-        if (!isCorrect) {
-          allPassed = false;
+    const runCode = async () => {
+        if (!code.trim()) {
+            setConsoleOutput('Please enter some code before running.');
+            return;
         }
-        output += `Test Case ${index + 1}:\n`;
-        output += `Input:\n${input}\n`;
-        output += `Expected Output:\n${expected_output.trim()}\n`;
-        output += `Actual Output:\n${actual_output.trim()}\n`;
-        output += `Status: ${isCorrect ? 'Passed' : 'Failed'}\n`;
-        if (error) output += `Error: ${error}\n`;
-        if (compileError) output += `Compile Error: ${compileError}\n`;
-        output += `\n`;
-      });
 
-      setConsoleOutput(output);
-      setIsAnswerCorrect(allPassed);
+        try {
+            console.log('Running code...');
+            setConsoleOutput(<CircularProgress/>);
 
-      await axios.put('/api/update-lesson-progress', {
-        user_id: user.user_id,
-        lesson_id: lessonId,
-        completed: allPassed,
-        submitted_code: code,
-      }, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+            if (!languageId) {
+                setConsoleOutput('Language ID not available. Cannot run the code.');
+                return;
+            }
 
-    } catch (err) {
-      console.error('Error running code:', err.response?.data || err.message);
-      setConsoleOutput(err.message);
-    }
-  };
+            if (!user || !user.token) {
+                setConsoleOutput('Authorization token is missing. Please log in again.');
+                return;
+            }
+
+            const encodedCode = btoa(code);
+
+            const payload = {
+                lessonId: parseInt(lessonId, 10),
+                code: encodedCode,
+                languageId,
+            };
+
+            console.log('Sending request to run code with payload:', payload);
+
+            const response = await axios.post(
+                '/api/run?base64_encoded=true',
+                payload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            console.log('Received response from server:', response.data);
+
+            const {results} = response.data;
+            if (!results || results.length === 0) {
+                setConsoleOutput('No results received from the server.');
+                return;
+            }
+
+            let output = 'Test Case Results:\n\n';
+            let allPassed = true;
+            results.forEach((testCase, index) => {
+                const {input, expected_output, actual_output, status, compileError, error} = testCase;
+                const isCorrect = actual_output.trim() === expected_output.trim();
+                if (!isCorrect) {
+                    allPassed = false;
+                }
+                output += `Test Case ${index + 1}:\n`;
+                output += `Input:\n${input}\n`;
+                output += `Expected Output:\n${expected_output.trim()}\n`;
+                output += `Actual Output:\n${actual_output.trim()}\n`;
+                output += `Status: ${isCorrect ? 'Passed ✅' : 'Failed ❌'}\n`;
+                if (error) output += `Error: ${error}\n`;
+                if (compileError) output += `Compile Error: ${compileError}\n`;
+                output += `\n`;
+            });
+
+            output += allPassed ? 'All test cases passed! 🎉' : 'Some test cases failed. Please review your code.';
+
+            setConsoleOutput(output);
+            setIsAnswerCorrect(allPassed);
+
+            await axios.put('/api/update-lesson-progress', {
+                user_id: user.user_id,
+                lesson_id: lessonId,
+                completed: allPassed,
+                submitted_code: code,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${user.token}`,
+                },
+            });
+
+        } catch (err) {
+            console.error('Error running code:', err.response?.data || err.message);
+            setConsoleOutput(`Error: ${err.message}`);
+        }
+    };
 
   const copyCodeToClipboard = () => {
     navigator.clipboard.writeText(code).then(() => {
