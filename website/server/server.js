@@ -8,12 +8,51 @@ const fs = require('fs');
 const path = require('path');
 const sanitizeInput = require('./middleware/sanitizeInput');
 require('dotenv').config();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Add this line
-const bodyParser = require('body-parser'); // Add this line
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const bodyParser = require('body-parser');
 
+const {handleStripeWebhook} = require('./hooks/webhooks');
+const {createCheckoutSession, handleWebhook} = require("./controllers/payment.controller");
 // Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Database connection
+const db = require('./config/database');
+db.query('SELECT NOW()', (err, result) => {
+  if (err) {
+    console.error('Database connection error:', err);
+    process.exit(1);
+  } else {
+    console.log('Database connected:', result.rows[0]);
+  }
+});
+
+app.post('/webhook', express.raw({type: 'application/json'}), handleWebhook);
+
+// Middleware for parsing raw body required by Stripe
+/*app.use('/webhook', bodyParser.raw({ type: 'application/json' }));*/
+
+// Webhook endpoint
+/*app.post('/webhook', (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  console.log('Raw body:', req.body.toString()); // Logs the raw payload
+  console.log('Stripe Signature:', sig);
+
+  try {
+    const event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+    console.log(`Received event: ${event.type}`);
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+});*/
+
 
 // Enable trust proxy
 app.set('trust proxy', 1);
@@ -72,8 +111,7 @@ const uploadRoutes = require('./routes/upload.routes');
 const supportRoutes = require('./routes/support.routes');
 const stripeRoutes = require('./routes/stripe.routes');
 const paymentRoutes = require('./routes/payment.routes');
-const subscriptionController = require('./controllers/subscription.controller');
-const checkoutRoutes = require('./routes/subscription.routes');
+
 
 // Use routes
 app.use('/api', authRoutes);
@@ -87,27 +125,38 @@ app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', supportRoutes);
-app.use('/api', stripeRoutes); // Use Stripe routes
-app.use('/api', paymentRoutes); // Use payment routes
-app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), subscriptionController.handleStripeWebhook); // Ensure raw body parsing
+app.use('/api', stripeRoutes);
+app.use('/api', paymentRoutes);
+
+app.get('/api/checkout-session/:sessionId', async (req, res) => {
+  const {sessionId} = req.params;
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    res.json(session);
+  } catch (error) {
+    console.error('Error retrieving checkout session:', error);
+    res.status(404).json({error: 'Session not found'});
+  }
+});
 
 // Health check route
-app.get('/api/health', async (req, res) => {
-  try {
-    const {rows} = await db.query('SELECT NOW()');
-    res.status(200).json({
-      status: 'OK',
-      database: 'Connected',
-      timestamp: rows[0].now,
-    });
-  } catch (err) {
-    console.error('Health check error:', err.message);
-    res.status(500).json({
-      status: 'ERROR',
-      database: 'Disconnected',
-      timestamp: new Date().toISOString(),
-    });
-  }
+app.get('/api/health', (req, res) => {
+  db.query('SELECT NOW()', (err, result) => {
+    if (err) {
+      console.error('Health check error:', err.message);
+      res.status(500).json({
+        status: 'ERROR',
+        database: 'Disconnected',
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      res.status(200).json({
+        status: 'OK',
+        database: 'Connected',
+        timestamp: result.rows[0].now,
+      });
+    }
+  });
 });
 
 // Block cloud metadata access
@@ -134,18 +183,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Database connection
-const db = require('./config/database');
-db.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('Database connection error:', err);
-    process.exit(1);
-  } else {
-    console.log('Database connected:', res.rows[0]);
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  }
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
 
 // Log all registered routes for debugging
@@ -154,6 +194,3 @@ app._router.stack.forEach((middleware) => {
     console.log('Route:', middleware.route.path, 'Methods:', middleware.route.methods);
   }
 });
-
-// Webhook endpoint
-app.post('/api/webhook', express.raw({type: 'application/json'}), subscriptionController.handleStripeWebhook);
