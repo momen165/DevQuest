@@ -1,4 +1,3 @@
-
 const express = require('express');
 const { createCheckoutSession, handleWebhook } = require('../controllers/payment.controller');
 const router = express.Router();
