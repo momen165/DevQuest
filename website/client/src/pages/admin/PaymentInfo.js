@@ -4,12 +4,12 @@ import 'pages/admin/styles/PaymentInfo.css';
 import { useAuth } from 'AuthContext';
 
 const PaymentDetails = () => {
-  const [payments, setPayments] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([]);
   const { user } = useAuth();
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchPayments = async () => {
+    const fetchSubscriptions = async () => {
       try {
         const token = user?.token;
 
@@ -18,7 +18,7 @@ const PaymentDetails = () => {
           return;
         }
 
-        const response = await fetch('http://localhost:5000/api/subscriptions', {
+        const response = await fetch('http://localhost:5000/api/list-subscriptions', {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -29,13 +29,15 @@ const PaymentDetails = () => {
         }
 
         const data = await response.json();
-        setPayments(data);
+        console.log('Fetched subscriptions:', data); // Log the fetched data
+        setSubscriptions(data.data); // Access the data property
       } catch (err) {
-        setError('Failed to fetch payment details. Please try again later.');
+        console.error('Error fetching subscriptions:', err); // Log the error
+        setError('Failed to fetch subscription details. Please try again later.');
       }
     };
 
-    fetchPayments();
+    fetchSubscriptions();
   }, [user]);
 
   if (error) {
@@ -46,7 +48,7 @@ const PaymentDetails = () => {
     <div className="admin-payment-container">
       <Sidebar />
       <div className="admin-payment-main-content">
-        <h2 className="admin-payment-h2">Payment Details</h2>
+        <h2 className="admin-payment-h2">Subscription Details</h2>
         <table className="admin-payment-table">
           <thead>
             <tr>
@@ -54,23 +56,19 @@ const PaymentDetails = () => {
               <th>Student Name</th>
               <th>Amount Paid</th>
               <th>Start Date</th>
-              <th>Type</th>
+              <th>Subscription Type</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {payments.map((payment) => (
-              <tr key={payment.subscription_id}>
-                <td>{payment.subscription_id}</td>
-                <td>{payment.student_name}</td>
-                <td>${payment.amount_paid}</td>
-                <td>{new Date(payment.subscription_start_date).toLocaleDateString()}</td>
-                <td>{payment.subscription_type}</td>
-                <td>
-                  <span className={payment.status === 'Completed' ? 'admin-payment-status-completed' : 'admin-payment-status-pending'}>
-                    {payment.status}
-                  </span>
-                </td>
+            {subscriptions.map((subscription) => (
+              <tr key={subscription.id}>
+                <td>{subscription.id}</td>
+                <td>{subscription.customer}</td> {/* Assuming customer ID is used as student name */}
+                <td>${subscription.plan.amount / 100}</td> {/* Assuming amount is in cents */}
+                <td>{new Date(subscription.current_period_start * 1000).toLocaleDateString()}</td>
+                <td>{subscription.plan.interval === 'month' ? 'Monthly' : 'Yearly'}</td>
+                <td>{subscription.status}</td>
               </tr>
             ))}
           </tbody>
