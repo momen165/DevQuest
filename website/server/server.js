@@ -8,7 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const sanitizeInput = require('./middleware/sanitizeInput');
 require('dotenv').config();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Add this line
+const bodyParser = require('body-parser'); // Add this line
 
 // Initialize app
 const app = express();
@@ -86,9 +87,9 @@ app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', supportRoutes);
-app.use('/api', stripeRoutes);
-app.use('/api', paymentRoutes);
-app.use('/api', checkoutRoutes);
+app.use('/api', stripeRoutes); // Use Stripe routes
+app.use('/api', paymentRoutes); // Use payment routes
+app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), subscriptionController.handleStripeWebhook); // Ensure raw body parsing
 
 // Health check route
 app.get('/api/health', async (req, res) => {
