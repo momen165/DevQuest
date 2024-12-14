@@ -1,5 +1,5 @@
 const express = require('express');
-const { createCheckoutSession, handleWebhook } = require('../controllers/payment.controller'); // Import payment controller
+const { createCheckoutSession, handleWebhook } = require('../controllers/payment.controller'); // Remove listPaymentIntents
 
 const router = express.Router();
 
