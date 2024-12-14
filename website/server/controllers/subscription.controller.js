@@ -12,11 +12,15 @@ const addSubscription = async (req, res) => {
   }
 
   try {
-    const {rows: userRows} = await db.query('SELECT stripe_customer_id, email FROM users WHERE user_id = $1', [userId]);
-    const user = userRows[0];
-    if (!user) {
-      return res.status(404).json({error: 'User not found.'});
+    // Fetch the Stripe customer ID from the database
+    const userQuery = 'SELECT stripe_customer_id, email FROM users WHERE user_id = $1';
+    const { rows: userRows } = await db.query(userQuery, [userId]);
+    if (userRows.length === 0) {
+      console.error('User not found:', { userId });
+      return res.status(404).json({ error: 'User not found.' });
     }
+    let stripeCustomerId = userRows[0].stripe_customer_id;
+    const userEmail = userRows[0].email;
 
     let stripeCustomerId = user.stripe_customer_id;
 
@@ -30,6 +34,17 @@ const addSubscription = async (req, res) => {
       await db.query('UPDATE users SET stripe_customer_id = $1 WHERE user_id = $2', [stripeCustomerId, userId]);
     }
 
+    // Validate priceId and map to actual price IDs
+    let actualPriceId;
+    if (priceId === 'monthly') {
+      actualPriceId = process.env.STRIPE_MONTHLY_PRICE_ID;
+    } else if (priceId === 'yearly') {
+      actualPriceId = process.env.STRIPE_YEARLY_PRICE_ID;
+    } else {
+      return res.status(400).json({ error: 'Invalid priceId.' });
+    }
+
+    // Create a subscription in Stripe
     const subscription = await stripe.subscriptions.create({
       customer: stripeCustomerId,
       items: [{ price: actualPriceId }],
@@ -41,17 +56,55 @@ const addSubscription = async (req, res) => {
     const subscriptionType = priceId === 'monthly' ? 'Monthly' : 'Yearly';
     const endDate = priceId === 'monthly' ? '1 month' : '1 year';
 
-    const {rows: subscriptionRows} = await db.query(
-        `INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type,
-                                   amount_paid, status)
-         VALUES ($1, CURRENT_DATE, CURRENT_DATE + INTERVAL '${endDate}', $2, $3, 'Completed')
-         RETURNING subscription_id`,
-        [subscriptionId, subscriptionType, amountPaid]
-    );
+    // Log subscription details
+    console.log('Subscription details:', {
+      subscriptionId,
+      amountPaid,
+      subscriptionType,
+    });
 
-    await db.query('INSERT INTO user_subscription (user_id, subscription_id) VALUES ($1, $2)', [userId, subscriptionRows[0].subscription_id]);
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+      const subscriptionQuery = `
+        INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type, amount_paid, status, user_id, user_email)
+        VALUES (
+          $1,
+          CURRENT_DATE,
+          CASE 
+            WHEN $2 = 'Monthly' THEN CURRENT_DATE + INTERVAL '1 month'
+            WHEN $2 = 'Yearly' THEN CURRENT_DATE + INTERVAL '1 year'
+          END,
+          $2,
+          $3,
+          'Completed',
+          $4,
+          $5
+        )
+        RETURNING subscription_id;
+      `;
+      const { rows: subscriptionRows } = await client.query(subscriptionQuery, [subscriptionId, subscriptionType, amountPaid, userId, userEmail]);
+      const dbSubscriptionId = subscriptionRows[0].subscription_id;
 
-    res.status(201).json({subscription_id: subscriptionRows[0].subscription_id});
+      // Log subscription insertion
+      console.log('Subscription inserted into database:', dbSubscriptionId);
+
+      const userSubscriptionQuery = `
+        INSERT INTO user_subscription (user_id, subscription_id)
+        VALUES ($1, $2);
+      `;
+      await client.query(userSubscriptionQuery, [userId, dbSubscriptionId]);
+
+      await client.query('COMMIT');
+      console.log('Subscription created successfully:', { userId, dbSubscriptionId });
+      res.status(201).json({ subscription_id: dbSubscriptionId });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('Error creating subscription:', error);
+      res.status(500).json({ error: 'Failed to create subscription.' });
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Error creating subscription:', error);
     res.status(500).json({ error: 'Failed to create subscription.' });
@@ -66,12 +119,13 @@ const handleStripeWebhook = async (req, res) => {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
-
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
+
+  console.log(`Received event: ${event.type}`);
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
@@ -79,28 +133,121 @@ const handleStripeWebhook = async (req, res) => {
     const subscriptionId = session.subscription;
 
     try {
-      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-      const amountPaid = subscription.latest_invoice?.payment_intent?.amount_received / 100 || 0; // Safe access
-      const priceId = subscription.items.data[0].price.id;
-      const subscriptionType = process.env.STRIPE_MONTHLY_PRICE_ID === priceId ? 'Monthly' : 'Yearly';
-      const endDate = subscriptionType === 'Monthly' ? '1 month' : '1 year';
+      // Retrieve the subscription details directly from Stripe
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+        expand: ['latest_invoice.payment_intent'],
+      });
+      const amountPaid = subscription.latest_invoice.payment_intent.amount_received / 100;
+      const subscriptionType = subscription.items.data[0].price.id === process.env.STRIPE_MONTHLY_PRICE_ID ? 'Monthly' : 'Yearly';
+      const startDate = new Date(subscription.current_period_start * 1000); // Convert timestamp
+      const endDate = new Date(subscription.current_period_end * 1000); // Convert timestamp
 
-      console.log('Inserting into subscription table:', subscriptionId, subscriptionType, amountPaid, endDate);
+      // Log subscription details
+      console.log('Subscription details:', {
+        subscriptionId,
+        amountPaid,
+        subscriptionType,
+        startDate,
+        endDate,
+      });
 
-      const {rows: subscriptionRows} = await db.query(
-          `INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type,
-                                     amount_paid, status)
-           VALUES ($1, CURRENT_DATE, CURRENT_DATE + INTERVAL '${endDate}', $2, $3, 'Completed')
-           RETURNING subscription_id`,
-          [subscriptionId, subscriptionType, amountPaid]
-      );
+      // Fetch the user's email from the database
+      const userQuery = 'SELECT email FROM users WHERE user_id = $1';
+      const { rows: userRows } = await db.query(userQuery, [userId]);
+      if (userRows.length === 0) {
+        console.error('User not found:', { userId });
+        return res.status(404).json({ error: 'User not found.' });
+      }
+      const userEmail = userRows[0].email;
 
-      console.log('Inserting into user_subscription table:', userId, subscriptionRows[0].subscription_id);
+      // Log user details
+      console.log('User details:', {
+        userId,
+        userEmail,
+      });
 
-      await db.query('INSERT INTO user_subscription (user_id, subscription_id) VALUES ($1, $2)', [userId, subscriptionRows[0].subscription_id]);
+      const client = await db.connect();
+      try {
+        await client.query('BEGIN');
 
+        // Insert into subscription table
+        const subscriptionQuery = `
+          INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type, amount_paid, status, user_id, user_email)
+          VALUES (
+            $1,
+            $2,
+            $3,
+            $4,
+            $5,
+            'Completed',
+            $6,
+            $7
+          )
+          RETURNING subscription_id;
+        `;
+        const { rows: subscriptionRows } = await client.query(subscriptionQuery, [
+          subscriptionId,
+          startDate,
+          endDate,
+          subscriptionType,
+          amountPaid,
+          userId,
+          userEmail,
+        ]);
+        const dbSubscriptionId = subscriptionRows[0].subscription_id;
+
+        // Log subscription insertion
+        console.log('Subscription inserted into database:', dbSubscriptionId);
+
+        // Insert into user_subscription table
+        const userSubscriptionQuery = `
+          INSERT INTO user_subscription (user_id, subscription_id)
+          VALUES ($1, $2);
+        `;
+        await client.query(userSubscriptionQuery, [userId, dbSubscriptionId]);
+
+        await client.query('COMMIT');
+        console.log('User subscription inserted into database:', { userId, dbSubscriptionId });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Error creating subscription:', error);
+      } finally {
+        client.release();
+      }
     } catch (error) {
       console.error('Webhook subscription creation error:', error);
+    }
+  } else if (event.type === 'invoice.payment_succeeded') {
+    const invoice = event.data.object;
+    const subscriptionId = invoice.subscription;
+    const amountPaid = invoice.amount_paid / 100;
+
+    console.log('Invoice payment succeeded:', {
+      subscriptionId,
+      amountPaid,
+    });
+
+    try {
+      const client = await db.connect();
+      try {
+        await client.query('BEGIN');
+        const updateSubscriptionQuery = `
+          UPDATE subscription
+          SET amount_paid = $1, status = 'Completed'
+          WHERE subscription_id = $2;
+        `;
+        await client.query(updateSubscriptionQuery, [amountPaid, subscriptionId]);
+
+        await client.query('COMMIT');
+        console.log('Subscription updated successfully:', { subscriptionId, amountPaid });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Error updating subscription:', error);
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error('Error updating subscription:', error);
     }
   }
 
@@ -131,6 +278,25 @@ const getSubscriptions = async (req, res) => {
   }
 };
 
+// List subscriptions
+const listSubscriptions = async (req, res) => {
+  const { customerId, status, limit } = req.query;
+
+  try {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: status || 'all',
+      limit: limit ? parseInt(limit) : 10,
+    });
+
+    res.status(200).json(subscriptions);
+  } catch (error) {
+    console.error('Error listing subscriptions:', error);
+    res.status(500).json({ error: 'Failed to list subscriptions.' });
+  }
+};
+
+// Cancel a subscription
 const cancelSubscription = async (req, res) => {
   const { subscriptionId } = req.body;
 
@@ -150,10 +316,13 @@ const updateSubscription = async (req, res) => {
     return res.status(400).json({error: `Invalid new price ID: ${newPriceId}`});
   }
   try {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const subscriptionItemId = subscription.items.data[0].id;
+
     const updatedSubscription = await stripe.subscriptions.update(subscriptionId, {
       items: [{
-        id: subscriptionId, // This is the subscription item ID, not the subscription ID
-        price: actualNewPriceId,
+        id: subscriptionItemId, // Subscription item ID
+        price: newPriceId,   // New price ID (new plan)
       }],
     });
     res.status(200).json(updatedSubscription);
@@ -163,22 +332,31 @@ const updateSubscription = async (req, res) => {
   }
 };
 
-
-// File: `website/server/controllers/checkout.controller.js`
-const getCheckoutSession = async (req, res) => {
-  const sessionId = req.params.sessionId;
+// Retrieve a subscription
+const retrieveSubscription = async (req, res) => {
+  const { id } = req.params;
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    res.json({success: true, session});
+    const subscription = await stripe.subscriptions.retrieve(id);
+    res.status(200).json(subscription);
   } catch (error) {
-    console.error('Error retrieving checkout session:', error);
-    res.status(404).json({success: false, message: 'Session not found'});
+    console.error('Error retrieving subscription:', error);
+    res.status(500).json({ error: 'Failed to retrieve subscription.' });
   }
 };
 
+// Retrieve a subscription directly from Stripe
+const retrieveSubscriptionFromStripe = async (req, res) => {
+  const { subscriptionId } = req.params;
 
-
+  try {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    res.status(200).json(subscription);
+  } catch (error) {
+    console.error('Error retrieving subscription from Stripe:', error);
+    res.status(500).json({ error: 'Failed to retrieve subscription from Stripe.' });
+  }
+};
 
 module.exports = {
   getCheckoutSession,
@@ -187,4 +365,7 @@ module.exports = {
   cancelSubscription,
   updateSubscription,
   handleStripeWebhook,
+  listSubscriptions,
+  retrieveSubscription,
+  retrieveSubscriptionFromStripe, // Export the new function
 };
