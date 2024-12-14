@@ -1,15 +1,10 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const db = require('../config/database');
+const db = require('../config/database'); // Adjust path to your DB connection
 
-
+// Add a subscription
 const addSubscription = async (req, res) => {
   const { priceId } = req.body;
   const userId = req.user.userId;
-  const actualPriceId = process.env[`STRIPE_${priceId.toUpperCase()}_PRICE_ID`]; // Get price ID from env
-
-  if (!actualPriceId) {
-    return res.status(400).json({error: `Invalid price ID: ${priceId}`});
-  }
 
   try {
     // Fetch the Stripe customer ID from the database
@@ -22,16 +17,17 @@ const addSubscription = async (req, res) => {
     let stripeCustomerId = userRows[0].stripe_customer_id;
     const userEmail = userRows[0].email;
 
-    let stripeCustomerId = user.stripe_customer_id;
-
+    // Create a Stripe customer if it doesn't exist
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
-        email: user.email,
+        email: userEmail,
         metadata: { userId: userId.toString() },
       });
       stripeCustomerId = customer.id;
 
-      await db.query('UPDATE users SET stripe_customer_id = $1 WHERE user_id = $2', [stripeCustomerId, userId]);
+      // Update the user record with the new Stripe customer ID
+      const updateUserQuery = 'UPDATE users SET stripe_customer_id = $1 WHERE user_id = $2';
+      await db.query(updateUserQuery, [stripeCustomerId, userId]);
     }
 
     // Validate priceId and map to actual price IDs
@@ -52,9 +48,8 @@ const addSubscription = async (req, res) => {
     });
 
     const subscriptionId = subscription.id;
-    const amountPaid = subscription.latest_invoice.payment_intent?.amount_received / 100 || 0; // Safe access
+    const amountPaid = subscription.latest_invoice.payment_intent.amount_received / 100;
     const subscriptionType = priceId === 'monthly' ? 'Monthly' : 'Yearly';
-    const endDate = priceId === 'monthly' ? '1 month' : '1 year';
 
     // Log subscription details
     console.log('Subscription details:', {
@@ -67,7 +62,8 @@ const addSubscription = async (req, res) => {
     try {
       await client.query('BEGIN');
       const subscriptionQuery = `
-        INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type, amount_paid, status, user_id, user_email)
+        INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type,
+                                  amount_paid, status)
         VALUES (
           $1,
           CURRENT_DATE,
@@ -111,10 +107,8 @@ const addSubscription = async (req, res) => {
   }
 };
 
-
+// Handle Stripe webhook events
 const handleStripeWebhook = async (req, res) => {
-  console.log('Webhook received'); // Initial logging statement
-
   const sig = req.headers['stripe-signature'];
   let event;
 
@@ -172,16 +166,15 @@ const handleStripeWebhook = async (req, res) => {
 
         // Insert into subscription table
         const subscriptionQuery = `
-          INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type, amount_paid, status, user_id, user_email)
+          INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type,
+                                    amount_paid, status)
           VALUES (
             $1,
             $2,
             $3,
             $4,
             $5,
-            'Completed',
-            $6,
-            $7
+            'Completed'
           )
           RETURNING subscription_id;
         `;
@@ -215,7 +208,7 @@ const handleStripeWebhook = async (req, res) => {
         client.release();
       }
     } catch (error) {
-      console.error('Webhook subscription creation error:', error);
+      console.error('Error creating subscription:', error);
     }
   } else if (event.type === 'invoice.payment_succeeded') {
     const invoice = event.data.object;
@@ -254,13 +247,15 @@ const handleStripeWebhook = async (req, res) => {
   res.json({ received: true });
 };
 
+// Get all subscriptions
 const getSubscriptions = async (req, res) => {
   if (!req.user.admin) {
+    console.error('Access denied: User is not an admin.');
     return res.status(403).json({ error: 'Access denied. Admins only.' });
   }
 
   try {
-    const {rows} = await db.query(`
+    const query = `
       SELECT s.subscription_id,
              u.name AS student_name,
              s.amount_paid,
@@ -269,11 +264,13 @@ const getSubscriptions = async (req, res) => {
              s.status
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
-      JOIN users u ON us.user_id = u.user_id`);
-
-    res.status(200).json(rows); // No need for conditional check if rows is empty
+      JOIN users u ON us.user_id = u.user_id;
+    `;
+    const {rows} = await db.query(query);
+    console.log('Fetched subscriptions:', rows);
+    res.status(200).json(rows.length ? rows : []);
   } catch (error) {
-    console.error('Error fetching subscriptions:', error);
+    console.error('Error fetching subscriptions:', error.stack);
     res.status(500).json({ error: 'Failed to fetch subscriptions.' });
   }
 };
@@ -283,13 +280,39 @@ const listSubscriptions = async (req, res) => {
   const { customerId, status, limit } = req.query;
 
   try {
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: status || 'all',
-      limit: limit ? parseInt(limit) : 10,
-    });
+    let query = `
+      SELECT subscription_id,
+             subscription_type,
+             subscription_start_date,
+             subscription_end_date,
+             amount_paid,
+             status,
+             stripe_payment_id,
+             renewal_date,
+             stripe_subscription_id,
+             user_id,
+             user_email
+      FROM public.subscription
+    `;
 
-    res.status(200).json(subscriptions);
+    const queryParams = [];
+    if (customerId) {
+      query += ' WHERE user_id = $1';
+      queryParams.push(customerId);
+    }
+
+    if (status) {
+      query += queryParams.length ? ' AND status = $2' : ' WHERE status = $1';
+      queryParams.push(status);
+    }
+
+    if (limit) {
+      query += ' LIMIT $' + (queryParams.length + 1);
+      queryParams.push(parseInt(limit));
+    }
+
+    const {rows} = await db.query(query, queryParams);
+    res.status(200).json(rows.length ? rows : []);
   } catch (error) {
     console.error('Error listing subscriptions:', error);
     res.status(500).json({ error: 'Failed to list subscriptions.' });
@@ -301,20 +324,19 @@ const cancelSubscription = async (req, res) => {
   const { subscriptionId } = req.body;
 
   try {
-    await stripe.subscriptions.del(subscriptionId); // No need to store the deleted subscription
-    res.status(204).send(); // 204 No Content is more appropriate after successful deletion
+    const deletedSubscription = await stripe.subscriptions.del(subscriptionId);
+    console.log('Subscription cancelled successfully:', deletedSubscription);
+    res.status(200).json(deletedSubscription);
   } catch (error) {
     console.error('Error cancelling subscription:', error);
     res.status(500).json({ error: 'Failed to cancel subscription.' });
   }
 };
 
+// Update a subscription
 const updateSubscription = async (req, res) => {
   const { subscriptionId, newPriceId } = req.body;
-  const actualNewPriceId = process.env[`STRIPE_${newPriceId.toUpperCase()}_PRICE_ID`]; // Get price ID from env
-  if (!actualNewPriceId) {
-    return res.status(400).json({error: `Invalid new price ID: ${newPriceId}`});
-  }
+
   try {
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionItemId = subscription.items.data[0].id;
@@ -325,6 +347,7 @@ const updateSubscription = async (req, res) => {
         price: newPriceId,   // New price ID (new plan)
       }],
     });
+    console.log('Subscription updated successfully:', updatedSubscription);
     res.status(200).json(updatedSubscription);
   } catch (error) {
     console.error('Error updating subscription:', error);
@@ -359,7 +382,6 @@ const retrieveSubscriptionFromStripe = async (req, res) => {
 };
 
 module.exports = {
-  getCheckoutSession,
   addSubscription,
   getSubscriptions,
   cancelSubscription,

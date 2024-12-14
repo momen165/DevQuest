@@ -30,7 +30,7 @@ const PaymentDetails = () => {
 
         const data = await response.json();
         console.log('Fetched subscriptions:', data); // Log the fetched data
-        setSubscriptions(data.data); // Access the data property
+        setSubscriptions(data); // Set the fetched data directly
       } catch (err) {
         console.error('Error fetching subscriptions:', err); // Log the error
         setError('Failed to fetch subscription details. Please try again later.');
@@ -53,22 +53,26 @@ const PaymentDetails = () => {
           <thead>
             <tr>
               <th>Subscription ID</th>
-              <th>Student Name</th>
-              <th>Amount Paid</th>
-              <th>Start Date</th>
               <th>Subscription Type</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Amount Paid</th>
               <th>Status</th>
+              <th>User Email</th>
+              <th>User ID</th>
             </tr>
           </thead>
           <tbody>
             {subscriptions.map((subscription) => (
-              <tr key={subscription.id}>
-                <td>{subscription.id}</td>
-                <td>{subscription.customer}</td> {/* Assuming customer ID is used as student name */}
-                <td>${subscription.plan.amount / 100}</td> {/* Assuming amount is in cents */}
-                <td>{new Date(subscription.current_period_start * 1000).toLocaleDateString()}</td>
-                <td>{subscription.plan.interval === 'month' ? 'Monthly' : 'Yearly'}</td>
+                <tr key={subscription.subscription_id}>
+                  <td>{subscription.subscription_id}</td>
+                  <td>{subscription.subscription_type}</td>
+                  <td>{new Date(subscription.subscription_start_date).toLocaleDateString()}</td>
+                  <td>{new Date(subscription.subscription_end_date).toLocaleDateString()}</td>
+                  <td>${subscription.amount_paid}</td>
                 <td>{subscription.status}</td>
+                  <td>{subscription.user_email}</td>
+                  <td>{subscription.user_id}</td>
               </tr>
             ))}
           </tbody>
