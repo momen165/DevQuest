@@ -5,7 +5,50 @@
   background: #94bbd4;
 
 }
+.subscription-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
 
+.subscription-info {
+  margin-top: 1rem;
+}
+
+.subscription-info p {
+  margin: 0.5rem 0;
+}
+
+.edit-payment-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+}
 /* Profile Content */
 .account-settings-profile-content {
   flex: 1;
@@ -164,3 +207,158 @@
   background-color: #5a5a5a;
 }
 
+.error-message,
+.success-message {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.success-message {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.profile-section,
+.subscription-section {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.account-settings-profile-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.account-settings-profile-avatar img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+
+.profile-pic-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.account-settings-input,
+.account-settings-select,
+.account-settings-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.account-settings-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.subscription-info {
+  margin-top: 1.5rem;
+}
+
+.subscription-detail {
+  display: flex;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border-radius: 4px;
+}
+
+.detail-label {
+  font-weight: 500;
+  width: 120px;
+  color: #374151;
+}
+
+.detail-value {
+  color: #111827;
+}
+
+.manage-subscription-button,
+.subscribe-button {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  border: none;
+  border-radius: 4px;
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.manage-subscription-button:hover,
+.subscribe-button:hover {
+  background-color: #2563eb;
+}
+
+.no-subscription {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f9fafb;
+  border-radius: 4px;
+}
+
+.account-settings-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.account-settings-update-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.account-settings-remove-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.account-settings-save-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.account-settings-button:hover {
+  opacity: 0.9;
+}
