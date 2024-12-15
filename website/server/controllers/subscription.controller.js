@@ -381,6 +381,47 @@ const retrieveSubscriptionFromStripe = async (req, res) => {
   }
 };
 
+// website/server/controllers/subscription.controller.js
+const checkActiveSubscription = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    const query = `
+      SELECT s.*
+      FROM subscription s
+      JOIN user_subscription us ON s.subscription_id = us.subscription_id
+      WHERE us.user_id = $1 
+      AND s.status = 'active'
+      AND s.subscription_end_date > CURRENT_TIMESTAMP
+      ORDER BY s.subscription_start_date DESC
+      LIMIT 1;
+    `;
+
+    const { rows } = await db.query(query, [userId]);
+    console.log('Subscription check result:', rows); // Add this for debugging
+
+    if (rows.length > 0) {
+      res.json({
+        hasActiveSubscription: true,
+        subscription: {
+          subscription_type: rows[0].subscription_type,
+          status: rows[0].status,
+          subscription_end_date: rows[0].subscription_end_date,
+          amount_paid: rows[0].amount_paid
+        }
+      });
+    } else {
+      res.json({
+        hasActiveSubscription: false,
+        subscription: null
+      });
+    }
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+    res.status(500).json({ error: 'Failed to check subscription status' });
+  }
+};
+
 module.exports = {
   addSubscription,
   getSubscriptions,
@@ -389,5 +430,6 @@ module.exports = {
   handleStripeWebhook,
   listSubscriptions,
   retrieveSubscription,
-  retrieveSubscriptionFromStripe, // Export the new function
+  retrieveSubscriptionFromStripe,
+  checkActiveSubscription, // Export the new function
 };
