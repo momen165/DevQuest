@@ -145,19 +145,3 @@ function ProfilePage() {
 
 export default ProfilePage;
 
-
-{/* <div key={course.course_id} className={styles.courseCardprofile}>
-                          <div className={styles.courseCardHeader}>
-                            <h4 className={styles.courseCardTitle}>{course.course_name}</h4>
-                            <p className={styles.courseDescription}>{course.course_description}</p>
-                          </div>
-                          <div className={styles.progressContainer}>
-                            <span className={styles.progressText}>Progress</span>
-                            <div className={styles.progressBar}>
-                              <div className={styles.progress} style={{width: `${course.progress}%`}}></div>
-                            </div>
-                          </div>
-                          <button className={styles.continueButton}
-                                  onClick={() => navigate(`/course/${course.course_id}`)}>continue learning
-                          </button>
-                        </div> */}

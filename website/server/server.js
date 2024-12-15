@@ -11,8 +11,8 @@ require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const bodyParser = require('body-parser');
 
-const {handleStripeWebhook} = require('./hooks/webhooks');
-const {createCheckoutSession, handleWebhook} = require("./controllers/payment.controller");
+
+const {handleWebhook} = require("./controllers/payment.controller");
 // Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;

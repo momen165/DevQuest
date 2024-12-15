@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'styles/PricingPage.css';
 import Navbar from 'components/Navbar';
@@ -14,6 +14,27 @@ const PricingPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const { user } = useAuth(); // Get the user and token from AuthContext
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+
+  useEffect(() => {
+    // Check if user has active subscription when component mounts
+    const checkSubscription = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/check`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        setHasActiveSubscription(response.data.hasActiveSubscription);
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      }
+    };
+
+    if (user) {
+      checkSubscription();
+    }
+  }, [user]);
 
   const handleChoosePlan = async () => {
     setLoading(true);
@@ -55,32 +76,41 @@ const PricingPage = () => {
         <h1>Select the best plan that suits you</h1>
         <p>Unlock the full potential of DevQuest</p>
 
-        {/* Toggle between Monthly and Yearly Plans */}
-        <div className="toggle-plan">
-          <button
-            className={`toggle-button ${isMonthly ? 'active' : ''}`}
-            onClick={() => setIsMonthly(true)}
-          >
-            Monthly
-          </button>
-          <button
-            className={`toggle-button ${!isMonthly ? 'active' : ''}`}
-            onClick={() => setIsMonthly(false)}
-          >
-            Yearly <span className="save-badge">save 30%</span>
-          </button>
-        </div>
+        {hasActiveSubscription ? (
+          <div className="active-subscription-notice">
+            <h2>You already have an active subscription</h2>
+            <p>You can manage your subscription in your account settings.</p>
+          </div>
+        ) : (
+          <>
+            {/* Toggle between Monthly and Yearly Plans */}
+            <div className="toggle-plan">
+              <button
+                className={`toggle-button ${isMonthly ? 'active' : ''}`}
+                onClick={() => setIsMonthly(true)}
+              >
+                Monthly
+              </button>
+              <button
+                className={`toggle-button ${!isMonthly ? 'active' : ''}`}
+                onClick={() => setIsMonthly(false)}
+              >
+                Yearly <span className="save-badge">save 30%</span>
+              </button>
+            </div>
 
-        {/* Pricing Card */}
-        <div className="pricing-card">
-          <h2>${isMonthly ? 10 : 100}</h2> {/* Use fixed prices */}
-          <p>/ {isMonthly ? 'month' : 'month (billed yearly)'}</p>
-          <button className="choose-plan-button" onClick={openPopup}>
-            Choose Plan
-          </button>
-        </div>
+            {/* Pricing Card */}
+            <div className="pricing-card">
+              <h2>${isMonthly ? 10 : 100}</h2> {/* Use fixed prices */}
+              <p>/ {isMonthly ? 'month' : 'month (billed yearly)'}</p>
+              <button className="choose-plan-button" onClick={openPopup}>
+                Choose Plan
+              </button>
+            </div>
 
-        <div id="card-container"></div>
+            <div id="card-container"></div>
+          </>
+        )}
       </div>
 
       {/* Popup for Subscription Confirmation */}
