@@ -1,7 +1,8 @@
 const express = require('express');
 const { addSubscription, getSubscriptions, cancelSubscription, updateSubscription, listSubscriptions, retrieveSubscription, retrieveSubscriptionFromStripe } = require('../controllers/subscription.controller');
 const authenticateToken = require('../middleware/auth'); // Add your authentication middleware
-
+const {getCheckoutSession} = require('../controllers/subscription.controller');
+const {handleStripeWebhook} = require('../controllers/subscription.controller');
 const router = express.Router();
 
 router.post('/subscribe', authenticateToken, addSubscription);

@@ -62,7 +62,8 @@ const addSubscription = async (req, res) => {
     try {
       await client.query('BEGIN');
       const subscriptionQuery = `
-        INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type, amount_paid, status, user_id, user_email)
+        INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type,
+                                  amount_paid, status)
         VALUES (
           $1,
           CURRENT_DATE,
@@ -165,16 +166,15 @@ const handleStripeWebhook = async (req, res) => {
 
         // Insert into subscription table
         const subscriptionQuery = `
-          INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type, amount_paid, status, user_id, user_email)
+          INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type,
+                                    amount_paid, status)
           VALUES (
             $1,
             $2,
             $3,
             $4,
             $5,
-            'Completed',
-            $6,
-            $7
+            'Completed'
           )
           RETURNING subscription_id;
         `;
@@ -256,18 +256,17 @@ const getSubscriptions = async (req, res) => {
 
   try {
     const query = `
-      SELECT 
-        s.subscription_id,
-        u.name AS student_name,
-        s.amount_paid,
-        s.subscription_start_date,
-        s.subscription_type,
-        s.status
+      SELECT s.subscription_id,
+             u.name AS student_name,
+             s.amount_paid,
+             s.subscription_start_date,
+             s.subscription_type,
+             s.status
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       JOIN users u ON us.user_id = u.user_id;
     `;
-    const { rows } = await db.query(query);
+    const {rows} = await db.query(query);
     console.log('Fetched subscriptions:', rows);
     res.status(200).json(rows.length ? rows : []);
   } catch (error) {
@@ -281,13 +280,39 @@ const listSubscriptions = async (req, res) => {
   const { customerId, status, limit } = req.query;
 
   try {
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: status || 'all',
-      limit: limit ? parseInt(limit) : 10,
-    });
+    let query = `
+      SELECT subscription_id,
+             subscription_type,
+             subscription_start_date,
+             subscription_end_date,
+             amount_paid,
+             status,
+             stripe_payment_id,
+             renewal_date,
+             stripe_subscription_id,
+             user_id,
+             user_email
+      FROM public.subscription
+    `;
 
-    res.status(200).json(subscriptions);
+    const queryParams = [];
+    if (customerId) {
+      query += ' WHERE user_id = $1';
+      queryParams.push(customerId);
+    }
+
+    if (status) {
+      query += queryParams.length ? ' AND status = $2' : ' WHERE status = $1';
+      queryParams.push(status);
+    }
+
+    if (limit) {
+      query += ' LIMIT $' + (queryParams.length + 1);
+      queryParams.push(parseInt(limit));
+    }
+
+    const {rows} = await db.query(query, queryParams);
+    res.status(200).json(rows.length ? rows : []);
   } catch (error) {
     console.error('Error listing subscriptions:', error);
     res.status(500).json({ error: 'Failed to list subscriptions.' });

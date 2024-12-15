@@ -8,7 +8,7 @@ const createCheckoutSession = async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      mode: 'subscription',
+      mode: 'subscription', // Ensure the mode is set to 'subscription'
       line_items: [
         {
           price: priceId,
@@ -26,6 +26,7 @@ const createCheckoutSession = async (req, res) => {
     res.status(500).json({ error: 'Failed to create checkout session.' });
   }
 };
+;
 
 const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -40,29 +41,26 @@ const handleWebhook = async (req, res) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
+    console.log('Checkout session completed:', session);
+
     const userId = session.client_reference_id;
     const subscriptionId = session.subscription;
 
+    if (!subscriptionId) {
+      console.error('Subscription ID is null:', {session});
+      return res.status(400).json({error: 'Subscription ID is null.'});
+    }
+
     try {
-      // Retrieve the subscription details
       const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
         expand: ['latest_invoice.payment_intent'],
       });
       const amountPaid = subscription.latest_invoice.payment_intent.amount_received / 100;
       const subscriptionType = subscription.items.data[0].price.id === process.env.STRIPE_MONTHLY_PRICE_ID ? 'Monthly' : 'Yearly';
-      const startDate = new Date(subscription.current_period_start * 1000); // Convert timestamp
-      const endDate = new Date(subscription.current_period_end * 1000); // Convert timestamp
+      const startDate = new Date(subscription.current_period_start * 1000);
+      const endDate = new Date(subscription.current_period_end * 1000);
+      const paymentId = subscription.latest_invoice.payment_intent.id;
 
-      // Log subscription details
-      console.log('Subscription details:', {
-        subscriptionId,
-        amountPaid,
-        subscriptionType,
-        startDate,
-        endDate,
-      });
-
-      // Fetch the user's email from the database
       const userQuery = 'SELECT email FROM users WHERE user_id = $1';
       const { rows: userRows } = await db.query(userQuery, [userId]);
       if (userRows.length === 0) {
@@ -71,29 +69,14 @@ const handleWebhook = async (req, res) => {
       }
       const userEmail = userRows[0].email;
 
-      // Log user details
-      console.log('User details:', {
-        userId,
-        userEmail,
-      });
-
       const client = await db.connect();
       try {
         await client.query('BEGIN');
 
-        // Insert into subscription table
         const subscriptionQuery = `
-          INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type, amount_paid, status, user_id, user_email)
-          VALUES (
-            $1,
-            $2,
-            $3,
-            $4,
-            $5,
-            'Completed',
-            $6,
-            $7
-          )
+          INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type,
+                                    amount_paid, status, user_email, user_id, stripe_subscription_id, stripe_payment_id)
+          VALUES ($1, $2, $3, $4, $5, 'Completed', $6, $7, $8, $9)
           RETURNING subscription_id;
         `;
         const { rows: subscriptionRows } = await client.query(subscriptionQuery, [
@@ -102,15 +85,13 @@ const handleWebhook = async (req, res) => {
           endDate,
           subscriptionType,
           amountPaid,
-          userId,
           userEmail,
+          userId,
+          subscriptionId,
+          paymentId
         ]);
         const dbSubscriptionId = subscriptionRows[0].subscription_id;
 
-        // Log subscription insertion
-        console.log('Subscription inserted into database:', dbSubscriptionId);
-
-        // Insert into user_subscription table
         const userSubscriptionQuery = `
           INSERT INTO user_subscription (user_id, subscription_id)
           VALUES ($1, $2);
@@ -132,6 +113,7 @@ const handleWebhook = async (req, res) => {
 
   res.json({ received: true });
 };
+
 
 const cancelSubscription = async (req, res) => {
   const { subscriptionId } = req.body;
