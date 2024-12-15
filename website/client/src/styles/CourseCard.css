@@ -16,6 +16,7 @@
   margin: 20px; /* Reduced margin */
 
 }
+
 .course-head{
   padding: 10px;
   display: flex;
@@ -26,20 +27,9 @@
 
 }
 .course-info{
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-
-  align-items: center;
-  margin-top:20px ;
-  gap: 30px;
-
-  justify-content: center;
-
+  width: 100%; 
+  margin-top:5px ;
   padding: 20px;
-
-  justify-content: space-between
-  
 }
 
 
