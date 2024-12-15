@@ -12,7 +12,7 @@ const CoursesPage = () => {
   const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const [userscount, setUserscount] = useState({});
   const [enrollments, setEnrollments] = useState({});
   const [progress, setProgress] = useState({});
@@ -26,10 +26,10 @@ const CoursesPage = () => {
 
         if (cachedData) {
           const {courses, ratings, userscount} = JSON.parse(cachedData);
-        setCourses(courses);
-        setFilteredCourses(courses);
-        setRatings(ratings);
-        setUserscount(userscount);
+          setCourses(courses);
+          setFilteredCourses(courses);
+          setRatings(ratings);
+          setUserscount(userscount);
         }
 
         if (user?.user_id && cachedEnrollments) {
@@ -73,25 +73,23 @@ const CoursesPage = () => {
   useEffect(() => {
     const fetchProgress = async () => {
       try {
-        const response = await fetch(`/api/students/${user.user_id}/progress`);
+        const response = await fetch(`/api/students/${user.user_id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch progress');
         }
         const progressData = await response.json();
-        setProgress(progressData);
+        setProgress(progressData.courses); // Assuming progress data is in courses array
       } catch (err) {
         console.error('Error:', err);
         setError('Failed to load progress data');
       }
     };
-
+  
     if (user) {
       fetchProgress();
     }
   }, [user]);
-
-
-
+  
   const handleFilter = (filter) => {
     if (filter === 'All') {
       setFilteredCourses([...courses].sort((a, b) => a.title?.localeCompare(b.title)));
@@ -111,8 +109,6 @@ const CoursesPage = () => {
     }
   };
 
-
-
   return (
       <div className="courses-page">
         <Navbar />
@@ -127,21 +123,21 @@ const CoursesPage = () => {
         </header>
         <section className="courses-grid">
           {filteredCourses.map((course) => (
-              <CourseCard
-                  key={course.course_id}
-                  courseId={course.course_id}
-                  title={course.name}
-                  level={course.difficulty || 'Unknown'}
-                  rating={ratings[course.course_id] || 'N/A'}
-                  students={userscount[course.course_id] || 0}
-                  description={course.description}
-                  image={course.image}
-                  color="#FEFEF2"
-                  isEnrolled={!!enrollments[course.course_id]}
-                  progress={progress[course.course_id] || 0}
-              />
+            <CourseCard
+              key={course.course_id}
+              courseId={course.course_id}
+              title={course.name}
+              level={course.difficulty || 'Unknown'}
+              rating={ratings[course.course_id] || 'N/A'}
+              students={userscount[course.course_id] || 0}
+              description={course.description}
+              image={course.image}
+              color="#FEFEF2"
+              isEnrolled={!!enrollments[course.course_id]}
+              progress={Array.isArray(progress) ? progress.find(p => p.course_id === course.course_id)?.progress || 0 : 0}
+            />
           ))}
-        </section>
+        </section> 
       </div>
   );
 };
