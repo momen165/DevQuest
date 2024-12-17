@@ -12,31 +12,38 @@ function ProfilePage() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        const response = await fetch(`/api/students/${user.user_id}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+ // In ProfilePage.js
+useEffect(() => {
+  const fetchProfileData = async () => {
+    try {
+      const response = await fetch(`/api/students/${user.user_id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile data');
-        }
-        const data = await response.json();
-        setProfileData(data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error:', err);
-        setError('Failed to load profile data');
-        setLoading(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch profile data');
       }
-    };
+      const data = await response.json();
+      console.log('Profile Data:', data); // Debug log
+      console.log('Courses:', data.courses); // Debug log
+      console.log('Completed Courses:', data.courses?.filter(c => c.progress >= 100)); // Debug log
+      setProfileData(data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error:', err);
+      setError(err.message || 'Failed to load profile data');
+      setLoading(false);
+    }
+  };
 
+  if (user && user.user_id) {
     fetchProfileData();
-  }, [user.user_id]);
+  }
+}, [user]);
 
   if (loading) {
     return <div>Loading profile data...</div>;
@@ -45,7 +52,36 @@ function ProfilePage() {
   if (error) {
     return <div>{error}</div>;
   }
-  console.log(profileData);
+  
+  const getCompletedCoursesCount = (courses) => {
+    if (!courses || !Array.isArray(courses)) return 0;
+    return courses.filter(course => course.progress >= 100).length;
+  };
+
+// Level calculation constants
+const BASE_XP = 100;  // Base XP required for level 1
+const SCALING_FACTOR = 1.5;  // How much more XP each level requires
+
+// Function to calculate level based on XP
+const calculateLevel = (xp) => {
+  if (xp < BASE_XP) return 1;
+  
+  // Formula: level = floor(log(xp/BASE_XP)/log(SCALING_FACTOR)) + 1
+  const level = Math.floor(
+    Math.log(xp / BASE_XP) / Math.log(SCALING_FACTOR)
+  ) + 1;
+  
+  return Math.max(1, level); // Ensure minimum level is 1
+};
+
+// Function to calculate XP progress towards next level
+const calculateLevelProgress = (xp) => {
+  const currentLevel = calculateLevel(xp);
+  const currentLevelXP = BASE_XP * Math.pow(SCALING_FACTOR, currentLevel - 1);
+  const nextLevelXP = BASE_XP * Math.pow(SCALING_FACTOR, currentLevel);
+  const progress = ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
+  return Math.min(100, Math.max(0, progress)); // Ensure progress is between 0 and 100
+};
 
   return (
       <>
@@ -92,7 +128,7 @@ function ProfilePage() {
                         <p>Completed Courses</p>
                       </div>
                       <div className={styles.statusCard}>
-                        <p className={styles.statusNumber}>{profileData.level || 0}</p>
+                        <p className={styles.statusNumber}>{calculateLevel(profileData.courseXP) || 0}</p>
                         <p>Level</p>
                       </div>
                     </div>
@@ -103,39 +139,63 @@ function ProfilePage() {
               {/* Right Column: Courses */}
               <div className={styles.rightColumn}>
                 <h3 className={styles.coursesTitle}>My Courses</h3>
-                {profileData && profileData.courses && profileData.courses.length > 0 ? (
-                    profileData.courses.map(course => (
-                      <div key={course.course_id} className={styles.courseCardprofile}>
-                      <div className={styles.leftsectionCourseCard}>
-                        <p className={styles.courseProgcardtext}>COURSE</p>
-                        <h1 className={styles.courseProgCardTitle}>{course.course_name}</h1>
-                        <h4 className={styles.ViewProgCardLessons}>
-                          view all lessons <i className="fa-solid fa-chevron-right" />
-                        </h4>
-                      </div>
-                      <div className={styles.rightProgCardSection}>
-                        <div className={styles.progressBarheader}>
-                          <h1 className={styles.sectionNameProgCard}>Section Name</h1>
-                          <div className={styles.progressbarcontainer} >
-                            <div className={styles.progressbarbackground}>
-                              <div className={styles.progressbarfill} style={{width: `${course.progress}%`}}/>
+               
+
+                        {profileData && profileData.courses && profileData.courses.length > 0 ? (
+                          profileData.courses.map(course => (
+                            <div key={course.course_id} className={styles.courseCardprofile} data-completed={course.progress >= 100}>
+                              <div className={styles.leftsectionCourseCard}>
+                                <p className={styles.courseProgcardtext}>COURSE</p>
+                                <h1 className={styles.courseProgCardTitle}>{course.course_name}</h1>
+                                <h4 className={styles.ViewProgCardLessons}>
+                                  {course.progress >= 100 
+                                    ? 'Course Completed!' 
+                                    : course.last_lesson 
+                                      ? `Continue Lesson ${course.last_lesson.name}` 
+                                      : 'Start Course'} 
+                                  <i className="fa-solid fa-chevron-right" />
+                                </h4>
+                              </div>
+                              <div className={styles.rightProgCardSection}>
+                                <div className={styles.progressBarheader}>
+                                  <h1 className={styles.sectionNameProgCard}>
+                                    {course.progress >= 100 
+                                      ? 'Completed' 
+                                      : course.last_lesson 
+                                        ? course.last_lesson.section_name 
+                                        : 'Get Started'}
+                                  </h1>
+                                  <div className={styles.progressbarcontainer}>
+                                    <div className={styles.progressbarbackground}>
+                                      <div 
+                                        className={`${styles.progressbarfill} ${course.progress >= 100 ? styles.completed : ''}`} 
+                                        style={{width: `${course.progress}%`}}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <h1 className={styles.lessontitleProgCard}>
+                                  {course.progress >= 100 
+                                    ? 'Congratulations on completing this course!' 
+                                    : course.last_lesson 
+                                      ? course.last_lesson.name 
+                                      : 'Begin Your Journey'}
+                                </h1>
+                                <input 
+                                  type="button" 
+                                  value={course.progress >= 100 ? "Review Course" : "Continue"} 
+                                  className={`${styles.continuebuttonProgCard} ${course.progress >= 100 ? styles.reviewButton : ''}`}
+                                  onClick={() => navigate(course.last_lesson ? 
+                                    `/lesson/${course.last_lesson.lesson_id}` : 
+                                    `/course/${course.course_id}`)} 
+                                />
+                              </div>
                             </div>
-                            {/* <p className="progress-text">6/9 Challenges</p> */}
-                          </div>
-                        </div>
-                        <h1 className={styles.lessontitleProgCard}>Callbacks &amp; Closures</h1>
-                        <input type="button" defaultValue="Continue" className={styles.continuebuttonProgCard} onClick={() => navigate(`/course/${course.course_id}`)} />
-                      </div>
-                    </div>
-                    ))
-                ) : (
-                    <p>No courses available</p>
-                )}
+                          ))
+                        ) : (
+                          <p>No courses available</p>
+                        )}
               </div>
-              
-  
-
-
             </div>
           </div>
         </div>

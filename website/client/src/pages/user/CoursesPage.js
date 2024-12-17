@@ -5,6 +5,7 @@ import FilterTabs from 'components/FilterTabs';
 import Navbar from 'components/Navbar';
 import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
+import SupportForm from 'components/SupportForm';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -138,6 +139,7 @@ const CoursesPage = () => {
             />
           ))}
         </section> 
+        <SupportForm/>
       </div>
   );
 };

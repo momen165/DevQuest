@@ -10,11 +10,29 @@
   width: 490px;
   justify-content: center;
   height: 400px !important;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 20px;
+}
 
-
-  transition: transform 0.3s ease, box-shadow 0.8s ease; 
-  margin: 20px; /* Reduced margin */
-
+.course-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: rotate 20s linear infinite;
+  z-index: 0;
 }
 
 .course-head{
@@ -30,6 +48,12 @@
   width: 100%; 
   margin-top:5px ;
   padding: 20px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.1)
+  );
+  border-radius: 15px;
 }
 
 
@@ -58,6 +82,9 @@
 .course-rating, .course-level, .course-students {
   font-size: 0.9rem;
   color: #666;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 .course-students{
   display: flex;
@@ -69,31 +96,51 @@
 .enroll-button {
   background-color: #000000;
   color: #ffffff;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   margin-top: 10px;
   width: 200px;
   margin-right: 30px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
 }
 
+.enroll-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
 
 .course-card:hover {
-  box-shadow: 10px 10px rgba(255, 255, 255, 0.3) ; /* Increased shadow on hover */
-transform: scale(1.05); /* Slightly enlarge the card */
-
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px) scale(1.02);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .progress-circle {
   position: relative;
-  width: 35px; /* Adjust size as needed */
-  height: 35px; /* Adjust size as needed */
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: 10px; /* Space between circle and text */
+  margin-right: 10px;
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  box-shadow: 5px 5px 10px #d9d9d9, -5px -5px 10px #ffffff;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .circle-mid {

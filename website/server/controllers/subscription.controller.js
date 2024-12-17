@@ -422,6 +422,66 @@ const checkActiveSubscription = async (req, res) => {
   }
 };
 
+const checkSubscriptionStatusFromDb = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get subscription status and completed lessons in a single query
+    const query = `
+      WITH completed_lessons AS (
+        SELECT COUNT(*) as lesson_count
+        FROM lesson_progress
+        WHERE user_id = $1 AND completed = true
+      ),
+      subscription_status AS (
+        SELECT s.*
+        FROM subscription s
+        JOIN user_subscription us ON s.subscription_id = us.subscription_id
+        WHERE us.user_id = $1 
+        AND s.status = 'active'
+        AND s.subscription_end_date > CURRENT_TIMESTAMP
+        ORDER BY s.subscription_start_date DESC
+        LIMIT 1
+      )
+      SELECT 
+        cl.lesson_count,
+        s.*
+      FROM completed_lessons cl
+      CROSS JOIN subscription_status s;
+    `;
+
+    const { rows } = await db.query(query, [userId]);
+    
+    // Format the response
+    if (rows.length > 0 && rows[0].subscription_id) {
+      res.json({
+        hasActiveSubscription: true,
+        completedLessons: parseInt(rows[0].lesson_count) || 0,
+        subscription: {
+          subscription_type: rows[0].subscription_type,
+          status: rows[0].status,
+          subscription_end_date: rows[0].subscription_end_date,
+          amount_paid: rows[0].amount_paid
+          
+        }
+        
+      });
+     
+    } else {
+      // User has no active subscription
+      res.json({
+        hasActiveSubscription: false,
+        completedLessons: parseInt(rows[0]?.lesson_count) || 0,
+        subscription: null
+      });
+    }
+  } catch (error) {
+    console.error('Error checking subscription status from DB:', error);
+    res.status(500).json({ error: 'Failed to check subscription status' });
+  }
+ 
+};
+
 module.exports = {
   addSubscription,
   getSubscriptions,
@@ -432,4 +492,5 @@ module.exports = {
   retrieveSubscription,
   retrieveSubscriptionFromStripe,
   checkActiveSubscription, // Export the new function
+  checkSubscriptionStatusFromDb,
 };

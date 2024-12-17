@@ -106,3 +106,20 @@
 .admin-feedback-button:hover::before {
   width: 100%;
 }
+
+
+
+/* In FeedbackPage.css */
+
+.feedback-closed {
+  color: #666;
+  font-style: italic;
+}
+
+.admin-feedback-table td {
+  padding: 10px;
+}
+
+.admin-feedback-table tr[data-status="closed"] {
+  background-color: #f5f5f5;
+}

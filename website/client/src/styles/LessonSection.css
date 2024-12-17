@@ -35,3 +35,26 @@
     gap: 30px;
   }
   
+
+  .subscription-notice {
+    background-color: #84c610;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    border: 1px solid #0278ee;
+  }
+  
+  .upgrade-message {
+    color: #dc3545;
+    font-weight: bold;
+    margin-top: 5px;
+  }
+  
+  .lesson span.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .subscription-notice p {
+    margin: 0;
+  }

@@ -138,4 +138,153 @@ color: #ecdfe7;
   color: #ccc;
 }
 
- 
+.subscription-message {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.subscription-message h3 {
+    color: #dc3545;
+    margin-bottom: 10px;
+}
+
+.subscribe-button {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+.subscribe-button:hover {
+    background-color: #0056b3;
+}
+
+.lesson-counter {
+    background-color: #e9ecef;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.lesson-counter p {
+    margin: 0;
+    color: #495057;
+    font-weight: 500;
+}
+
+.subscription-message {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.subscription-message h3 {
+  color: #dc3545;
+  margin-bottom: 10px;
+}
+
+.subscribe-button {
+  display: inline-block;
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.subscribe-button:hover {
+  background-color: #0056b3;
+}
+
+.lesson-counter {
+  background-color: #e9ecef;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.lesson-counter p {
+  margin: 0;
+  color: #495057;
+  font-weight: 500;
+}
+
+.locked-lesson {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin: 5px 0;
+}
+
+.locked-lesson span {
+  color: #666;
+}
+
+.subscribe-link {
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9em;
+}
+
+.subscribe-link:hover {
+  background-color: #0056b3;
+}
+
+.subscription-message {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.subscription-message h3 {
+  color: #dc3545;
+  margin-bottom: 15px;
+}
+
+.subscribe-button {
+  display: inline-block;
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  margin-top: 15px;
+  transition: background-color 0.3s;
+}
+
+.subscribe-button:hover {
+  background-color: #218838;
+}
+
+.lesson-counter {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
