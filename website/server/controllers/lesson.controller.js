@@ -428,6 +428,31 @@ const getLessonProgress = async (req, res) => {
   }
 };
 
+const getLastAccessedLesson = async (userId, courseId) => {
+  try {
+    const query = `
+      SELECT 
+        l.lesson_id,
+        l.name,
+        s.name as section_name,
+        lp.completed_at
+      FROM lesson_progress lp
+      JOIN lesson l ON lp.lesson_id = l.lesson_id
+      JOIN section s ON l.section_id = s.section_id
+      WHERE lp.user_id = $1 
+      AND s.course_id = $2
+      ORDER BY lp.completed_at DESC
+      LIMIT 1;
+    `;
+    
+    const result = await db.query(query, [userId, courseId]);
+    return result.rows[0] || null;
+  } catch (err) {
+    console.error('Error fetching last accessed lesson:', err);
+    return null;
+  }
+};
+
 module.exports = {
   addLesson,
   getLessonsBySection,
@@ -437,4 +462,5 @@ module.exports = {
   reorderLessons,
   updateLessonProgress,
   getLessonProgress,
+  getLastAccessedLesson,
 };

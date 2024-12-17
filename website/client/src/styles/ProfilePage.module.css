@@ -122,104 +122,242 @@
 }
 
 .courseCardprofile {
-  height: 220px;
-    width: 700px;
-    background-color: #e2e8f0; /* slate-200 */
-    display: flex;
-    border-radius: 1rem; /* rounded-xl */
-    justify-content: space-between;
-    margin: 70px;
-}
-.leftsectionCourseCard {
-  height: 100%;
-  width: 250px;
-  padding: 1.75rem;
-  color: white;
-  background-color: #0096c7;
-  border-top-left-radius: 1rem;
-  border-bottom-left-radius: 1rem;
-  margin-bottom:30px ;
-}
-.courseProgcardtext {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  color: #cccccc;
-}
-.courseProgCardTitle {
-  font-size: 25px;
-  padding-top: 1.25rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  line-height: 25px;
-}
-.ViewProgCardLessons {
-  font-size: 12px;
-  padding-top: 3.125rem;
-  color: #cccccc;
-  cursor: pointer;
-}
-.rightProgCardSection {
-  padding: 1.75rem;
-  background-color: #a2d2ff;  
-  width: calc(100% - 250px);
-  border-top-right-radius: 1rem;
-  border-bottom-right-radius: 1rem;
+ 
+  display: flex;
+  background: linear-gradient(135deg, rgba(26, 32, 77, 0.95), rgba(10, 17, 40, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
   position: relative;
-  height: 100%;
-  color: #333d29;
+  min-height: 200px;
+  backdrop-filter: blur(10px);
+}
+
+
+.courseCardprofile:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(31, 38, 89, 0.95), rgba(13, 20, 48, 0.95));
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.leftsectionCourseCard {
+  flex: 1;
+  padding-right: 2rem;
+}
+
+
+.courseProgcardtext {
+  color: #64B5F6; /* Brighter blue for better contrast */
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+
+.courseProgCardTitle {
+  color: #FFFFFF;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.02em;
+}
+
+
+.courseProgCardTitle {
+  color: #FFFFFF;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+
+.ViewProgCardLessons {
+  display: flex;
+  align-items: center;
+  color: #90CAF9; /* Light blue that's easy to read */
+  font-size: 1rem;
+  font-weight: 500;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.ViewProgCardLessons:hover {
+  color: #FFD700;
+  transform: translateX(5px);
+}
+
+.rightProgCardSection {
+  flex: 1;
+  position: relative;
 }
 
 .progressBarheader {
-  display: flex;
-  justify-content: space-between;
+  margin-bottom: 1.5rem;
 }
+
+
 .sectionNameProgCard {
-  color: #949494;
-  font-size: 13px;
-  letter-spacing: 0.5px;
+  color: #E3F2FD; /* Very light blue for good contrast */
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
+
+
 .progressbarcontainer {
-  position: relative;
+  width: 100%;
+  margin: 1rem 0;
 }
 
 .progressbarbackground {
-  height: 6px;
-  width: 200px;
-  background-color: #e2e8f0; /* slate-200 */
-  border-radius: 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  height: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 
 .progressbarfill {
-  height: 6px;
-  width: 120px;
-  background-color: #261a6b;
-  border-radius: 1rem;
+  height: 100%;
+  background: linear-gradient(90deg, #64B5F6 0%, #2196F3 50%, #1976D2 100%);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
 }
+
 .lessontitleProgCard {
-  font-size: 28px;
-  padding-top: 0.5rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  color: #FFFFFF;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.02em;
 }
+
 
 .continuebuttonProgCard {
-  height: 40px;
-  width: 120px;
-  background-color: #0096c7;
-  color: white;
-  border-radius: 1.5rem;
-  letter-spacing: 0.05em;
   position: absolute;
-  right: 2.5rem;
-  bottom: 1.75rem;
+
+  right: 2rem;
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
   cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
+
 .continuebuttonProgCard:hover {
-  background-color: #4938b6e8;
+  background: linear-gradient(135deg, #1E88E5, #1565C0);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
 }
 
 /**old style from here and down**/
+
+
+
+
+.sectionNameProgCard {
+  color: #ffffff;
+  font-size: 1.2em;
+  margin-bottom: 0.5rem;
+}
+
+
+
+/* In website/client/src/styles/ProfilePage.module.css */
+
+.progressbarfill.completed {
+  background: linear-gradient(90deg, #4CAF50, #45A049);
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+}
+
+.reviewButton {
+  background: linear-gradient(135deg, #4CAF50, #45A049) !important;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4) !important;
+}
+
+.reviewButton:hover {
+  background: linear-gradient(135deg, #45A049, #388E3C) !important;
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6) !important;
+}
+
+/* Add a completion badge */
+.courseCardprofile {
+  position: relative;
+}
+
+.courseCardprofile[data-completed="true"]::before {
+  content: "✓";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 40px;
+  height: 40px;
+  background: #4CAF50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+  border: 3px solid white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* Style adjustments for completed courses */
+.courseCardprofile[data-completed="true"] .courseProgcardtext {
+  color: #4CAF50;
+}
+
+.courseCardprofile[data-completed="true"] .sectionNameProgCard {
+  color: #A5D6A7;
+}
+
+/* Add a completion banner */
+.courseCardprofile[data-completed="true"] {
+  overflow: hidden;
+}
+
+.courseCardprofile[data-completed="true"]::after {
+  content: "COMPLETED";
+  position: absolute;
+  top: 20px;
+  right: -35px;
+  background: #4CAF50;
+  color: white;
+  padding: 5px 40px;
+  transform: rotate(45deg);
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
 
 
 
