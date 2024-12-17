@@ -1,0 +1,161 @@
+.editor-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.editor-controls {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.editor-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  backdrop-filter: blur(8px);
+}
+
+.run-btn {
+  background-color: #2ecc71;
+}
+
+.run-btn:hover {
+  background-color: #27ae60;
+  transform: translateY(-1px);
+}
+
+.copy-btn {
+  background-color: #3498db;
+  padding: 10px 12px;
+}
+
+.copy-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+}
+
+.editor-button svg {
+  font-size: 16px;
+}
+
+.editor-button:active {
+  transform: translateY(1px);
+}
+
+.editor-settings-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: rgba(52, 152, 219, 0.2);
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.editor-settings-button:hover {
+  background-color: rgba(52, 152, 219, 0.3);
+}
+
+.editor-settings-menu {
+  position: absolute;
+  top: 60px;
+  right: 15px;
+  background-color: #1e2130;
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-group {
+  margin-bottom: 16px;
+}
+
+.settings-group:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.settings-select {
+  width: 100%;
+  padding: 8px;
+  background-color: #2c3144;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: #377EF0;
+}
+
+.font-size-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.font-size-button {
+  background-color: #2c3144;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.font-size-button:hover {
+  background-color: #377EF0;
+}
+
+.font-size-value {
+  color: white;
+  min-width: 24px;
+  text-align: center;
+}
+

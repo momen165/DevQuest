@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import 'styles/AuthPage.css';
 
 const ForgotPasswordPage = () => {
@@ -32,39 +33,36 @@ const ForgotPasswordPage = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/password-reset', {  // Remove http://localhost:5000
-        method: 'POST',
-        headers: {
+      const response = await axios.post('/api/password-reset', 
+        { email },
+        { 
+          withCredentials: true,
+          headers: {
             'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-        credentials: 'include'
-    });
-    
-      // Handle different status codes
-      if (response.status === 404) {
-        setError('Email address not found');
-        return;
-      }
+          }
+        }
+      );
       
-      if (response.status === 500) {
-        setError('Server error. Please try again later');
-        return;
-      }
-    
-      const data = await response.json();
-    
-      if (response.ok) {
-        setMessage(data.message || 'Password reset instructions sent to your email');
-        setEmail('');
-      } else {
-        setError(data.error || 'Failed to send reset instructions. Please try again.');
-      }
+      setMessage(response.data.message || 'Password reset instructions sent to your email');
+      setEmail('');
+      
     } catch (err) {
       console.error('Password reset error:', err);
-      setError('Network error. Please check your connection and try again.');
+      
+      if (err.response) {
+        // Handle specific status codes
+        if (err.response.status === 404) {
+          setError('Email address not found');
+        } else if (err.response.status === 500) {
+          setError('Server error. Please try again later');
+        } else {
+          setError(err.response.data.error || 'Failed to send reset instructions. Please try again.');
+        }
+      } else {
+        setError('Network error. Please check your connection and try again.');
+      }
     } finally {
-      setLoading(false); // Always reset loading state
+      setLoading(false);
     }
   };
 
