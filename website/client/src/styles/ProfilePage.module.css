@@ -64,20 +64,46 @@
 }
 
 .statusSection {
-  background: #1b1b1b;
-  padding: 20px;
-  color: white;
+  background: rgba(27, 27, 27, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 25px;
+  border-radius: 16px;
   margin-top: 20px;
-  text-align: center;
   max-width: 350px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
-.statusTitle {
-  font-weight: bold;
-  font-size: 1.2em;
-  margin-bottom: 15px;
-  text-align: left;
+.statusSection:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
 }
+
+
+.statusTitle {
+  font-weight: 600;
+  font-size: 1.3em;
+  margin-bottom: 20px;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.statusTitle:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  
+  border-radius: 3px;
+}
+
+
+
 
 .statusCards {
   display: flex;
@@ -104,14 +130,20 @@
 }
 
 .statusNumber {
-  font-size: 1.6em;
-  font-weight: bold;
-  color: #76ff03;
-  margin-bottom: 5px;
+  font-size: 1.8em;
+  font-weight: 700;
+  background: linear-gradient(90deg, #76ff03, #64dd17);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+  position: relative;
 }
 
 .statusCard.xpCard .statusNumber {
-  color: #AFE5AF;
+  background: linear-gradient(90deg, #AFE5AF, #88c988);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .statusCard p {

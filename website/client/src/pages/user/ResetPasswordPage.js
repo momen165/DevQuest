@@ -1,6 +1,7 @@
 // ResetPasswordPage.js
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import 'styles/ResetPasswordPage.css';
 
 const ResetPasswordPage = () => {
@@ -38,25 +39,15 @@ const ResetPasswordPage = () => {
         setMessage('');
 
         try {
-            const response = await fetch('/api/reset-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token, newPassword: password }),
-                credentials: 'include'
-            });
+            const response = await axios.post('/api/reset-password', 
+                { token, newPassword: password },
+                { withCredentials: true }
+            );
 
-            if (response.status === 200) {
-                setMessage('Password reset successful!');
-                setTimeout(() => navigate('/LoginPage'), 2000);
-                return;
-            }
-
-            const data = await response.json();
-            setError(data.message || 'Something went wrong');
+            setMessage('Password reset successful!');
+            setTimeout(() => navigate('/LoginPage'), 2000);
         } catch (err) {
-            setError('Network error. Please try again');
+            setError(err.response?.data?.message || 'Something went wrong');
         } finally {
             setLoading(false);
         }

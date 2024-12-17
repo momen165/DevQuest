@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import 'styles/EnrollmentPage.css';
 import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
@@ -22,20 +23,14 @@ const EnrollmentPage = () => {
 
     const fetchCourseData = async () => {
       try {
-        const response = await fetch(`/api/courses/${courseId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch course data');
-        }
-        const data = await response.json();
+        const { data } = await axios.get(`/api/courses/${courseId}`);
         setCourse(data);
 
         // Check if the user is already enrolled in the course
         if (user.user_id) {
-          const enrollmentResponse = await fetch(`/api/courses/${courseId}/enrollments/${user.user_id}`);
-          if (!enrollmentResponse.ok) {
-            throw new Error('Failed to check enrollment status');
-          }
-          const enrollmentData = await enrollmentResponse.json();
+          const { data: enrollmentData } = await axios.get(
+            `/api/courses/${courseId}/enrollments/${user.user_id}`
+          );
           setIsEnrolled(enrollmentData.isEnrolled);
         }
 
@@ -59,30 +54,21 @@ const EnrollmentPage = () => {
 
   const handleStartLearning = () => {
     if (!isEnrolled) {
-      fetch('/api/courses/enroll', {
-        method: 'POST',
+      axios.post('/api/courses/enroll', {
+        user_id: user.user_id,
+        course_id: courseId,
+      }, {
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({
-          user_id: user.user_id,
-          course_id: courseId,
-        }),
+        }
       })
-          .then(response => {
-            if (!response.ok) {
-              return response.text().then(text => { throw new Error(text) });
-            }
-            return response.json();
-          })
-          .then(data => {
-            setIsEnrolled(true);
-            navigate(`/course/${courseId}`);
-          })
-          .catch(error => {
-            console.error('Error enrolling in course:', error);
-          });
+      .then(({ data }) => {
+        setIsEnrolled(true);
+        navigate(`/course/${courseId}`);
+      })
+      .catch(error => {
+        console.error('Error enrolling in course:', error);
+      });
     } else {
       navigate(`/course/${courseId}`);
     }

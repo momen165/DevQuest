@@ -1,9 +1,10 @@
-﻿import React, {useEffect, useRef} from 'react';
+﻿import React, {useEffect, useRef, useState} from 'react';
 import {Editor} from '@monaco-editor/react';
 import axios from 'axios';
-import {FaPlay, FaCopy} from 'react-icons/fa';
+import {FaPlay, FaCopy, FaCog} from 'react-icons/fa';
 import 'styles/LessonPage.css';
 import CircularProgress from "@mui/material/CircularProgress";
+import '../styles/MonacoEditor.css';
 
 const languageCommentMappings = {
     python: '# Write code below \n',
@@ -15,17 +16,38 @@ const languageCommentMappings = {
 };
 
 const MonacoEditorComponent = ({
-                                 language,
-                                 code,
-                                 setCode,
-                                 user,
-                                 lessonId,
-                                 languageId,
-                                 setConsoleOutput,
-                                 setIsAnswerCorrect
-                               }) => {
+
+      language,
+      code,
+      setCode,
+      user,
+      lessonId,
+      languageId,
+      setConsoleOutput,
+      setIsAnswerCorrect
+}) => {
   const editorRef = useRef(null);
   const initialCommentSet = useRef(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [editorSettings, setEditorSettings] = useState(() => {
+    try {
+      const savedSettings = localStorage.getItem('editorSettings');
+      return savedSettings ? JSON.parse(savedSettings) : {
+        theme: 'vs-dark',
+        fontSize: 16,
+        minimap: false,
+        lineNumbers: 'on',
+      };
+    } catch (error) {
+      console.warn('Failed to load editor settings from localStorage:', error);
+      return {
+        theme: 'vs-dark',
+        fontSize: 16,
+        minimap: false,
+        lineNumbers: 'on',
+      };
+    }
+  });
 
   useEffect(() => {
     return () => {
@@ -140,33 +162,136 @@ const MonacoEditorComponent = ({
     });
   };
 
+  const updateEditorSettings = (setting, value) => {
+    const newSettings = {
+        ...editorSettings,
+        [setting]: value
+    };
+    
+    setEditorSettings(newSettings);
+    
+    try {
+        localStorage.setItem('editorSettings', JSON.stringify(newSettings));
+    } catch (error) {
+        console.warn('Failed to save editor settings to localStorage:', error);
+    }
+    
+    if (editorRef.current) {
+        // For all settings including fontSize, just use updateOptions
+        editorRef.current.updateOptions({
+            [setting]: value
+        });
+    }
+};
+
+const adjustFontSize = (increment) => {
+  const newSize = editorSettings.fontSize + increment;
+  if (newSize >= 12 && newSize <= 32) {
+      updateEditorSettings('fontSize', newSize);
+  }
+};
+
   return (
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-        <Editor
-            height="100%" // Adjust height to fill available space
-            theme="vs-dark"
-            language={language}
-            options={{
-              fontSize: 18,
-              lineNumbers: "on",
-              minimap: {enabled: false},
-            }}
-            value={code}
-            onChange={(value) => setCode(value)}
-            onMount={(editor) => {
-              editorRef.current = editor;
-            }}
-        />
-        <div style={{ position: 'absolute', bottom: '10px', left: '10px', display: 'flex', gap: '10px' }}>
-          
-          <button className="run-btn" onClick={runCode}>
-            Run <FaPlay/>
-          </button>
-          <button className="copy-btn" onClick={copyCodeToClipboard}>
-            <FaCopy/>
-          </button>
+    <div className="editor-container">
+      <button 
+        className="editor-settings-button"
+        onClick={() => setShowSettings(!showSettings)}
+      >
+        <FaCog />
+      </button>
+
+      {showSettings && (
+        <div className="editor-settings-menu">
+          <div className="settings-group">
+            <label className="settings-label">Theme</label>
+            <select 
+              className="settings-select"
+              value={editorSettings.theme}
+              onChange={(e) => updateEditorSettings('theme', e.target.value)}
+            >
+              <option value="vs-dark">Dark</option>
+              <option value="light">Light</option>
+              <option value="hc-black">High Contrast</option>
+            </select>
+          </div>
+
+          <div className="settings-group">
+            <label className="settings-label">Font Size</label>
+            <div className="font-size-control">
+              <button 
+                className="font-size-button"
+                onClick={() => adjustFontSize(-1)}
+              >
+                -
+              </button>
+              <span className="font-size-value">{editorSettings.fontSize}</span>
+              <button 
+                className="font-size-button"
+                onClick={() => adjustFontSize(1)}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div className="settings-group">
+            <label className="settings-label">Line Numbers</label>
+            <select 
+              className="settings-select"
+              value={editorSettings.lineNumbers}
+              onChange={(e) => updateEditorSettings('lineNumbers', e.target.value)}
+            >
+              <option value="on">Show</option>
+              <option value="off">Hide</option>
+            </select>
+          </div>
+
+          <div className="settings-group">
+            <label className="settings-label">Minimap</label>
+            <select 
+              className="settings-select"
+              value={editorSettings.minimap ? 'on' : 'off'}
+              onChange={(e) => updateEditorSettings('minimap', e.target.value === 'on')}
+            >
+              <option value="off">Hide</option>
+              <option value="on">Show</option>
+            </select>
+          </div>
         </div>
+      )}
+
+<Editor
+    height="100%"
+    theme={editorSettings.theme}
+    language={language}
+    className="monaco-editor-override"
+    options={{
+        fontSize: editorSettings.fontSize,
+        lineNumbers: editorSettings.lineNumbers,
+        minimap: { enabled: editorSettings.minimap },
+        padding: { top: 16 },
+        scrollBeyondLastLine: false,
+        smoothScrolling: true,
+        cursorBlinking: "smooth",
+        cursorSmoothCaretAnimation: true,
+        roundedSelection: true,
+        automaticLayout: true,
+    }}
+    value={code}
+    onChange={(value) => setCode(value)}
+    onMount={(editor) => {
+        editorRef.current = editor;
+    }}
+/>
+      <div className="editor-controls">
+        <button className="editor-button run-btn" onClick={runCode}>
+          Run <FaPlay />
+        </button>
+        <button className="editor-button copy-btn" onClick={copyCodeToClipboard}>
+          <FaCopy />
+        </button>
       </div>
+    </div>
   );
 };
 

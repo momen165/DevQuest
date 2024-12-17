@@ -4,6 +4,7 @@ import styles from 'styles/ProfilePage.module.css';
 import { useAuth } from 'AuthContext';
 import defaultProfilePic from "../../assets/images/default-profile-pic.png";
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function ProfilePage() {
   const { user } = useAuth();
@@ -16,26 +17,20 @@ function ProfilePage() {
 useEffect(() => {
   const fetchProfileData = async () => {
     try {
-      const response = await fetch(`/api/students/${user.user_id}`, {
+      const response = await axios.get(`/api/students/${user.user_id}`, {
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${user.token}`,
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch profile data');
-      }
-      const data = await response.json();
-      console.log('Profile Data:', data); // Debug log
-      console.log('Courses:', data.courses); // Debug log
-      console.log('Completed Courses:', data.courses?.filter(c => c.progress >= 100)); // Debug log
-      setProfileData(data);
+      console.log('Profile Data:', response.data); // Debug log
+      console.log('Courses:', response.data.courses); // Debug log
+      console.log('Completed Courses:', response.data.courses?.filter(c => c.progress >= 100)); // Debug log
+      setProfileData(response.data);
       setLoading(false);
     } catch (err) {
       console.error('Error:', err);
-      setError(err.message || 'Failed to load profile data');
+      setError(err.response?.data?.error || err.message || 'Failed to load profile data');
       setLoading(false);
     }
   };

@@ -6,6 +6,7 @@
   "scripts": {
     "dev:client": "cd client && npm start",
     "dev:server": "cd server && nodemon server.js",
+    "dev:both": "concurrently \"cd server && nodemon server.js\" \"npm run dev:client\"",
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
     "build": "cd client && npm run build",
     "start:client": "cd client && npm start",

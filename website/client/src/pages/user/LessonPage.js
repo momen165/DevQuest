@@ -8,7 +8,7 @@ import LessonNavigation from 'components/LessonNavigation';
 import LessonContent from 'components/LessonContent';
 import MonacoEditorComponent from 'components/MonacoEditorComponent';
 import 'styles/LessonPage.css';
-import CircularProgress from '@mui/material/CircularProgress';
+import LoadingSpinner from './CircularProgress';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -187,7 +187,7 @@ const LessonPage = () => {
   }, [lessonId, user.token, user.user_id, navigate]);
 
   if (loading) return <div className="centered-loader">
-    <CircularProgress/>
+    <LoadingSpinner/>
   </div>;
   
   if (error) return <p className="error">{error}</p>;

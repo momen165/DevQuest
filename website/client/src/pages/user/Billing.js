@@ -1,6 +1,7 @@
 // Billing.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Navbar from 'components/Navbar';
 import Sidebar from 'components/AccountSettingsSidebar';
 import { useAuth } from 'AuthContext';
@@ -25,18 +26,14 @@ function Billing() {
   // website/client/src/pages/user/Billing.js
 const fetchSubscriptionDetails = async () => {
   try {
-    const response = await fetch('http://localhost:5000/api/check', {
+    const response = await axios.get('http://localhost:5000/api/check', {
       headers: {
         'Authorization': `Bearer ${user.token}`,
       },
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch subscription details');
-    }
-
-    const data = await response.json();
-    console.log('Subscription data:', data); // Add this for debugging
+    const data = response.data;
+    console.log('Subscription data:', data);
 
     if (data.hasActiveSubscription && data.subscription) {
       setSubscriptionDetails(data.subscription);
@@ -45,7 +42,7 @@ const fetchSubscriptionDetails = async () => {
     }
   } catch (err) {
     console.error('Error:', err);
-    setError('Error fetching subscription details');
+    setError(err.response?.data?.error || 'Error fetching subscription details');
   } finally {
     setLoading(false);
   }
@@ -54,24 +51,16 @@ const fetchSubscriptionDetails = async () => {
   
 const handleManageSubscription = async () => {
   try {
-    const response = await fetch('http://localhost:5000/api/create-portal-session', {
-      method: 'POST',
+    const response = await axios.post('http://localhost:5000/api/create-portal-session', {}, {
       headers: {
         'Authorization': `Bearer ${user.token}`,
-        'Content-Type': 'application/json'
       },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to create portal session');
-    }
-
-    const { url } = await response.json();
-    window.location.href = url;
+    window.location.href = response.data.url;
   } catch (error) {
     console.error('Error:', error);
-    setError(error.message || 'Failed to redirect to billing portal');
+    setError(error.response?.data?.error || 'Failed to redirect to billing portal');
   }
 };
 
