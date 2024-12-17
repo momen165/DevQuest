@@ -24,6 +24,7 @@
     "@emotion/styled": "^11.14.0",
     "@hello-pangea/dnd": "^17.0.0",
     "@monaco-editor/react": "^4.6.0",
+    "@mui/icons-material": "^5.15.3",
     "@mui/material": "^5.16.11",
     "@stripe/stripe-js": "^5.2.0",
     "@testing-library/jest-dom": "^5.17.0",

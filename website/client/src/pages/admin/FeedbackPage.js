@@ -95,7 +95,7 @@ const FeedbackPage = () => {
                 <th>Feedback</th>
                 <th>Rating</th>
                 <th>Course Name</th>
-                {/* <th>Date</th> */}
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -107,10 +107,19 @@ const FeedbackPage = () => {
                   <td>{feedback.feedback}</td>
                   <td>{feedback.rating}</td>
                   <td>{feedback.course_name}</td>
+                  <td>{feedback.status}</td>
                   <td>
-                    <button className="admin-feedback-button" onClick={() => setSelectedFeedback(feedback)}>Reply</button>
+                    {feedback.status === 'open' ? (
+                      <button 
+                        className="admin-feedback-button" 
+                        onClick={() => setSelectedFeedback(feedback)}
+                      >
+                        Reply
+                      </button>
+                    ) : (
+                      <span className="feedback-closed">Closed</span>
+                    )}
                   </td>
-                  {/* <td>{feedback.date}</td> */}
                 </tr>
               ))}
             </tbody>

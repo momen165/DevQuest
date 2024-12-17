@@ -3,77 +3,86 @@ import axios from 'axios';
 import 'styles/LessonSection.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'AuthContext';
-const LessonList = ({ sectionName, sectionId }) => {
+
+const FREE_LESSON_LIMIT = 5;
+
+const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const FREE_LESSON_LIMIT = 5;
 
   const toggleList = () => {
-    setIsOpen(!isOpen);
+      setIsOpen(!isOpen);
   };
 
-  const { user } = useAuth();
-  
   useEffect(() => {
-    const fetchLessons = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const response = await axios.get(`http://localhost:5000/api/lesson?section_id=${sectionId}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`, // Pass the token in headers
-          },
-        });
-        // Ensure response.data is an array
-        const lessons = Array.isArray(response.data) ? response.data : [];
-        console.log('Lessons:', lessons);
-        // Optionally, sort lessons if the server doesn't return them in order
-        const sortedLessons = lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-        setLessons(sortedLessons);
-      } catch (err) {
-        setError('Failed to fetch lessons.');
-        console.error('Error fetching lessons:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchLessons();
-  }, [sectionId]);
+      const fetchLessons = async () => {
+          setLoading(true);
+          setError('');
+          try {
+              const response = await axios.get(`http://localhost:5000/api/lesson?section_id=${sectionId}`, {
+                  headers: {
+                      Authorization: `Bearer ${user.token}`,
+                  },
+              });
+              const lessons = Array.isArray(response.data) ? response.data : [];
+              const sortedLessons = lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
+              setLessons(sortedLessons);
+          } catch (err) {
+              setError('Failed to fetch lessons.');
+              console.error('Error fetching lessons:', err);
+          } finally {
+              setLoading(false);
+          }
+      };
+      
+      fetchLessons();
+  }, [sectionId, user.token]);
 
   const handleStartLesson = (lessonId) => {
-    navigate(`/lesson/${lessonId}`);
+      navigate(`/lesson/${lessonId}`);
   };
 
   return (
-    <div className="lesson-list">
-      <h3 onClick={toggleList} className="lesson-title">
-        {sectionName} <span className="arrow">{isOpen ? '▲' : '▼'}</span>
-      </h3>
-      {isOpen && (
-        <div>
-          {loading ? (
-            <p>Loading lessons...</p>
-          ) : error ? (
-            <p className="error">{error}</p>
-          ) : lessons.length === 0 ? (
-            <p>No lessons found for this section.</p>
-          ) : (
-            <ul>
-              {lessons.map((lesson) => (
-                <li key={lesson.lesson_id} className="lesson">
-                  <input type="checkbox" /> {lesson.name}{' '}
-                  <span onClick={() => handleStartLesson(lesson.lesson_id)}>Start ➔</span>
-                </li>
-              ))}
-            </ul>
+      <div className="lesson-list">
+          <h3 onClick={toggleList} className="lesson-title">
+              {sectionName} <span className="arrow">{isOpen ? '▲' : '▼'}</span>
+          </h3>
+          {isOpen && (
+              <div>
+                  {loading ? (
+                      <p>Loading lessons...</p>
+                  ) : error ? (
+                      <p className="error">{error}</p>
+                  ) : lessons.length === 0 ? (
+                      <p>No lessons found for this section.</p>
+                  ) : (
+                      <ul>
+                          {lessons.map((lesson) => (
+                              <li key={lesson.lesson_id} className="lesson">
+                                  <input type="checkbox" /> {lesson.name}{' '}
+                                  <span 
+                                      onClick={() => handleStartLesson(lesson.lesson_id)}
+                                      className={
+                                          !hasActiveSubscription && 
+                                          (profileData?.exercisesCompleted || 0) >= FREE_LESSON_LIMIT 
+                                              ? 'disabled'
+                                              : ''
+                                      }
+                                  >
+                                      Start ➔
+                                  </span>
+                              </li>
+                          ))}
+                      </ul>
+                  )}
+              </div>
           )}
-        </div>
-      )}
-    </div>
+      </div>
   );
 };
 

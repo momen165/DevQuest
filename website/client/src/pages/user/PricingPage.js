@@ -4,6 +4,8 @@ import 'styles/PricingPage.css';
 import Navbar from 'components/Navbar';
 import { useAuth } from 'AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
+import SupportForm from 'components/SupportForm';
+import { useNavigate } from 'react-router-dom';
 
 const stripePromise = loadStripe('pk_test_51MEwjHHxgK7P1VPXXJ1r4MdpeelwFLaBX9kslA7Z4O6V5CjE8B20DVkiSmp6XB0HPwKVnYFYacECLxYMZUOO4Fmm00m79WAvXD'); // Replace with your actual publishable key
 
@@ -15,6 +17,7 @@ const PricingPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const { user } = useAuth(); // Get the user and token from AuthContext
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user has active subscription when component mounts
@@ -37,6 +40,16 @@ const PricingPage = () => {
   }, [user]);
 
   const handleChoosePlan = async () => {
+    if (!user) {
+      navigate('/LoginPage', { 
+        state: { 
+          from: '/pricing',
+          message: 'Please log in to purchase a subscription' 
+        } 
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const stripe = await stripePromise;
@@ -62,6 +75,15 @@ const PricingPage = () => {
   };
 
   const openPopup = () => {
+    if (!user) {
+      navigate('/LoginPage', { 
+        state: { 
+          from: '/pricing',
+          message: 'Please log in to purchase a subscription' 
+        } 
+      });
+      return;
+    }
     setShowPopup(true);
   };
 
@@ -133,6 +155,7 @@ const PricingPage = () => {
           </div>
         </div>
       )}
+      <SupportForm/>
     </div>
   );
 };

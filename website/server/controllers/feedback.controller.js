@@ -15,7 +15,8 @@ const getFeedback = async (req, res) => {
         u.name AS student_name, 
         c.name AS course_name, 
         f.comment AS feedback, 
-        f.rating
+        f.rating,
+        f.status
       FROM feedback f
       JOIN users u ON f.user_id = u.user_id
       JOIN course c ON f.course_id = c.course_id
@@ -110,6 +111,24 @@ const replyToFeedback = async (req, res) => {
   }
 
   try {
+    // Start a transaction
+    await db.query('BEGIN');
+
+    // Update feedback status to closed
+    const updateQuery = `
+      UPDATE feedback 
+      SET status = 'closed' 
+      WHERE feedback_id = $1 
+      RETURNING *
+    `;
+    const updateResult = await db.query(updateQuery, [feedback_id]);
+
+    if (updateResult.rows.length === 0) {
+      await db.query('ROLLBACK');
+      return res.status(404).json({ error: 'Feedback not found.' });
+    }
+
+    // Get user details for email
     const feedbackQuery = `
       SELECT u.email, u.name, f.comment 
       FROM feedback f 
@@ -117,18 +136,20 @@ const replyToFeedback = async (req, res) => {
       WHERE f.feedback_id = $1
     `;
     const { rows } = await db.query(feedbackQuery, [feedback_id]);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Feedback not found.' });
-    }
-
     const { email, name, comment } = rows[0];
 
     // Send reply email
     await sendFeedbackReplyEmail(email, name, comment, reply);
 
-    res.status(200).json({ message: 'Reply sent successfully.' });
+    // Commit the transaction
+    await db.query('COMMIT');
+
+    res.status(200).json({ 
+      message: 'Reply sent successfully and feedback closed.',
+      feedback: updateResult.rows[0]
+    });
   } catch (error) {
+    await db.query('ROLLBACK');
     console.error('Error replying to feedback:', error.message);
     res.status(500).json({ error: 'Failed to send reply.', details: error.message });
   }

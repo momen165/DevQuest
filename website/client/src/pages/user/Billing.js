@@ -51,8 +51,7 @@ const fetchSubscriptionDetails = async () => {
   }
 };
 
-  // website/client/src/pages/user/Billing.js
-
+  
 const handleManageSubscription = async () => {
   try {
     const response = await fetch('http://localhost:5000/api/create-portal-session', {
