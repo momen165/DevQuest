@@ -71,7 +71,7 @@ app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "https://js.stripe.com"],
-    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://m.stripe.network"],
     fontSrc: ["'self'", "https://fonts.gstatic.com"],
     imgSrc: ["'self'", "data:", "https:"],
     connectSrc: ["'self'", "https://api.stripe.com"],
