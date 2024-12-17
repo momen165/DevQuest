@@ -6,6 +6,7 @@ import Navbar from 'components/Navbar';
 import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
 import SupportForm from 'components/SupportForm';
+import axios from 'axios';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -37,27 +38,27 @@ const CoursesPage = () => {
           setEnrollments(JSON.parse(cachedEnrollments));
         }
 
-        // Always fetch updated data
+        // Replace fetch with axios
         const [coursesResponse, enrollmentsResponse] = await Promise.all([
-          fetch('/api/getCoursesWithRatings').then(res => res.json()),
+          axios.get('/api/getCoursesWithRatings'),
           user?.user_id
-              ? fetch(`/api/students/${user.user_id}/enrollments`).then(res => res.json())
+              ? axios.get(`/api/students/${user.user_id}/enrollments`)
               : Promise.resolve({}),
         ]);
 
-        const {courses, ratings, userscount} = coursesResponse;
+        const {courses, ratings, userscount} = coursesResponse.data;
 
         // Update state with fresh data
         setCourses(courses);
         setFilteredCourses(courses);
         setRatings(ratings || {});
         setUserscount(userscount || {});
-        setEnrollments(enrollmentsResponse || {});
+        setEnrollments(enrollmentsResponse.data || {});
 
         // Cache the data
         localStorage.setItem('coursesData', JSON.stringify({courses, ratings, userscount}));
         if (user?.user_id) {
-          localStorage.setItem(`enrollments_${user.user_id}`, JSON.stringify(enrollmentsResponse));
+          localStorage.setItem(`enrollments_${user.user_id}`, JSON.stringify(enrollmentsResponse.data));
         }
       } catch (err) {
         console.error('Error:', err);
@@ -74,12 +75,8 @@ const CoursesPage = () => {
   useEffect(() => {
     const fetchProgress = async () => {
       try {
-        const response = await fetch(`/api/students/${user.user_id}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch progress');
-        }
-        const progressData = await response.json();
-        setProgress(progressData.courses); // Assuming progress data is in courses array
+        const response = await axios.get(`/api/students/${user.user_id}`);
+        setProgress(response.data.courses); // Assuming progress data is in courses array
       } catch (err) {
         console.error('Error:', err);
         setError('Failed to load progress data');

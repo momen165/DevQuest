@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Navbar from 'components/Navbar';
 import Sidebar from 'components/AccountSettingsSidebar';
 import { useAuth } from 'AuthContext';
@@ -27,62 +28,45 @@ function ProfilePage() {
 
   const handleRemoveProfilePic = async () => {
     try {
-      const response = await fetch('/api/removeProfilePic', {
-        method: 'DELETE',
+      const response = await axios.delete('/api/removeProfilePic', {
         headers: {
-          'Authorization': `Bearer ${user.token}`, // Ensure the token is included
+          'Authorization': `Bearer ${user.token}`,
         },
       });
   
-      if (response.ok) {
-        const updatedUser = { ...user, profileimage: null };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        alert('Profile picture removed successfully');
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to remove profile picture:', errorData.error);
-        alert(`Failed to remove profile picture: ${errorData.error}`);
-      }
+      const updatedUser = { ...user, profileimage: null };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      alert('Profile picture removed successfully');
     } catch (error) {
       console.error('Error removing profile picture:', error);
-      alert('An error occurred while removing your profile picture');
+      alert(error.response?.data?.error || 'An error occurred while removing your profile picture');
     }
   };
-  
   
   const handleProfilePicChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
   
     const formData = new FormData();
-    formData.append('profilePic', file); // Ensure this matches the backend field name
+    formData.append('profilePic', file);
   
     try {
-      const response = await fetch('/api/uploadProfilePic', {
-        method: 'POST',
+      const response = await axios.post('/api/uploadProfilePic', formData, {
         headers: {
           'Authorization': `Bearer ${user.token}`,
+          'Content-Type': 'multipart/form-data',
         },
-        body: formData,
       });
   
-      if (response.ok) {
-        const data = await response.json();
-        const profileimage = data.profileimage; // S3 URL of the uploaded image
-  
-        const updatedUser = { ...user, profileimage };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        alert('Profile picture updated successfully');
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to upload profile picture:', errorData.error);
-        alert(`Failed to upload profile picture: ${errorData.error}`);
-      }
+      const profileimage = response.data.profileimage;
+      const updatedUser = { ...user, profileimage };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      alert('Profile picture updated successfully');
     } catch (error) {
       console.error('Error uploading profile picture:', error);
-      alert('An error occurred while uploading your profile picture');
+      alert(error.response?.data?.error || 'An error occurred while uploading your profile picture');
     }
   };
   
@@ -90,27 +74,22 @@ function ProfilePage() {
     e.preventDefault();
 
     try {
-      const response = await fetch('/api/updateProfile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ name, country, bio }),
-      });
+      const response = await axios.put('/api/updateProfile', 
+        { name, country, bio },
+        {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+          },
+        }
+      );
 
-      if (response.ok) {
-        const updatedUser = { ...user, name, country, bio };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        alert('Profile updated successfully');
-      } else {
-        console.error('Failed to update profile');
-        alert('Failed to update profile');
-      }
+      const updatedUser = { ...user, name, country, bio };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      alert('Profile updated successfully');
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('An error occurred while updating your profile');
+      alert(error.response?.data?.error || 'An error occurred while updating your profile');
     }
   };
 

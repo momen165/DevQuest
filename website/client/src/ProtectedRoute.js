@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
+import axios from 'axios';
 
 const ProtectedRoute = ({ children, adminRequired = false }) => {
   const { user, loading: authLoading } = useAuth();
@@ -12,20 +13,14 @@ const ProtectedRoute = ({ children, adminRequired = false }) => {
   useEffect(() => {
     const checkServerAuth = async () => {
       try {
-        const response = await fetch('/api/check-auth', {
-          method: 'GET',
+        const response = await axios.get('/api/check-auth', {
           headers: {
             'Authorization': `Bearer ${user?.token}`,
           },
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          setIsAuthenticated(data.isAuthenticated);
-          setIsAdmin(data.isAdmin);
-        } else {
-          setIsAuthenticated(false);
-        }
+        setIsAuthenticated(response.data.isAuthenticated);
+        setIsAdmin(response.data.isAdmin);
       } catch (error) {
         console.error('Failed to check server authentication:', error);
         setIsAuthenticated(false);
