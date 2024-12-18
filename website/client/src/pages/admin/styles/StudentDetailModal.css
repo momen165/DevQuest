@@ -1,0 +1,332 @@
+.student-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  padding: 20px;
+}
+
+.student-modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  width: 98%;
+  max-width: 1400px;
+  min-height: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.student-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.student-modal-close:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.student-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.student-modal-title {
+  font-size: 28px;
+  color: #1e293b;
+  margin: 0;
+  font-weight: 600;
+}
+
+.student-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 24px;
+  background-color: #f8fafc;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.student-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.student-status-dot--active {
+  background-color: #10b981;
+}
+
+.student-status-dot--inactive {
+  background-color: #ef4444;
+}
+
+.student-info-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 16px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+}
+
+.student-info-item {
+  background-color: white;
+  padding: 16px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.student-info-item:hover {
+  transform: translateY(-2px);
+}
+
+.student-info-label {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 600;
+}
+
+.student-info-value {
+  font-size: 16px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.student-courses {
+  margin-top: 32px;
+}
+
+.student-courses-title {
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.student-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+}
+
+.student-course-item {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  transition: all 0.2s;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.student-course-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.student-course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.student-course-title {
+  margin: 0;
+  font-size: 15px;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  font-weight: 500;
+}
+
+.student-course-progress {
+  margin-top: 12px;
+}
+
+.student-progress-bar {
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.student-progress-fill {
+  height: 100%;
+  background-color: #3b82f6;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.student-progress-text {
+  display: block;
+  text-align: right;
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.student-course-status {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.student-course-status--completed {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.student-course-status--in-progress {
+  background-color: #fff7ed;
+  color: #9a3412;
+}
+
+.student-modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.student-modal-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: studentModalSpin 1s linear infinite;
+}
+
+@keyframes studentModalSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.student-modal-error {
+  color: #dc2626;
+  text-align: center;
+  padding: 20px;
+}
+
+.student-courses-empty {
+  text-align: center;
+  padding: 32px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  color: #64748b;
+}
+
+@media (max-width: 1200px) {
+  .student-courses-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 992px) {
+  .student-info-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .student-courses-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .student-modal-content {
+    padding: 24px;
+  }
+  
+  .student-courses-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .student-modal-content {
+    padding: 16px;
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .student-info-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .student-courses-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.student-modal-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.student-modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+.student-modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+  border: 2px solid #f1f1f1;
+}
+
+.student-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+} 

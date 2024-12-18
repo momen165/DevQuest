@@ -71,12 +71,28 @@ app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "https://js.stripe.com"],
-    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://m.stripe.network"],
-    fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    styleSrc: [
+      "'self'",
+      "'unsafe-inline'",
+      "https://fonts.googleapis.com",
+      "https://m.stripe.network",
+      "https://fonts.gstatic.com"
+    ],
+    fontSrc: [
+      "'self'",
+      "https://fonts.gstatic.com",
+      "data:"
+    ],
     imgSrc: ["'self'", "data:", "https:"],
     connectSrc: ["'self'", "https://api.stripe.com"],
     frameSrc: ["'self'", "https://js.stripe.com"],
     objectSrc: ["'none'"],
+    styleSrcElem: [
+      "'self'",
+      "'unsafe-inline'",
+      "https://fonts.googleapis.com",
+      "https://m.stripe.network"
+    ],
     upgradeInsecureRequests: [],
   },
 }));

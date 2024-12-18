@@ -66,7 +66,9 @@ const PaymentDetails = () => {
                   <td>{new Date(subscription.subscription_start_date).toLocaleDateString()}</td>
                   <td>{new Date(subscription.subscription_end_date).toLocaleDateString()}</td>
                   <td>${subscription.amount_paid}</td>
-                <td>{subscription.status}</td>
+                  <td className={`admin-payment-status-${subscription.status.toLowerCase()}`}>
+                    {subscription.status}
+                  </td>
                   <td>{subscription.user_email}</td>
                   <td>{subscription.user_id}</td>
               </tr>
