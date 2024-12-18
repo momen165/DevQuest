@@ -151,3 +151,23 @@
 	color: #000;
 	box-shadow: 5px 5px 0 #b3b3b3;
 }
+
+.ck-content .text-tiny {
+	font-size: 10px;
+}
+
+.ck-content .text-small {
+	font-size: 12px;
+}
+
+.ck-content .text-default {
+	font-size: 16px;
+}
+
+.ck-content .text-big {
+	font-size: 20px;
+}
+
+.ck-content .text-huge {
+	font-size: 24px;
+}

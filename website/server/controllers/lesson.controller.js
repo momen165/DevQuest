@@ -124,30 +124,17 @@ const getLessonById = async (req, res) => {
 
 
 const editLesson = async (req, res) => {
-  // Role-based access control
-  if (!req.user.admin) {
-    console.error(`Access denied for user: ${req.user.userId}`);
-    return res.status(403).json({ error: 'Access denied. Admins only.' });
-  }
-
   try {
     const { lesson_id } = req.params;
     const { name, content, xp, test_cases, section_id } = req.body;
+
+    // Add debug logging
+    console.log('Received lesson content:', content);
 
     // Validate required fields
     if (!name || !content || !section_id) {
       return res.status(400).json({ error: 'Name, content, and section_id are required' });
     }
-
-    // Fetch the old lesson data
-    const oldLessonQuery = 'SELECT * FROM lesson WHERE lesson_id = $1';
-    const oldLessonResult = await db.query(oldLessonQuery, [lesson_id]);
-
-    if (oldLessonResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Lesson not found' });
-    }
-
-    const oldLesson = oldLessonResult.rows[0];
 
     const query = `
       UPDATE lesson
@@ -162,9 +149,9 @@ const editLesson = async (req, res) => {
 
     const values = [
       name,
-      content,
+      content, // Store raw content without modification
       xp || 0,
-      JSON.stringify(test_cases || []), // Ensure test_cases is always an array
+      JSON.stringify(test_cases || []),
       section_id,
       lesson_id,
     ];
@@ -175,29 +162,10 @@ const editLesson = async (req, res) => {
       return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    const newLesson = result.rows[0];
+    // Add debug logging
+    console.log('Saved lesson content:', result.rows[0].content);
 
-    // Compare old and new lesson data and log changes
-    const changes = [];
-    for (const key in oldLesson) {
-      if (oldLesson[key] !== newLesson[key]) {
-        if (key === 'test_cases') {
-          changes.push(`${key}: ${JSON.stringify(oldLesson[key], null, 2)} -> ${JSON.stringify(newLesson[key], null, 2)}`);
-        } else {
-          changes.push(`${key}: ${oldLesson[key]} -> ${newLesson[key]}`);
-        }
-      }
-    }
-
-    const formattedDate = new Date().toLocaleString();
-
-    await logActivity(
-        'Lesson',
-        `Lesson updated: ${name} by user ID ${req.user.userId} Name (${req.user.name}). Changes: ${changes.join(', ')}\n\nDate: ${formattedDate}`,
-        req.user.userId
-    );
-
-    res.json(newLesson);
+    res.json(result.rows[0]);
   } catch (err) {
     console.error('Error updating lesson:', err);
     res.status(500).json({ error: 'Failed to update lesson' });
