@@ -87,6 +87,11 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     return Object.keys(errors).length === 0;
   };
 
+  const handleEditorChange = (data) => {
+    console.log('Editor content changed:', data);
+    setEditorData(data);
+  };
+
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -114,7 +119,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
       // Prepare lesson data
       const lessonData = {
         name: lessonName.trim(),
-        content: editorData.trim(),
+        content: editorData, // Don't trim this as it might remove important whitespace in HTML
         section_id: section.section_id,
         xp: parseInt(xp) || 0,
         test_cases: formattedTestCases // Send formatted test cases
@@ -124,6 +129,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         lessonData.lesson_id = lesson.lesson_id;
       }
 
+      console.log('Saving lesson with data:', lessonData);
       await onSave(lessonData);
       setError('');
     } catch (err) {
@@ -192,7 +198,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
           <div className="editor-container">
             <CustomEditor
                 initialData={editorData}
-                onChange={(data) => setEditorData(data)}
+                onChange={handleEditorChange}
                 className="lesson-editor"
                 config={{
                   placeholder: "Enter lesson content here...",

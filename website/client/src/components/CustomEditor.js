@@ -159,7 +159,73 @@ const DEFAULT_CONFIG = {
 		supportAllValues: true
 	},
 	fontSize: {
-		options: ['Default',10, 12, 14, 18, 20, 22,24,26,28,30,32],
+		options: [
+			{
+				title: '12px',
+				model: '12px',
+				view: {
+					name: 'span',
+					styles: { 'font-size': '12px' }
+				}
+			},
+			{
+				title: '14px',
+				model: '14px',
+				view: {
+					name: 'span',
+					styles: { 'font-size': '14px' }
+				}
+			},
+			{
+				title: '16px',
+				model: '16px',
+				view: {
+					name: 'span',
+					styles: { 'font-size': '16px' }
+				}
+			},
+			{
+				title: '18px',
+				model: '18px',
+				view: {
+					name: 'span',
+					styles: { 'font-size': '18px' }
+				}
+			},
+			{
+				title: '20px',
+				model: '20px',
+				view: {
+					name: 'span',
+					styles: { 'font-size': '20px' }
+				}
+			},
+			{
+				title: '24px',
+				model: '24px',
+				view: {
+					name: 'span',
+					styles: { 'font-size': '24px' }
+				}
+			},
+			{
+				title: '28px',
+				model: '28px',
+				view: {
+					name: 'span',
+					styles: { 'font-size': '28px' }
+				}
+			},
+			{
+				title: '32px',
+				model: '32px',
+				view: {
+					name: 'span',
+					styles: { 'font-size': '32px' }
+				}
+			}
+			
+		],
 		supportAllValues: true
 	},
 	heading: {
@@ -210,10 +276,13 @@ const DEFAULT_CONFIG = {
 	htmlSupport: {
 		allow: [
 			{
-				name: /^.*$/,
-				styles: true,
+				name: /.*/,
 				attributes: true,
-				classes: true
+				classes: true,
+				styles: {
+					'font-size': true,
+					// ... other styles
+				}
 			}
 		]
 	},
@@ -287,6 +356,23 @@ const DEFAULT_CONFIG = {
 	},
 	table: {
 		contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
+	},
+	output: {
+		dataIndentChar: ' ',
+		dataIndent: 2,
+		presetStyles: true
+	},
+	generalhtmlsupport: {
+		allow: [
+			{
+				name: /.*/,
+				attributes: true,
+				classes: true,
+				styles: {
+					'font-size': true
+				}
+			}
+		]
 	}
 };
 
@@ -309,9 +395,20 @@ const CustomEditor = ({
 
 	const handleChange = (event, editor) => {
 		const data = editor.getData();
+		console.log('Editor data:', data);
 		if (onChange) {
 			onChange(data);
 		}
+	};
+
+	const handleReady = (editor) => {
+		editorRef.current = editor;
+		editor.model.document.on('change:data', () => {
+			const data = editor.getData();
+			if (onChange) {
+				onChange(data);
+			}
+		});
 	};
 
 	if (error) {
@@ -339,6 +436,7 @@ const CustomEditor = ({
 									editor={ClassicEditor}
 									config={mergedConfig}
 									onChange={handleChange}
+									onReady={handleReady}
 									onError={(error) => setError(error)}
 								/>
 							)}
