@@ -58,10 +58,19 @@ const Support = () => {
     }
   };
 
-    if (loading) return <div className="centered-loader">
-        <CircularProgress/>
-    </div>;
+    
   if (error) return <div className="admin-support-error">{error}</div>;
+
+  if (loading) {
+    return (
+      <div className="admin-support-page admin-support-container">
+        <Sidebar />
+        <div className="centered-loader">
+          <CircularProgress />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-support-page admin-support-container">

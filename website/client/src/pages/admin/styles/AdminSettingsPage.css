@@ -1,14 +1,14 @@
 .admin-settings-container {
   display: flex; /* Keeps sidebar and main content side by side */
-  color: black;
+  color: rgb(253, 253, 253);
   height: 100vh; /* Makes the page take full viewport height */
-  background-color: #f9f9f9; /* Matches the background */
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
 }
 
 .admin-settings-main {
   flex: 1; /* Ensures the main content takes up the remaining space */
   padding: 20px;
-  background-color: #ffffff; /* White background for the main content */
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for contrast */
   margin: 20px; /* Adds spacing between the content and the edge */
   border-radius: 8px; /* Smooth corners for aesthetic */
@@ -16,12 +16,12 @@
 
 .admin-settings-main h2 {
   font-size: 24px;
-  color: #333; /* Slightly darker color for visibility */
+  color: #ffffff; /* Slightly darker color for visibility */
   margin-bottom: 20px;
 }
 
 .admin-settings-main p {
   font-size: 16px;
-  color: #666; /* Lighter gray text for the description */
+  color: #ffffff; /* Lighter gray text for the description */
   line-height: 1.5;
 }
