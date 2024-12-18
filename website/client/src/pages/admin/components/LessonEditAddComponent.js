@@ -185,7 +185,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         <h3 className="form-title">{lesson ? 'Edit Lesson' : 'Add Lesson'}</h3>
         <form className="lesson-form">
           <div className="form-group">
-            <label>Lesson Name:</label>
+            <label className="edit-add-label">Lesson Name:</label>
             <input
                 type="text"
                 value={lessonName}
@@ -207,7 +207,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
           </div>
 
           <div className="form-group">
-            <label>XP:</label>
+            <label className="edit-add-label">XP:</label>
             <input
                 type="number"
                 value={xp}
@@ -217,7 +217,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
           </div>
 
           <div className="form-group">
-            <label>Test Cases:</label>
+            <label className="edit-add-label">Test Cases:</label>
             {test_cases.map((testCase, index) => (
                 <div key={index} className="test-case">
                   <input

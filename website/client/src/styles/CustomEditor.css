@@ -7,35 +7,48 @@
 	}
 }
 
-.main-container {
+.custom-editor {
 	font-family: 'Lato';
+}
+
+.custom-editor .main-container {
 	width: fit-content;
 	margin-left: auto;
 	margin-right: auto;
 }
 
-.ck-content {
-	font-family: 'Lato';
+.custom-editor .ck-content,
+.custom-editor .ck-content p,
+.custom-editor .ck-content h1,
+.custom-editor .ck-content h2,
+.custom-editor .ck-content h3,
+.custom-editor .ck-content h4,
+.custom-editor .ck-content h5,
+.custom-editor .ck-content h6,
+.custom-editor .ck-content span,
+.custom-editor .ck-content div {
+	color: #000000;
+	font-family:sans-serif;
 	line-height: 1.6;
 	word-break: break-word;
 }
 
-.editor-container_classic-editor .editor-container__editor {
+.custom-editor .editor-container_classic-editor .editor-container__editor {
 	min-width: 795px;
 	max-width: 795px;
 }
 
-.ck-content h3.category {
-	font-family: 'Oswald';
-	font-size: 20px;
-	font-weight: bold;
-	color: #555;
-	letter-spacing: 10px;
-	margin: 0;
-	padding: 0;
+.custom-editor .ck-content h3.editor-category {
+	font-family: 'Oswald' !important;
+	font-size: 20px !important;
+	font-weight: bold !important;
+	color: #555 !important;
+	letter-spacing: 10px !important;
+	margin: 0 !important;
+	padding: 0 !important;
 }
 
-.ck-content h2.document-title {
+.custom-editor .ck-content h2.editor-title {
 	font-family: 'Oswald';
 	font-size: 50px;
 	font-weight: bold;
@@ -44,16 +57,16 @@
 	border: 0;
 }
 
-.ck-content h3.document-subtitle {
+.custom-editor .ck-content h3.editor-subtitle {
 	font-family: 'Oswald';
 	font-size: 20px;
-	color: #555;
+	color: #000000;
 	margin: 0 0 1em;
 	font-weight: bold;
 	padding: 0;
 }
 
-.ck-content p.info-box {
+.custom-editor .ck-content p.editor-info-box {
 	--background-size: 30px;
 	--background-color: #e91e63;
 	padding: 1.2em 2em;
@@ -75,7 +88,7 @@
 	box-shadow: 5px 5px 0 #ffe6ef;
 }
 
-.ck-content blockquote.side-quote {
+.custom-editor .ck-content blockquote.editor-side-quote {
 	font-family: 'Oswald';
 	font-style: normal;
 	float: right;
@@ -87,8 +100,8 @@
 	margin-left: 1em;
 }
 
-.ck-content blockquote.side-quote::before {
-	content: '“';
+.custom-editor .ck-content blockquote.editor-side-quote::before {
+	content: '"';
 	position: absolute;
 	top: -37px;
 	left: -10px;
@@ -99,39 +112,39 @@
 	line-height: 1;
 }
 
-.ck-content blockquote.side-quote p {
+.custom-editor .ck-content blockquote.editor-side-quote p {
 	font-size: 2em;
 	line-height: 1;
 }
 
-.ck-content blockquote.side-quote p:last-child:not(:first-child) {
+.custom-editor .ck-content blockquote.editor-side-quote p:last-child:not(:first-child) {
 	font-size: 1.3em;
 	text-align: right;
 	color: #555;
 }
 
-.ck-content span.marker {
+.custom-editor .ck-content span.editor-marker {
 	background: yellow;
 }
 
-.ck-content span.spoiler {
+.custom-editor .ck-content span.editor-spoiler {
 	background: #000;
 	color: #000;
 }
 
-.ck-content span.spoiler:hover {
+.custom-editor .ck-content span.editor-spoiler:hover {
 	background: #000;
 	color: #fff;
 }
 
-.ck-content pre.fancy-code {
+.custom-editor .ck-content pre.editor-code {
 	border: 0;
 	margin-left: 2em;
 	margin-right: 2em;
 	border-radius: 10px;
 }
 
-.ck-content pre.fancy-code::before {
+.custom-editor .ck-content pre.editor-code::before {
 	content: '';
 	display: block;
 	height: 13px;
@@ -140,34 +153,67 @@
 	background-repeat: no-repeat;
 }
 
-.ck-content pre.fancy-code-dark {
+.custom-editor .ck-content pre.editor-code--dark {
 	background: #272822;
 	color: #fff;
 	box-shadow: 5px 5px 0 #0000001f;
 }
 
-.ck-content pre.fancy-code-bright {
+.custom-editor .ck-content pre.editor-code--light {
 	background: #dddfe0;
 	color: #000;
 	box-shadow: 5px 5px 0 #b3b3b3;
 }
 
-.ck-content .text-tiny {
+.custom-editor .ck-content .text-tiny {
 	font-size: 10px;
 }
 
-.ck-content .text-small {
+.custom-editor .ck-content .text-small {
 	font-size: 12px;
 }
 
-.ck-content .text-default {
+.custom-editor .ck-content .text-default {
 	font-size: 16px;
 }
 
-.ck-content .text-big {
+.custom-editor .ck-content .text-big {
 	font-size: 20px;
 }
 
-.ck-content .text-huge {
+.custom-editor .ck-content .text-huge {
 	font-size: 24px;
+}
+
+.custom-editor .ck.ck-editor__main > .ck-editor__editable {
+	background: #fff !important;
+	border: 1px solid #c4c4c4 !important;
+	padding: 20px !important;
+	color: #333333 !important;
+}
+
+.custom-editor .ck.ck-editor__main > .ck-editor__editable:focus {
+	border-color: #2271b1 !important;
+}
+
+.custom-editor .ck.ck-toolbar {
+	background: #f8f9fa !important;
+	border: 1px solid #c4c4c4 !important;
+}
+
+.custom-editor .ck.ck-button {
+	background: transparent !important;
+}
+
+.custom-editor .ck.ck-button:hover {
+	background: #e9ecef !important;
+}
+
+.custom-editor .ck.ck-toolbar * {
+	color: #333333 !important;
+}
+
+.custom-editor .ck.ck-toolbar .ck-button:focus {
+	box-shadow: none !important;
+	border-color: #2271b1 !important;
 }

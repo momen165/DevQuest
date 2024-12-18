@@ -89,8 +89,8 @@ const DashboardContent = () => {
         <header className="dashboard-header">
           <h1>Dashboard</h1>
           <div className="profile">
-            <span>{user?.name}</span>
-            <p><Link to="/" className='dashboard-to-homeLink'>Go back to the website</Link></p>
+            <span>Welcome, {user?.name}</span>
+            <Link to="/" className='dashboard-to-homeLink'>← Back to website</Link>
           </div>
         </header>
 
@@ -123,7 +123,9 @@ const DashboardContent = () => {
                   recentActivity.map((activity) => (
                       <li key={activity.activity_id}>
                         <div className="activity-short" onClick={() => openActivityDetails(activity)}>
-                          {activity.action_description.substring(0, 50)}...
+                          {activity.action_description.length > 50 
+                            ? `${activity.action_description.substring(0, 50)}...`
+                            : activity.action_description}
                         </div>
                       </li>
                   ))

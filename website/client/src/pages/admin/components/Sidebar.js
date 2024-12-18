@@ -26,19 +26,19 @@ const Sidebar = () => {
       <h2>Admin Dashboard</h2>
       <ul>
         <Link to="/Dashboard" className="link">
-          <li className={location.pathname === '/Dashboard' ? 'sidebar-item active' : 'sidebar-item'}>
+          <li className={`sidebar-item ${location.pathname === '/Dashboard' ? 'active' : ''}`}>
             <FaHome /> <span>Dashboard</span>
           </li>
         </Link>
         
         <Link to="/Students" className="link">
-          <li className={location.pathname === '/Students' ? 'sidebar-item active' : 'sidebar-item'}>
+          <li className={`sidebar-item ${location.pathname === '/Students' ? 'active' : ''}`}>
             <FaUser /> <span>Students</span>
           </li>
         </Link>
 
         <Link to="/AdminCourses" className="link">
-          <li className={location.pathname === '/AdminCourses' ? 'sidebar-item active' : 'sidebar-item'}>
+          <li className={`sidebar-item ${location.pathname === '/AdminCourses' ? 'active' : ''}`}>
             <FaChalkboardTeacher /> <span>Courses</span>
           </li>
         </Link>
@@ -46,24 +46,24 @@ const Sidebar = () => {
         
 
         <Link to="/PaymentInfo" className="link">
-          <li className={location.pathname === '/PaymentInfo' ? 'sidebar-item active' : 'sidebar-item'}>
+          <li className={`sidebar-item ${location.pathname === '/PaymentInfo' ? 'active' : ''}`}>
             <FaMoneyCheckAlt /> <span>Payment</span>
           </li>
         </Link>
 
         <Link to="/Feedback" className="link">
-          <li className={location.pathname === '/Feedback' ? 'sidebar-item active' : 'sidebar-item'}>
+          <li className={`sidebar-item ${location.pathname === '/Feedback' ? 'active' : ''}`}>
             <FaComment /> <span>Feedback</span>
           </li>
         </Link>
         <Link to="/Support" className="link">
-          <li className={location.pathname === '/Support' ? 'sidebar-item active' : 'sidebar-item'}>
+          <li className={`sidebar-item ${location.pathname === '/Support' ? 'active' : ''}`}>
             <FaComment /> <span>Support</span>
           </li>
         </Link>
 
         <Link to="/AdminSettingsPage" className="link">
-          <li className={location.pathname === '/AdminSettingsPage' ? 'sidebar-item active' : 'sidebar-item'}>
+          <li className={`sidebar-item ${location.pathname === '/AdminSettingsPage' ? 'active' : ''}`}>
             <FaCog /> <span>Settings</span>
           </li>
         </Link>
@@ -77,9 +77,9 @@ const Sidebar = () => {
       {showLogoutConfirm && (
         <div className="logout-confirmation">
           <div className="logout-dialog">
-            <p>Are you sure you want to log out?</p>
+            <p>Are you sure you want to logout?</p>
             <div className="dialog-buttons">
-              <button className="confirm-button" onClick={confirmLogout}>Yes</button>
+              <button className="confirm-button" onClick={confirmLogout}>Logout</button>
               <button className="cancel-button" onClick={cancelLogout}>Cancel</button>
             </div>
           </div>

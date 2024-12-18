@@ -1,10 +1,11 @@
 .section-edit-container {
-  background-color: #ffffff;
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.3);
   max-width: 800px;
   margin: 20px auto;
+  color: #ffffff;
 }
 
 .section-edit-container h3 {
@@ -12,7 +13,9 @@
   font-weight: bold;
   text-align: left;
   margin-bottom: 20px;
-  color: #333; /* Slightly darker text for better readability */
+  color: #ffffff;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
 }
 
 .add-section-container {
@@ -20,96 +23,104 @@
   justify-content: flex-end;
   align-items: center;
   margin-bottom: 20px;
-  gap: 10px; /* Spacing between elements */
+  gap: 10px;
 }
 
 .section-input {
   width: 300px;
   padding: 10px;
-  border: 1px solid #ddd;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.5);
   border-radius: 4px;
   font-size: 14px;
+  color: #ffffff;
+}
+
+.section-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .add-section-button {
   display: flex;
   align-items: center;
-  background-color: #28a745; /* Green for add button */
-  color: #fff;
+  background-color: rgba(52, 152, 219, 0.8);
+  color: #ffffff;
   padding: 10px 15px;
   font-size: 16px;
   font-weight: bold;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  gap: 5px; /* Space between icon and text */
+  gap: 5px;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .add-section-button:hover {
-  background-color: #218838; /* Darker green for hover */
-  transform: translateY(-2px); /* Slight lift effect */
+  background-color: rgba(52, 152, 219, 1);
+  transform: translateY(-2px);
 }
 
 .section-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   margin-bottom: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(52, 152, 219, 0.3);
 }
 
 .section-table th,
 .section-table td {
-  border: 1px solid #ddd;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 12px;
   text-align: left;
   font-size: 16px;
-  color: #555; /* Medium gray for table content */
+  color: #ffffff;
 }
 
 .section-table th {
-  background-color: #f8f9fa; /* Subtle gray for header */
-  font-weight: bold;
+  background-color: rgba(52, 152, 219, 0.1);
+  font-weight: 600;
 }
 
 .section-table tr:hover {
-  background-color: #f1f1f1; /* Light gray hover effect for rows */
+  background-color: rgba(52, 152, 219, 0.1);
+  transition: background-color 0.2s ease;
 }
 
 .icon {
   cursor: pointer;
   font-size: 18px;
   margin-right: 10px;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .icon:hover {
-  transform: scale(1.1); /* Slight zoom effect */
+  opacity: 0.8;
+  transform: scale(1.1);
 }
 
 .edit-lessons-icon,
 .edit-section-icon {
-  color: #007bff; /* Blue for edit actions */
+  color: #3498db;
 }
 
 .view-lessons-icon,
 .view-section-icon {
-  color: #000000; /* Green for view actions */
+  color: #2ecc71;
 }
 
 .delete-section-icon {
-  color: #dc3545; /* Red for delete actions */
-}
-
-.delete-section-icon:hover {
-  color: #c82333; /* Darker red on hover */
+  color: #e74c3c;
 }
 
 .save-button {
   display: block;
   margin: 20px auto;
-  background-color: #007bff;
-  color: #fff;
+  background-color: rgba(52, 152, 219, 0.8);
+  color: #ffffff;
   padding: 10px 20px;
   font-size: 16px;
   font-weight: bold;
@@ -117,23 +128,31 @@
   border-radius: 4px;
   cursor: pointer;
   width: 150px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .save-button:hover {
-  background-color: #0056b3;
+  background-color: rgba(52, 152, 219, 1);
   transform: translateY(-2px);
 }
 
 .error-message {
-  color: #dc3545;
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  padding: 10px;
+  border-radius: 4px;
   font-weight: bold;
   text-align: center;
   margin: 10px 0;
 }
 
 .success-message {
-  color: #28a745;
+  color: #2ecc71;
+  background: rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  padding: 10px;
+  border-radius: 4px;
   font-weight: bold;
   text-align: center;
   margin: 10px 0;

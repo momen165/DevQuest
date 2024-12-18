@@ -1,4 +1,4 @@
-﻿import React, {useEffect, useRef, useState} from 'react';
+﻿import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {Editor} from '@monaco-editor/react';
 import axios from 'axios';
 import {FaPlay, FaCopy, FaCog} from 'react-icons/fa';
@@ -48,6 +48,9 @@ const MonacoEditorComponent = ({
       };
     }
   });
+  const [isRunning, setIsRunning] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
+  const COOLDOWN_DURATION = 2000; // 2 seconds cooldown
 
   useEffect(() => {
     return () => {
@@ -65,13 +68,14 @@ const MonacoEditorComponent = ({
     }
   }, [code, setCode, language]);
 
-    const runCode = async () => {
-        if (!code.trim()) {
-            setConsoleOutput('Please enter some code before running.');
+    const runCode = useCallback(async () => {
+        if (isRunning || cooldown || !code.trim()) {
             return;
         }
 
         try {
+            setIsRunning(true);
+            setCooldown(true);
             console.log('Running code...');
             setConsoleOutput(<CircularProgress/>);
 
@@ -151,8 +155,14 @@ const MonacoEditorComponent = ({
         } catch (err) {
             console.error('Error running code:', err.response?.data || err.message);
             setConsoleOutput(`Error: ${err.message}`);
+        } finally {
+            setIsRunning(false);
+            // Start cooldown timer
+            setTimeout(() => {
+                setCooldown(false);
+            }, COOLDOWN_DURATION);
         }
-    };
+    }, [code, languageId, user, setConsoleOutput, setIsAnswerCorrect, lessonId]);
 
   const copyCodeToClipboard = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -284,8 +294,12 @@ const adjustFontSize = (increment) => {
     }}
 />
       <div className="editor-controls">
-        <button className="editor-button run-btn" onClick={runCode}>
-          Run <FaPlay />
+        <button 
+            className={`editor-button run-btn ${(isRunning || cooldown) ? 'disabled' : ''}`}
+            onClick={runCode}
+            disabled={isRunning || cooldown}
+        >
+            {isRunning ? 'Running...' : cooldown ? 'Wait...' : 'Run'} <FaPlay />
         </button>
         <button className="editor-button copy-btn" onClick={copyCodeToClipboard}>
           <FaCopy />

@@ -310,47 +310,47 @@ const DEFAULT_CONFIG = {
 			{
 				name: 'Article category',
 				element: 'h3',
-				classes: ['category']
+				classes: ['editor-category']
 			},
 			{
 				name: 'Title',
 				element: 'h2',
-				classes: ['document-title']
+				classes: ['editor-title']
 			},
 			{
 				name: 'Subtitle',
 				element: 'h3',
-				classes: ['document-subtitle']
+				classes: ['editor-subtitle']
 			},
 			{
 				name: 'Info box',
 				element: 'p',
-				classes: ['info-box']
+				classes: ['editor-info-box']
 			},
 			{
 				name: 'Side quote',
 				element: 'blockquote',
-				classes: ['side-quote']
+				classes: ['editor-side-quote']
 			},
 			{
 				name: 'Marker',
 				element: 'span',
-				classes: ['marker']
+				classes: ['editor-marker']
 			},
 			{
 				name: 'Spoiler',
 				element: 'span',
-				classes: ['spoiler']
+				classes: ['editor-spoiler']
 			},
 			{
 				name: 'Code (dark)',
 				element: 'pre',
-				classes: ['fancy-code', 'fancy-code-dark']
+				classes: ['editor-code', 'editor-code--dark']
 			},
 			{
 				name: 'Code (bright)',
 				element: 'pre',
-				classes: ['fancy-code', 'fancy-code-bright']
+				classes: ['editor-code', 'editor-code--light']
 			}
 		]
 	},

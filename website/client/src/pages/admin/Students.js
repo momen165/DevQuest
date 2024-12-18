@@ -20,6 +20,7 @@ const StudentSubscriptionTable = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [students, setStudents] = useState([]); // Ensure it's always an array
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -62,52 +63,79 @@ const StudentSubscriptionTable = () => {
           : []
   );
 
+  const handleRowClick = (student) => {
+    setSelectedStudent(student);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedStudent(null);
+  };
+
   if (error) return <div>{error}</div>;
 
   return (
     <div className="student-subscription-page">
       <Sidebar />
       <div className="student-subscription-content">
-        <h2 className="PageTitle">Students Subscribed to the Website</h2>
+        <h2 className="studentPageTitle">Student Management</h2>
 
         <div className="search-bar">
           <input
             type="text"
-            placeholder="Search students by name or email"
+            placeholder="Search by name or email..."
             value={searchTerm}
             onChange={handleSearch}
           />
-          <button className="search-button">Search</button>
+          <button className="search-button">
+            <i className="fas fa-search"></i> Search
+          </button>
         </div>
 
-        <table className="subscription-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Subscription</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredStudents.map((student) => (
-              <tr
-                key={student.user_id}
-                onClick={() => {
-                  console.log('Selected Student:', student); // Debug selected student
-                  setSelectedStudent(student);
-                }}
-              >
-                <td>{student.user_id}</td>
-                <td>{student.name || 'Unknown'}</td>
-                <td>{student.email || 'Unknown'}</td>
-                <td>{student.subscription || 'N/A'}</td>
+        {filteredStudents.length > 0 ? (
+          <table className="subscription-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Subscription</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredStudents.map((student) => (
+                <tr
+                  key={student.user_id}
+                  onClick={() => handleRowClick(student)}
+                  className={selectedStudent?.user_id === student.user_id ? 'selected' : ''}
+                >
+                  <td>{student.user_id}</td>
+                  <td>{student.name || 'Unknown'}</td>
+                  <td>{student.email || 'Unknown'}</td>
+                  <td>{student.subscription || 'N/A'}</td>
+                  <td>
+                    <span className={`status-badge ${student.subscription ? 'active' : 'inactive'}`}>
+                      {student.subscription ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="no-results">
+            {searchTerm ? 'No students found matching your search.' : 'No students available.'}
+          </div>
+        )}
 
-        {selectedStudent && <StudentDetailTable studentId={selectedStudent.user_id} />}
+        {isModalOpen && selectedStudent && (
+          <StudentDetailTable 
+            studentId={selectedStudent.user_id} 
+            onClose={handleCloseModal}
+          />
+        )}
       </div>
     </div>
   );

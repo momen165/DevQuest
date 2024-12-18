@@ -1,12 +1,13 @@
 /* General container for the editor */
 .lesson-edit-add-container {
   padding: 20px;
-  background-color: #f9f9f9;
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.3);
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
+  color: #ffffff;
 }
 
 /* Title of the form */
@@ -15,29 +16,35 @@
   font-weight: bold;
   margin-bottom: 20px;
   text-align: center;
+  color: #ffffff;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
 }
 
 /* Form group styling */
 .form-group {
   margin-bottom: 15px;
 }
-.lesson-edit-add-container p {
-  color: #000;
+.lesson-edit-add-container > p {
+  color: #ffffff;
 }
-label {
+.edit-add-label {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 8px;
   display: block;
+  color: #ffffff;
 }
 
 /* Input fields */
 input[type="text"], input[type="number"], textarea {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.5);
+  border-radius: 4px;
   font-size: 14px;
+  color: #ffffff;
   box-sizing: border-box;
 }
 
@@ -61,19 +68,20 @@ textarea {
 }
 
 .editor-toolbar button {
-  background-color: #007bff;
-  color: white;
+  background-color: rgba(52, 152, 219, 0.8);
+  color: #ffffff;
   border: none;
   padding: 8px 15px;
   margin: 0 5px;
   font-size: 14px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .editor-toolbar button:hover {
-  background-color: #0056b3;
+  background-color: rgba(52, 152, 219, 1);
+  transform: translateY(-2px);
 }
 
 .editor-toolbar button:focus {
