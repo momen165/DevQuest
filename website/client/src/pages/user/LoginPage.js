@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'styles/AuthPage.css';
 import { useAuth } from 'AuthContext';
@@ -9,8 +9,14 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

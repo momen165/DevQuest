@@ -108,21 +108,21 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         return;
       }
 
-      // Format test cases - remove empty ones and format properly
+      // Format test cases - remove empty ones and preserve formatting
       const formattedTestCases = test_cases
-          .filter(test => test.expected_output.trim())
-          .map(test => ({
-            input: test.input.trim(),
-            expected_output: test.expected_output.trim() // Match database column name
-          }));
+        .filter(test => test.expected_output.trim())
+        .map(test => ({
+          input: test.input,
+          expected_output: test.expected_output.replace(/\r\n/g, '\n') // Normalize line endings
+        }));
 
       // Prepare lesson data
       const lessonData = {
         name: lessonName.trim(),
-        content: editorData, // Don't trim this as it might remove important whitespace in HTML
+        content: editorData,
         section_id: section.section_id,
         xp: parseInt(xp) || 0,
-        test_cases: formattedTestCases // Send formatted test cases
+        test_cases: formattedTestCases
       };
 
       if (lesson?.lesson_id) {
@@ -161,7 +161,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     const updatedTestCases = [...test_cases];
     updatedTestCases[index] = {
       ...updatedTestCases[index],
-      [field]: value
+      [field]: field === 'expected_output' ? value.replace(/\r\n/g, '\n') : value
     };
     setTestCases(updatedTestCases);
   };
@@ -235,6 +235,19 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
                       }
                       placeholder={`Expected Output ${index + 1}`}
                       required
+                      style={{
+                          whiteSpace: 'pre',
+                          fontFamily: 'monospace',
+                          minHeight: '100px',
+                          width: '100%',
+                          tabSize: 4,
+                          WebkitTabSize: 4,
+                          MozTabSize: 4,
+                          overflowX: 'auto',
+                          wordWrap: 'normal',
+                          overflowWrap: 'normal',
+                          lineHeight: '1.2'
+                      }}
                   />
                   <button
                       type="button"
