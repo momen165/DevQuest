@@ -3,24 +3,24 @@
   width: 100%;
   height: 100vh; /* Ensure full height */
   background: #94bbd4;
-
 }
-.subscription-section {
+
+.account-settings-subscription-section {
   margin-top: 2rem;
   padding: 1.5rem;
   background-color: #f8f9fa;
   border-radius: 8px;
 }
 
-.subscription-info {
+.account-settings-subscription-info {
   margin-top: 1rem;
 }
 
-.subscription-info p {
+.account-settings-subscription-info p {
   margin: 0.5rem 0;
 }
 
-.edit-payment-button {
+.account-settings-edit-payment-button {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
   background-color: #007bff;
@@ -30,7 +30,7 @@
   cursor: pointer;
 }
 
-.modal-overlay {
+.account-settings-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -42,13 +42,14 @@
   align-items: center;
 }
 
-.modal-content {
+.account-settings-modal-content {
   background-color: white;
   padding: 2rem;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
 }
+
 /* Profile Content */
 .account-settings-profile-content {
   flex: 1;
@@ -82,7 +83,7 @@
 }
 
 /* Button Styles */
-.account-settings-button {
+.account-settings-btn {
   padding: 15px 25px;
   border: unset;
   border-radius: 15px;
@@ -98,7 +99,7 @@
   overflow: hidden;
 }
 
-.account-settings-button::before {
+.account-settings-btn::before {
   content: "";
   position: absolute;
   top: 0;
@@ -113,11 +114,11 @@
   transition: all 250ms;
 }
 
-.account-settings-button:hover {
+.account-settings-btn:hover {
   color: #e8e8e8;
 }
 
-.account-settings-button:hover::before {
+.account-settings-btn:hover::before {
   width: 100%;
 }
 
@@ -134,6 +135,7 @@
 /* Profile Form */
 .account-settings-profile-form {
   margin-top: 20px;
+  width: 50%;
 }
 
 .account-settings-profile-form label {
@@ -142,25 +144,26 @@
   font-weight: bold;
 }
 
-.account-settings-profile-form input, .account-settings-profile-form textarea, .account-settings-profile-form select {
+.Rand-idafkd-Name, .account-settings-textarea, .account-settings-select {
   background-color: #eee;
   border: none;
   padding: 1rem;
   font-size: 1rem;
-  width: 50%;
   border-radius: 1rem;
+  width: auto;
   color: #3498db;
   box-shadow: 0 0.4rem #dfd9d9;
   transition: border-color 0.3s ease;
   resize: none;
   margin-bottom: 30px;
+  padding-right: 3rem; /* Add more padding to the right to ensure the icon is fully visible */
 }
 
-.account-settings-profile-form input:focus, .account-settings-profile-form textarea:focus, .account-settings-profile-form select:focus {
+.Rand-idafkd-Name:focus, .account-settings-textarea:focus, .account-settings-select:focus {
   outline-color: rgb(0, 0, 0);
 }
 
-.account-settings-profile-form select {
+.account-settings-select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -175,21 +178,21 @@
   gap: 10px;
 }
 
-.account-settings-save-btn {
+.user-account-settings-save-btn, .user-account-settings-cancel-btn {
   background-color: #3498db;
   border: none;
-  color: #fff;
+  color: #000;
   padding: 10px 20px;
   border-radius: 50px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.account-settings-save-btn:hover::before {
+.user-account-settings-save-btn:hover::before {
   background-color: #db6934;
 }
 
-.account-settings-cancel-btn {
+.user-account-settings-cancel-btn {
   background-color: #000;
   border: none;
   color: #fff;
@@ -199,34 +202,34 @@
   transition: background-color 0.3s ease;
 }
 
-.account-settings-cancel-btn:hover {
+.user-account-settings-cancel-btn:hover {
   background-color: #333;
 }
 
-.account-settings-cancel-btn:hover::before {
+.user-account-settings-cancel-btn:hover::before {
   background-color: #5a5a5a;
 }
 
-.error-message,
-.success-message {
+.account-settings-error-message,
+.account-settings-success-message {
   padding: 1rem;
   border-radius: 4px;
   margin-bottom: 1rem;
   text-align: center;
 }
 
-.error-message {
+.account-settings-error-message {
   background-color: #fee2e2;
   color: #dc2626;
 }
 
-.success-message {
+.account-settings-success-message {
   background-color: #dcfce7;
   color: #16a34a;
 }
 
-.profile-section,
-.subscription-section {
+.account-settings-profile-section,
+.account-settings-subscription-section {
   background-color: white;
   padding: 2rem;
   border-radius: 8px;
@@ -249,23 +252,23 @@
   margin-bottom: 1rem;
 }
 
-.profile-pic-buttons {
+.account-settings-profile-pic-buttons {
   display: flex;
   gap: 1rem;
 }
 
-.form-group {
+.account-settings-form-group {
   margin-bottom: 1.5rem;
 }
 
-.form-group label {
+.account-settings-form-group label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
   color: #374151;
 }
 
-.account-settings-input,
+.Rand-idafkd-Name,
 .account-settings-select,
 .account-settings-textarea {
   width: 100%;
@@ -280,18 +283,17 @@
   min-height: 100px;
 }
 
-.form-buttons {
+.account-settings-form-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 1rem;
-  margin-top: 2rem;
 }
 
-.subscription-info {
+.account-settings-subscription-info {
   margin-top: 1.5rem;
 }
 
-.subscription-detail {
+.account-settings-subscription-detail {
   display: flex;
   margin-bottom: 1rem;
   padding: 0.75rem;
@@ -299,18 +301,18 @@
   border-radius: 4px;
 }
 
-.detail-label {
+.account-settings-detail-label {
   font-weight: 500;
   width: 120px;
   color: #374151;
 }
 
-.detail-value {
+.account-settings-detail-value {
   color: #111827;
 }
 
-.manage-subscription-button,
-.subscribe-button {
+.account-settings-manage-subscription-button,
+.account-settings-subscribe-button {
   width: 100%;
   padding: 0.75rem;
   margin-top: 1rem;
@@ -323,12 +325,12 @@
   transition: background-color 0.2s;
 }
 
-.manage-subscription-button:hover,
-.subscribe-button:hover {
+.account-settings-manage-subscription-button:hover,
+.account-settings-subscribe-button:hover {
   background-color: #2563eb;
 }
 
-.no-subscription {
+.account-settings-no-subscription {
   text-align: center;
   padding: 2rem;
   background-color: #f9fafb;
@@ -361,4 +363,65 @@
 
 .account-settings-button:hover {
   opacity: 0.9;
+}
+.Rand-idafkd-Name{
+  width: 50%;
+}
+/* Update button styles with unique names */
+.settings-btn {
+  padding: 15px 25px;
+  border: unset;
+  border-radius: 15px;
+  color: #212121;
+  z-index: 1;
+  background: #e8e8e8;
+  position: relative;
+  font-weight: 1000;
+  font-size: 16px;
+  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  transition: all 250ms;
+  overflow: hidden;
+}
+
+.settings-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  border-radius: 15px;
+  background-color: #212121;
+  z-index: -1;
+  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  transition: all 250ms;
+}
+
+.settings-btn:hover {
+  color: #e8e8e8;
+}
+
+.settings-btn:hover::before {
+  width: 100%;
+}
+
+.settings-update-btn, .settings-remove-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.settings-remove-btn:hover::before {
+  background-color: #ef4444;
+}
+
+.settings-save-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.settings-cancel-btn {
+  background-color: #ef4444;
+  color: white;
 }
