@@ -18,9 +18,19 @@ const addLesson = async (req, res) => {
       return res.status(400).json({ error: 'section_id, name, and content are required.' });
     }
 
+    // Get the next order value for the section
+    const orderQuery = `
+      SELECT COALESCE(MAX(lesson_order), -1) + 1 AS next_order 
+      FROM lesson 
+      WHERE section_id = $1;
+    `;
+    
+    const orderResult = await db.query(orderQuery, [section_id]);
+    const nextOrder = orderResult.rows[0].next_order;
+
     const query = `
-      INSERT INTO lesson (section_id, name, content, xp, test_cases)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO lesson (section_id, name, content, xp, test_cases, lesson_order)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
 
@@ -30,11 +40,10 @@ const addLesson = async (req, res) => {
       content,
       xp || 0,
       JSON.stringify(test_cases || []),
+      nextOrder
     ];
 
-
     const result = await db.query(query, values);
-
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Error adding lesson:', err);
@@ -42,7 +51,38 @@ const addLesson = async (req, res) => {
   }
 };
 
-
+// Add this new function to fix existing lesson orders
+const fixLessonOrders = async (req, res) => {
+  try {
+    // Get all sections
+    const sectionsQuery = 'SELECT section_id FROM section';
+    const sectionsResult = await db.query(sectionsQuery);
+    
+    for (const section of sectionsResult.rows) {
+      // Get lessons for this section ordered by lesson_id
+      const lessonsQuery = `
+        SELECT lesson_id 
+        FROM lesson 
+        WHERE section_id = $1 
+        ORDER BY lesson_id ASC
+      `;
+      const lessonsResult = await db.query(lessonsQuery, [section.section_id]);
+      
+      // Update lesson_order for each lesson
+      for (let i = 0; i < lessonsResult.rows.length; i++) {
+        await db.query(
+          'UPDATE lesson SET lesson_order = $1 WHERE lesson_id = $2',
+          [i, lessonsResult.rows[i].lesson_id]
+        );
+      }
+    }
+    
+    res.status(200).json({ message: 'Lesson orders fixed successfully' });
+  } catch (err) {
+    console.error('Error fixing lesson orders:', err);
+    res.status(500).json({ error: 'Failed to fix lesson orders' });
+  }
+};
 
 // Get all lessons for a specific section
 const getLessonsBySection = async (req, res) => {
@@ -82,7 +122,7 @@ const getLessonById = async (req, res) => {
       SELECT 
         lesson.*, 
         COALESCE(lesson.test_cases::json, '[{"input": "", "expected_output": ""}]'::json) as test_cases,
-        course.language_id -- Fetch language_id from the course table
+        course.language_id
       FROM lesson
       JOIN section ON lesson.section_id = section.section_id
       JOIN course ON section.course_id = course.course_id
@@ -99,20 +139,21 @@ const getLessonById = async (req, res) => {
     // Extract lesson data
     const lessonData = result.rows[0];
 
-    // Ensure test_cases is always an array
+    // Ensure test_cases is always an array and preserve exact formatting
     try {
       lessonData.test_cases = Array.isArray(lessonData.test_cases)
         ? lessonData.test_cases.map(testCase => ({
             input: testCase.input || '',
-            expectedOutput: testCase.expected_output || '', // Convert to expectedOutput for frontend
+            // Preserve exact formatting by not trimming
+            expectedOutput: testCase.expected_output || '',
+            // Ensure newlines are preserved
+            preserveFormat: true
           }))
-        : [{ input: '', expectedOutput: '' }];
+        : [{ input: '', expectedOutput: '', preserveFormat: true }];
     } catch (err) {
       console.error('Error parsing test_cases:', err);
-      lessonData.test_cases = [{ input: '', expectedOutput: '' }];
+      lessonData.test_cases = [{ input: '', expectedOutput: '', preserveFormat: true }];
     }
-
-
 
     res.status(200).json(lessonData);
   } catch (err) {
@@ -421,6 +462,53 @@ const getLastAccessedLesson = async (userId, courseId) => {
   }
 };
 
+const getLessons = async (req, res) => {
+    const { section_id, course_id } = req.query;
+
+    try {
+        let query;
+        let params;
+
+        if (section_id) {
+            query = `
+                SELECT 
+                    lesson.*,
+                    section.section_order,
+                    section.name as section_name
+                FROM lesson
+                JOIN section ON lesson.section_id = section.section_id
+                WHERE lesson.section_id = $1
+                ORDER BY lesson.lesson_order ASC;
+            `;
+            params = [section_id];
+        } else if (course_id) {
+            query = `
+                SELECT 
+                    lesson.*,
+                    section.section_id,
+                    section.name as section_name,
+                    section.section_order
+                FROM lesson
+                JOIN section ON lesson.section_id = section.section_id
+                WHERE section.course_id = $1
+                ORDER BY 
+                    section.section_order ASC,
+                    lesson.lesson_order ASC;
+            `;
+            params = [course_id];
+        } else {
+            return res.status(400).json({ error: 'Either section_id or course_id must be provided.' });
+        }
+
+        const result = await db.query(query, params);
+        console.log('Fetched lessons with ordering:', result.rows);
+        res.status(200).json(result.rows);
+    } catch (err) {
+        console.error('Error fetching lessons:', err);
+        res.status(500).json({ error: 'Failed to fetch lessons.' });
+    }
+};
+
 module.exports = {
   addLesson,
   getLessonsBySection,
@@ -431,4 +519,6 @@ module.exports = {
   updateLessonProgress,
   getLessonProgress,
   getLastAccessedLesson,
+  getLessons,
+  fixLessonOrders
 };

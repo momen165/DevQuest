@@ -200,3 +200,16 @@ textarea {
   outline: none;
 }
 
+.test-case textarea {
+  white-space: pre;
+  font-family: monospace;
+  tab-size: 4;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  overflow-x: auto;
+  resize: both;
+  width: 100%;
+  padding: 8px;
+  line-height: 1.2;
+}
+

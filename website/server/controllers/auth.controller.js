@@ -7,7 +7,29 @@ const mailjet = require('node-mailjet');
 
 require('dotenv').config();
 
-
+const getEmailTemplate = (content) => `
+  <div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <!-- Header with gradient background -->
+    <div style="background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); padding: 40px 20px; text-align: center;">
+      <img src="https://devquest2.s3.eu-central-1.amazonaws.com/assets/logo.svg" alt="Devquest Logo" style="max-width: 180px; height: auto; margin-bottom: 20px;">
+    </div>
+    
+    <!-- Main content -->
+    <div style="padding: 40px 30px; background-color: #ffffff;">
+      ${content}
+    </div>
+    
+    <!-- Footer -->
+    <div style="background-color: #F9FAFB; padding: 30px 20px; text-align: center;">
+      <div style="margin-bottom: 20px;">
+        <a href="${process.env.WEBSITE_URL}/about" style="color: #6B7280; text-decoration: none; margin: 0 10px;">About</a>
+        <a href="${process.env.WEBSITE_URL}/contact" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Contact</a>
+        <a href="${process.env.WEBSITE_URL}/privacy" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+      </div>
+      <p style="color: #9CA3AF; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} Devquest. All rights reserved.</p>
+    </div>
+  </div>
+`;
 
 const signup = async (req, res) => {
     const errors = validationResult(req);
@@ -32,23 +54,32 @@ const signup = async (req, res) => {
         // Construct verification link
         const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
-        // Send verification email
-        await sendEmail(
-            email,
-            'Verify Your Email Address',
-            `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333;">Verify Your Email Address</h1>
-          <p>Thank you for signing up! Please verify your email address by clicking the button below:</p>
-          <div style="margin: 20px 0;">
-              <a href="${verificationLink}" 
-                 style="background-color: #007bff; color: white; padding: 10px 20px; 
-                        text-decoration: none; border-radius: 5px; display: inline-block;">
-                  Verify Email
-              </a>
+        // Update the email content
+        const emailContent = getEmailTemplate(`
+          <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">Welcome to Devquest!</h1>
+          
+          <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
+            We're excited to have you join our community of developers! To get started, please verify your email address.
+          </p>
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${verificationLink}" 
+               style="display: inline-block; background-color: #4F46E5; color: white; 
+                      padding: 14px 32px; text-decoration: none; border-radius: 8px;
+                      font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
+              Verify Email Address
+            </a>
           </div>
-          <p>If you did not sign up, please ignore this email.</p>
-      </div>`
-        );
+          
+          <div style="background-color: #F3F4F6; border-radius: 8px; padding: 16px; margin-top: 32px;">
+            <p style="color: #6B7280; font-size: 14px; margin: 0;">
+              If you didn't create an account with Devquest, you can safely ignore this email.
+            </p>
+          </div>
+        `);
+
+        // Send verification email with new template
+        await sendEmail(email, 'Welcome to Devquest - Verify Your Email', emailContent);
 
         await logActivity('User', `Verification email sent to: ${email}`, userId);
 
@@ -213,21 +244,18 @@ const sendEmail = async (recipient, subject, htmlContent) => {
                   },
                   To: [{
                       Email: recipient,
-                      Name: recipient.split('@')[0] // Use email username as recipient name
+                      Name: recipient.split('@')[0]
                   }],
                   Subject: subject,
                   HTMLPart: htmlContent,
-                  CustomID: `reset-pwd-${Date.now()}` // Add tracking ID
+                  CustomID: `subscription-${Date.now()}`
               }]
           });
 
-      if (request.response.status !== 200) {
-          throw new Error(`Email sending failed with status: ${request.response.status}`);
-      }
-
+      console.log('Email sending response:', request.response.status);
       return true;
   } catch (error) {
-      console.error('Email sending error:', error);
+      console.error('Detailed email sending error:', error);
       throw new Error('Failed to send email: ' + error.message);
   }
 };
@@ -268,8 +296,7 @@ const sendSupportEmail = async (recipient, subject, htmlContent) => {
   }
 };
 
-const sendPasswordResetEmail = async (req,
-res) => {
+const sendPasswordResetEmail = async (req, res) => {
   const { email } = req.body;
 
   // Input validation
@@ -298,24 +325,31 @@ res) => {
       
       const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-      // Enhanced email template
-      await sendEmail(
-          email,
-          'Password Reset Request',
-          `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #333;">Password Reset Request</h1>
-              <p>We received a request to reset your password. Click the button below to reset it:</p>
-              <div style="margin: 20px 0;">
-                  <a href="${resetLink}" 
-                     style="background-color: #007bff; color: white; padding: 10px 20px; 
-                            text-decoration: none; border-radius: 5px; display: inline-block;">
-                      Reset Password
-                  </a>
-              </div>
-              <p>This link will expire in 1 hour for security reasons.</p>
-              <p>If you didn't request this reset, please ignore this email or contact support.</p>
-          </div>`
-      );
+      // Update the email content
+      const emailContent = getEmailTemplate(`
+        <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">Reset Your Password</h1>
+        
+        <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
+          We received a request to reset your password. Use the button below to set up a new password for your account.
+        </p>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${resetLink}" 
+             style="display: inline-block; background-color: #4F46E5; color: white; 
+                    padding: 14px 32px; text-decoration: none; border-radius: 8px;
+                    font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
+            Reset Password
+          </a>
+        </div>
+        
+        <div style="background-color: #F3F4F6; border-radius: 8px; padding: 16px; margin-top: 32px;">
+          <p style="color: #6B7280; font-size: 14px; margin: 0;">
+            This link will expire in 1 hour. If you didn't request a password reset, please ignore this email or contact our support team.
+          </p>
+        </div>
+      `);
+
+      await sendEmail(email, 'Password Reset Request - Devquest', emailContent);
 
       return res.status(200).json({
           message: 'If your email exists in our system, you will receive reset instructions.'
@@ -423,17 +457,31 @@ const verifyEmail = async (req, res) => {
 
 
 const sendFeedbackReplyEmail = async (email, name, comment, reply) => {
-  const subject = 'Reply to your feedback';
-  const htmlContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1 style="color: #333;">Reply to your feedback</h1>
-      <p>Dear ${name},</p>
-      <p>Thank you for your feedback: "${comment}".</p>
-      <p>Our reply: ${reply}</p>
-    </div>
-  `;
+    const emailContent = getEmailTemplate(`
+      <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">We've Responded to Your Feedback</h1>
+      
+      <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
+        Hello ${name}, thank you for taking the time to share your thoughts with us.
+      </p>
+      
+      <div style="background-color: #F3F4F6; border-radius: 8px; padding: 20px; margin: 24px 0;">
+        <p style="color: #6B7280; font-size: 15px; font-style: italic; margin: 0;">
+          Your feedback: "${comment}"
+        </p>
+      </div>
+      
+      <div style="background-color: #EEF2FF; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #4F46E5;">
+        <p style="color: #111827; font-size: 15px; margin: 0;">
+          ${reply}
+        </p>
+      </div>
+      
+      <p style="color: #4B5563; line-height: 1.6; text-align: center; margin-top: 32px;">
+        Your feedback helps us improve Devquest for everyone. Thank you for being part of our community!
+      </p>
+    `);
 
-  await sendSupportEmail(email, subject, htmlContent);
+    await sendSupportEmail(email, "We've Responded to Your Feedback - Devquest", emailContent);
 };
 
 
@@ -446,5 +494,6 @@ module.exports = {
   sendPasswordResetEmail,
     resetPassword,
     checkAuth,
-  sendFeedbackReplyEmail, // Export the new function
+  sendFeedbackReplyEmail,
+  sendEmail,
 };

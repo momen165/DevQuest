@@ -78,6 +78,7 @@ const LessonPage = () => {
   const navigate = useNavigate();
   const FREE_LESSON_LIMIT = 5;
   const [showCopyNotification, setShowCopyNotification] = useState(false);
+  const [sections, setSections] = useState([]);
 
   const resetState = () => {
     setCode('');
@@ -150,16 +151,35 @@ const LessonPage = () => {
         });
 
         const lessonData = response.data;
+        console.log('Lesson Data:', lessonData);
         setLesson(lessonData);
         setLanguageId(lessonData.language_id);
 
-        const lessonsResponse = await axios.get(`/api/lesson?section_id=${lessonData.section_id}`, {
+        // Get the section first to get course_id
+        const sectionResponse = await axios.get(`/api/section/${lessonData.section_id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
-        setLessons(lessonsResponse.data || []);
-        setTotalLessons(lessonsResponse.data.length);
+        
+        // Get all sections for the course
+        const sectionsResponse = await axios.get(`/api/section?course_id=${sectionResponse.data.course_id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        console.log('Sections data:', sectionsResponse.data);
+        setSections(sectionsResponse.data || []);
+
+        // Get ALL lessons for the course instead of just current section
+        const allLessonsResponse = await axios.get(`/api/lesson?course_id=${sectionResponse.data.course_id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        console.log('All lessons:', allLessonsResponse.data);
+        setLessons(allLessonsResponse.data || []);
+        setTotalLessons(allLessonsResponse.data.length);
 
         const progressResponse = await axios.get(`/api/lesson-progress?user_id=${user.user_id}&lesson_id=${lessonId}`, {
           headers: {
@@ -234,6 +254,9 @@ const LessonPage = () => {
             isAnswerCorrect={isAnswerCorrect}
             onNext={resetState}
             code={code}
+            currentSectionId={lesson.section_id}
+            sections={sections}
+            lessonXp={lesson.xp}
         />
         {showCopyNotification && (
           <CopyNotification>

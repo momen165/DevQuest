@@ -1,236 +1,301 @@
 /* lessonpage.css */
 
-/* General Styling */
-.lesson-page-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #1a1b26;
-  color: white;
-
-}
-
+/* Base layout */
 .lesson-page {
   display: flex;
-  height: calc(100vh - 64px);
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  bottom: 64px;
+  background-color: #1a1b26;
   color: white;
-  overflow-y: hidden;
-  scrollbar-color: #377EF0 #1a1b26;
-  position: relative;
-  width: 100%;
+  overflow: hidden;
   box-sizing: border-box;
-  z-index: 1;
+  z-index: 1000;
 }
 
-::-webkit-scrollbar {
-    width: 12px;
-}
-
-::-webkit-scrollbar-track {
-    background: #1a1b26;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: #377EF0;
-    border-radius: 10px;
-    border: 3px solid #1a1b26;
-}
-
-
-/* Left Section: Lesson Instructions */
+/* Left section - Instructions */
 .lesson-instructions {
   flex: 2;
-  padding: 2%;
-  padding-bottom: 80px;
   background: linear-gradient(to bottom, #1f2e5a 30%, #09112A 70%);
   overflow-y: auto;
-  height: 100%;
-  position: relative;
-  z-index: 1;
+  padding: 24px;
+  height: calc(100vh - 134px);
 }
 
+.lesson-instructions h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+/* Right section - Code area */
 .lesson-code-area {
   flex: 3;
   display: flex;
   flex-direction: column;
   background-color: #0d1117;
-  padding: 0;
   min-width: 300px;
-  position: relative;
-  z-index: 1;
+  height: calc(100vh - 134px);
 }
 
+/* Code editor */
 .code-editor {
-  flex: 6; /* Takes 60% of the space */
-  margin: 0; /* Remove margin */
-  height: 60%; /* Ensure it fills 60% of the available height */
-  margin-bottom: 0; /* Remove bottom margin */
-  
+  flex: 6;
+  height: 60%;
+  min-height: 200px;
 }
 
+/* Console section */
 .console {
-  flex: 4; /* Takes 40% of the space */
+  flex: 4;
   background-color: #161925;
-  padding: 0; /* Remove padding */
-  border-radius: 0; /* Remove border radius */
-  margin: 0; /* Remove margin */
-  height: 40%; /* Ensure it fills 40% of the available height */
-}
-
-.run-btn{
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 1%;
-  padding: 10px 20px;
-  background-color: #377EF0;
-  border: none;
-  color: white;
-  font-size: 1rem;
-  border-radius: 5px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  width: 140px;
-}
-.copy-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 1%;
-  padding: 5px 10px; /* Make the button smaller */
-  background-color: #377EF0;
-  border: none;
-  color: white;
-  font-size: 1rem;
-  border-radius: 5px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  width: 80px; /* Adjust width */
-}
-
-.run-btn:hover, .copy-btn:hover {
-  background-color: #2963b3;
-}
-
-.run-btn:active, .copy-btn:active {
-  transform: scale(0.9);
-  box-shadow: 3px 2px 10px rgba(0, 0, 0, 0.24);
-}
-
-.copy-btn {
-  background-color: #0d1117;
-  color: #ffffff;
-  border: 1px solid #377EF0;
-  margin-right: 10px;
-}
-
-.run-btn {
-  margin-right: 10px; /* Add margin to the right of the run button */
-}
-
-.run-btn svg {
-  margin-left: 8px;
-}
-
-.copy-btn svg {
-  font-size: 1rem; /* Maintain the icon size */
-}
-
-.console {
-  background-color: #161925;
-  padding: 0; /* Remove padding */
-  border-radius: 0; /* Remove border radius */
-  margin: 0; /* Remove margin */
-  height: 40%; /* Ensure it fills 40% of the available height */
+  flex-direction: column;
+  min-height: 150px;
 }
 
 .console h3 {
-  font-size: 1.2rem;
+  padding: 12px;
   margin: 0;
-  padding: 5px;
-
+  font-size: 1.2rem;
 }
 
 .console-output {
+  flex: 1;
   background-color: #030303;
   color: white;
-  padding: 10px;
+  padding: 12px;
   font-family: monospace;
-  border-radius: 5px;
-  height: 90%;
-    overflow: scroll;
+  overflow: auto;
   white-space: pre-wrap;
+  margin: 0 12px 12px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: pre !important;
+  font-family: monospace !important;
+  tab-size: 4;
+  -moz-tab-size: 4;
+  -webkit-tab-size: 4;
+  text-rendering: geometricPrecision;
+  line-height: 1.2 !important;
+  letter-spacing: normal !important;
 }
 
-.lesson-content pre code.hljs {
-  font-size: 20px;
+.console-output pre {
+  white-space: pre !important;
+  overflow-x: auto !important;
+  margin: 8px 0 !important;
+  padding: 8px !important;
+  background-color: #1e1e1e !important;
+  border-radius: 4px !important;
 }
 
-.pre {
-  color: #ffffff;
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-/* Lesson Content */
+::-webkit-scrollbar-track {
+  background: #1a1b26;
+}
 
+::-webkit-scrollbar-thumb {
+  background-color: #377EF0;
+  border-radius: 10px;
+  border: 2px solid #1a1b26;
+}
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Tablet Breakpoint */
+@media (max-width: 1024px) {
   .lesson-page {
-    flex-direction: column; /* Adjust layout on smaller screens */
+    flex-direction: column;
+  }
+  
+  .lesson-instructions {
+    flex: none;
+    height: 40%;
+  }
+  
+  .lesson-code-area {
+    flex: none;
+    height: 60%;
   }
 
-  .lesson-instructions, .lesson-code-area {
-    flex: 1; /* Make both sections take equal space */
+  .lesson-instructions h1 {
+    font-size: 1.5rem;
+  }
+}
 
+/* Mobile Breakpoint */
+@media (max-width: 768px) {
+  .lesson-page {
+    position: fixed;
+    top: 56px;
+    bottom: 56px;
+    margin: 0;
+    padding: 0;
+    height: calc(100% - 112px);
+    overflow: hidden;
   }
 
   .lesson-instructions {
-    padding: 5%; /* Increase padding for better readability */
+    padding: 12px;
+    height: 35%;
+    margin: 0;
+    overflow-y: auto;
   }
 
   .lesson-code-area {
-    padding: 5%; /* Increase padding for better readability */
-  }
-}
-
-@media (max-width: 480px) {
-  .lesson-instructions, .lesson-code-area {
-    padding: 10%; /* Increase padding for smaller screens */
+    height: 65%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
   }
 
-  .unique-copy-btn {
-    font-size: 0.7rem; /* Adjust font size for smaller screens */
-    padding: 4px 8px; /* Adjust padding for smaller screens */
+  .code-editor {
+    height: 60%;
+    margin: 0;
+    padding: 0;
   }
 
   .console {
-    padding: 15px; /* Adjust padding for smaller screens */
+    height: 40%;
+    margin: 0;
+    padding: 0;
   }
 
   .console-output {
-    height: 100px; /* Adjust height for smaller screens */
+    margin: 0 8px 8px 8px;
+  }
+
+  .lesson-instructions h1 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .console h3 {
+    padding: 8px 12px;
+    font-size: 1rem;
+  }
+
+  .console-output {
+    margin: 0 8px 8px 8px;
+    padding: 8px;
+    font-size: 13px;
   }
 }
 
+/* Small Mobile Breakpoint */
+@media (max-width: 480px) {
+  .lesson-page {
+    top: 48px;
+    bottom: 48px;
+    height: calc(100% - 96px);
+  }
+
+  .lesson-instructions {
+    padding: 8px;
+    height: 30%;
+  }
+
+  .lesson-code-area {
+    height: 70%;
+  }
+
+  .code-editor {
+    height: 60%;
+  }
+
+  .lesson-instructions h1 {
+    font-size: 1.1rem;
+  }
+}
+
+/* Handle landscape orientation on mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+  .lesson-page {
+    flex-direction: row;
+  }
+
+  .lesson-instructions {
+    flex: 1;
+    height: 100%;
+  }
+
+  .lesson-code-area {
+    flex: 2;
+    height: 100%;
+  }
+}
+
+/* Handle very small height screens */
+@media (max-height: 500px) {
+  .lesson-page {
+    top: 48px;
+    bottom: 48px;
+  }
+
+  .console {
+    min-height: 100px;
+  }
+}
+
+/* Move the 1366x768 media query before other breakpoints and update it */
 @media (max-width: 1366px) {
-  .lesson-instructions, .lesson-code-area {
-    padding: 1%;
+  .lesson-page {
+    margin-top: 64px;
+    top: 0;
+    height: calc(100vh - 128px);
   }
 
-    .lesson-page {
-        margin: 0;
+  .lesson-instructions {
+    flex: 1;
+    padding: 16px;
+    max-height: calc(100vh - 128px);
+  }
 
+  .lesson-code-area {
+    flex: 1.5;
+    max-height: calc(100vh - 128px);
+  }
 
-    }
+  .code-editor {
+    flex: 7;
+    min-height: 180px;
+  }
+
+  .console {
+    flex: 3;
+    min-height: 120px;
+  }
+
+  .console h3 {
+    padding: 8px;
+    font-size: 1rem;
+  }
+
   .console-output {
-      height: 70%;
+    margin: 0 8px 8px 8px;
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .lesson-instructions h1 {
+    font-size: 1.4rem;
+    margin-bottom: 0.8rem;
   }
 }
 
+/* Update the tablet breakpoint to start after 1366px */
+@media (max-width: 1024px) {
+  /* ... existing tablet styles ... */
+}
 
-/* Ensure the lesson-page takes full width */
-.lesson-page {
-    width: 100%;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+/* Remove any min-heights from mobile views */
+@media (max-width: 768px) {
+  .code-editor, .console {
+    min-height: unset;
+  }
 }

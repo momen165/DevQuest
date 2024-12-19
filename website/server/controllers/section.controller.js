@@ -60,14 +60,13 @@ const getSectionsByCourse = async (req, res) => {
         section.section_id, 
         section.name, 
         section.description,
-        section.section_order
+        section.section_order,
+        section.course_id
       FROM section
       WHERE course_id = $1
       ORDER BY section_order ASC;
     `;
     const { rows } = await db.query(query, [course_id]);
-
-   
 
     res.status(200).json(rows);
   } catch (err) {
@@ -76,10 +75,39 @@ const getSectionsByCourse = async (req, res) => {
   }
 };
 
+// Get section by ID
+const getSectionById = async (req, res) => {
+  const { section_id } = req.params;
 
+  try {
+    // Validate section_id
+    if (!section_id || isNaN(section_id)) {
+      return res.status(400).json({ error: 'Invalid section_id.' });
+    }
 
+    const query = `
+      SELECT 
+        section.section_id, 
+        section.name, 
+        section.description,
+        section.section_order,
+        section.course_id
+      FROM section
+      WHERE section_id = $1;
+    `;
+    
+    const result = await db.query(query, [section_id]);
 
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Section not found.' });
+    }
 
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching section:', err);
+    res.status(500).json({ error: 'Failed to fetch section.' });
+  }
+};
 
 // Edit a section
 const editSection = async (req, res) => {
@@ -220,4 +248,5 @@ module.exports = {
   editSection,
   deleteSection,
   reorderSections,
+  getSectionById
 };

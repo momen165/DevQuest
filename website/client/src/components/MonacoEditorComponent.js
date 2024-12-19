@@ -118,39 +118,40 @@ const MonacoEditorComponent = ({
                 return;
             }
 
-            let output = 'Test Case Results:\n\n';
+            let output = '📋 Test Case Results\n\n';
             let allPassed = true;
             results.forEach((testCase, index) => {
                 const {input, expected_output, actual_output, status, compileError, error} = testCase;
-                const isCorrect = actual_output.trim() === expected_output.trim();
+                const isCorrect = actual_output === expected_output;
                 if (!isCorrect) {
                     allPassed = false;
                 }
-                output += `Test Case ${index + 1}:\n`;
-                output += `Input:\n${input}\n`;
-                output += `Expected Output:\n${expected_output.trim()}\n`;
-                output += `Actual Output:\n${actual_output.trim()}\n`;
-                output += `Status: ${isCorrect ? 'Passed ✅' : 'Failed ❌'}\n`;
-                if (error) output += `Error: ${error}\n`;
-                if (compileError) output += `Compile Error: ${compileError}\n`;
-                output += `\n`;
+                
+                output += `🔍 Test Case ${index + 1}\n`;
+                output += `${'─'.repeat(40)}\n\n`;
+                
+                if (input && input.trim()) {
+                    output += `📥 Input:\n${input}\n\n`;
+                }
+                
+                output += `✨ Expected Output:\n\n${expected_output}\n\n`;
+                output += `📤 Your Output:\n\n${actual_output}\n\n`;
+                output += `${isCorrect ? '✅ Status: Passed' : '❌ Status: Failed'}\n\n`;
+                
+                if (error) output += `⚠️ Error: ${error}\n`;
+                if (compileError) output += `🚫 Compile Error: ${compileError}\n`;
             });
 
-            output += allPassed ? 'All test cases passed! 🎉' : 'Some test cases failed. Please review your code.';
+            if (allPassed) {
+                output += '🎉 Congratulations! All test cases passed!\n';
+                output += '🌟 You can proceed to the next lesson.';
+            } else {
+                output += '❌ Some test cases failed.\n';
+                output += '📝 Please review your code and try again.';
+            }
 
             setConsoleOutput(output);
             setIsAnswerCorrect(allPassed);
-
-            await axios.put('/api/update-lesson-progress', {
-                user_id: user.user_id,
-                lesson_id: lessonId,
-                completed: allPassed,
-                submitted_code: code,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-                },
-            });
 
         } catch (err) {
             console.error('Error running code:', err.response?.data || err.message);
