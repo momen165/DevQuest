@@ -1,88 +1,177 @@
 .course-card {
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
-  color: #333;
-  padding: 16px;
-  border-radius: 25px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* Remove the default background as it will be set dynamically */
+  color: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
   text-align: center;
-  width: 490px;
+  width: 400px;
   justify-content: center;
-  height: 400px !important;
-
-
-  transition: transform 0.3s ease, box-shadow 0.8s ease; 
-  margin: 20px; /* Reduced margin */
-
+  height: auto !important;
+  min-height: 420px;
+  transition: all 0.3s ease;
+  margin: 20px;
+  position: relative;
+  overflow: hidden;
 }
 
-.course-head{
-  padding: 10px;
+/* Replace with this new style */
+.courses-grid .course-card {
+  background: var(--card-background) !important;
+}
+
+.course-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.course-card:hover::before {
+  opacity: 0.9;
+}
+
+.course-head {
   display: flex;
-  flex-direction: row;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  height:82px;
-
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  background: transparent;
 }
-.course-info{
-  width: 100%; 
-  margin-top:5px ;
-  padding: 20px;
-}
 
-
-.enroll-btn{
+.course-info {
   display: flex;
-  justify-content: right;
-  align-items: center; /* Align items vertically */
+  justify-content: center;
+  gap: 10px;
+  flex-direction: column;
+  background: transparent;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: none;
+  text-align: center;
+  align-items: center;
+}
+
+.enroll-btn {
+  display: flex;
+  justify-content: flex-end; /* Change to flex-end */
+  align-items: center;
+  gap: 16px; /* Add gap between progress and button */
+  padding-right: 30px; /* Add padding to maintain margin from edge */
 }
 
 .progress-container {
   display: flex;
+  margin-top: 10px;
   align-items: center;
-  margin-right: auto; /* Push the container to the leftmost side */
+  gap: 8px; /* Add consistent gap between circle and text */
+  background: rgba(52, 211, 153, 0.1);
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  margin-right: 0; /* Remove margin-right */
 }
 
 .course-icon {
-  height: 50px; /* Reduced from 50px */
-  width: auto; /* Maintain aspect ratio */
-  margin-bottom: 10px;
-  object-fit: contain; /* Ensures image isn't distorted */
-  display: flex;
-  align-self: flex-start; /* Maintains left alignment */
-  margin-right: 10px;
+  width: auto; /* Remove fixed width */
+  height: auto; /* Remove fixed height */
+  min-width: unset; /* Remove min-width */
+  border-radius: 0; /* Remove border radius */
+  box-shadow: none; /* Remove shadow */
+  background: transparent; /* Transparent background */
+  margin: 0;
+  padding: 0;
 }
 
-.course-rating, .course-level, .course-students {
+.course-icon img {
+  width: 100px; /* Or whatever size you want for the icon */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); /* Optional: add shadow to icon itself */
+}
+
+.course-rating, .course-level {
+  display: inline-block;
   font-size: 0.9rem;
   color: #666;
+  margin: 0 10px;
 }
-.course-students{
+
+.course-students {
   display: flex;
   align-self: flex-start;
   padding: 20px 10px;
 }
 
-
 .enroll-button {
-  background-color: #000000;
-  color: #ffffff;
-  padding: 10px 20px;
+  background: linear-gradient(135deg, #4EA1FF 0%, #2D5CFE 100%);
+  color: white;
+  padding: 16px 36px;
+  border-radius: 4px;
   border: none;
-  border-radius: 10px;
-  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
   margin-top: 10px;
   width: 200px;
-  margin-right: 30px;
+  margin-right: 0; /* Remove margin-right */
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  box-shadow: none;
+  transform: translateY(0);
+  position: relative;
+  overflow: hidden;
 }
 
+/* New styles for enrolled state */
+.enroll-button[data-enrolled="true"] {
+  background: linear-gradient(135deg, #34D399 0%, #059669 100%);
+  width: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
 
-.course-card:hover {
-  box-shadow: 10px 10px rgba(255, 255, 255, 0.3) ; /* Increased shadow on hover */
-transform: scale(1.05); /* Slightly enlarge the card */
+.enroll-button[data-enrolled="true"]:hover {
+  background: linear-gradient(135deg, #3BE1A7 0%, #06B179 100%);
+  box-shadow: 0 4px 15px rgba(52, 211, 153, 0.2);
+}
 
+.enroll-button[data-enrolled="true"]::before {
+  font-size: 18px;
+  opacity: 0;
+  margin-left: -5px;
+  transition: all 0.3s ease;
+}
+
+.enroll-button[data-enrolled="true"]:hover::before {
+  opacity: 1;
+  margin-left: 0;
+}
+
+.enroll-button:hover {
+  background: linear-gradient(135deg, #5CACFF 0%, #3D6CFF 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(78, 161, 255, 0.2);
 }
 
 .progress-circle {
@@ -94,6 +183,15 @@ transform: scale(1.05); /* Slightly enlarge the card */
   justify-content: center;
   align-items: center;
   margin-right: 10px; /* Space between circle and text */
+  box-shadow: 0 0 15px rgba(78, 161, 255, 0.2);
+  border: 2px solid #4EA1FF;
+  transition: all 0.3s ease;
+  border-color: #34D399;
+  box-shadow: 0 0 15px rgba(52, 211, 153, 0.2);
+}
+
+.progress-circle:hover {
+  transform: scale(1.1);
 }
 
 .circle-mid {
@@ -106,8 +204,6 @@ transform: scale(1.05); /* Slightly enlarge the card */
   justify-content: center;
   align-items: center;
 }
-
-
 
 .progress-text {
   color: #000000;

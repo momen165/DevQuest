@@ -6,30 +6,48 @@ import axios from "axios";
 const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, code }) => {
     const navigate = useNavigate();
     const [isCompleted, setIsCompleted] = useState(false);
+    const [courseId, setCourseId] = useState(null);
 
     useEffect(() => {
-        const fetchLessonProgress = async () => {
+        const fetchLessonData = async () => {
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if (!user) {
                     throw new Error("User is not logged in.");
                 }
 
-                const response = await axios.get(`http://localhost:5000/api/lesson-progress?user_id=${user.user_id}&lesson_id=${currentLessonId}`, {
+                // First get the lesson progress
+                const progressResponse = await axios.get(`/api/lesson-progress?user_id=${user.user_id}&lesson_id=${currentLessonId}`, {
                     headers: {
                         Authorization: `Bearer ${user.token}`,
                     },
                 });
 
-                if (response.data.completed) {
+                if (progressResponse.data.completed) {
                     setIsCompleted(true);
                 }
+
+                // Then get the lesson details to find its section
+                const lessonResponse = await axios.get(`/api/lesson/${currentLessonId}`, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                });
+
+                // Now get the section details to find the course_id
+                const sectionResponse = await axios.get(`/api/sections/${lessonResponse.data.section_id}`, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                });
+                setCourseId(sectionResponse.data.course_id);
+
             } catch (err) {
-                console.error('Error fetching lesson progress:', err);
+                console.error('Error fetching data:', err);
             }
         };
 
-        fetchLessonProgress();
+        fetchLessonData();
     }, [currentLessonId]);
 
     const currentIndex = lessons?.findIndex((lesson) => lesson.lesson_id === currentLessonId);
@@ -59,11 +77,11 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
                 throw new Error("User is not logged in.");
             }
 
-            const response = await axios.put('http://localhost:5000/api/update-lesson-progress', {
+            const response = await axios.put('/api/update-lesson-progress', {
                 user_id: user.user_id,
                 lesson_id: currentLessonId,
                 completed: true,
-                submitted_code: code // Include the submitted code here
+                submitted_code: code
             }, {
                 headers: {
                     Authorization: `Bearer ${user.token}`,
@@ -84,6 +102,17 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
 
     return (
         <div className="lesson-navigation">
+            <div className='lesson-nav-back-button'>
+            {courseId && (
+                <button 
+                    className="lesson-nav-back-button"
+                    onClick={() => navigate(`/course/${courseId}`)}
+                >
+                    ← Back to Course
+                </button>
+            )}
+            </div>
+            <div className='lesson-nav-btns'>
             <button
                 className="nav-button prev-button"
                 onClick={goToPreviousLesson}
@@ -107,6 +136,7 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
                     Next
                 </button>
             )}
+        </div>
         </div>
     );
 };

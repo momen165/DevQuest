@@ -140,12 +140,12 @@ function ProfilePage() {
                 onChange={handleProfilePicChange}
               />
               <button
-                className="account-settings-button account-settings-update-btn"
+                className="settings-btn settings-update-btn"
                 onClick={() => document.getElementById('profilePicInput').click()}
               >
                 Update
               </button>
-              <button className="account-settings-button account-settings-remove-btn" onClick={handleRemoveProfilePic}>
+              <button className="settings-btn settings-remove-btn" onClick={handleRemoveProfilePic}>
                 Remove
               </button>
             </div>
@@ -156,7 +156,7 @@ function ProfilePage() {
             <input
               type="text"
               id="name"
-              className="account-settings-input"
+              className="Rand-idafkd-Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -184,10 +184,10 @@ function ProfilePage() {
             ></textarea>
 
             <div className="account-settings-form-buttons">
-              <button type="submit" className="account-settings-button account-settings-save-btn">Save Changes</button>
+              <button type="submit" className="settings-btn settings-save-btn">Save Changes</button>
               <button
                 type="button"
-                className="account-settings-button account-settings-cancel-btn"
+                className="settings-btn settings-cancel-btn"
                 onClick={() => navigate('/AccountSettings')}
               >
                 Cancel

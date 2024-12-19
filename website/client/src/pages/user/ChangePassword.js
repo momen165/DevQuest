@@ -55,9 +55,9 @@ function ChangePassword() {
         <Sidebar activeLink="login" />
         <div className="change-password-content">
           <h2>Change Password</h2>
-          {error && <p className="error">{error}</p>} {/* Show error message */}
-          {message && <p className="success">{message}</p>} {/* Show success message */}
-          <form className="password-form" onSubmit={handleSubmit}>
+          {error && <p className="change-password-error">{error}</p>} {/* Show error message */}
+          {message && <p className="change-password-success">{message}</p>} {/* Show success message */}
+          <form className="change-password-form" onSubmit={handleSubmit}>
             <label htmlFor="current-password">Current Password</label>
             <input
               type="password"
@@ -82,9 +82,9 @@ function ChangePassword() {
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
 
-            <div className="form-buttons">
-              <button type="submit" className="save-btn">Save Changes</button>
-              <button type="button" className="cancel-btn">Cancel</button>
+            <div className="change-password-form-buttons">
+              <button type="submit" className="change-password-save-btn">Save Changes</button>
+              <button type="button" className="change-password-cancel-btn">Cancel</button>
             </div>
           </form>
         </div>
