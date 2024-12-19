@@ -6,6 +6,7 @@ import Sidebar from 'components/AccountSettingsSidebar';
 import { useAuth } from 'AuthContext';
 import 'styles/AccountSettings.css';
 import defaultProfilePic from '../../assets/images/default-profile-pic.png';
+import toast, { Toaster } from 'react-hot-toast';
 
 function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -28,7 +29,7 @@ function ProfilePage() {
 
   const handleRemoveProfilePic = async () => {
     try {
-      const response = await axios.delete('/api/removeProfilePic', {
+      await axios.delete('/api/removeProfilePic', {
         headers: {
           'Authorization': `Bearer ${user.token}`,
         },
@@ -37,10 +38,28 @@ function ProfilePage() {
       const updatedUser = { ...user, profileimage: null };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      alert('Profile picture removed successfully');
+      
+      toast.success('Profile picture removed successfully', {
+        duration: 4000,
+        style: {
+          background: '#333',
+          color: '#fff',
+          borderRadius: '10px',
+          padding: '16px',
+        },
+        icon: '🗑️',
+      });
     } catch (error) {
-      console.error('Error removing profile picture:', error);
-      alert(error.response?.data?.error || 'An error occurred while removing your profile picture');
+      toast.error(error.response?.data?.error || 'Failed to remove profile picture', {
+        duration: 4000,
+        style: {
+          background: '#333',
+          color: '#fff',
+          borderRadius: '10px',
+          padding: '16px',
+        },
+        icon: '❌',
+      });
     }
   };
   
@@ -63,18 +82,45 @@ function ProfilePage() {
       const updatedUser = { ...user, profileimage };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      alert('Profile picture updated successfully');
+      
+      toast.success('Profile picture updated successfully', {
+        duration: 4000,
+        style: {
+          background: '#333',
+          color: '#fff',
+          borderRadius: '10px',
+          padding: '16px',
+        },
+        icon: '🖼️',
+      });
     } catch (error) {
-      console.error('Error uploading profile picture:', error);
-      alert(error.response?.data?.error || 'An error occurred while uploading your profile picture');
+      toast.error(error.response?.data?.error || 'Failed to upload profile picture', {
+        duration: 4000,
+        style: {
+          background: '#333',
+          color: '#fff',
+          borderRadius: '10px',
+          padding: '16px',
+        },
+        icon: '❌',
+      });
     }
   };
   
   const handleSaveChanges = async (e) => {
     e.preventDefault();
 
+    const loadingToast = toast.loading('Saving changes...', {
+      style: {
+        background: '#333',
+        color: '#fff',
+        borderRadius: '10px',
+        padding: '16px',
+      },
+    });
+
     try {
-      const response = await axios.put('/api/updateProfile', 
+      await axios.put('/api/updateProfile', 
         { name, country, bio },
         {
           headers: {
@@ -86,16 +132,37 @@ function ProfilePage() {
       const updatedUser = { ...user, name, country, bio };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      alert('Profile updated successfully');
+      
+      toast.dismiss(loadingToast);
+      toast.success('Profile updated successfully', {
+        duration: 4000,
+        style: {
+          background: '#333',
+          color: '#fff',
+          borderRadius: '10px',
+          padding: '16px',
+        },
+        icon: '✅',
+      });
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert(error.response?.data?.error || 'An error occurred while updating your profile');
+      toast.dismiss(loadingToast);
+      toast.error(error.response?.data?.error || 'Failed to update profile', {
+        duration: 4000,
+        style: {
+          background: '#333',
+          color: '#fff',
+          borderRadius: '10px',
+          padding: '16px',
+        },
+        icon: '❌',
+      });
     }
   };
 
   return (
     <>
       <Navbar />
+      <Toaster position="top-right" />
       <div className="user-profile-settings-container">
         <Sidebar activeLink="profile" />
 

@@ -1,32 +1,13 @@
 .billing-page {
     display: flex;
-    height: 100vh;
+    min-height: calc(100vh - 70px);
     background-color: #0f184a;
-    
-  }
-  
-  .sidebar {
-    width: 200px;
-    background-color: #16256b;
-    padding: 20px;
-  }
-  
-  .sidebar ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .sidebar li {
-    padding: 10px;
-    cursor: pointer;
-  }
-  
-  .sidebar li.active {
-    background-color: #2b4ac8;
-    border-radius: 10px;
-  }
-  
-  .billing-content {
+    margin-top: 70px;
+    margin-left: 250px;
+    width: calc(100% - 250px);
+}
+
+.billing-content {
     flex: 1;
     padding: 50px;
     background: linear-gradient(180deg, #1E3C90, #09112A);
@@ -34,73 +15,72 @@
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     margin: 20px;
-    max-width: 800px;
-  }
-  
-  .billing-details {
+}
+
+.billing-details {
     margin-top: 20px;
-  }
-  
-  .billing-details p {
+}
+
+.billing-details p {
     margin-bottom: 15px;
-  }
-  
-  .highlight {
+}
+
+.highlight {
     font-weight: bold;
     color: #6fb8ff; /* Light blue color for highlighting */
-  }
-  .billing-content h1 {
+}
+.billing-content h1 {
     margin-bottom: 2rem;
     color: #ffffff;
-  }
-  .subscription-card {
+}
+.subscription-card {
     background-color: white;
     border-radius: 8px;
     padding: 2rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
-  }
-  .edit-payment-btn, .cancel-btn {
+}
+.edit-payment-btn, .cancel-btn {
     display: inline-block;
     padding: 10px 20px;
     border-radius: 20px;
     color: #fff;
     border: none;
     cursor: pointer;
-  }
-  
-  .edit-payment-btn {
+}
+
+.edit-payment-btn {
     background-color: #2b4ac8;
     margin-left: 10px;
-  }
-  
-  .subscription-info {
+}
+
+.subscription-info {
     margin: 1.5rem 0;
-  }
-  
-  .info-row {
+}
+
+.info-row {
     display: flex;
     justify-content: space-between;
     padding: 1rem;
     border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .info-row:last-child {
+}
+
+.info-row:last-child {
     border-bottom: none;
-  }
-  
-  .info-row span:first-child {
+}
+
+.info-row span:first-child {
     color: #000000;
     font-weight: 500;
-  }
-  
-  .info-row span:last-child {
+}
+
+.info-row span:last-child {
     color: #111827;
     font-weight: 600;
-  }
-  
-  .manage-subscription-btn,
-  .subscribe-btn {
+}
+
+.manage-subscription-btn,
+.subscribe-btn {
     width: 100%;
     padding: 0.75rem;
     border: none;
@@ -108,58 +88,58 @@
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s;
-  }
-  
-  .manage-subscription-btn {
+}
+
+.manage-subscription-btn {
     background-color: #3b82f6;
     color: white;
-  }
-  
-  .subscribe-btn {
+}
+
+.subscribe-btn {
     background-color: #10b981;
     color: white;
-  }
-  
-  .manage-subscription-btn:hover,
-  .subscribe-btn:hover {
+}
+
+.manage-subscription-btn:hover,
+.subscribe-btn:hover {
     opacity: 0.9;
-  }
-  
-  .no-subscription {
+}
+
+.no-subscription {
     text-align: center;
     padding: 3rem;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .billing-history {
+}
+
+.billing-history {
     background-color: white;
     border-radius: 8px;
     padding: 2rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .error-message,
-  .success-message {
+}
+
+.error-message,
+.success-message {
     padding: 1rem;
     border-radius: 4px;
     margin-bottom: 1rem;
     text-align: center;
-  }
-  
-  .error-message {
+}
+
+.error-message {
     background-color: #fee2e2;
     color: #dc2626;
-  }
-  
-  .success-message {
+}
+
+.success-message {
     background-color: #dcfce7;
     color: #16a34a;
-  }
-  
-  .loading {
+}
+
+.loading {
     text-align: center;
     padding: 2rem;
     color: #6b7280;
-  }
+}

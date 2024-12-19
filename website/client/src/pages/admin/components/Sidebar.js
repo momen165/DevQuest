@@ -22,7 +22,7 @@ const Sidebar = () => {
     setShowLogoutConfirm(false); // Hide confirmation dialog
   };
   return (
-    <div className="sidebar">
+    <div className="admin-sidebar">
       <h2>Admin Dashboard</h2>
       <ul>
         <Link to="/Dashboard" className="link">
