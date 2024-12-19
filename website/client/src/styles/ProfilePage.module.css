@@ -3,7 +3,7 @@
 .profilePageContainer {
   display: flex;
   justify-content: center;
-  padding: 20px;
+  padding: 90px 20px 20px 20px;
   margin: 0;
   font-family: Arial, sans-serif;
   background: linear-gradient(to bottom, #0A1128, #091236, #1A2A6C);

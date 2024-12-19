@@ -1,64 +1,61 @@
 /* General container for the editor */
 .lesson-edit-add-container {
-  padding: 20px;
-  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
-  border-radius: 8px;
+  padding: 30px;
+  background: linear-gradient(135deg, #1a2942 0%, #2c3e50 100%);
+  border-radius: 12px;
   border: 1px solid rgba(52, 152, 219, 0.3);
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 1000px;
+  margin: 20px auto;
   color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Title of the form */
 .form-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 30px;
   text-align: center;
   color: #ffffff;
   border-bottom: 2px solid #3498db;
-  padding-bottom: 10px;
+  padding-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 /* Form group styling */
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 25px;
 }
 .lesson-edit-add-container > p {
   color: #ffffff;
 }
 .edit-add-label {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   display: block;
   color: #ffffff;
+  letter-spacing: 0.5px;
 }
 
 /* Input fields */
 input[type="text"], input[type="number"], textarea {
   width: 100%;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(52, 152, 219, 0.5);
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(52, 152, 219, 0.5);
+  border-radius: 8px;
+  font-size: 15px;
   color: #ffffff;
-  box-sizing: border-box;
+  transition: all 0.3s ease;
 }
 
-input[type="number"] {
-  width: 150px;
-}
-
-textarea {
-  resize: none;
-  box-sizing: border-box;
-  overflow: hidden;
-
-  /* or */
-  overflow-y: auto; /* Allow vertical scrolling */
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+  border-color: #3498db;
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
 }
 
 /* Toolbar styling */
@@ -91,70 +88,87 @@ textarea {
 
 /* Test cases section */
 .test-case {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
 }
 
-.test-case input {
-  width: 80%;
-  margin-right: 10px;
+.test-case textarea {
+  min-height: 120px;
+  font-family: 'Fira Code', monospace;
+  line-height: 1.4;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .remove-test-case-button {
   background-color: #e74c3c;
   color: white;
   border: none;
-  padding: 5px 10px;
-  font-size: 12px;
-  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: flex-end;
 }
 
 .remove-test-case-button:hover {
   background-color: #c0392b;
+  transform: translateY(-2px);
 }
 
 .add-test-case-button {
-  background-color: #2ecc71;
+  background-color: #3498db;
   color: white;
   border: none;
-  padding: 8px 15px;
-  font-size: 14px;
-  border-radius: 4px;
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 8px;
   cursor: pointer;
-  margin-top: 10px;
-  display: block;
-  width: 100%;
+  margin-top: 15px;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .add-test-case-button:hover {
-  background-color: #27ae60;
+  background-color: #2980b9;
+  transform: translateY(-2px);
 }
 
 /* Action buttons (Save, Delete, Cancel) */
 .form-actions {
   display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+  gap: 15px;
+  margin-top: 30px;
+  justify-content: flex-end;
 }
 
 .save-button, .delete-button, .cancel-button {
-  padding: 10px 20px;
-  font-size: 14px;
-  border-radius: 4px;
+  padding: 12px 24px;
+  font-size: 15px;
+  border-radius: 8px;
   cursor: pointer;
   border: none;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
 }
 
 .save-button {
-  background-color: #007bff;
+  background-color: #2ecc71;
   color: white;
 }
 
 .save-button:hover {
-  background-color: #0056b3;
+  background-color: #27ae60;
+  transform: translateY(-2px);
 }
 
 .delete-button {
@@ -164,15 +178,17 @@ textarea {
 
 .delete-button:hover {
   background-color: #c0392b;
+  transform: translateY(-2px);
 }
 
 .cancel-button {
-  background-color: #bdc3c7;
+  background-color: #7f8c8d;
   color: white;
 }
 
 .cancel-button:hover {
   background-color: #95a5a6;
+  transform: translateY(-2px);
 }
 /* Toolbar styling */
 .editor-toolbar {

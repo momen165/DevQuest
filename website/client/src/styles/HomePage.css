@@ -137,7 +137,7 @@
 
 .hero-image {
     opacity: 0;
-    animation: slideIn 1s ease-out 0.8s forwards, float 6s ease-in-out infinite;
+    animation: slideIn 1s ease-out 0.1s forwards, float 6s ease-in-out infinite;
     filter: drop-shadow(0 0 20px rgba(0,0,0,0.3));
 }
 

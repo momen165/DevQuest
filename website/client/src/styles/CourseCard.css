@@ -167,4 +167,58 @@
   font-size: 14px; /* Adjust size as needed */
 }
 
+/* Add these media queries at the end of the file */
+@media screen and (max-width: 768px) {
+  .course-card {
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.05); /* Slightly visible background instead of blur */
+    width: 100%; /* Make card responsive */
+  }
+
+  .course-info {
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.08); /* Slightly more visible background */
+  }
+
+  .progress-circle,
+  .circle-mid {
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* For very low-end devices */
+@media screen and (max-width: 480px) {
+  .course-card {
+    backdrop-filter: blur(0px); /* Minimal blur for low-end devices */
+  }
+
+  .course-info {
+    backdrop-filter: blur(0px); /* Minimal blur for low-end devices */
+  }
+
+  .progress-circle {
+    backdrop-filter: none; /* Remove blur completely for low-end devices */
+    background: rgba(255, 255, 255, 0.15); /* Use simple background instead */
+  }
+}
+
+/* Specific optimization for 430x932 phones */
+@media screen and (max-width: 430px) {
+  .course-card {
+    padding: 12px;
+    height: auto !important; /* Allow height to be flexible */
+    min-height: 350px;
+  }
+
+  .course-info {
+    padding: 15px;
+  }
+
+  /* Disable animation to improve performance */
+  .course-card::before {
+    animation: none;
+  }
+}
+
 

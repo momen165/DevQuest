@@ -1,13 +1,13 @@
-.sidebar {
+.admin-sidebar {
   width: 250px;
-  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
+  background: linear-gradient(180deg, #16256b, #0f184a);
   color: #ffffff;
   padding: 20px;
   
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar h2 {
+.admin-sidebar h2 {
   font-size: 1.5em;
   margin-bottom: 30px;
   color: #ffffff;
@@ -18,7 +18,7 @@
   letter-spacing: 0.5px;
 }
 
-.sidebar ul {
+.admin-sidebar ul {
   list-style-type: none;
   padding: 0;
   display: flex;
