@@ -16,6 +16,7 @@ const CoursesPage = () => {
   const [userscount, setUserscount] = useState({});
   const [enrollments, setEnrollments] = useState({});
   const [progress, setProgress] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchCoursesAndRatings = async () => {
@@ -109,6 +110,26 @@ const CoursesPage = () => {
     }
   };
 
+  const handleSearch = (event) => {
+    const term = event.target.value.toLowerCase();
+    setSearchTerm(term);
+    
+    if (term === '') {
+      setFilteredCourses(courses);
+    } else {
+      const searchResults = courses.filter(course => {
+        const title = course.title || course.name || '';
+        const description = course.description || '';
+        const difficulty = course.difficulty || '';
+        
+        return title.toLowerCase().includes(term) ||
+               description.toLowerCase().includes(term) ||
+               difficulty.toLowerCase().includes(term);
+      });
+      setFilteredCourses(searchResults);
+    }
+  };
+
   return (
       <div className="courses-page">
         <Navbar />
@@ -119,23 +140,36 @@ const CoursesPage = () => {
             <br />
             You can find there everything from self-developing to sciences, for any knowledge levels.
           </p>
+          <div className="search-container">
+            <input
+              type="text"
+              className="search-bar"
+              placeholder="Search for courses..."
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+          </div>
           <FilterTabs onFilterChange={handleFilter} />
         </header>
         <section className="courses-grid">
           {filteredCourses.map((course) => (
-            <CourseCard
-              key={course.course_id}
-              courseId={course.course_id}
-              title={course.name}
-              level={course.difficulty || 'Unknown'}
-              rating={ratings[course.course_id] || 'N/A'}
-              students={userscount[course.course_id] || 0}
-              description={course.description}
-              image={course.image}
-              color="#FEFEF2"
-              isEnrolled={!!enrollments[course.course_id]}
-              progress={Array.isArray(progress) ? progress.find(p => p.course_id === course.course_id)?.progress || 0 : 0}
-            />
+              <CourseCard
+                key={course.course_id}
+                courseId={course.course_id}
+                title={course.name}
+                level={course.difficulty || 'Unknown'}
+                rating={ratings[course.course_id] || 'N/A'}
+                students={userscount[course.course_id] || 0}
+                description={course.description}
+                image={course.image}
+                language_id={course.language_id}
+                isEnrolled={!!enrollments[course.course_id]}
+                progress={
+                  Array.isArray(progress) 
+                    ? progress.find(p => p.course_id === course.course_id)?.progress || 0 
+                    : 0
+                }
+              />
           ))}
         </section> 
       </div>

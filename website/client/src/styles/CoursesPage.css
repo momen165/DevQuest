@@ -1,21 +1,31 @@
 /* styles/CoursesPage.css */
 
 .courses-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #051937 0%, #091429 100%);
   color: #ffffff;
   width: 100%;
 }
 
 .courses-header {
-  display: flex;
-  flex-direction: column;
   position: relative;
-  background-image: url("assets/images/CoursePage-hero-img.svg");
+  padding: 80px 20px 0 20px; /* Reduce top padding, remove bottom padding */
+  text-align: center;
+  background: linear-gradient(
+    to bottom,
+    rgba(5, 25, 55, 0.6),
+    rgba(9, 20, 41, 0.3)
+  ), url('assets/images/CoursePage-hero-img.svg'); /* Add background image */
   background-size: cover;
   background-position: center;
-  text-align: center;
-  height: 300px;
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  height: 500px;
+  border-bottom: 1px solid rgba(78, 161, 255, 0.1);
+  gap: 40px; /* Add gap between elements */
 }
 
 .courses-header::before {
@@ -26,11 +36,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: inherit; /* Use the same background image */
+  opacity: 0.15; /* Adjust this value to control image visibility */
+  background-image: url('assets/images/CoursePage-hero-img.svg');
   background-size: cover;
   background-position: center;
-  filter: brightness(0.4); /* Adjust this value to make it darker or lighter */
   z-index: 0;
+  mix-blend-mode: soft-light; /* Creates a subtle blend effect */
 }
 
 .hero-head, .hero-para, .courses-header > * {
@@ -39,27 +50,40 @@
 }
 
 .hero-head {
+  font-size: 86px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(90deg, #4EA1FF 0%, #8BC7FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
   margin: 0;
   margin-top: 20px;
-  font-size: 64px;
   color: #ffffff;
   font-family: "LibreFranklin-Black";
   font-weight: 900;
+  letter-spacing: -1px;
 }
 
 .hero-para {
-  font-size: 28px;
-  color: #ffffff;
+  font-size: 20px;
+  max-width: 600px;
+  margin: 0 auto; /* Remove bottom margin */
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.7);
   width: 1200px;
   font-family: sans-serif;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .courses-grid {
-  display: grid; /* Important: Keep display: grid */
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  background: linear-gradient(to bottom, #1f2e5a 30%, #09112a 70%);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 24px;
+  padding: 60px 40px;
+  max-width: 1440px;
+  margin: 0 auto;
+  background: transparent;
   overflow: hidden; /* Optional: Prevents content overflow when zoomed out */
 }
 
@@ -67,10 +91,50 @@
   height: auto; /* Ensure no fixed height on the container */
 }
 
+.search-container {
+  width: 400px;
+  max-width: 600px;
+  margin: 20px auto;
+  position: relative;
+}
+
+.search-bar {
+  width: 200px;
+  padding: 16px 24px;
+  font-size: 16px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(78, 161, 255, 0.2);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.search-bar:focus {
+  outline: none;
+  border-color: rgba(78, 161, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 20px rgba(78, 161, 255, 0.1);
+}
+
+.search-bar::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* For tablet-sized screens and smaller */
 @media (max-width: 768px) {
   .courses-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+  
+  .hero-head {
+    font-size: 48px;
+  }
+  
+  .hero-para {
+    font-size: 1rem;
+    padding: 0 20px;
   }
 }
 

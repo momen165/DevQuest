@@ -1,19 +1,35 @@
-
 .lesson-navigation {
-    position: relative;
-    bottom: 0;
-    left: 0;
-    right: 0;
     display: flex;
-    justify-content: center;
+    justify-content: space-between; /* Ensures spacing between left and center groups */
     align-items: center;
     padding: 10px 20px;
     background-color: #161925;
     border-top: 1px solid #282c34;
-    flex-direction: row; /* Ensure buttons are in a row */
-
 }
 
+.lesson-nav-back-button {
+    margin: 0; /* Remove unwanted margins */
+    background-color: #f0f0f0;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lesson-nav-back-button:hover {
+    background-color: #e0e0e0;
+}
+
+.lesson-nav-btns {
+    display: flex;
+    justify-content: center; /* Keeps buttons centered */
+    flex: 1; /* Takes available space */
+    gap: 10px;
+    margin-left: 0;
+}
 .nav-button {
     font-size: 1rem;
     padding: 10px 20px;
@@ -23,7 +39,6 @@
     color: white;
     background-color: #377EF0;
     transition: background-color 0.3s ease;
-    margin-right: 10px;
 }
 
 .nav-button:disabled {
@@ -33,18 +48,4 @@
 
 .nav-button:hover:not(:disabled) {
     background-color: #145dbf;
-}
-
-.complete-button {
-    background-color: #377EF0;
-}
-
-.complete-button:hover {
-    background-color: #145dbf;
-}
-
-@media (max-width: 768px) {
-    .lesson-navigation {
-        margin-top: 15px;
-    }
 }

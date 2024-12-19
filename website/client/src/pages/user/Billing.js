@@ -84,39 +84,39 @@ const handleManageSubscription = async () => {
         <div className="billing-content">
           <h1>Billing & Subscription</h1>
           
-          {error && <div className="error-message">{error}</div>}
-          {successMessage && <div className="success-message">{successMessage}</div>}
+          {error && <div className="billing-error-message">{error}</div>}
+          {successMessage && <div className="billing-success-message">{successMessage}</div>}
 
           {loading ? (
-            <div className="loading">Loading subscription details...</div>
+            <div className="billing-loading">Loading subscription details...</div>
           ) : (
             <div className="billing-details">
               {subscriptionDetails ? (
                 <>
-                  <div className="subscription-card">
+                  <div className="billing-subscription-card">
                     <h2>Current Plan</h2>
-                    <div className="subscription-info">
-                      <div className="info-row">
+                    <div className="billing-subscription-info">
+                      <div className="billing-info-row">
                         <span>Plan Type:</span>
                         <span>{subscriptionDetails.subscription_type}</span>
                       </div>
-                      <div className="info-row">
+                      <div className="billing-info-row">
                         <span>Status:</span>
                         <span>{subscriptionDetails.status}</span>
                       </div>
-                      <div className="info-row">
+                      <div className="billing-info-row">
                         <span>Next Billing Date:</span>
                         <span>
                           {new Date(subscriptionDetails.subscription_end_date).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="info-row">
+                      <div className="billing-info-row">
                         <span>Amount:</span>
                         <span>${subscriptionDetails.amount_paid}/month</span>
                       </div>
                     </div>
                     <button 
-                      className="manage-subscription-btn"
+                      className="billing-manage-subscription-btn"
                       onClick={handleManageSubscription}
                     >
                       Manage Subscription
@@ -126,11 +126,11 @@ const handleManageSubscription = async () => {
                  
                 </>
               ) : (
-                <div className="no-subscription">
+                <div className="billing-no-subscription">
                   <h2>No Active Subscription</h2>
                   <p>You currently don't have an active subscription.</p>
                   <button 
-                    className="subscribe-btn"
+                    className="billing-subscribe-btn"
                     onClick={() => navigate('/pricing')}
                   >
                     View Available Plans

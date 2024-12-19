@@ -45,21 +45,23 @@ const AdminCourses = () => {
     fetchCourses();
   }, [token]);
 
-  const handleEditSections = async (course) => {
-    setEditingCourse(course);
-    setEditingSections(true);
+  
+const handleEditSections = async (course) => {
+  setEditingCourse(course);
+  setEditingSections(true);
 
-    try {
-      const response = await axios.get(
-        `/api/section?course_id=${course.course_id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSections(response.data);
-    } catch (err) {
-      handleError(err, 'Failed to fetch sections.');
-    }
-  };
+  try {
+    const response = await axios.get(
+      `/api/admin/sections/course?course_id=${course.course_id}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setSections(response.data);
+  } catch (err) {
+    handleError(err, 'Failed to fetch sections.');
+  }
+};
 
+// ...existing code...
   const handleFileUpload = async (file) => {
     try {
       const formData = new FormData();

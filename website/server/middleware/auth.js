@@ -8,11 +8,8 @@ const authenticateToken = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-
-    req.user = null;
-    return next();
+    return res.status(401).json({ error: 'Authentication token required' });
   }
-
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
@@ -21,8 +18,6 @@ const authenticateToken = (req, res, next) => {
     }
 
     req.user = { ...user, user_id: user.userId || user.user_id };
-
-
     next();
   });
 };

@@ -1,9 +1,14 @@
 /* LessonList.css */
 .lesson-title {
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Change from space-between to center */
     align-items: center;
     cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 500;
+    flex: 1;
+    text-align: center;     /* Change from left to center */
+    margin: 0;              /* Remove left margin */
   }
   
   .arrow {
@@ -12,10 +17,84 @@
   }
   
   .lesson-list {
-    background: #131414;
+    background: rgba(5, 5, 5, 0.9); /* Darker list background */
+    backdrop-filter: blur(10px);
     color: white;
-    width: 1240px;
+    width: 100%;
     margin-bottom: 20px;
+    border-radius: 15px;
+    padding: 25px; /* Increased padding */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .checkbox-wrapper-31:hover .check {
+    stroke-dashoffset: 0;
+  }
+  
+  .checkbox-wrapper-31 {
+    position: relative;
+    display: inline-block;
+    width: 35px;  /* Reduced from 40px */
+    height: 35px; /* Reduced from 40px */
+  }
+  
+  .checkbox-wrapper-31 .background {
+    fill: #ccc;
+    transition: ease all 0.6s;
+    -webkit-transition: ease all 0.6s;
+  }
+  
+  .checkbox-wrapper-31 .stroke {
+    fill: none;
+    stroke: #fff;
+    stroke-miterlimit: 10;
+    stroke-width: 2px;
+    stroke-dashoffset: 100;
+    stroke-dasharray: 100;
+    transition: ease all 0.6s;
+    -webkit-transition: ease all 0.6s;
+  }
+  
+  .checkbox-wrapper-31 .check {
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2px;
+    stroke-dashoffset: 22;
+    stroke-dasharray: 22;
+    transition: ease all 0.6s;
+    -webkit-transition: ease all 0.6s;
+  }
+  
+  .checkbox-wrapper-31 input[type=checkbox] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    margin: 0;
+    opacity: 0;
+    -appearance: none;
+    -webkit-appearance: none;
+  }
+  
+  .checkbox-wrapper-31 input[type=checkbox]:hover {
+    cursor: pointer;
+  }
+  
+  .checkbox-wrapper-31 input[type=checkbox]:checked + svg .background {
+    fill: #4CAF50;
+    animation: checkmark 0.3s ease-in-out;
+  }
+  
+  .checkbox-wrapper-31 input[type=checkbox]:checked + svg .stroke {
+    stroke-dashoffset: 0;
+  }
+  
+  .checkbox-wrapper-31 input[type=checkbox]:checked + svg .check {
+    stroke-dashoffset: 0;
   }
   
   .lesson-list ul {
@@ -25,13 +104,269 @@
   }
   
   .lesson {
-    background: #0A0A0B;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 5px;
+    background: rgba(8, 8, 9, 0.9); /* Darker background */
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 30px;
+    transition: all 0.3s ease;
   }
-  
+
+.lesson:hover {
+    transform: translateX(5px);
+    background: rgba(30, 30, 33, 0.9);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.lesson-item {
+    background: rgba(8, 8, 8, 0.97); /* Even darker background */
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 20px 45px;     /* Increase horizontal padding */
+    margin: 12px 0; /* Add some vertical spacing */
+    border-radius: 12px;
+    display: flex;
+    justify-content: center; /* Change from space-between to center */
+    align-items: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: white;
+    font-size: 0.95em;  /* Slightly smaller font */
+    align-items: center;
+    gap: 15px;
+    text-align: center;     /* Add this to center text */
+}
+
+.lesson-item:hover {
+    background: rgba(15, 15, 15, 0.97); /* Darker hover state */
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.lesson-item.completed {
+    border-left: 4px solid #2E7D32; /* Darker green */
+    background: rgba(46, 125, 50, 0.07); /* Darker completed background */
+}
+
+.lesson-item span {
+    font-weight: 500;
+    font-size: 1.05em;
+    display: flex;
+    align-items: center;
+    flex: initial;          /* Change from 1 to initial */
+    text-align: center;     /* Add this to center text */
+    justify-content: center; /* Add this to center content */
+}
+
+.check-icon {
+    color: #4caf50;
+    margin-left: 10px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px 0;
+    position: relative;
+    z-index: 1; /* Change to 1 to be at same level as ribbon */
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 1.3em;  /* Slightly smaller heading */
+}
+
+.toggle-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 0 10px;
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 2; /* Keep at 2 to stay above both header and ribbon */
+    margin-right: 50px; /* Adjust space for vertical completion strip */
+}
+
+.toggle-button.open {
+    transform: rotate(180deg);
+}
+
+.lesson-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.lesson-content.open {
+    max-height: 2000px; /* Adjust this value based on your content */
+    transition: max-height 0.5s ease-in;
+}
+
+@keyframes checkmark {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.lesson-section {
+    padding: 20px;  /* Reduced from 25px */
+    position: relative;
+    overflow: hidden; /* Important for the ribbon */
+    padding-left: 35px; /* Add space for the completion stripe */
+}
+
+/* Remove all previous completion styles and replace with these new ones */
+.section-completed {
+    border: 1px solid rgba(76, 175, 80, 0.15);
+    background: rgba(46, 125, 50, 0.02); /* Slightly darker completed background */
+}
+
+.section-completed::after {
+    content: '✓ COMPLETED';
+    position: absolute;
+    background: #2E7D32;
+    color: white;
+    text-align: center;
+    font-size: 0.7em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+/* Position when closed - vertical strip */
+.section-completed:not(.content-open)::after {
+    writing-mode: vertical-rl;
+    transform: rotate(-180deg) ease 0.3s;
+    padding: 10px 5px;
+    top: -7px;
+    bottom: 0;
+    right: 60px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 2px;
+}
+
+/* Position when open - corner ribbon */
+.section-completed.content-open::after {
+    padding: 5px 40px;
+    right: -33px;
+    top: 25px;
+    transform: rotate(45deg);
+    letter-spacing: 1px;
+}
+
+.section-completed-badge {
+    display: none; /* Hide the old badge */
+}
+
+.section-completed {
+    border: 1px solid rgba(76, 175, 80, 0.15);
+    background: rgba(46, 125, 50, 0.02); /* Slightly darker completed background */
+}
+
+/* Add completion marker */
+.section-completed .section-header-content::before {
+    position: absolute;
+    left: 12px;
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.section-completed {
+    border: 1px solid rgba(76, 175, 80, 0.15);
+    background: rgba(46, 125, 50, 0.02); /* Slightly darker completed background */
+}
+
+.section-completed .section-header h2 {
+    color: inherit; /* Remove the green color from the title */
+}
+
+.lesson-number {
+    color: #666; /* Darker gray for lesson number */
+    font-weight: normal;
+    margin-right: 12px;
+    font-size: 0.9em;
+}
+
+.section-header-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    width: 100%;
+}
+
+.section-completed-badge {
+    background: rgba(46, 125, 50, 0.2);
+    color: #4CAF50;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.section-completed {
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    background: rgba(46, 125, 50, 0.02); /* Slightly darker completed background */
+}
+
+.section-completed .section-header h2 {
+    color: #4CAF50;
+}
+
+/* Replace all .progress-circle styles with these new class names */
+.lesson-section-progress {
+    width: 45px;
+    height: 45px;
+    transition: all 0.3s ease;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+    padding: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lesson-section-progress.center-aligned {
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.lesson-section-progress.right-aligned {
+    right: 80px;
+}
+
+.lesson-progress-circle-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+.lesson-progress-circle-wrapper path {
+    transition: fill 0.3s ease;
+}
+
+.lesson-progress-circle-wrapper:hover path {
+    filter: brightness(1.2);
+}
+
+/* Add specific styles for the text inside the lesson progress circle */
+.lesson-section-progress .CircularProgressbar-text {
+    dominant-baseline: middle;
+    text-anchor: middle;
+    font-size: 16px;
+    fill: #fff;
+}
+
+/* Remove or comment out the generic .progress-circle styles */

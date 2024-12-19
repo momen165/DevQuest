@@ -1,68 +1,93 @@
-
 .hero {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0px;
-    padding: 50px 20px;
-    background: linear-gradient(to bottom, #1E3C90, #09112A);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0px;
+  padding: 50px 20px;
+  background: linear-gradient(to bottom, #1E3C90, #09112A);
+}
 
-  }
-  
-  .hero-content {
-    display: flex;
-    flex-direction: column;
-    margin-left: 30px;
-    max-width: 50%;
-    color: white;
-    align-items: center;
-    margin-right: 30px;
-      min-height: 100vh; /* Ensures the page fills the viewport */
-  }
-  
-  .hero h1 {
-    text-align: center;
-    font-size: 96px;
-    font-family: "LibreFranklin-ExtraBold";
-  }
-  
-  .hero p {
-    font-family: 'Chivo Thin Italic', sans-serif;
-    font-size: 32px;
-    line-height: 38px;
-    text-align: center;
-    margin-top: 0px;
-  }
-  
-  .hero-buttons {
-    margin-top: 20px;
-  }
-  
-  .btn {
-    padding: 10px 20px;
-    margin-right: 10px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    width: 270px;
-    font-size: 32px;
-    height: 75px;
-  }
-  
-  .browse-btn {
-    background-color: #ff4a4a;
-    margin-right: 30px;
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  margin-left: 30px;
+  max-width: 50%;
+  color: white;
+  align-items: center;
+  margin-right: 30px;
+  min-height: 100vh; 
+}
 
-    color: white;
-  }
-  
-  .create-btn {
-    background-color: #1da1f2;
-    color: white;
-  }
-  
-  .hero-image img {
-    width: 100%;
-    height: auto;
-  }
-  
+.hero h1 {
+  text-align: center;
+  font-size: 96px;
+  font-family: "LibreFranklin-ExtraBold";
+}
+
+.hero p {
+  font-family: 'Chivo Thin Italic', sans-serif;
+  font-size: 32px;
+  line-height: 38px;
+  text-align: center;
+  margin-top: 0px;
+}
+
+.hero-buttons {
+  margin-top: 20px;
+  display: flex; /* Ensures buttons are aligned horizontally */
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 270px;
+  font-size: 32px;
+  height: 75px;
+  margin: 10px; /* Adds margin to all sides */
+  transition: all 0.3s ease; /* Adds smooth transition for hover effects */
+  font-family: 'Roboto', sans-serif; /* Example font */
+}
+
+.browse-btn {
+  background-color: #ff4a4a;
+  color: white;
+  box-shadow: 0px 4px 10px rgba(255, 74, 74, 0.5); /* Adds a subtle shadow */
+}
+
+.browse-btn:hover {
+  background-color: #ff6f6f; /* Slightly lighter shade on hover */
+  box-shadow: 0px 6px 15px rgba(255, 74, 74, 0.7); /* More pronounced shadow on hover */
+  transform: translateY(-2px); /* Slightly lifts the button on hover */
+}
+
+.create-btn {
+  background-color: #1da1f2;
+  color: white;
+  box-shadow: 0px 4px 10px rgba(29, 161, 242, 0.5);
+}
+
+.create-btn:hover {
+  background-color: #49b6f5;
+  box-shadow: 0px 6px 15px rgba(29, 161, 242, 0.7);
+  transform: translateY(-2px);
+}
+
+.continue-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 0;
+  box-shadow: 0px 4px 10px rgba(76, 175, 80, 0.5);
+}
+
+.continue-btn:hover {
+  background-color: #66bb6a;
+  box-shadow: 0px 6px 15px rgba(76, 175, 80, 0.7);
+  transform: translateY(-2px);
+}
+
+.hero-image img {
+  width: 100%;
+  height: auto;
+}
