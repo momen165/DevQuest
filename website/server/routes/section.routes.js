@@ -2,12 +2,15 @@ const express = require('express');
 const router = express.Router();
 const sectionController = require('../controllers/section.controller');
 const authenticateToken = require('../middleware/auth');
-const { getSectionsByCourse } = require('../controllers/section.controller');
+
 // Add a new section
 router.post('/sections', authenticateToken, sectionController.addSection);
 
 // Get all sections for a course
-router.get('/section', getSectionsByCourse);
+router.get('/section', sectionController.getSectionsByCourse);
+
+// Get section by ID
+router.get('/section/:section_id', sectionController.getSectionById);
 
 // Edit a section
 router.put('/sections/:section_id', authenticateToken, sectionController.editSection);

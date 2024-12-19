@@ -37,6 +37,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/CoursesPage" element={<CoursesPage />} />
         <Route path="/enroll/:courseId" element={<EnrollmentPage />} />
         <Route path="/faq" element={<FAQPage />} />
