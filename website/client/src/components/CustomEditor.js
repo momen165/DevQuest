@@ -71,7 +71,14 @@ const DEFAULT_CONFIG = {
 			// Add custom languages here
 			{language: 'go', label: 'Go'},
 			{language: 'swift', label: 'Swift'},
-			{language: 'kotlin', label: 'Kotlin'}
+			{language: 'kotlin', label: 'Kotlin'},
+			{language: 'rust', label: 'Rust'},
+			{language: 'c', label: 'C'},
+			{language: 'c++', label: 'C++'},
+			{language: 'sql', label: 'SQL'},
+			{language: 'bash', label: 'Bash'},
+			{language: 'powershell', label: 'PowerShell'},
+			{language: 'markdown', label: 'Markdown'}
 		]
 	},
 	toolbar: {

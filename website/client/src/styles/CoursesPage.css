@@ -31,6 +31,7 @@
   height: 300px;
   justify-content: space-between;
   align-items: center;
+  margin-top: 70px;
 }
 
 .courses-header::before {
@@ -127,5 +128,22 @@
 @media (max-width: 480px) {
   .courses-grid {
     grid-template-columns: 1fr; /* 1 column */
+  }
+}
+
+/* Update the media query for mobile screens */
+@media screen and (max-width: 480px) {
+  .courses-header {
+    margin-top: 60px;
+  }
+  
+  .hero-head {
+    font-size: 40px;
+  }
+  
+  .hero-para {
+    font-size: 20px;
+    width: 90%;
+    max-width: 1200px;
   }
 }

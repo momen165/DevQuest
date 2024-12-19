@@ -172,117 +172,101 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
   };
 
   return (
+    <div className={`lesson-edit-add-container ${isSaving ? 'loading' : ''}`}>
+      {isSaving && <div className="loader">Saving...</div>}
+      {error && <ErrorAlert message={error} onClose={() => setError('')} />}
+      
+      <h3 className="form-title">
+        {lesson ? '✏️ Edit Lesson' : '➕ Add New Lesson'}
+      </h3>
+      
+      <form className="lesson-form">
+        <div className="form-group">
+          <label className="edit-add-label">📝 Lesson Name</label>
+          <input
+            type="text"
+            value={lessonName}
+            onChange={(e) => setLessonName(e.target.value)}
+            placeholder="Enter a descriptive name for the lesson"
+          />
+          {errors.lessonName && <p className="error">{errors.lessonName}</p>}
+        </div>
 
-      <div className={`lesson-edit-add-container ${isSaving ? 'loading' : ''}`}>
-
-        {isSaving && <div className="loader">Saving...</div>}
-        {error && (
-            <ErrorAlert
-                message={error}
-                onClose={() => setError('')}
-            />
-        )}
-        <h3 className="form-title">{lesson ? 'Edit Lesson' : 'Add Lesson'}</h3>
-        <form className="lesson-form">
-          <div className="form-group">
-            <label className="edit-add-label">Lesson Name:</label>
-            <input
-                type="text"
-                value={lessonName}
-                onChange={(e) => setLessonName(e.target.value)}
-                placeholder="Enter lesson name"
-            />
-            {errors.lessonName && <p className="error">{errors.lessonName}</p>}
-          </div>
-
+        <div className="form-group">
+          <label className="edit-add-label">📚 Lesson Content</label>
           <div className="editor-container">
             <CustomEditor
-                initialData={editorData}
-                onChange={handleEditorChange}
-                className="lesson-editor"
-                config={{
-                  placeholder: "Enter lesson content here...",
-                }}
+              initialData={editorData}
+              onChange={handleEditorChange}
+              className="lesson-editor"
+              config={{
+                placeholder: "Start writing your lesson content here...",
+              }}
             />
           </div>
+        </div>
 
-          <div className="form-group">
-            <label className="edit-add-label">XP:</label>
-            <input
-                type="number"
-                value={xp}
-                onChange={(e) => setXp(Number(e.target.value))}
-                placeholder="Enter XP value"
-            />
-          </div>
+        <div className="form-group">
+          <label className="edit-add-label">🏆 Experience Points (XP)</label>
+          <input
+            type="number"
+            value={xp}
+            onChange={(e) => setXp(Number(e.target.value))}
+            placeholder="Enter XP value"
+            min="0"
+          />
+        </div>
 
-          <div className="form-group">
-            <label className="edit-add-label">Test Cases:</label>
-            {test_cases.map((testCase, index) => (
-                <div key={index} className="test-case">
-                  <input
-                      type="text"
-                      value={testCase.input}
-                      onChange={(e) =>
-                          handleTestCaseChange(index, 'input', e.target.value)
-                      }
-                      placeholder={`Input ${index + 1}`}
-                  />
-                  <textarea
-                      value={testCase.expected_output}
-                      onChange={(e) =>
-                          handleTestCaseChange(index, 'expected_output', e.target.value)
-                      }
-                      placeholder={`Expected Output ${index + 1}`}
-                      required
-                      style={{
-                          whiteSpace: 'pre',
-                          fontFamily: 'monospace',
-                          minHeight: '100px',
-                          width: '100%',
-                          tabSize: 4,
-                          WebkitTabSize: 4,
-                          MozTabSize: 4,
-                          overflowX: 'auto',
-                          wordWrap: 'normal',
-                          overflowWrap: 'normal',
-                          lineHeight: '1.2'
-                      }}
-                  />
-                  <button
-                      type="button"
-                      className="remove-test-case-button"
-                      onClick={() => handleRemoveTestCase(index)}
-                  >
-                    Remove
-                  </button>
-                </div>
-            ))}
-            <button
+        <div className="form-group">
+          <label className="edit-add-label">🧪 Test Cases</label>
+          {test_cases.map((testCase, index) => (
+            <div key={index} className="test-case">
+              <input
+                type="text"
+                value={testCase.input}
+                onChange={(e) => handleTestCaseChange(index, 'input', e.target.value)}
+                placeholder="Test input (optional)"
+              />
+              <textarea
+                value={testCase.expected_output}
+                onChange={(e) => handleTestCaseChange(index, 'expected_output', e.target.value)}
+                placeholder="Expected output (required)"
+                required
+              />
+              <button
                 type="button"
-                className="add-test-case-button"
-                onClick={handleAddTestCase}
-            >
-              Add More Test Cases
-            </button>
-            {errors.testCases && <p className="error">{errors.testCases}</p>}
-          </div>
+                className="remove-test-case-button"
+                onClick={() => handleRemoveTestCase(index)}
+              >
+                Remove Test Case
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="add-test-case-button"
+            onClick={handleAddTestCase}
+          >
+            + Add New Test Case
+          </button>
+          {errors.testCases && <p className="error">{errors.testCases}</p>}
+        </div>
 
-          <div className="form-actions">
-            <button type="button" onClick={handleSave} disabled={isSaving} className="save-button">
-              {isSaving ? 'Saving...' : 'Save'} <FaSave />
+        <div className="form-actions">
+          <button type="button" onClick={onCancel} className="cancel-button">
+            Cancel
+          </button>
+          {lesson?.lesson_id && (
+            <button type="button" onClick={handleDelete} className="delete-button">
+              <FaTrash /> Delete Lesson
             </button>
-            {lesson?.lesson_id && (
-                <button type="button" onClick={handleDelete} className="delete-button">
-                  Delete <FaTrash />
-                </button>
-            )}
-            <button type="button" onClick={onCancel} className="cancel-button">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
+          )}
+          <button type="button" onClick={handleSave} disabled={isSaving} className="save-button">
+            <FaSave /> {isSaving ? 'Saving...' : 'Save Lesson'}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

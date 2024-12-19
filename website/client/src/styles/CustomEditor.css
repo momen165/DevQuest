@@ -190,6 +190,7 @@
 	border: 1px solid #c4c4c4 !important;
 	padding: 20px !important;
 	color: #333333 !important;
+	min-height: 400px !important;
 }
 
 .custom-editor .ck.ck-editor__main > .ck-editor__editable:focus {
