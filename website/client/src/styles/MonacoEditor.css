@@ -10,7 +10,7 @@
 
 .editor-controls {
   position: absolute;
-  bottom: 15px;
+  bottom: 0px;
   left: 15px;
   display: flex;
   gap: 2px;
