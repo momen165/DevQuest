@@ -7,6 +7,12 @@ import 'styles/CourseSections.css';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
 
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+    timeout: 10000,
+});
+
 const FREE_LESSON_LIMIT = 5;
 
 const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription }) => {
@@ -22,14 +28,24 @@ const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription
             setLoading(true);
             setError('');
             try {
-                const response = await axios.get(`http://localhost:5000/api/lesson?section_id=${sectionId}`, {
+                // Get lessons with progress
+                const response = await api.get(`/lessons/section/${sectionId}/progress`, {
                     headers: {
                         Authorization: `Bearer ${user.token}`,
                     },
                 });
-                const lessons = Array.isArray(response.data) ? response.data : [];
-                const sortedLessons = lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
-                setLessons(sortedLessons);
+
+                if (response.data) {
+                    const lessons = Array.isArray(response.data) ? response.data : [];
+                    const sortedLessons = lessons
+                        .map(lesson => ({
+                            ...lesson,
+                            completed: Boolean(lesson.completed) // Ensure completed is boolean
+                        }))
+                        .sort((a, b) => (a.lesson_order || 0) - (b.lesson_order || 0));
+                    
+                    setLessons(sortedLessons);
+                }
             } catch (err) {
                 setError('Failed to fetch lessons.');
                 console.error('Error fetching lessons:', err);
@@ -38,8 +54,10 @@ const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription
             }
         };
         
-        fetchLessons();
-    }, [sectionId, user.token]);
+        if (sectionId && user?.token) {
+            fetchLessons();
+        }
+    }, [sectionId, user]);
 
     const toggleSection = () => {
         setIsOpen(!isOpen);
@@ -48,7 +66,7 @@ const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription
     // Calculate section completion stats
     const completedLessons = lessons.filter(lesson => lesson.completed).length;
     const totalLessons = lessons.length;
-    const completionPercentage = (completedLessons / totalLessons) * 100;
+    const completionPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
     const isSectionCompleted = totalLessons > 0 && completedLessons === totalLessons;
 
     const renderProgressSegments = () => {
