@@ -8,6 +8,13 @@ import CircularProgress from "@mui/material/CircularProgress";
 import SupportForm from 'components/SupportForm';
 import axios from 'axios';
 
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+const isCacheValid = (timestamp) => {
+  if (!timestamp) return false;
+  return (new Date().getTime() - timestamp) < CACHE_DURATION;
+};
+
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
@@ -25,21 +32,15 @@ const CoursesPage = () => {
       setLoading(true);
       try {
         const cachedData = localStorage.getItem('coursesData');
-        const cachedEnrollments = localStorage.getItem(`enrollments_${user?.user_id}`);
-
-        if (cachedData) {
-          const {courses, ratings, userscount} = JSON.parse(cachedData);
-          setCourses(courses);
-          setFilteredCourses(courses);
-          setRatings(ratings);
-          setUserscount(userscount);
+        const parsedCache = cachedData ? JSON.parse(cachedData) : null;
+        
+        if (parsedCache && isCacheValid(parsedCache.timestamp)) {
+          setCourses(parsedCache.courses);
+          setFilteredCourses(parsedCache.courses);
+          setRatings(parsedCache.ratings);
+          setUserscount(parsedCache.userscount);
         }
-
-        if (user?.user_id && cachedEnrollments) {
-          setEnrollments(JSON.parse(cachedEnrollments));
-        }
-
-        // Replace fetch with axios
+        
         const [coursesResponse, enrollmentsResponse] = await Promise.all([
           axios.get('/api/getCoursesWithRatings'),
           user?.user_id
@@ -49,17 +50,24 @@ const CoursesPage = () => {
 
         const {courses, ratings, userscount} = coursesResponse.data;
 
-        // Update state with fresh data
         setCourses(courses);
         setFilteredCourses(courses);
         setRatings(ratings || {});
         setUserscount(userscount || {});
         setEnrollments(enrollmentsResponse.data || {});
 
-        // Cache the data
-        localStorage.setItem('coursesData', JSON.stringify({courses, ratings, userscount}));
+        localStorage.setItem('coursesData', JSON.stringify({
+          courses,
+          ratings,
+          userscount,
+          timestamp: new Date().getTime()
+        }));
+        
         if (user?.user_id) {
-          localStorage.setItem(`enrollments_${user.user_id}`, JSON.stringify(enrollmentsResponse.data));
+          localStorage.setItem(`enrollments_${user.user_id}`, JSON.stringify({
+            data: enrollmentsResponse.data,
+            timestamp: new Date().getTime()
+          }));
         }
       } catch (err) {
         console.error('Error:', err);
@@ -71,7 +79,6 @@ const CoursesPage = () => {
 
     fetchCoursesAndRatings();
   }, [user]);
-
 
   useEffect(() => {
     const fetchProgress = async () => {

@@ -1,35 +1,187 @@
+/* Base Layout */
 .account-settings-profile-page {
   display: flex;
   width: 100%;
-  height: 100vh; /* Ensure full height */
+  height: 100vh;
   background: #94bbd4;
 }
 
+.account-settings-profile-content {
+  flex: 1;
+  padding: 50px;
+  background: rgb(231, 231, 231);
+  border-left: 2px solid #dcdcdc;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+  width: calc(100% - 290px);
+}
+
+/* Section Styles */
+.account-settings-profile-section,
 .account-settings-subscription-section {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background-color: #f8f9fa;
+  background-color: white;
+  padding: 2rem;
   border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
 }
 
-.account-settings-subscription-info {
-  margin-top: 1rem;
+/* Profile Header and Avatar */
+.account-settings-profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-.account-settings-subscription-info p {
-  margin: 0.5rem 0;
+.account-settings-profile-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 10px;
 }
 
-.account-settings-edit-payment-button {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #007bff;
+.account-settings-profile-avatar img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #000000;
+  margin-bottom: 1rem;
+}
+
+.account-settings-profile-pic-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Form Elements */
+.account-settings-profile-form {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.account-settings-form-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.account-settings-form-group label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+/* Input Styles */
+.Rand-idafkd-Name,
+.account-settings-textarea,
+.account-settings-select,
+.account-settings-profile-content input[type="text"],
+.account-settings-profile-content input[type="number"],
+.account-settings-profile-content textarea {
+  background-color: #eee !important;
+  border: none !important;
+  padding: 1rem !important;
+  font-size: 1rem;
+  border-radius: 1rem !important;
+  width: 100%;
+  max-width: 500px;
+  color: #000000 !important;
+  box-shadow: 0 0.4rem #dfd9d9 !important;
+  transition: border-color 0.3s ease;
+  resize: none;
+  margin-bottom: 1.5rem;
+  padding-right: 3rem;
+  display: block;
+}
+
+.account-settings-textarea {
+  resize: vertical;
+  min-height: 100px;
+  width: 100% !important;
+  max-width: 500px;
+}
+
+.account-settings-select {
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="%233498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><path d="M6 9l6-6 6 6"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+}
+
+/* Button Styles */
+.settings-btn,
+.account-settings-btn {
+  padding: 15px 25px;
+  border: unset;
+  border-radius: 15px;
+  color: #212121;
+  z-index: 1;
+  background: #e8e8e8;
+  position: relative;
+  font-weight: 1000;
+  font-size: 16px;
+  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  transition: all 250ms;
+  overflow: hidden;
+}
+
+.settings-btn::before,
+.account-settings-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  border-radius: 15px;
+  background-color: #212121;
+  z-index: -1;
+  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  transition: all 250ms;
+}
+
+.settings-btn:hover,
+.account-settings-btn:hover {
+  color: #e8e8e8;
+}
+
+.settings-btn:hover::before,
+.account-settings-btn:hover::before {
+  width: 100%;
+}
+
+/* Specific Button Variants */
+.settings-update-btn,
+.settings-remove-btn,
+.account-settings-update-btn,
+.account-settings-remove-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.settings-remove-btn:hover::before,
+.account-settings-remove-btn:hover::before {
+  background-color: #ef4444;
+}
+
+.settings-save-btn,
+.account-settings-save-btn {
+  background-color: #10b981;
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
+.settings-cancel-btn,
+.account-settings-cancel-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* Modal Styles */
 .account-settings-modal-overlay {
   position: fixed;
   top: 0;
@@ -50,166 +202,7 @@
   max-width: 500px;
 }
 
-/* Profile Content */
-.account-settings-profile-content {
-  flex: 1;
-  padding: 50px;
-  background: rgb(231, 231, 231);
-  border-left: 2px solid #dcdcdc;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: 20px;
-  width: calc(100% - 290px); /* Adjust width to account for sidebar */
-}
-
-/* Profile Header */
-.account-settings-profile-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.account-settings-profile-avatar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.account-settings-profile-avatar img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 2px solid #3498db;
-}
-
-/* Button Styles */
-.account-settings-btn {
-  padding: 15px 25px;
-  border: unset;
-  border-radius: 15px;
-  color: #212121;
-  z-index: 1;
-  background: #e8e8e8;
-  position: relative;
-  font-weight: 1000;
-  font-size: 16px;
-  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  transition: all 250ms;
-  overflow: hidden;
-}
-
-.account-settings-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 0;
-  border-radius: 15px;
-  background-color: #212121;
-  z-index: -1;
-  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  transition: all 250ms;
-}
-
-.account-settings-btn:hover {
-  color: #e8e8e8;
-}
-
-.account-settings-btn:hover::before {
-  width: 100%;
-}
-
-/* Smaller Button Styles */
-.account-settings-update-btn, .account-settings-remove-btn {
-  padding: 10px 20px;
-  font-size: 14px;
-}
-
-.account-settings-remove-btn:hover::before {
-  background-color: red;
-}
-
-/* Profile Form */
-.account-settings-profile-form {
-  margin-top: 20px;
-  width: 50%;
-}
-
-.account-settings-profile-form label {
-  display: block;
-  margin: 10px 0 5px;
-  font-weight: bold;
-}
-
-.Rand-idafkd-Name, .account-settings-textarea, .account-settings-select {
-  background-color: #eee;
-  border: none;
-  padding: 1rem;
-  font-size: 1rem;
-  border-radius: 1rem;
-  width: auto;
-  color: #3498db;
-  box-shadow: 0 0.4rem #dfd9d9;
-  transition: border-color 0.3s ease;
-  resize: none;
-  margin-bottom: 30px;
-  padding-right: 3rem; /* Add more padding to the right to ensure the icon is fully visible */
-}
-
-.Rand-idafkd-Name:focus, .account-settings-textarea:focus, .account-settings-select:focus {
-  outline-color: rgb(0, 0, 0);
-}
-
-.account-settings-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="%233498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><path d="M6 9l6-6 6 6"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1rem;
-}
-
-.account-settings-form-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.user-account-settings-save-btn, .user-account-settings-cancel-btn {
-  background-color: #3498db;
-  border: none;
-  color: #000;
-  padding: 10px 20px;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.user-account-settings-save-btn:hover::before {
-  background-color: #db6934;
-}
-
-.user-account-settings-cancel-btn {
-  background-color: #000;
-  border: none;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.user-account-settings-cancel-btn:hover {
-  background-color: #333;
-}
-
-.user-account-settings-cancel-btn:hover::before {
-  background-color: #5a5a5a;
-}
-
+/* Message Styles */
 .account-settings-error-message,
 .account-settings-success-message {
   padding: 1rem;
@@ -228,67 +221,7 @@
   color: #16a34a;
 }
 
-.account-settings-profile-section,
-.account-settings-subscription-section {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.account-settings-profile-avatar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.account-settings-profile-avatar img {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 1rem;
-}
-
-.account-settings-profile-pic-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-.account-settings-form-group {
-  margin-bottom: 1.5rem;
-}
-
-.account-settings-form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.Rand-idafkd-Name,
-.account-settings-select,
-.account-settings-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.account-settings-textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-
-.account-settings-form-buttons {
-  display: flex;
-  justify-content: flex-start;
-  gap: 1rem;
-}
-
+/* Subscription Styles */
 .account-settings-subscription-info {
   margin-top: 1.5rem;
 }
@@ -335,93 +268,4 @@
   padding: 2rem;
   background-color: #f9fafb;
   border-radius: 4px;
-}
-
-.account-settings-button {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.account-settings-update-btn {
-  background-color: #3b82f6;
-  color: white;
-}
-
-.account-settings-remove-btn {
-  background-color: #ef4444;
-  color: white;
-}
-
-.account-settings-save-btn {
-  background-color: #10b981;
-  color: white;
-}
-
-.account-settings-button:hover {
-  opacity: 0.9;
-}
-.Rand-idafkd-Name{
-  width: 50%;
-}
-/* Update button styles with unique names */
-.settings-btn {
-  padding: 15px 25px;
-  border: unset;
-  border-radius: 15px;
-  color: #212121;
-  z-index: 1;
-  background: #e8e8e8;
-  position: relative;
-  font-weight: 1000;
-  font-size: 16px;
-  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  transition: all 250ms;
-  overflow: hidden;
-}
-
-.settings-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 0;
-  border-radius: 15px;
-  background-color: #212121;
-  z-index: -1;
-  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  transition: all 250ms;
-}
-
-.settings-btn:hover {
-  color: #e8e8e8;
-}
-
-.settings-btn:hover::before {
-  width: 100%;
-}
-
-.settings-update-btn, .settings-remove-btn {
-  padding: 10px 20px;
-  font-size: 14px;
-}
-
-.settings-remove-btn:hover::before {
-  background-color: #ef4444;
-}
-
-.settings-save-btn {
-  background-color: #10b981;
-  color: white;
-}
-
-.settings-cancel-btn {
-  background-color: #ef4444;
-  color: white;
 }

@@ -5,7 +5,7 @@ import Navbar from 'components/Navbar';
 import FAQSection from 'components/FAQSection';
 import 'styles/HomePage.css';
 import SupportForm from 'components/SupportForm';
-import heroimg from 'assets/images/hero-image.svg';
+import heroimg from 'assets/images/hero-img.webp';
 
 const HomePage = () => {
     const navigate = useNavigate();
