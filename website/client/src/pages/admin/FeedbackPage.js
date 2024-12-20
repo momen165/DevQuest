@@ -73,21 +73,30 @@ const FeedbackPage = () => {
     }
   };
 
-  // Conditional rendering for loading and errors
-    if (loading) return <div className="centered-loader">
-        <CircularProgress/>
-    </div>;
-  if (error) return <div className="error-message">{error}</div>;
+  
+ 
+  if (error) return <div className="feedback-error">{error}</div>;
+
+  if (loading) {
+    return (
+      <div className="feedback-page feedback-layout">
+        <Sidebar />
+        <div className="centered-loader">
+          <CircularProgress />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="admin-feedback-page admin-feedback-container">
+    <div className="feedback-page feedback-layout">
       <Sidebar />
-      <div className="admin-feedback-main-content">
-        <h2 className="admin-feedback-h2">Feedback</h2>
+      <div className="feedback-content">
+        <h2 className="feedback-title">Feedback</h2>
         {feedbacks.length === 0 ? (
           <p>No feedback available at the moment.</p>
         ) : (
-          <table className="admin-feedback-table">
+          <table className="feedback-table">
             <thead>
               <tr>
                 <th>Feedback ID</th>
@@ -95,7 +104,7 @@ const FeedbackPage = () => {
                 <th>Feedback</th>
                 <th>Rating</th>
                 <th>Course Name</th>
-                {/* <th>Date</th> */}
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -107,25 +116,34 @@ const FeedbackPage = () => {
                   <td>{feedback.feedback}</td>
                   <td>{feedback.rating}</td>
                   <td>{feedback.course_name}</td>
+                  <td>{feedback.status}</td>
                   <td>
-                    <button className="admin-feedback-button" onClick={() => setSelectedFeedback(feedback)}>Reply</button>
+                    {feedback.status === 'open' ? (
+                      <button 
+                        className="feedback-btn" 
+                        onClick={() => setSelectedFeedback(feedback)}
+                      >
+                        Reply
+                      </button>
+                    ) : (
+                      <span className="feedback-status-closed">Closed</span>
+                    )}
                   </td>
-                  {/* <td>{feedback.date}</td> */}
                 </tr>
               ))}
             </tbody>
           </table>
         )}
         {selectedFeedback && (
-          <form onSubmit={handleReplySubmit}>
+          <form onSubmit={handleReplySubmit} className="feedback-form">
             <h3>Reply to Feedback #{selectedFeedback.feedback_id}</h3>
             <textarea
               value={reply}
               onChange={(e) => setReply(e.target.value)}
               placeholder="Type your reply here"
             />
-            <button className="admin-feedback-button" type="submit">Send Reply</button>
-            <button className="admin-feedback-button" type="button" onClick={() => setSelectedFeedback(null)}>Cancel</button>
+            <button className="feedback-btn-action" type="submit">Send Reply</button>
+            <button className="feedback-btn-action" type="button" onClick={() => setSelectedFeedback(null)}>Cancel</button>
           </form>
         )}
       </div>

@@ -1,12 +1,45 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { CircularProgressbarWithChildren } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import 'styles/LessonSection.css';
 import 'styles/CourseSections.css';
+import axios from 'axios';
+import { useAuth } from 'AuthContext';
 
-const LessonList = ({ sectionName, sectionId, lessons }) => {
+const FREE_LESSON_LIMIT = 5;
+
+const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription }) => {
     const [isOpen, setIsOpen] = useState(true);
+    const [lessons, setLessons] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    useEffect(() => {
+        const fetchLessons = async () => {
+            setLoading(true);
+            setError('');
+            try {
+                const response = await axios.get(`http://localhost:5000/api/lesson?section_id=${sectionId}`, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                });
+                const lessons = Array.isArray(response.data) ? response.data : [];
+                const sortedLessons = lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
+                setLessons(sortedLessons);
+            } catch (err) {
+                setError('Failed to fetch lessons.');
+                console.error('Error fetching lessons:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchLessons();
+    }, [sectionId, user.token]);
 
     const toggleSection = () => {
         setIsOpen(!isOpen);
@@ -34,18 +67,18 @@ const LessonList = ({ sectionName, sectionId, lessons }) => {
                             <g transform="translate(18, 18)">
                                 {/* Segments */}
                                 {lessons.map((lesson, index) => {
-                                    const segmentAngle = (360 / lessons.length) - 8; // Subtract 4 degrees for gap
-                                    const startAngle = (index * 360 / lessons.length) - 90 + 4; // Add 4 degrees for centering
+                                    const segmentAngle = (360 / lessons.length) - 8;
+                                    const startAngle = (index * 360 / lessons.length) - 90 + 4;
                                     const endAngle = startAngle + segmentAngle;
                                     
-                                    const innerRadius = 12; // Inner circle radius
-                                    const outerRadius = 16; // Outer circle radius
-                                    const cornerRadius = 1.5; // Adjust this value to control roundness
+                                    const innerRadius = 12;
+                                    const outerRadius = 16;
+                                    const cornerRadius = 1.5;
                                     
                                     const startRadians = (startAngle * Math.PI) / 180;
                                     const endRadians = (endAngle * Math.PI) / 180;
                                     
-                                    // Calculate main points
+                                    // Calculate points and control points
                                     const x1 = Math.cos(startRadians) * outerRadius;
                                     const y1 = Math.sin(startRadians) * outerRadius;
                                     const x2 = Math.cos(endRadians) * outerRadius;
@@ -55,7 +88,6 @@ const LessonList = ({ sectionName, sectionId, lessons }) => {
                                     const x4 = Math.cos(startRadians) * innerRadius;
                                     const y4 = Math.sin(startRadians) * innerRadius;
                                     
-                                    // Calculate control points for rounded corners
                                     const startOuterAngleRad = startRadians - (Math.PI / 2) * 0.2;
                                     const endOuterAngleRad = endRadians + (Math.PI / 2) * 0.2;
                                     const startInnerAngleRad = startRadians + (Math.PI / 2) * 0.2;
@@ -85,16 +117,9 @@ const LessonList = ({ sectionName, sectionId, lessons }) => {
                                     );
                                 })}
                                 
-                                {/* Inner dark circle with slightly smaller radius */}
-                                <circle
-                                    cx="0"
-                                    cy="0"
-                                    r="10.5"
-                                    fill="rgba(0,0,0,0.8)"
-                                />
+                                <circle cx="0" cy="0" r="10.5" fill="rgba(0,0,0,0.8)" />
                             </g>
                         </svg>
-                        {/* Center text */}
                         <div style={{ 
                             fontSize: '14px', 
                             color: '#fff',
@@ -109,6 +134,14 @@ const LessonList = ({ sectionName, sectionId, lessons }) => {
             </div>
         );
     };
+
+    if (loading) {
+        return <p>Loading lessons...</p>;
+    }
+
+    if (error) {
+        return <p className="error">{error}</p>;
+    }
 
     return (
         <div className={`lesson-section ${isSectionCompleted ? 'section-completed' : ''} ${isOpen ? 'content-open' : ''}`}>
@@ -134,7 +167,12 @@ const LessonList = ({ sectionName, sectionId, lessons }) => {
                         <Link 
                             to={`/lesson/${lesson.lesson_id}`} 
                             key={lesson.lesson_id}
-                            className={`lesson-item ${lesson.completed ? 'completed' : ''}`}
+                            className={`lesson-item ${lesson.completed ? 'completed' : ''} ${
+                                !hasActiveSubscription && 
+                                (profileData?.exercisesCompleted || 0) >= FREE_LESSON_LIMIT 
+                                    ? 'disabled'
+                                    : ''
+                            }`}
                         >
                             <span>
                                 <span className="lesson-number">Lesson {index + 1}</span>
