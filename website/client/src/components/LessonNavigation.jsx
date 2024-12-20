@@ -59,15 +59,6 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
     // Get current section index
     const currentSectionIndex = sortedSections?.findIndex(section => section.section_id === currentSectionId);
 
-    console.log('Navigation Debug:', {
-        currentLessonId,
-        currentSectionId,
-        currentSectionIndex,
-        sortedSections,
-        lessonsBySection,
-        currentSectionLessons,
-        lessonIndexInSection
-    });
 
     const goToPreviousLesson = () => {
         if (lessonIndexInSection > 0) {
@@ -110,7 +101,7 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
     };
 
     const showNotification = (type, text) => {
-        console.log('Showing notification:', { type, text });
+      
         setMessageType(type);
         setMessageText(text);
         setShowMessage(true);
@@ -164,7 +155,7 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
                 <div className={`floating-message ${messageType}`}>
                     <div className="message-content">
                         {messageText}
-                        {console.log('Rendering message:', messageText)}
+                   
                     </div>
                 </div>
             )}

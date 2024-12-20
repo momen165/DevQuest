@@ -17,6 +17,7 @@
 
 /* Left section - Instructions */
 .lesson-instructions {
+  font-family: Mulish, sans-serif;
   flex: 2;
   background: linear-gradient(to bottom, #1f2e5a 30%, #09112A 70%);
   overflow-y: auto;
@@ -25,6 +26,7 @@
 }
 
 .lesson-instructions h1 {
+  
   font-size: 1.8rem;
   margin-bottom: 1rem;
 }

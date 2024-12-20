@@ -179,7 +179,7 @@ const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription
                     ▼
                 </button>
             </div>
-            <div className={`lesson-content ${isOpen ? 'open' : ''}`}>
+            <div className={`lesson-section-collapsible ${isOpen ? 'open' : ''}`}>
                 <div className="lesson-list">
                     {lessons.map((lesson, index) => (
                         <Link 

@@ -150,7 +150,7 @@ const LessonPage = () => {
             Authorization: `Bearer ${user.token}`,
           },
         });
-        console.log('All lessons:', allLessonsResponse.data);
+        
         setLessons(allLessonsResponse.data || []);
         setTotalLessons(allLessonsResponse.data.length);
 
@@ -198,11 +198,10 @@ const LessonPage = () => {
       <>
         <Navbar/>
         <div className="lesson-page">
-          <div className="lesson-instructions">
-            <h1>{lesson.name}</h1>
-            <p>{lesson.description}</p>
-            <LessonContent content={lesson.content}/>
-          </div>
+        <div className="lesson-instructions">
+          <h1>{lesson.name}</h1>
+          <LessonContent content={lesson.content}/>
+        </div>
 
           <div className="lesson-code-area">
             <div className="code-editor">

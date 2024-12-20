@@ -55,6 +55,10 @@ import 'ckeditor5/ckeditor5.css';
 
 import 'styles/CustomEditor.css';
 
+const LICENSE_KEY =
+	'[REDACTED]';
+
+
 const DEFAULT_CONFIG = {
 	codeBlock: {
 		languages: [
@@ -295,19 +299,23 @@ const DEFAULT_CONFIG = {
 	},
 	initialData:
 		'',
-	link: {
-		addTargetToExternalLinks: true,
-		defaultProtocol: 'https://',
-		decorators: {
-			toggleDownloadable: {
-				mode: 'manual',
-				label: 'Downloadable',
-				attributes: {
-					download: 'file'
-				}
-			}
-		}
-	},
+
+        licenseKey: LICENSE_KEY,
+        link: {
+            addTargetToExternalLinks: true,
+            defaultProtocol: 'https://',
+            decorators: {
+                toggleDownloadable: {
+                    mode: 'manual',
+                    label: 'Downloadable',
+                    attributes: {
+                        download: 'file'
+                    }
+                }
+            }
+        },
+
+	
 	menuBar: {
 		isVisible: true
 	},
