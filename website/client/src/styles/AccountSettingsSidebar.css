@@ -3,6 +3,7 @@
     background: linear-gradient(180deg, #16256b, #0f184a);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     padding: 20px;
+    margin-top: 60px;
   }
   
   .sidebar ul {
