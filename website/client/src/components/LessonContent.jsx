@@ -1,4 +1,4 @@
-﻿// LessonContent.js
+﻿﻿// LessonContent.js
 import React, {useEffect} from 'react';
 import parse, {domToReact} from 'html-react-parser';
 import hljs from 'highlight.js';
