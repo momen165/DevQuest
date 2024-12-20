@@ -1,51 +1,200 @@
 .lesson-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
-    justify-content: space-between; /* Ensures spacing between left and center groups */
+    justify-content: center;
     align-items: center;
-    padding: 10px 20px;
-    background-color: #161925;
-    border-top: 1px solid #282c34;
+    padding: 12px 24px;
+    background-color: #1e2130;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 16px;
+    height: 64px;
+    box-sizing: border-box;
+    z-index: 10;
 }
 
-.lesson-nav-back-button {
-    margin: 0; /* Remove unwanted margins */
-    background-color: #f0f0f0;
+.nav-button {
+    font-size: 0.95rem;
+    padding: 12px 24px;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
+    color: white;
+    background-color: #377EF0;
+    transition: all 0.2s ease;
+    font-weight: 500;
     display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-button:disabled {
+    background-color: #2c3144;
+    color: #6c7293;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.nav-button:hover:not(:disabled) {
+    background-color: #2461d4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.nav-button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.complete-button {
+    background-color: #2ecc71;
+}
+
+.complete-button:hover:not(:disabled) {
+    background-color: #27ae60;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .lesson-navigation {
+        padding: 8px;
+        height: 56px;
+        gap: 8px;
+    }
+
+    .nav-button {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        min-width: auto; /* Remove minimum width constraint */
+        flex: 0 1 auto; /* Don't force buttons to grow */
+    }
+}
+
+/* Small mobile styles */
+@media (max-width: 480px) {
+    .lesson-navigation {
+        padding: 6px;
+        height: 64px;
+        gap: 6px;
+    }
+
+    .nav-button {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+    .lesson-navigation {
+        justify-content: space-between; /* Spread out buttons */
+    }
+
+    .nav-button {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+}
+
+.floating-message {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 20px 32px;
+    border-radius: 16px;
+    color: white;
+    font-weight: 600;
+    font-size: 1.2rem;
+    z-index: 9999;
+    animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 320px;
+    text-align: center;
+    justify-content: center;
+    pointer-events: none;
+    background-color: #1e2130;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease-out;
+}
+
+.floating-message.success {
+    background-color: #2d3748;
+    border-left: 6px solid #4299e1;
+}
+
+.floating-message.error {
+    background-color: #2d3748;
+    border-left: 6px solid #f56565;
+}
+
+.message-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    line-height: 1.4;
+}
+
+.success-message {
+    display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 8px;
 }
 
-.lesson-nav-back-button:hover {
-    background-color: #e0e0e0;
+.xp-gained {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #4299e1;
+    animation: pulseXP 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+    display: inline-block;
+    opacity: 0;
 }
 
-.lesson-nav-btns {
-    display: flex;
-    justify-content: center; /* Keeps buttons centered */
-    flex: 1; /* Takes available space */
-    gap: 10px;
-    margin-left: 0;
-}
-.nav-button {
-    font-size: 1rem;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    color: white;
-    background-color: #377EF0;
-    transition: background-color 0.3s ease;
+@keyframes slideDown {
+    0% {
+        transform: translate(-50%, -120%);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
 }
 
-.nav-button:disabled {
-    background-color: #555;
-    cursor: not-allowed;
+@keyframes pulseXP {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.4);
+        opacity: 0.8;
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
-.nav-button:hover:not(:disabled) {
-    background-color: #145dbf;
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .floating-message {
+        width: 90%;
+        min-width: unset;
+        font-size: 1.1rem;
+        padding: 16px 24px;
+    }
+}
+
+.floating-message.exit {
+    transform: translate(-50%, -120%);
+    opacity: 0;
 }

@@ -2,11 +2,11 @@
 
 .enrollment-page {
   display: flex;
-  height: 100%;
+  height: 100vh;
   flex-direction: row;
-  background-color: #1a2a4e; /* Background color for the entire page */
+  background: linear-gradient(135deg, #1a2a4e 0%, #2a3f6f 100%);
   color: white;
-
+  overflow-x: hidden;
 }
 
 .enrollment-header {
@@ -15,59 +15,117 @@
   flex-direction: column;
   gap: 40px;
   margin-top: 50px;
+  opacity: 0;
+  animation: fadeSlideIn 1s ease-out forwards;
 }
-.enroll-info{
+
+.enroll-info {
   width: 700px;
   margin: 50px 200px 30px 50px;
+  position: relative;
 }
+
 .course-intro {
   font-size: 1rem;
   font-weight: bold;
-  background-color: #335b99; /* Background for intro label */
+  background: linear-gradient(90deg, #335b99, #4776c9);
   padding: 8px 12px;
-  border-radius: 5px;
+  border-radius: 8px;
   display: inline-block;
   color: white;
   text-transform: uppercase;
   width: fit-content;
+  box-shadow: 0 4px 15px rgba(51, 91, 153, 0.3);
+  transform: translateY(30px);
+  opacity: 0;
+  animation: slideUp 0.6s ease-out 0.3s forwards;
 }
 
 .course-titl {
   font-size: 96px;
   font-weight: bold;
   margin: 0px;
+  background: linear-gradient(90deg, #ffffff, #e0e0e0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transform: translateY(30px);
+  opacity: 0;
+  animation: slideUp 0.6s ease-out 0.6s forwards;
 }
 
 .course-description {
   font-size: 1.2rem;
   margin: 20px 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(30px);
+  opacity: 0;
+  animation: slideUp 0.6s ease-out 0.9s forwards;
 }
 
 .start-button {
-  background-color: #007bff;
+  background: linear-gradient(90deg, #007bff, #0056b3);
   color: white;
-  padding: 12px 24px;
+  padding: 15px 30px;
   font-size: 1rem;
   font-weight: bold;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
   width: fit-content;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  transform: translateY(30px);
+  opacity: 0;
+  animation: slideUp 0.6s ease-out 1.2s forwards;
 }
 
 .start-button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
 }
 
-.enroll-img{
+.enroll-img {
   display: flex;
   align-items: center;
   height: 830px;
   margin-top: 120px;
   width: 750px;
- 
   background-size: contain;
   background-repeat: no-repeat;
+  opacity: 0;
+  animation: fadeIn 1s ease-out 1.5s forwards;
+}
+
+/* Animation Keyframes */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

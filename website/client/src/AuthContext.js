@@ -59,14 +59,18 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('subscriptionStatus');
+    
   };
+
+  const isAuthenticated = !!user;
 
   if (loading) {
     return null; // Avoid rendering children until loading is complete
   }
 
   return (
-    <AuthContext.Provider value={{ user, token: user?.token, setUser, login, logout }}>
+    <AuthContext.Provider value={{ user, token: user?.token, setUser, login, logout, isAuthenticated }}>
     {children}
 </AuthContext.Provider>
   );

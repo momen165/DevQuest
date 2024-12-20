@@ -44,20 +44,15 @@ const addSection = async (req, res) => {
   }
 };
 
-// Get all sections for a course
-// ...existing code...
-
-// Get all sections for a course (ADMIN VERSION)
-const getSectionsByCourse = async (req, res) => {
+// Admin version - simplified, no user progress
+const getAdminSections = async (req, res) => {
   const { course_id } = req.query;
 
-  try {
-    // Validate course_id
-    if (!course_id || isNaN(course_id)) {
-      return res.status(400).json({ error: 'Invalid or missing course_id' });
-    }
+  if (!req.user.admin) {
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  }
 
-    // Simplified query for admin view - no need for user-specific data
+  try {
     const query = `
       SELECT 
         s.section_id, 
@@ -76,16 +71,75 @@ const getSectionsByCourse = async (req, res) => {
       GROUP BY s.section_id, s.name, s.description, s.section_order
       ORDER BY s.section_order ASC;
     `;
-
     const result = await db.query(query, [course_id]);
-    return res.status(200).json(result.rows);
+    return res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching sections:', err);
+    console.error('Error fetching admin sections:', err);
     return res.status(500).json({ error: 'Failed to fetch sections' });
   }
 };
 
-// ...existing code...
+// User version - includes progress tracking
+const getUserSections = async (req, res) => {
+  const { courseId } = req.params;
+  const userId = req.user.user_id;
+
+  try {
+    const query = `
+      SELECT 
+        s.section_id, 
+        s.name, 
+        s.description,
+        s.section_order,
+        json_agg(
+          json_build_object(
+            'lesson_id', l.lesson_id,
+            'name', l.name,
+            'completed', COALESCE(lp.completed, false)
+          ) ORDER BY l.lesson_order
+        ) as lessons
+      FROM section s
+      LEFT JOIN lesson l ON s.section_id = l.section_id
+      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $2
+      WHERE s.course_id = $1
+      GROUP BY s.section_id, s.name, s.description, s.section_order
+      ORDER BY s.section_order ASC;
+    `;
+    const result = await db.query(query, [courseId, userId]);
+    return res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching user sections:', err);
+    return res.status(500).json({ error: 'Failed to fetch sections' });
+  }
+};
+
+// Get section by ID
+const getSectionById = async (req, res) => {
+  const { sectionId } = req.params;
+
+  try {
+    const query = `
+      SELECT 
+        section_id, 
+        course_id, 
+        name, 
+        description,
+        section_order
+      FROM section
+      WHERE section_id = $1
+    `;
+    const result = await db.query(query, [sectionId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Section not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching section:', err);
+    res.status(500).json({ error: 'Failed to fetch section details' });
+  }
+};
 
 // Edit a section
 const editSection = async (req, res) => {
@@ -219,113 +273,13 @@ const reorderSections = async (req, res) => {
     res.status(500).json({ error: 'Failed to reorder sections.' });
   }
 };
-// ...existing code...
 
-// Admin version - simplified, no user progress
-const getAdminSections = async (req, res) => {
-  const { course_id } = req.query;
-
-  if (!req.user.admin) {
-    return res.status(403).json({ error: 'Access denied. Admins only.' });
-  }
-
-  try {
-    const query = `
-      SELECT 
-        s.section_id, 
-        s.name, 
-        s.description,
-        s.section_order,
-        json_agg(
-          json_build_object(
-            'lesson_id', l.lesson_id,
-            'name', l.name
-          ) ORDER BY l.lesson_order
-        ) as lessons
-      FROM section s
-      LEFT JOIN lesson l ON s.section_id = l.section_id
-      WHERE s.course_id = $1
-      GROUP BY s.section_id, s.name, s.description, s.section_order
-      ORDER BY s.section_order ASC;
-    `;
-    const result = await db.query(query, [course_id]);
-    return res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching admin sections:', err);
-    return res.status(500).json({ error: 'Failed to fetch sections' });
-  }
-};
-
-// User version - includes progress tracking
-const getUserSections = async (req, res) => {
-  const { courseId } = req.params;
-  const userId = req.user.user_id;
-
-  try {
-    const query = `
-      SELECT 
-        s.section_id, 
-        s.name, 
-        s.description,
-        s.section_order,
-        json_agg(
-          json_build_object(
-            'lesson_id', l.lesson_id,
-            'name', l.name,
-            'completed', COALESCE(lp.completed, false)
-          ) ORDER BY l.lesson_order
-        ) as lessons
-      FROM section s
-      LEFT JOIN lesson l ON s.section_id = l.section_id
-      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $2
-      WHERE s.course_id = $1
-      GROUP BY s.section_id, s.name, s.description, s.section_order
-      ORDER BY s.section_order ASC;
-    `;
-    const result = await db.query(query, [courseId, userId]);
-    return res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching user sections:', err);
-    return res.status(500).json({ error: 'Failed to fetch sections' });
-  }
-};
-
-// ...existing code...
-
-// Get section details
-const getSectionById = async (req, res) => {
-  const { sectionId } = req.params;
-
-  try {
-    const query = `
-      SELECT section_id, course_id, name, description
-      FROM section
-      WHERE section_id = $1
-    `;
-    const result = await db.query(query, [sectionId]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Section not found' });
-    }
-    
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error('Error fetching section:', err);
-    res.status(500).json({ error: 'Failed to fetch section details' });
-  }
-};
-
-
-// ...existing code
 module.exports = {
-  //for the back button
-  getSectionById,
-  
   addSection,
-  getSectionsByCourse,
-  editSection,
-  deleteSection,
-  reorderSections,
   getAdminSections,
   getUserSections,
+  getSectionById,
+  editSection,
+  deleteSection,
+  reorderSections
 };

@@ -1,108 +1,147 @@
 /* Base container styles */
-.admin-feedback-page {
+.feedback-page {
   min-height: 100vh;
-  background-color: #f9f9f9;
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
 }
 
-.admin-feedback-container {
+.feedback-layout {
   display: flex;
   gap: 2rem;
+  color: #ffffff;
 }
 
-.admin-feedback-main-content {
+.feedback-content {
   flex: 1;
-  background-color: #fff;
+  padding: 20px;
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Header styles */
-.admin-feedback-h2 {
+.feedback-title {
   margin-bottom: 2rem;
-  color: #000000;
+  color: #ffffff;
   font-size: 1.8rem;
   font-weight: 600;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
 }
 
 /* Table styles */
-.admin-feedback-table {
+.feedback-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 1.5rem;
-}
-
-.admin-feedback-table th {
-  background-color: #f8f9fa;
-  color: #000000;
-  font-weight: 600;
-  text-align: left;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.admin-feedback-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #e9ecef;
-  color: #000000;
-}
-
-.admin-feedback-table tbody tr:hover {
-  background-color: #f8f9fa;
-  transition: background-color 0.2s ease;
-}
-
-/* Loading and error states */
-.admin-feedback-loading {
-  text-align: center;
-  padding: 2rem;
-  color: #718096;
-}
-
-.admin-feedback-error {
-  color: #e53e3e;
-  padding: 1rem;
-  margin: 1rem 0;
-  background-color: #fff5f5;
-  border-radius: 4px;
-  border: 1px solid #fed7d7;
-}
-
-/* Button Styles */
-.admin-feedback-button {
-  padding: 15px 25px;
-  border: unset;
-  border-radius: 15px;
-  color: #212121;
-  z-index: 1;
-  background: #e8e8e8;
-  position: relative;
-  font-weight: 1000;
-  font-size: 16px;
-  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  transition: all 250ms;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
   overflow: hidden;
 }
 
-.admin-feedback-button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 0;
-  border-radius: 15px;
-  background-color: #212121;
-  z-index: -1;
-  -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+.feedback-table th {
+  background-color: rgba(52, 152, 219, 0.1);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid rgba(52, 152, 219, 0.5);
+}
+
+.feedback-table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.feedback-table tbody tr:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+  transition: background-color 0.2s ease;
+}
+
+/* Button Styles */
+.feedback-btn {
+  padding: 8px 16px;
+  background-color: rgba(52, 152, 219, 0.8);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
   transition: all 250ms;
 }
 
-.admin-feedback-button:hover {
-  color: #e8e8e8;
+.feedback-btn-action {
+  padding: 8px 16px;
+  background-color: rgba(52, 152, 219, 0.8);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 250ms;
+  margin-right: 10px;
 }
 
-.admin-feedback-button:hover::before {
+.feedback-btn:hover {
+  background-color: rgba(52, 152, 219, 1);
+  transform: translateY(-2px);
+}
+
+.feedback-status-closed {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+/* Form styles */
+.feedback-form {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.feedback-form h3 {
+  color: #ffffff;
+  margin-bottom: 15px;
+}
+
+.feedback-form textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  margin-bottom: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.5);
+  border-radius: 4px;
+  color: #ffffff;
+}
+
+.feedback-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Loading and error states */
+.feedback-error {
+  color: #e74c3c;
+  padding: 1rem;
+  margin: 1rem;
+  background: rgba(231, 76, 60, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.feedback-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
+}
+
+.centered-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
   width: 100%;
 }

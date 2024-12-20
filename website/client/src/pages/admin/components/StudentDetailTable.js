@@ -1,115 +1,154 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import '../styles/StudentDetailModal.css';
 
-const StudentDetailTable = ({ studentId }) => {
+const StudentDetailTable = ({ studentId, onClose }) => {
   const [student, setStudent] = useState(null);
   const [courses, setCourses] = useState([]);
-
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!studentId) {
-      console.error('Invalid student ID:', studentId);
       setError('Invalid student ID.');
+      setLoading(false);
       return;
     }
 
     const fetchStudentDetails = async () => {
       try {
-       
         const userData = JSON.parse(localStorage.getItem('user'));
-        const token = userData ? userData.token : null;
+        const token = userData?.token;
 
         if (!token) {
           setError('No token found. Please log in again.');
           return;
         }
 
-        // Fetch student details
-        const studentResponse = await axios.get(
-          `/api/students/${studentId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        const headers = { Authorization: `Bearer ${token}` };
+
+        // Fetch student data and courses
+        const [studentResponse, coursesResponse] = await Promise.all([
+          axios.get(`/api/students/${studentId}`, { headers }),
+          axios.get(`/api/students/${studentId}/courses`, { headers })
+        ]);
+
+        // Fetch subscription status
+        const subscriptionResponse = await axios.get('/api/check', {
+          headers: {
+            ...headers,
+            'X-User-Id': studentId
           }
-        );
+        });
 
         setStudent(studentResponse.data);
-
-        // Fetch courses associated with the student
-        try {
-          const coursesResponse = await axios.get(
-            `/api/students/${studentId}/courses`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          console.log('Fetched Courses:', coursesResponse.data); // Debug API response
-          setCourses(coursesResponse.data);
-        } catch (courseErr) {
-          if (courseErr.response?.status === 404) {
-            console.warn('No courses found for the student.');
-            setCourses([]); // No courses for the student
-          } else {
-            throw courseErr;
-          }
-        }
+        setCourses(coursesResponse.data);
+        setSubscriptionStatus(subscriptionResponse.data);
       } catch (err) {
         console.error('Error fetching student details:', err);
-        setError('Failed to load student details.');
+        setError(err.response?.data?.message || 'Failed to load student details.');
       } finally {
-        
+        setLoading(false);
       }
     };
 
     fetchStudentDetails();
   }, [studentId]);
 
-  if (!studentId) return <div>Please select a valid student to view details.</div>;
- 
-  if (error) return <div>{error}</div>;
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains('student-modal-overlay')) {
+      onClose();
+    }
+  };
+
+  if (!studentId) return null;
 
   return (
-    <div className="student-detail-container">
-      <h3>Selected User</h3>
-      <table className="subscription-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Subscription</th>
-            <th>Courses</th>
-            <th>Courses Progress</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courses.length > 0 ? (
-            courses.map((course, index) => (
-              <tr key={index}>
-                {index === 0 && (
-                  <>
-                    <td rowSpan={courses.length}>{student.user_id}</td>
-                    <td rowSpan={courses.length}>{student.name}</td>
-                    <td rowSpan={courses.length}>{student.email}</td>
-                    <td rowSpan={courses.length}>{student.subscription || 'N/A'}</td>
-                  </>
-                )}
-                <td>{course.course_name || 'Unnamed Course'}</td>
-                <td>{course.progress || '0%'}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6">No courses found for this student.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+    <div className="student-modal-overlay" onClick={handleOverlayClick}>
+      <div className="student-modal-content">
+        <button className="student-modal-close" onClick={onClose}>×</button>
+        
+        {loading ? (
+          <div className="student-modal-loading">
+            <div className="student-modal-spinner"></div>
+            <p>Loading student details...</p>
+          </div>
+        ) : error ? (
+          <div className="student-modal-error">{error}</div>
+        ) : (
+          <>
+            <div className="student-modal-header">
+              <h3 className="student-modal-title">Student Details</h3>
+              <div className="student-status-badge">
+                <span className={`student-status-dot student-status-dot--${subscriptionStatus?.hasActiveSubscription ? 'active' : 'inactive'}`}></span>
+                {subscriptionStatus?.hasActiveSubscription ? 'Active' : 'Inactive'}
+              </div>
+            </div>
+
+            <div className="student-info-container">
+              <div className="student-info-item">
+                <label className="student-info-label">Student ID</label>
+                <span className="student-info-value">{student?.user_id}</span>
+              </div>
+              <div className="student-info-item">
+                <label className="student-info-label">Full Name</label>
+                <span className="student-info-value">{student?.name}</span>
+              </div>
+              <div className="student-info-item">
+                <label className="student-info-label">Email Address</label>
+                <span className="student-info-value">{student?.email}</span>
+              </div>
+              <div className="student-info-item">
+                <label className="student-info-label">Subscription Plan</label>
+                <span className="student-info-value">
+                  {subscriptionStatus?.hasActiveSubscription ? (
+                    <>
+                      {subscriptionStatus.subscription?.subscription_type}
+                      <small style={{ display: 'block', fontSize: '0.85em', color: '#64748b' }}>
+                        Expires: {new Date(subscriptionStatus.subscription?.subscription_end_date).toLocaleDateString()}
+                      </small>
+                    </>
+                  ) : (
+                    'No active subscription'
+                  )}
+                </span>
+              </div>
+            </div>
+
+            <div className="student-courses">
+              <h4 className="student-courses-title">Enrolled Courses</h4>
+              {courses.length > 0 ? (
+                <div className="student-courses-grid">
+                  {courses.map((course, index) => (
+                    <div key={index} className="student-course-item">
+                      <div className="student-course-header">
+                        <h5 className="student-course-title">{course.course_name || 'Unnamed Course'}</h5>
+                        <span className={`student-course-status student-course-status--${course.progress >= 100 ? 'completed' : 'in-progress'}`}>
+                          {course.progress >= 100 ? 'Completed' : 'In Progress'}
+                        </span>
+                      </div>
+                      <div className="student-course-progress">
+                        <div className="student-progress-bar">
+                          <div 
+                            className="student-progress-fill"
+                            style={{ width: `${course.progress || 0}%` }}
+                          />
+                        </div>
+                        <span className="student-progress-text">{course.progress || 0}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="student-courses-empty">
+                  <p>No courses found for this student.</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };

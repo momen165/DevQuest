@@ -1,4 +1,6 @@
 const db = require('../config/database');
+const { getLastAccessedLesson } = require('./lesson.controller');
+
 
 // Fetch all students
 const getAllStudents = async (req, res) => {
@@ -32,61 +34,75 @@ const getAllStudents = async (req, res) => {
 };
 
 // Fetch details of a specific student
+// In website/server/controllers/student.controller.js
+// In website/server/controllers/student.controller.js
+// In website/server/controllers/student.controller.js
+
 const getStudentById = async (req, res) => {
   const { studentId } = req.params;
 
-  if (!studentId || isNaN(studentId)) {
-    return res.status(400).json({ error: 'Invalid student ID.' });
-  }
-
   try {
-    // Fetch student details
-    const studentQuery = `
-      SELECT
-        u.user_id,
-        u.name,
-        u.email,
-        u.bio,
-        u.streak,
-        CASE
-          WHEN us.subscription_id IS NOT NULL THEN 'Active'
-          ELSE 'Inactive'
-          END AS subscription
-      FROM users u
-             LEFT JOIN user_subscription us ON u.user_id = us.user_id
-      WHERE u.user_id = $1
+    // Get user info
+    const userQuery = `
+      SELECT user_id, name, email, bio, streak
+      FROM users 
+      WHERE user_id = $1
     `;
-    const { rows: studentRows } = await db.query(studentQuery, [studentId]);
+    const userResult = await db.query(userQuery, [studentId]);
 
-    if (studentRows.length === 0) {
-      return res.status(404).json({ error: 'Student not found.' });
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Student not found' });
     }
 
-    // Fetch courses the student is enrolled in
+    // Get enrolled courses with progress
     const coursesQuery = `
-      SELECT
-        c.course_id AS course_id,
-        c.name AS course_name,
-        e.progress,
-        c.description as course_description
+      SELECT 
+        c.course_id,
+        c.name as course_name,
+        e.progress
+        
       FROM enrollment e
       JOIN course c ON e.course_id = c.course_id
       WHERE e.user_id = $1
     `;
-    const { rows: coursesRows } = await db.query(coursesQuery, [studentId]);
+    const enrollments = (await db.query(coursesQuery, [studentId])).rows;
 
+    // Add last lesson information to each course
+    const courses = await Promise.all(enrollments.map(async (enrollment) => {
+      const lastLesson = await getLastAccessedLesson(studentId, enrollment.course_id);
+      return {
+        ...enrollment,
+        last_lesson: lastLesson,
+        progress: parseFloat(enrollment.progress) || 0 // Ensure progress is a number
+      };
+    }));
 
+    // Get other stats
+    const statsQuery = `
+      SELECT 
+        COUNT(DISTINCT lp.lesson_id) as exercises_completed,
+        COALESCE(SUM(l.xp), 0) as course_xp
+      FROM lesson_progress lp
+      LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
+      WHERE lp.user_id = $1 AND lp.completed = true
+    `;
+    const stats = (await db.query(statsQuery, [studentId])).rows[0];
 
-    // Combine student details and courses
-    const studentData = studentRows[0];
-    studentData.courses = coursesRows;
+    const response = {
+      ...userResult.rows[0],
+      courses,
+      exercisesCompleted: parseInt(stats.exercises_completed),
+      courseXP: parseInt(stats.course_xp),
+      completedCourses: courses.filter(c => c.progress >= 100).length
+    };
 
-    res.status(200).json(studentData);
+    res.json(response);
   } catch (err) {
-    console.error('Error fetching student details:', err.message || err);
-    res.status(500).json({ error: 'Failed to fetch student details.' });
+    console.error('Error fetching student data:', err);
+    res.status(500).json({ error: 'Failed to fetch student data' });
   }
 };
+
 
 // Fetch courses for a specific student
 const getCoursesByStudentId = async (req, res) => {

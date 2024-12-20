@@ -9,21 +9,37 @@ const FAQPage = () => {
 
   const faqs = [
     {
-      question: "How does DevQuest ensure the quality of its courses?",
-      answer: "Our courses are regularly updated to reflect the latest trends and best practices. We also gather student feedback to continuously improve our offerings.",
+      question: "What is DevQuest?",
+      answer: "DevQuest is an interactive coding education platform that offers self-paced programming courses. Our platform combines theoretical learning with hands-on coding practice to help you master programming skills.",
     },
     {
-      question: "How long do courses typically last?",
-      answer: "The duration of courses varies depending on the complexity and depth of the topic. Each course page provides an estimated time to completion.",
+      question: "What subscription options are available?",
+      answer: "We offer both monthly ($10/month) and yearly ($100/year) subscription plans. The yearly plan comes with a 30% discount compared to monthly billing. Both plans give you full access to all courses and features.",
+    },
+    {
+      question: "How does the learning process work?",
+      answer: "Each course is divided into sections with interactive lessons. You'll learn through a combination of text-based content, practical coding exercises, and real-time feedback. Our integrated code editor allows you to practice as you learn.",
+    },
+    {
+      question: "Do you offer coding practice environments?",
+      answer: "Yes! Each lesson includes an integrated code editor where you can write, test, and run your code. We support multiple programming languages including Python, JavaScript, Java, and C++.",
+    },
+    {
+      question: "How do I track my progress?",
+      answer: "Your progress is automatically tracked as you complete lessons. You can view your course completion status, earned XP, and current learning streak through your profile dashboard.",
+    },
+    {
+      question: "What kind of support is available?",
+      answer: "We offer multiple support channels including a dedicated support ticket system, course feedback options, and admin responses to your queries. Our team typically responds within 24 hours.",
     },
     {
       question: "Can I learn at my own pace?",
-      answer: "Yes! All courses are self-paced, allowing you to learn whenever it's convenient for you.",
+      answer: "Absolutely! All courses are self-paced, allowing you to learn whenever it's convenient for you. Your progress is saved automatically, so you can resume where you left off.",
     },
     {
-      question: "Do I get a certificate after completion?",
-      answer: "Yes, upon successful completion of a course, you will receive a certificate.",
-    },
+      question: "What happens after I complete a course?",
+      answer: "After completing a course, you'll have gained practical programming skills and can track your achievements in your profile. You can then progress to more advanced courses to further enhance your skills.",
+    }
   ];
 
   const toggleFAQ = (index) => {

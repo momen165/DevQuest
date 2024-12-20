@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Sidebar from 'pages/admin/components/Sidebar';
 import 'pages/admin/styles/PaymentInfo.css';
 import { useAuth } from 'AuthContext';
@@ -18,19 +19,14 @@ const PaymentDetails = () => {
           return;
         }
 
-        const response = await fetch('http://localhost:5000/api/list-subscriptions', {
+        const response = await axios.get('http://localhost:5000/api/list-subscriptions', {
           headers: {
-            Authorization: `Bearer ${user.token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Fetched subscriptions:', data); // Log the fetched data
-        setSubscriptions(data); // Set the fetched data directly
+        console.log('Fetched subscriptions:', response.data); // Log the fetched data
+        setSubscriptions(response.data); // With axios, we can directly use response.data
       } catch (err) {
         console.error('Error fetching subscriptions:', err); // Log the error
         setError('Failed to fetch subscription details. Please try again later.');
@@ -70,7 +66,9 @@ const PaymentDetails = () => {
                   <td>{new Date(subscription.subscription_start_date).toLocaleDateString()}</td>
                   <td>{new Date(subscription.subscription_end_date).toLocaleDateString()}</td>
                   <td>${subscription.amount_paid}</td>
-                <td>{subscription.status}</td>
+                  <td className={`admin-payment-status-${subscription.status.toLowerCase()}`}>
+                    {subscription.status}
+                  </td>
                   <td>{subscription.user_email}</td>
                   <td>{subscription.user_id}</td>
               </tr>
