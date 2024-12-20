@@ -216,4 +216,80 @@ const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription
     );
 };
 
+const LessonSection = ({ lessons }) => {
+    console.log('Rendering lessons:', lessons); // Debug
+
+    return (
+        <div style={{ position: 'relative', width: '200px', height: '200px' }}>
+            <svg 
+                width="100%" 
+                height="100%" 
+                viewBox="0 0 36 36" 
+                style={{ 
+                    border: '1px solid red', // Debug border
+                    position: 'absolute'
+                }}
+            >
+                <g transform="translate(18, 18)">
+                    {lessons?.map((lesson, index) => {
+                        const gapAngle = 8; // Gap between segments in degrees
+                        const totalGapSpace = gapAngle * lessons.length;
+                        const segmentAngle = (360 - totalGapSpace) / lessons.length;
+                        const startAngle = (index * (segmentAngle + gapAngle)) - 90;
+                        const endAngle = startAngle + segmentAngle;
+                        
+                        const innerRadius = 12;
+                        const outerRadius = 16;
+                        const cornerRadius = 1.5;
+                        
+                        const startRadians = (startAngle * Math.PI) / 180;
+                        const endRadians = (endAngle * Math.PI) / 180;
+                        
+                        // Calculate points and control points
+                        const x1 = Math.cos(startRadians) * outerRadius;
+                        const y1 = Math.sin(startRadians) * outerRadius;
+                        const x2 = Math.cos(endRadians) * outerRadius;
+                        const y2 = Math.sin(endRadians) * outerRadius;
+                        const x3 = Math.cos(endRadians) * innerRadius;
+                        const y3 = Math.sin(endRadians) * innerRadius;
+                        const x4 = Math.cos(startRadians) * innerRadius;
+                        const y4 = Math.sin(startRadians) * innerRadius;
+                        
+                        const startOuterAngleRad = startRadians - (Math.PI / 2) * 0.2;
+                     
+                        const endOuterAngleRad = endRadians + (Math.PI / 2) * 0.2;
+                        const startInnerAngleRad = startRadians + (Math.PI / 2) * 0.2;
+                        const endInnerAngleRad = endRadians - (Math.PI / 2) * 0.2;
+
+                        const d = `
+                            M ${x1} ${y1}
+                            A ${outerRadius} ${outerRadius} 0 ${segmentAngle <= 180 ? "0" : "1"} 1 ${x2} ${y2}
+                            Q ${Math.cos(endOuterAngleRad) * (outerRadius - cornerRadius)} ${Math.sin(endOuterAngleRad) * (outerRadius - cornerRadius)}
+                              ${x3} ${y3}
+                            A ${innerRadius} ${innerRadius} 0 ${segmentAngle <= 180 ? "0" : "1"} 0 ${x4} ${y4}
+                            Q ${Math.cos(startInnerAngleRad) * (innerRadius + cornerRadius)} ${Math.sin(startInnerAngleRad) * (innerRadius + cornerRadius)}
+                              ${x1} ${y1}
+                        `;
+
+                        return (
+                            <path
+                                key={index}
+                                d={d}
+                                fill={lesson.completed ? '#4CAF50' : '#666'}
+                                stroke="#fff"
+                                strokeWidth="0.5"
+                                style={{
+                                    transition: 'fill 0.3s ease',
+                                    filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))'
+                                }}
+                            />
+                        );
+                    })}
+                </g>
+            </svg>
+        </div>
+    );
+};
+
 export default LessonList;
+export { LessonSection };

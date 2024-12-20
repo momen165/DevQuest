@@ -86,27 +86,29 @@ const fixLessonOrders = async (req, res) => {
 
 // Get all lessons for a specific section
 const getLessonsBySection = async (req, res) => {
-  const { section_id } = req.query;
-
-  if (!section_id) {
-    return res.status(400).json({ error: 'section_id is required.' });
-  }
+  const { sectionId } = req.params;
+  const userId = req.user.user_id;
 
   try {
     const query = `
-      SELECT lesson_id, name, content, xp, test_cases
-      FROM lesson
-      WHERE section_id = $1
-      order by lesson_order ;
+      SELECT 
+        l.lesson_id,
+        l.name,
+        l.lesson_order,
+        l.xp,
+        COALESCE(lp.completed, false) as completed
+      FROM lesson l
+      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id 
+        AND lp.user_id = $1
+      WHERE l.section_id = $2
+      ORDER BY l.lesson_order ASC
     `;
-    const { rows } = await db.query(query, [section_id]);
-
-    // Return empty array instead of 404
-    return res.status(200).json(rows);
     
+    const result = await db.query(query, [userId, sectionId]);
+    res.json(result.rows);
   } catch (err) {
     console.error('Error fetching lessons:', err);
-    res.status(500).json({ error: 'Failed to fetch lessons.' });
+    res.status(500).json({ error: 'Failed to fetch lessons' });
   }
 };
 

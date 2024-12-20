@@ -32,129 +32,130 @@ const getEmailTemplate = (content) => `
 `;
 
 const signup = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({errors: errors.array()});
-    }
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+      return res.status(400).json({errors: errors.array()});
+  }
 
-    const {name, email, password, country} = req.body;
+  const {name, email, password, country} = req.body;
 
-    try {
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert the user into the database (inactive status by default)
-        const query = 'INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id';
-        const {rows} = await db.query(query, [name, email, hashedPassword, country, false]);
-        const userId = rows[0].user_id;
+      // Insert the user into the database (inactive status by default)
+      const query = 'INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id';
+      const {rows} = await db.query(query, [name, email, hashedPassword, country, false]);
+      const userId = rows[0].user_id;
 
-        // Generate verification token
-        const verificationToken = generateToken(userId);
+      // Generate verification token
+      const verificationToken = generateToken(userId);
 
-        // Construct verification link
-        const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+      // Construct verification link
+      const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
-        // Update the email content
-        const emailContent = getEmailTemplate(`
-          <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">Welcome to Devquest!</h1>
-          
-          <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
-            We're excited to have you join our community of developers! To get started, please verify your email address.
+      // Update the email content
+      const emailContent = getEmailTemplate(`
+        <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">Welcome to Devquest!</h1>
+        
+        <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
+          We're excited to have you join our community of developers! To get started, please verify your email address.
+        </p>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${verificationLink}" 
+             style="display: inline-block; background-color: #4F46E5; color: white; 
+                    padding: 14px 32px; text-decoration: none; border-radius: 8px;
+                    font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
+            Verify Email Address
+          </a>
+        </div>
+        
+        <div style="background-color: #F3F4F6; border-radius: 8px; padding: 16px; margin-top: 32px;">
+          <p style="color: #6B7280; font-size: 14px; margin: 0;">
+            If you didn't create an account with Devquest, you can safely ignore this email.
           </p>
-          
-          <div style="text-align: center; margin: 32px 0;">
-            <a href="${verificationLink}" 
-               style="display: inline-block; background-color: #4F46E5; color: white; 
-                      padding: 14px 32px; text-decoration: none; border-radius: 8px;
-                      font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
-              Verify Email Address
-            </a>
-          </div>
-          
-          <div style="background-color: #F3F4F6; border-radius: 8px; padding: 16px; margin-top: 32px;">
-            <p style="color: #6B7280; font-size: 14px; margin: 0;">
-              If you didn't create an account with Devquest, you can safely ignore this email.
-            </p>
-          </div>
-        `);
+        </div>
+      `);
 
-        // Send verification email with new template
-        await sendEmail(email, 'Welcome to Devquest - Verify Your Email', emailContent);
+      // Send verification email with new template
+      await sendEmail(email, 'Welcome to Devquest - Verify Your Email', emailContent);
 
-        await logActivity('User', `Verification email sent to: ${email}`, userId);
+      await logActivity('User', `Verification email sent to: ${email}`, userId);
 
-        res.status(201).json({
-            message: 'User registered successfully. Please verify your email to activate your account.',
-        });
-    } catch (err) {
-        console.error('Error during signup:', err);
-        res.status(500).json({error: 'Failed to register user'});
-    }
+      res.status(201).json({
+          message: 'User registered successfully. Please verify your email to activate your account.',
+      });
+  } catch (err) {
+      console.error('Error during signup:', err);
+      res.status(500).json({error: 'Failed to register user'});
+  }
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+const { email, password } = req.body;
 
-  // Check for missing fields
-  if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-  }
+// Check for missing fields
+if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+}
 
-  try {
-      // Fetch user details from the database
-      const userQuery = 'SELECT * FROM users WHERE email = $1';
-      const { rows } = await db.query(userQuery, [email]);
+try {
+    // Fetch user details from the database
+    const userQuery = 'SELECT * FROM users WHERE email = $1';
+    const { rows } = await db.query(userQuery, [email]);
 
-      // Check if user exists
-      if (rows.length === 0) {
-          return res.status(404).json({ error: 'User not found' });
-      }
+    // Check if user exists
+    if (rows.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+    }
 
-      const user = rows[0];
+    const user = rows[0];
 
-      // Validate password
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-          return res.status(401).json({ error: 'Invalid credentials' });
-      }
+    // Validate password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
-      // Check if the user is an admin
-      const adminQuery = 'SELECT 1 FROM admins WHERE admin_id = $1';
-      const adminResult = await db.query(adminQuery, [user.user_id]);
-      const isAdmin = adminResult.rowCount > 0;
+    // Check if the user is an admin
+    const adminQuery = 'SELECT 1 FROM admins WHERE admin_id = $1';
+    const adminResult = await db.query(adminQuery, [user.user_id]);
+    const isAdmin = adminResult.rowCount > 0;
 
-      // Generate a JWT token
-      const token = jwt.sign(
-          {
-              userId: user.user_id,
-              name: user.name,
-              country: user.country,
-              bio: user.bio,
-              admin: isAdmin,
-              profileimage: user.profileimage, // Include profileimage
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: '72h' }
-      );
+    // Generate a JWT token
+    const token = jwt.sign(
+        {
+            userId: user.user_id,
+            name: user.name,
+            country: user.country,
+            bio: user.bio,
+            admin: isAdmin,
+            profileimage: user.profileimage, // Include profileimage
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '72h' }
+    );
 
-      // Respond with token and user details
-      res.status(200).json({
-          message: 'Login successful',
-          token,
-          user: {
-              name: user.name,
-              country: user.country,
-              bio: user.bio,
-              admin: isAdmin,
-              profileimage: user.profileimage,
-          },
-      });
-  } catch (err) {
-      // Log the error and send a generic message to avoid exposing internal details
-      console.error('Login error:', err.message);
-      res.status(500).json({ error: 'An unexpected error occurred during login' });
-  }
+    // Respond with token and user details
+    res.status(200).json({
+        message: 'Login successful',
+        token,
+        user: {
+            name: user.name,
+            country: user.country,
+            bio: user.bio,
+            admin: isAdmin,
+            profileimage: user.profileimage,
+        },
+    });
+} catch (err) {
+    // Log the error and send a generic message to avoid exposing internal details
+    console.error('Login error:', err.message);
+    res.status(500).json({ error: 'An unexpected error occurred during login' });
+}
 };
+
 
 
 const updateProfile = async (req, res) => {
