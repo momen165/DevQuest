@@ -1,24 +1,27 @@
 /* EditCourseForm.css */
 
 .edit-course-form {
-    background-color: #ffffff;
+    background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(52, 152, 219, 0.3);
     max-width: 600px;
     margin: 20px auto;
+    color: #ffffff;
   }
   
   .edit-course-form h2 {
-    color: #000000;
+    color: #ffffff;
     font-size: 24px;
     margin-bottom: 20px;
     text-align: center;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
   }
   
   .edit-course-form label {
     display: block;
-    color: #000000;
+    color: #ffffff;
     font-weight: bold;
     margin-bottom: 8px;
   }
@@ -29,9 +32,11 @@
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
-    border: 1px solid #ddd;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(52, 152, 219, 0.5);
     border-radius: 4px;
     font-size: 16px;
+    color: #ffffff;
   }
   
   .edit-course-form textarea {
@@ -47,20 +52,22 @@
     border-radius: 4px;
     cursor: pointer;
     margin-right: 10px;
+    transition: all 0.3s ease;
   }
   
   .edit-course-form button:first-of-type {
-    background-color: #007bff;
-    color: #fff;
+    background-color: rgba(52, 152, 219, 0.8);
+    color: #ffffff;
   }
   
   .edit-course-form button:last-of-type {
-    background-color: #f44336;
-    color: #fff;
+    background-color: rgba(231, 76, 60, 0.8);
+    color: #ffffff;
   }
   
   .edit-course-form button:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+    opacity: 1;
   }
   
   .Course-Image-uploadBtn {
@@ -72,11 +79,16 @@
     border-radius: 4px;
     cursor: pointer;
     margin-right: 10px;
-    background-color: #007bff;
-    color: #fff;
+    background-color: rgba(52, 152, 219, 0.8);
+    color: #ffffff;
+    transition: all 0.3s ease;
   }
   
-
+  .Course-Image-uploadBtn:hover {
+    background-color: rgba(52, 152, 219, 1);
+    transform: translateY(-2px);
+  }
+  
   .file-upload-container-isolated {
     display: flex;
     justify-content: center;

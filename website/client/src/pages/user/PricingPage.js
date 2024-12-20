@@ -4,8 +4,12 @@ import 'styles/PricingPage.css';
 import Navbar from 'components/Navbar';
 import { useAuth } from 'AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
+import SupportForm from 'components/SupportForm';
+import { useNavigate } from 'react-router-dom';
 
 const stripePromise = loadStripe('pk_test_51MEwjHHxgK7P1VPXXJ1r4MdpeelwFLaBX9kslA7Z4O6V5CjE8B20DVkiSmp6XB0HPwKVnYFYacECLxYMZUOO4Fmm00m79WAvXD'); // Replace with your actual publishable key
+
+const SUBSCRIPTION_REFRESH_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 const PricingPage = () => {
   const [isMonthly, setIsMonthly] = useState(true);
@@ -14,20 +18,59 @@ const PricingPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const { user } = useAuth(); // Get the user and token from AuthContext
-  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(() => {
+    try {
+      const stored = localStorage.getItem('subscriptionStatus');
+      if (stored) {
+        const data = JSON.parse(stored);
+        // Validate the parsed data has the expected structure
+        if (data && typeof data.status === 'boolean' && typeof data.timestamp === 'number') {
+          // Check if the stored data is less than 24 hours old
+          if (Date.now() - data.timestamp < SUBSCRIPTION_REFRESH_INTERVAL) {
+            return data.status;
+          }
+        }
+      }
+    } catch (error) {
+      // If there's any error parsing the stored data, remove it
+      console.error('Error parsing stored subscription status:', error);
+      localStorage.removeItem('subscriptionStatus');
+    }
+    return false;
+  });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user has active subscription when component mounts
     const checkSubscription = async () => {
       try {
+        const stored = localStorage.getItem('subscriptionStatus');
+        if (stored) {
+          const data = JSON.parse(stored);
+          // Validate the parsed data
+          if (data && typeof data.timestamp === 'number') {
+            if (Date.now() - data.timestamp < SUBSCRIPTION_REFRESH_INTERVAL) {
+              return;
+            }
+          }
+        }
+
         const response = await axios.get(`http://localhost:5000/api/check`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
+        
+        // Store the subscription status and timestamp in localStorage
+        const subscriptionData = {
+          status: Boolean(response.data.hasActiveSubscription), // Ensure boolean
+          timestamp: Date.now()
+        };
+        localStorage.setItem('subscriptionStatus', JSON.stringify(subscriptionData));
         setHasActiveSubscription(response.data.hasActiveSubscription);
       } catch (error) {
         console.error('Error checking subscription:', error);
+        // Clean up potentially corrupted data
+        localStorage.removeItem('subscriptionStatus');
       }
     };
 
@@ -36,7 +79,25 @@ const PricingPage = () => {
     }
   }, [user]);
 
+  // Add cleanup for localStorage when user logs out
+  useEffect(() => {
+    if (!user) {
+      localStorage.removeItem('subscriptionStatus');
+      setHasActiveSubscription(false);
+    }
+  }, [user]);
+
   const handleChoosePlan = async () => {
+    if (!user) {
+      navigate('/LoginPage', { 
+        state: { 
+          from: '/pricing',
+          message: 'Please log in to purchase a subscription' 
+        } 
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const stripe = await stripePromise;
@@ -62,6 +123,15 @@ const PricingPage = () => {
   };
 
   const openPopup = () => {
+    if (!user) {
+      navigate('/LoginPage', { 
+        state: { 
+          from: '/pricing',
+          message: 'Please log in to purchase a subscription' 
+        } 
+      });
+      return;
+    }
     setShowPopup(true);
   };
 
@@ -133,6 +203,7 @@ const PricingPage = () => {
           </div>
         </div>
       )}
+      <SupportForm/>
     </div>
   );
 };

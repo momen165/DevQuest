@@ -3,15 +3,17 @@
     display: flex;
     width: 100%;
     min-height: 100vh; /* Full viewport height */
+    background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
   }
   
   .course-content {
     flex: 1;
     padding: 20px;
-    background-color: #f8f9fa;
+    background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
+    color: #ffffff;
   }
   .PageTitle {
-   color: #000000;
+   color: #ffffff;
   }
   /* Header Styles */
   .header {
@@ -19,69 +21,80 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
   }
   
   .header h2 {
     font-size: 1.5rem;
     font-weight: 600;
+    color: #ffffff;
   }
   
   .add-course-button {
-    background-color: #007bff;
-    color: #fff;
+    background-color: rgba(52, 152, 219, 0.8);
+    color: #ffffff;
     padding: 10px 20px;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
+    transition: background-color 0.2s ease;
   }
   
   .add-course-button:hover {
-    background-color: #0056b3;
+    background-color: rgba(52, 152, 219, 1);
   }
   
   /* Table Styles */
   .course-table {
     width: 100%;
-    border-collapse: collapse;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-collapse: separate;
+    border-spacing: 0;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     overflow: hidden;
+    border: 1px solid rgba(52, 152, 219, 0.3);
   }
   
   .course-table th,
   .course-table td {
     padding: 15px;
     text-align: left;
-    border-bottom: 1px solid #eee;
-    color: #000000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
   }
   
   .course-table th {
-    background-color: #f1f1f1;
-    color: #000000;
-    font-weight: bold;
+    background-color: rgba(52, 152, 219, 0.1);
+    color: #ffffff;
+    font-weight: 600;
   }
   
   .course-table tr:hover {
-    background-color: #f9f9f9;
+    background-color: rgba(52, 152, 219, 0.1);
+    transition: background-color 0.2s ease;
   }
   
   /* Icon Styles */
   .icon {
     cursor: pointer;
     margin-right: 8px;
+    transition: opacity 0.2s ease;
+  }
+  
+  .icon:hover {
+    opacity: 0.8;
   }
   
   .view-icon {
-    color: #007bff;
+    color: #3498db;
   }
   
   .edit-icon {
-    color: #0000EE;
+    color: #2ecc71;
   }
   
   .delete-icon {
-    color: #dc3545;
+    color: #e74c3c;
   }
   

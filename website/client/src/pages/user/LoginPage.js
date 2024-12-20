@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'styles/AuthPage.css';
 import { useAuth } from 'AuthContext';
@@ -9,8 +9,14 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,10 +25,7 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!captchaChecked) {
-      setError('Please confirm you are not a robot.');
-      return;
-    }
+   
     try {
       const response = await axios.post('/api/login', formData);
       const { token } = response.data; // Extract token and role from response
@@ -49,9 +52,7 @@ const LoginPage = () => {
             Password
             <input type="password" name="password" value={formData.password} onChange={handleChange} required className="input" />
           </label>
-          <div className="captcha">
-            <input type="checkbox" onChange={() => setCaptchaChecked(!captchaChecked)} /> I'm not a robot
-          </div>
+          
           <button type="submit" className="button">Log in</button>
         </form>
         {error && <p className="error">{error}</p>}

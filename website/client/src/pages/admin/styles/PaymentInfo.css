@@ -1,20 +1,22 @@
 .admin-payment-container {
   display: flex;
-  color: black;
+  color: #ffffff;
 }
 
 .admin-payment-main-content {
   flex: 1;
   padding: 20px;
-  background-color: #f9f9f9;
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
   min-height: 100vh;
 }
 
 .admin-payment-h2 {
   margin-bottom: 20px;
-  color: #000000;
+  color: #ffffff;
   font-size: 1.8rem;
   font-weight: 600;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
 }
 
 .admin-payment-table {
@@ -22,32 +24,46 @@
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .admin-payment-table th {
-  background-color: #f8f9fa;
-  color: #000000;
+  background-color: rgba(52, 152, 219, 0.1);
+  color: #ffffff;
   font-weight: 600;
   padding: 1rem;
   text-align: left;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid rgba(52, 152, 219, 0.5);
 }
 
 .admin-payment-table td {
   padding: 1rem;
-  border-bottom: 1px solid #e9ecef;
-  color: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .admin-payment-table tbody tr:hover {
-  background-color: #f8f9fa;
+  background-color: rgba(52, 152, 219, 0.1);
   transition: background-color 0.2s ease;
 }
 
 .admin-payment-status-completed {
-  color: green;
+  color: #2ecc71;
+  font-weight: 600;
 }
 
 .admin-payment-status-pending {
-  color: orange;
+  color: #f1c40f;
+  font-weight: 600;
+}
+
+.admin-payment-error-message {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem;
+  border: 1px solid rgba(231, 76, 60, 0.3);
 }

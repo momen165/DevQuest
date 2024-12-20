@@ -3,8 +3,10 @@
   text-align: center;
   background-color: #102542;
   color: white;
-  padding: 40px 20px; /* Add padding to make it less tight */
-
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .faq h2 {
@@ -16,19 +18,73 @@
 
 .faq p {
   margin-top: 10px;
+  margin-bottom: 20px;
   font-size: 28px;
   font-family: 'Chivo Thin Italic', sans-serif;
 }
 
 .faq-btn {
+  margin-top: 10px;
   padding: 5px 25px;
-  background-color: #1da1f2;
+  background: linear-gradient(135deg, #2BB1FF, #1da1f2);
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-size: 26px;
-  margin-bottom: 5px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+}
+
+/* Shine effect */
+.faq-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: 0.6s;
+}
+
+.faq-btn:hover::before {
+  left: 100%;
+}
+
+/* Scale effect when clicked */
+.faq-btn:active {
+  transform: scale(0.95) translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+  }
+  100% {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.faq-btn:hover {
+  animation: pulse 1.5s infinite;
+  transform: translateY(-3px);
 }
 
 @media (max-width: 768px) {

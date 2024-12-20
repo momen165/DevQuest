@@ -8,7 +8,10 @@ import LessonNavigation from 'components/LessonNavigation';
 import LessonContent from 'components/LessonContent';
 import MonacoEditorComponent from 'components/MonacoEditorComponent';
 import 'styles/LessonPage.css';
-import CircularProgress from '@mui/material/CircularProgress';
+import LoadingSpinner from './CircularProgress';
+import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
+
 const languageMappings = {
   71: 'python',
   63: 'javascript',
@@ -33,6 +36,32 @@ const languageMappings = {
   17: 'dart',
 };
 
+const CopyNotification = styled.div`
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
 const LessonPage = () => {
   const { lessonId } = useParams();
   const { user } = useAuth();
@@ -45,6 +74,11 @@ const LessonPage = () => {
   const [lessons, setLessons] = useState([]);
   const [totalLessons, setTotalLessons] = useState(0);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
+  const [profileData, setProfileData] = useState(null);
+  const navigate = useNavigate();
+  const FREE_LESSON_LIMIT = 5;
+  const [showCopyNotification, setShowCopyNotification] = useState(false);
+  const [sections, setSections] = useState([]);
 
   const resetState = () => {
     setCode('');
@@ -55,10 +89,59 @@ const LessonPage = () => {
     setError('');
   };
 
+  const showCopiedNotification = () => {
+    setShowCopyNotification(true);
+    setTimeout(() => setShowCopyNotification(false), 2000);
+  };
+
+  // First, check subscription status and lesson access
   useEffect(() => {
+    let isMounted = true;
+    const checkAccess = async () => {
+      try {
+        const response = await fetch(`/api/students/${user.user_id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile data');
+        }
+
+        const data = await response.json();
+        setProfileData(data);
+
+        const completedLessons = data.completedLessons || 0;
+        const hasActiveSubscription = data.hasActiveSubscription;
+
+        if (!hasActiveSubscription && completedLessons >= FREE_LESSON_LIMIT) {
+          alert(`You've reached the limit of ${FREE_LESSON_LIMIT} free lessons. Please subscribe to access all content!`);
+          navigate('/pricing');
+          return false;
+        }
+
+        return true;
+      } catch (err) {
+        console.error('Error checking access:', err);
+        setError('Failed to verify access permissions');
+        return false;
+      }
+    };
+
+    // Only fetch lesson data if access is granted
     const fetchLesson = async () => {
+      if (!isMounted) return; // Don't proceed if component is unmounted
       setLoading(true);
       setError('');
+      
+      const hasAccess = await checkAccess();
+      if (!hasAccess || !isMounted) {
+        if (isMounted) setLoading(false);
+        return;
+      }
+
       try {
         console.log(`Fetching lesson data for lessonId: ${lessonId}`);
         const response = await axios.get(`/api/lesson/${lessonId}`, {
@@ -68,16 +151,35 @@ const LessonPage = () => {
         });
 
         const lessonData = response.data;
+        console.log('Lesson Data:', lessonData);
         setLesson(lessonData);
         setLanguageId(lessonData.language_id);
 
-        const lessonsResponse = await axios.get(`/api/lesson?section_id=${lessonData.section_id}`, {
+        // Get the section first to get course_id
+        const sectionResponse = await axios.get(`/api/section/${lessonData.section_id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
-        setLessons(lessonsResponse.data || []);
-        setTotalLessons(lessonsResponse.data.length);
+        
+        // Get all sections for the course
+        const sectionsResponse = await axios.get(`/api/section?course_id=${sectionResponse.data.course_id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        console.log('Sections data:', sectionsResponse.data);
+        setSections(sectionsResponse.data || []);
+
+        // Get ALL lessons for the course instead of just current section
+        const allLessonsResponse = await axios.get(`/api/lesson?course_id=${sectionResponse.data.course_id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        console.log('All lessons:', allLessonsResponse.data);
+        setLessons(allLessonsResponse.data || []);
+        setTotalLessons(allLessonsResponse.data.length);
 
         const progressResponse = await axios.get(`/api/lesson-progress?user_id=${user.user_id}&lesson_id=${lessonId}`, {
           headers: {
@@ -89,20 +191,28 @@ const LessonPage = () => {
           setCode(progressResponse.data.submitted_code);
         }
       } catch (err) {
-        setError('Failed to fetch lesson data.');
-        console.error('Error fetching lesson:', err);
+        if (isMounted) {
+          setError('Failed to fetch lesson data.');
+          console.error('Error fetching lesson:', err);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchLesson();
-  }, [lessonId, user.token, user.user_id]);
+    return () => { isMounted = false; };
+  }, [lessonId, user.token, user.user_id, navigate]);
 
   if (loading) return <div className="centered-loader">
-    <CircularProgress/>
+    <LoadingSpinner/>
   </div>;
+  
   if (error) return <p className="error">{error}</p>;
+
+  if (!lesson) return null;
 
   return (
       <>
@@ -125,6 +235,7 @@ const LessonPage = () => {
                   languageId={languageId}
                   setConsoleOutput={setConsoleOutput}
                   setIsAnswerCorrect={setIsAnswerCorrect}
+                  onCopy={showCopiedNotification}
               />
             </div>
 
@@ -143,7 +254,16 @@ const LessonPage = () => {
             isAnswerCorrect={isAnswerCorrect}
             onNext={resetState}
             code={code}
+            currentSectionId={lesson.section_id}
+            sections={sections}
+            lessonXp={lesson.xp}
         />
+        {showCopyNotification && (
+          <CopyNotification>
+            <span>✓</span>
+            <span>Copied!</span>
+          </CopyNotification>
+        )}
       </>
   );
 };

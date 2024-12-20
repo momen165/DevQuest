@@ -6,6 +6,7 @@ import RatingForm from 'components/RatingForm';
 import axios from 'axios';
 import 'styles/CourseSections.css';
 import { useAuth } from 'AuthContext';
+import SupportForm from 'components/SupportForm';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
@@ -13,20 +14,20 @@ const RETRY_DELAY = 1000; // 1 second
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const fetchWithRetry = async (url, config, retries = 0) => {
-  try {
-    const response = await axios.get(url, config);
-    return response;
-  } catch (err) {
-    if (retries < MAX_RETRIES) {
-      console.log(`Retrying request (${retries + 1}/${MAX_RETRIES})...`);
-      await sleep(RETRY_DELAY);
-      return fetchWithRetry(url, config, retries + 1);
+    try {
+        const response = await axios.get(url, config);
+        return response;
+    } catch (err) {
+        if (retries < MAX_RETRIES) {
+            console.log(`Retrying request (${retries + 1}/${MAX_RETRIES})...`);
+            await sleep(RETRY_DELAY);
+            return fetchWithRetry(url, config, retries + 1);
+        }
+        throw err;
     }
-    throw err;
-  }
 };
 
-// Define XP thresholds for each level (add this at the top of the file)
+// Define XP thresholds for each level
 const LEVEL_THRESHOLDS = [
     0,    // Level 0: 0 XP
     100,  // Level 1: 100 XP
@@ -34,22 +35,6 @@ const LEVEL_THRESHOLDS = [
     850,  // Level 3: 850 XP
     1200, // Level 4: 1200 XP
 ];
-
-const calculateLevel = (xp) => {
-    for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-        if (xp >= LEVEL_THRESHOLDS[i]) {
-            return i;
-        }
-    }
-    return 0;
-};
-
-const calculateXPToNextLevel = (xp, currentLevel) => {
-    if (currentLevel >= LEVEL_THRESHOLDS.length - 1) {
-        return 0; // Max level reached
-    }
-    return LEVEL_THRESHOLDS[currentLevel + 1] - xp;
-};
 
 const CourseSection = () => {
     const { courseId } = useParams();
@@ -63,12 +48,59 @@ const CourseSection = () => {
         streak: 0,
         name: '',
         profileImage: '',
-        // Add overall stats
         totalXP: 0,
         level: 0,
         xpToNextLevel: 0
     });
     const [courseName, setCourseName] = useState('');
+    const [profileData, setProfileData] = useState(null);
+    const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+    const FREE_LESSON_LIMIT = 5;
+
+    useEffect(() => {
+        const fetchSubscriptionStatus = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/check', {
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch subscription details');
+                }
+
+                const data = await response.json();
+                setHasActiveSubscription(data.hasActiveSubscription);
+            } catch (err) {
+                console.error('Error checking subscription:', err);
+            }
+        };
+
+        const fetchProfileData = async () => {
+            try {
+                const response = await fetch(`/api/students/${user.user_id}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch profile data');
+                }
+                const data = await response.json();
+                setProfileData(data);
+            } catch (err) {
+                console.error('Error checking subscription status:', err);
+            }
+        };
+
+        if (user?.user_id) {
+            fetchSubscriptionStatus();
+            fetchProfileData();
+        }
+    }, [user]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -99,13 +131,11 @@ const CourseSection = () => {
                 
                 if (courseStatsResponse.data && overallStatsResponse.data) {
                     setStats({
-                        // Course-specific stats
                         courseXP: courseStatsResponse.data.courseXP || 0,
                         exercisesCompleted: courseStatsResponse.data.exercisesCompleted || 0,
                         streak: courseStatsResponse.data.streak || 0,
                         name: user.name,
                         profileImage: user.profileimage,
-                        // Overall stats
                         totalXP: overallStatsResponse.data.totalXP || 0,
                         level: overallStatsResponse.data.level || 0,
                         xpToNextLevel: overallStatsResponse.data.xpToNextLevel || 0
@@ -135,7 +165,6 @@ const CourseSection = () => {
     return (
         <>
             <Navbar />
-
             <div className="Page">
                 <div className="Section">
                     <div className="course-header">
@@ -147,6 +176,17 @@ const CourseSection = () => {
                         </div>
                     </div>
                     
+                    {profileData && !hasActiveSubscription && (
+                        <div className="subscription-notice">
+                            <p>Free trial: {profileData.exercisesCompleted || 0}/{FREE_LESSON_LIMIT} lessons completed</p>
+                            {(profileData.exercisesCompleted || 0) >= FREE_LESSON_LIMIT && (
+                                <p className="upgrade-message">
+                                    Subscribe now to unlock all lessons!
+                                </p>
+                            )}
+                        </div>
+                    )}
+
                     {loading ? (
                         <p>Loading sections...</p>
                     ) : error ? (
@@ -159,7 +199,9 @@ const CourseSection = () => {
                                 key={section.section_id}
                                 sectionName={section.name}
                                 sectionId={section.section_id}
-                                lessons={section.lessons || []}  // Pass lessons array with completion status
+                                lessons={section.lessons || []}
+                                profileData={profileData}
+                                hasActiveSubscription={hasActiveSubscription}
                             />
                         ))
                     )}
@@ -218,6 +260,7 @@ const CourseSection = () => {
                     <RatingForm courseId={courseId} />
                 </div>
             </div>
+            <SupportForm/>
         </>
     );
 };

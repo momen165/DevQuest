@@ -27,10 +27,17 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       const response = await axios.get(`/api/lesson?section_id=${section.section_id}`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
       });
       
-      setLessons(response.data || []);
+      const lessonsWithFormattedContent = response.data.map(lesson => ({
+        ...lesson,
+        content: lesson.content || ''
+      }));
+      
+      setLessons(lessonsWithFormattedContent || []);
     } catch (err) {
       setError(err.message || 'Failed to fetch lessons');
       setLessons([]);
@@ -55,22 +62,32 @@ const ViewLessonsComponent = ({ section, onClose }) => {
   
       const config = {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
+      };
+  
+      // Debug log to check content
+      console.log('Saving lesson content:', lessonData.content);
+      
+      const formattedLessonData = {
+        ...lessonData,
+        content: lessonData.content || ''
       };
   
       if (lessonData.lesson_id) {
         // Update existing lesson
         await axios.put(
           `/api/lesson/${lessonData.lesson_id}`,
-          lessonData,
+          formattedLessonData,
           config
         );
       } else {
         // Create new lesson
         await axios.post(
           '/api/lesson',
-          lessonData,
+          formattedLessonData,
           config
         );
       }
@@ -81,7 +98,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
     } catch (err) {
       console.error('Error saving lesson:', err);
       setError(err.response?.data?.error || 'Failed to save lesson');
-      throw err; // Propagate error to LessonEditAddComponent
+      throw err;
     }
   };
 
