@@ -14,32 +14,31 @@ function ProfilePage() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
- // In ProfilePage.js
-useEffect(() => {
-  const fetchProfileData = async () => {
-    try {
-      const response = await axios.get(`/api/students/${user.user_id}`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const response = await axios.get(`/api/students/${user.user_id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
 
-      console.log('Profile Data:', response.data); // Debug log
-      console.log('Courses:', response.data.courses); // Debug log
-      console.log('Completed Courses:', response.data.courses?.filter(c => c.progress >= 100)); // Debug log
-      setProfileData(response.data);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error:', err);
-      setError(err.response?.data?.error || err.message || 'Failed to load profile data');
-      setLoading(false);
+        console.log('Profile Data:', response.data); // Debug log
+        console.log('Courses:', response.data.courses); // Debug log
+        console.log('Completed Courses:', response.data.courses?.filter(c => c.progress >= 100)); // Debug log
+        setProfileData(response.data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error:', err);
+        setError(err.response?.data?.error || err.message || 'Failed to load profile data');
+        setLoading(false);
+      }
+    };
+
+    if (user && user.user_id) {
+      fetchProfileData();
     }
-  };
-
-  if (user && user.user_id) {
-    fetchProfileData();
-  }
-}, [user]);
+  }, [user]);
 
   if (loading) {
     return <div>Loading profile data...</div>;
@@ -48,68 +47,104 @@ useEffect(() => {
   if (error) {
     return <div>{error}</div>;
   }
-  
-  const getCompletedCoursesCount = (courses) => {
-    if (!courses || !Array.isArray(courses)) return 0;
-    return courses.filter(course => course.progress >= 100).length;
-  };
 
   return (
-      <>
-        <Navbar />
-        <div className={styles.profilePage}>
-          <div className={styles.profilePageContainer}>
-            <div className={styles.profileContentContainer}>
-              {/* Left Column: Profile Info and Status */}
-              <div className={styles.leftColumn}>
-                <div className={styles.profileHeader}>
-                  <img src={user.profileimage ? `${user.profileimage}?${new Date().getTime()}` : defaultProfilePic}
-                       alt="Profile Avatar"
-                       className={styles.profileAvatar}/>
-                  <h2 className={styles.profileName}>{user.name}</h2>
-                  <p className={styles.bioTitle}>Bio</p>
-                  <div className={styles.bioText}>
-                    {profileData.bio || 'No bio available'}
-                  </div>
+    <>
+      <Navbar />
+      <div className={styles.profilePage}>
+        <div className={styles.profilePageContainer}>
+          <div className={styles.profileContentContainer}>
+            {/* Left Column: Profile Info and Status */}
+            <div className={styles.leftColumn}>
+              <div className={styles.profileHeader}>
+                <img src={user.profileimage ? `${user.profileimage}?${new Date().getTime()}` : defaultProfilePic}
+                     alt="Profile Avatar"
+                     className={styles.profileAvatar}/>
+                <h2 className={styles.profileName}>{user.name}</h2>
+                <p className={styles.bioTitle}>Bio</p>
+                <div className={styles.bioText}>
+                  {profileData.bio || 'No bio available'}
                 </div>
+              </div>
 
-                <div className={styles.statusSection}>
-                  <h3 className={styles.statusTitle}>My Status</h3>
-                  <div className={styles.statusCards}>
-                    {/* First Row */}
-                    <div className={styles.statusRow}>
-                      <div className={`${styles.statusCard} ${styles.xpCard}`}>
+              {/* Status Section */}
+              <div className={styles.statusSection}>
+                <h3 className={styles.statusTitle}>My Status</h3>
+                <div className={styles.statusCards}>
+                  {/* Level Card */}
+                  <div className={`${styles.statusCard} ${styles.levelCard}`}>
+                    <div className={styles.firstContent}>
+                      <p className={styles.statusNumber}>{calculateLevel(profileData.courseXP) || 0}</p>
+                      <p>Level</p>
+                      <div className={styles.xpProgress}>
+                        <div className={styles.xpProgressBar}>
+                          <div 
+                            className={styles.xpProgressFill} 
+                            style={{
+                              width: `${(profileData.courseXP % 1000) / 10}%`
+                            }}
+                          />
+                        </div>
+                        <p className={styles.xpProgressText}>
+                          {1000 - (profileData.courseXP % 1000)} XP to next level
+                        </p>
+                      </div>
+                    </div>
+                    <div className={styles.secondContent}>
+                      <p>Keep learning and gain levels</p>
+                    </div>
+                  </div>
+
+                  {/* Other Stats Grid */}
+                  <div className={styles.statsGrid}>
+                    <div className={`${styles.statusCard} ${styles.xpCard}`}>
+                      <div className={styles.firstContent}>
                         <p className={styles.statusNumber}>{profileData.courseXP || 0}+</p>
                         <p>Course XP</p>
                       </div>
-                      <div className={styles.statusCard}>
-                        <p className={styles.statusNumber}>{profileData.exercisesCompleted || 0}</p>
-                        <p>Exercises Completed</p>
+                      <div className={styles.secondContent}>
+                        <p>Total Experience Points Earned</p>
                       </div>
-                      <div className={styles.statusCard}>
+                    </div>
+                    
+                    <div className={styles.statusCard}>
+                      <div className={styles.firstContent}>
+                        <p className={styles.statusNumber}>{profileData.exercisesCompleted || 0}</p>
+                        <p>Exercises</p>
+                      </div>
+                      <div className={styles.secondContent}>
+                        <p>Completed Exercises</p>
+                      </div>
+                    </div>
+                    
+                    <div className={styles.statusCard}>
+                      <div className={styles.firstContent}>
                         <p className={styles.statusNumber}>{profileData.streak || 0}</p>
                         <p>Streak</p>
                       </div>
-                    </div>
-
-                    {/* Second Row */}
-                    <div className={styles.statusRow}>
-                      <div className={styles.statusCard}>
-                        <p className={styles.statusNumber}>{profileData.completedCourses || 0}</p>
-                        <p>Completed Courses</p>
+                      <div className={styles.secondContent}>
+                        <p>Days in a Row</p>
                       </div>
-                      <div className={styles.statusCard}>
-                        <p className={styles.statusNumber}>{calculateLevel(profileData.courseXP) || 0}</p>
-                        <p>Level</p>
+                    </div>
+                    
+                    <div className={styles.statusCard}>
+                      <div className={styles.firstContent}>
+                        <p className={styles.statusNumber}>{profileData.completedCourses || 0}</p>
+                        <p>Courses</p>
+                      </div>
+                      <div className={styles.secondContent}>
+                        <p>Finished Courses</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Right Column: Courses */}
-              <div className={styles.rightColumn}>
-                <h3 className={styles.coursesTitle}>My Courses</h3>
+
+            {/* Right Column: Courses */}
+            <div className={styles.rightColumn}>
+              <h3 className={styles.coursesTitle}>My Courses</h3>
                
 
                         {profileData && profileData.courses && profileData.courses.length > 0 ? (
@@ -166,11 +201,11 @@ useEffect(() => {
                         ) : (
                           <p>No courses available</p>
                         )}
-              </div>
             </div>
           </div>
         </div>
-      </>
+      </div>
+    </>
   );
 }
 
