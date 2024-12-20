@@ -276,9 +276,54 @@ const getCourseById = async (req, res) => {
   }
 };
 
+const getUserCourseStats = async (req, res) => {
+  const { course_id, user_id } = req.params;
 
+  try {
+    // Modified query to only count lessons and XP from the specific course
+    const statsQuery = `
+      SELECT 
+        u.name,
+        u.profileimage,
+        u.streak,
+        (
+          SELECT COALESCE(SUM(l.xp), 0)
+          FROM lesson_progress lp
+          JOIN lesson l ON lp.lesson_id = l.lesson_id
+          JOIN section s ON l.section_id = s.section_id
+          WHERE lp.user_id = u.user_id 
+          AND s.course_id = $2
+          AND lp.completed = true
+        ) as total_xp,
+        (
+          SELECT COUNT(DISTINCT lp.lesson_id)
+          FROM lesson_progress lp
+          JOIN lesson l ON lp.lesson_id = l.lesson_id
+          JOIN section s ON l.section_id = s.section_id
+          WHERE lp.user_id = u.user_id 
+          AND s.course_id = $2
+          AND lp.completed = true
+        ) as completed_exercises
+      FROM users u
+      WHERE u.user_id = $1;
+    `;
 
+    const result = await db.query(statsQuery, [user_id, course_id]);
+    
+    const stats = {
+      name: result.rows[0]?.name || '',
+      profileImage: result.rows[0]?.profileimage || '',
+      courseXP: parseInt(result.rows[0]?.total_xp) || 0,
+      exercisesCompleted: parseInt(result.rows[0]?.completed_exercises) || 0,
+      streak: result.rows[0]?.streak || 0
+    };
 
+    res.status(200).json(stats);
+  } catch (err) {
+    console.error('Error fetching user course stats:', err);
+    res.status(500).json({ error: 'Failed to fetch user stats' });
+  }
+};
 
 const enrollUserInCourse = async (user_id, course_id) => {
   const query = `
@@ -330,7 +375,64 @@ const checkEnrollmentStatus = async (req, res) => {
   }
 };
 
+const getUserOverallStats = async (req, res) => {
+  const { user_id } = req.params;
 
+  try {
+    const statsQuery = `
+      WITH user_stats AS (
+        SELECT 
+          u.name,
+          u.profileimage,
+          u.streak,
+          COUNT(DISTINCT e.course_id) as completed_courses,
+          (
+            SELECT COUNT(DISTINCT lp.lesson_id)
+            FROM lesson_progress lp
+            WHERE lp.user_id = u.user_id 
+            AND lp.completed = true
+          ) as total_exercises_completed,
+          (
+            SELECT COALESCE(SUM(l.xp), 0)
+            FROM lesson_progress lp
+            JOIN lesson l ON lp.lesson_id = l.lesson_id
+            WHERE lp.user_id = u.user_id 
+            AND lp.completed = true
+          ) as total_xp
+        FROM users u
+        LEFT JOIN enrollment e ON u.user_id = e.user_id
+        WHERE u.user_id = $1
+        GROUP BY u.user_id
+      )
+      SELECT 
+        name,
+        profileimage,
+        streak,
+        completed_courses,
+        total_exercises_completed,
+        total_xp,
+        FLOOR(total_xp / 100) as level
+      FROM user_stats;
+    `;
+
+    const result = await db.query(statsQuery, [user_id]);
+    
+    const stats = {
+      name: result.rows[0]?.name || '',
+      profileImage: result.rows[0]?.profileimage || '',
+      completedCourses: parseInt(result.rows[0]?.completed_courses) || 0,
+      exercisesCompleted: parseInt(result.rows[0]?.total_exercises_completed) || 0,
+      totalXP: parseInt(result.rows[0]?.total_xp) || 0,
+      level: parseInt(result.rows[0]?.level) || 0,
+      streak: result.rows[0]?.streak || 0
+    };
+
+    res.status(200).json(stats);
+  } catch (err) {
+    console.error('Error fetching user overall stats:', err);
+    res.status(500).json({ error: 'Failed to fetch user stats' });
+  }
+};
 
 module.exports = {
   addCourse,
@@ -340,5 +442,6 @@ module.exports = {
   deleteCourse,
   enrollCourse,
   checkEnrollmentStatus,
-
+  getUserCourseStats,
+  getUserOverallStats,
 };

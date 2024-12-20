@@ -3,22 +3,15 @@ const router = express.Router();
 const sectionController = require('../controllers/section.controller');
 const authenticateToken = require('../middleware/auth');
 
-// Add a new section
+// Admin routes
 router.post('/sections', authenticateToken, sectionController.addSection);
-
-// Get all sections for a course
-router.get('/section', sectionController.getSectionsByCourse);
-
-// Get section by ID
-router.get('/section/:section_id', sectionController.getSectionById);
-
-// Edit a section
+router.get('/admin/sections/course', authenticateToken, sectionController.getAdminSections);
 router.put('/sections/:section_id', authenticateToken, sectionController.editSection);
-
-// Delete a section
 router.delete('/sections/:section_id', authenticateToken, sectionController.deleteSection);
-
-// Reorder sections
 router.post('/sections/reorder', authenticateToken, sectionController.reorderSections);
+
+// User routes
+router.get('/sections/course/:courseId', authenticateToken, sectionController.getUserSections);
+router.get('/sections/:sectionId', authenticateToken, sectionController.getSectionById);
 
 module.exports = router;
