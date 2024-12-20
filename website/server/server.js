@@ -132,7 +132,7 @@ const uploadRoutes = require('./routes/upload.routes');
 const supportRoutes = require('./routes/support.routes');
 const stripeRoutes = require('./routes/stripe.routes');
 const paymentRoutes = require('./routes/payment.routes');
-
+const adminRoutes = require('./routes/admin.routes');
 
 // Use routes
 app.use('/api', authRoutes);
@@ -148,7 +148,7 @@ app.use('/api', uploadRoutes);
 app.use('/api', supportRoutes);
 app.use('/api', stripeRoutes);
 app.use('/api', paymentRoutes);
-
+app.use('/api/admin', adminRoutes);
 app.get('/api/checkout-session/:sessionId', async (req, res) => {
   const {sessionId} = req.params;
   try {

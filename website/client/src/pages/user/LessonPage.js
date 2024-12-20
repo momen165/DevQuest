@@ -34,6 +34,7 @@ const languageMappings = {
   15: 'csharp',
   16: 'swift',
   17: 'dart',
+  73: 'rust',
 };
 
 const CopyNotification = styled.div`
@@ -61,6 +62,12 @@ const CopyNotification = styled.div`
     }
   }
 `;
+
+// Create axios instance with default config - move outside component
+const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+    timeout: 10000,
+});
 
 const LessonPage = () => {
   const { lessonId } = useParams();
@@ -94,85 +101,51 @@ const LessonPage = () => {
     setTimeout(() => setShowCopyNotification(false), 2000);
   };
 
-  // First, check subscription status and lesson access
   useEffect(() => {
     let isMounted = true;
-    const checkAccess = async () => {
-      try {
-        const response = await fetch(`/api/students/${user.user_id}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile data');
-        }
-
-        const data = await response.json();
-        setProfileData(data);
-
-        const completedLessons = data.completedLessons || 0;
-        const hasActiveSubscription = data.hasActiveSubscription;
-
-        if (!hasActiveSubscription && completedLessons >= FREE_LESSON_LIMIT) {
-          alert(`You've reached the limit of ${FREE_LESSON_LIMIT} free lessons. Please subscribe to access all content!`);
-          navigate('/pricing');
-          return false;
-        }
-
-        return true;
-      } catch (err) {
-        console.error('Error checking access:', err);
-        setError('Failed to verify access permissions');
-        return false;
-      }
-    };
-
-    // Only fetch lesson data if access is granted
+    
     const fetchLesson = async () => {
-      if (!isMounted) return; // Don't proceed if component is unmounted
+      if (!isMounted) return;
       setLoading(true);
       setError('');
       
-      const hasAccess = await checkAccess();
-      if (!hasAccess || !isMounted) {
-        if (isMounted) setLoading(false);
-        return;
-      }
-
       try {
-        console.log(`Fetching lesson data for lessonId: ${lessonId}`);
-        const response = await axios.get(`/api/lesson/${lessonId}`, {
+        // First get the lesson data
+        const lessonResponse = await api.get(`/lesson/${lessonId}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
 
-        const lessonData = response.data;
-        console.log('Lesson Data:', lessonData);
+        const lessonData = lessonResponse.data;
         setLesson(lessonData);
         setLanguageId(lessonData.language_id);
 
-        // Get the section first to get course_id
-        const sectionResponse = await axios.get(`/api/section/${lessonData.section_id}`, {
+        // Get section data
+        const sectionResponse = await api.get(`/sections/${lessonData.section_id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
-        
+
+        if (!sectionResponse.data) {
+          throw new Error('Section not found');
+        }
+
         // Get all sections for the course
-        const sectionsResponse = await axios.get(`/api/section?course_id=${sectionResponse.data.course_id}`, {
+        const sectionsResponse = await api.get(`/sections/course/${sectionResponse.data.course_id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
-        console.log('Sections data:', sectionsResponse.data);
+
         setSections(sectionsResponse.data || []);
 
-        // Get ALL lessons for the course instead of just current section
-        const allLessonsResponse = await axios.get(`/api/lesson?course_id=${sectionResponse.data.course_id}`, {
+        // Get ALL lessons for the course
+        const allLessonsResponse = await api.get('/lesson', {
+          params: {
+            course_id: sectionResponse.data.course_id
+          },
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -181,7 +154,11 @@ const LessonPage = () => {
         setLessons(allLessonsResponse.data || []);
         setTotalLessons(allLessonsResponse.data.length);
 
-        const progressResponse = await axios.get(`/api/lesson-progress?user_id=${user.user_id}&lesson_id=${lessonId}`, {
+        const progressResponse = await api.get(`/lesson-progress`, {
+          params: {
+            user_id: user.user_id,
+            lesson_id: lessonId
+          },
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -192,8 +169,8 @@ const LessonPage = () => {
         }
       } catch (err) {
         if (isMounted) {
-          setError('Failed to fetch lesson data.');
-          console.error('Error fetching lesson:', err);
+          console.error('Error fetching data:', err);
+          setError(err.response?.data?.error || 'Failed to fetch lesson data');
         }
       } finally {
         if (isMounted) {
@@ -202,9 +179,12 @@ const LessonPage = () => {
       }
     };
 
-    fetchLesson();
+    if (lessonId && user?.token) {
+      fetchLesson();
+    }
+
     return () => { isMounted = false; };
-  }, [lessonId, user.token, user.user_id, navigate]);
+  }, [lessonId, user]);
 
   if (loading) return <div className="centered-loader">
     <LoadingSpinner/>

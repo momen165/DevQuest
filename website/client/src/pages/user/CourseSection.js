@@ -7,34 +7,32 @@ import axios from 'axios';
 import 'styles/CourseSections.css';
 import { useAuth } from 'AuthContext';
 import SupportForm from 'components/SupportForm';
+import { calculateLevel, calculateLevelProgress } from '../../utils/xpCalculator';
+
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+    timeout: 10000,
+});
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const fetchWithRetry = async (url, config, retries = 0) => {
+const fetchWithRetry = async (endpoint, config, retries = 0) => {
     try {
-        const response = await axios.get(url, config);
+        const response = await api.get(endpoint, config);
         return response;
     } catch (err) {
         if (retries < MAX_RETRIES) {
             console.log(`Retrying request (${retries + 1}/${MAX_RETRIES})...`);
             await sleep(RETRY_DELAY);
-            return fetchWithRetry(url, config, retries + 1);
+            return fetchWithRetry(endpoint, config, retries + 1);
         }
         throw err;
     }
 };
-
-// Define XP thresholds for each level
-const LEVEL_THRESHOLDS = [
-    0,    // Level 0: 0 XP
-    100,  // Level 1: 100 XP
-    500,  // Level 2: 500 XP
-    850,  // Level 3: 850 XP
-    1200, // Level 4: 1200 XP
-];
 
 const CourseSection = () => {
     const { courseId } = useParams();
@@ -60,18 +58,13 @@ const CourseSection = () => {
     useEffect(() => {
         const fetchSubscriptionStatus = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/check', {
+                const response = await api.get('/check', {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
                     },
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch subscription details');
-                }
-
-                const data = await response.json();
-                setHasActiveSubscription(data.hasActiveSubscription);
+                setHasActiveSubscription(response.data.hasActiveSubscription);
             } catch (err) {
                 console.error('Error checking subscription:', err);
             }
@@ -79,18 +72,13 @@ const CourseSection = () => {
 
         const fetchProfileData = async () => {
             try {
-                const response = await fetch(`/api/students/${user.user_id}`, {
+                const response = await api.get(`/students/${user.user_id}`, {
                     headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${user.token}`,
+                        'Authorization': `Bearer ${user.token}`,
                     },
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch profile data');
-                }
-                const data = await response.json();
-                setProfileData(data);
+                setProfileData(response.data);
             } catch (err) {
                 console.error('Error checking subscription status:', err);
             }
@@ -110,21 +98,20 @@ const CourseSection = () => {
                 const config = {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
-                        'Content-Type': 'application/json'
                     }
                 };
 
                 const [sectionsResponse, courseStatsResponse, overallStatsResponse, courseResponse] = await Promise.all([
-                    fetchWithRetry(`/api/sections/course/${courseId}`, config),
-                    fetchWithRetry(`/api/courses/${courseId}/stats/${user.user_id}`, config),
-                    fetchWithRetry(`/api/students/${user.user_id}/stats`, config),
-                    fetchWithRetry(`/api/courses/${courseId}`, config)
+                    fetchWithRetry(`/sections/course/${courseId}`, config),
+                    fetchWithRetry(`/student/courses/${courseId}/stats`, config),
+                    fetchWithRetry(`/student/stats/${user.user_id}`, config),
+                    fetchWithRetry(`/courses/${courseId}`, config)
                 ]);
 
                 if (courseResponse.data) {
                     setCourseName(courseResponse.data.title);
                 }
-                
+                    
                 if (sectionsResponse.data) {
                     setSections(sectionsResponse.data);
                 }
@@ -153,14 +140,6 @@ const CourseSection = () => {
             fetchData();
         }
     }, [courseId, user]);
-
-    const calculateProgressPercentage = (totalXP, level) => {
-        const currentLevelXP = LEVEL_THRESHOLDS[level];
-        const nextLevelXP = LEVEL_THRESHOLDS[level + 1];
-        const xpInCurrentLevel = totalXP - currentLevelXP;
-        const xpNeededForNextLevel = nextLevelXP - currentLevelXP;
-        return (xpInCurrentLevel / xpNeededForNextLevel) * 100;
-    };
 
     return (
         <>
@@ -231,7 +210,7 @@ const CourseSection = () => {
                                         <div 
                                             className='xp-progress-fill' 
                                             style={{
-                                                width: `${calculateProgressPercentage(stats.totalXP, stats.level)}%`
+                                                width: `${calculateLevelProgress(stats.totalXP)}%`
                                             }}
                                         />
                                     </div>

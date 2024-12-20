@@ -5,6 +5,7 @@ import { useAuth } from 'AuthContext';
 import defaultProfilePic from "../../assets/images/default-profile-pic.png";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { calculateLevel, calculateLevelProgress } from '../../utils/xpCalculator';
 
 function ProfilePage() {
   const { user } = useAuth();
@@ -12,13 +13,6 @@ function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    completedCourses: 0,
-    exercisesCompleted: 0,
-    totalXP: 0,
-    level: 0,
-    streak: 0
-  });
 
  // In ProfilePage.js
 useEffect(() => {
@@ -47,32 +41,6 @@ useEffect(() => {
   }
 }, [user]);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get(`/api/students/${user.user_id}/stats`, {
-          headers: {
-            'Authorization': `Bearer ${user.token}`
-          }
-        });
-        
-        setStats({
-          completedCourses: response.data.completedCourses || 0,
-          exercisesCompleted: response.data.exercisesCompleted || 0,
-          totalXP: response.data.totalXP || 0,
-          level: response.data.level || 0,
-          streak: response.data.streak || 0
-        });
-      } catch (err) {
-        console.error('Error fetching stats:', err);
-      }
-    };
-
-    if (user?.user_id) {
-      fetchStats();
-    }
-  }, [user]);
-
   if (loading) {
     return <div>Loading profile data...</div>;
   }
@@ -85,33 +53,6 @@ useEffect(() => {
     if (!courses || !Array.isArray(courses)) return 0;
     return courses.filter(course => course.progress >= 100).length;
   };
-
-// Level calculation constants
-const BASE_XP = 100;  // Base XP required for level 1
-const SCALING_FACTOR = 1.5;  // How much more XP each level requires
-
-// Function to calculate level based on XP
-const calculateLevel = (xp) => {
-  if (xp < BASE_XP) return 1;
-  
-  // Formula: level = floor(log(xp/BASE_XP)/log(SCALING_FACTOR)) + 1
-  const level = Math.floor(
-    Math.log(xp / BASE_XP) / Math.log(SCALING_FACTOR)
-  ) + 1;
-  
-  return Math.max(1, level); // Ensure minimum level is 1
-};
-
-// Function to calculate XP progress towards next level
-const calculateLevelProgress = (xp) => {
-  const currentLevel = calculateLevel(xp);
-  const currentLevelXP = BASE_XP * Math.pow(SCALING_FACTOR, currentLevel - 1);
-  const nextLevelXP = BASE_XP * Math.pow(SCALING_FACTOR, currentLevel);
-  const progress = ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
-  return Math.min(100, Math.max(0, progress)); // Ensure progress is between 0 and 100
-};
-
-  
 
   return (
       <>
@@ -126,82 +67,40 @@ const calculateLevelProgress = (xp) => {
                        alt="Profile Avatar"
                        className={styles.profileAvatar}/>
                   <h2 className={styles.profileName}>{user.name}</h2>
-                  <div className={styles.bioContainer}>
-                    <p className={styles.bioTitle}>Bio</p>
-                    <div className={styles.bioText}>
-                      {profileData.bio || 'No bio available'}
-                    </div>
+                  <p className={styles.bioTitle}>Bio</p>
+                  <div className={styles.bioText}>
+                    {profileData.bio || 'No bio available'}
                   </div>
                 </div>
-
 
                 <div className={styles.statusSection}>
                   <h3 className={styles.statusTitle}>My Status</h3>
                   <div className={styles.statusCards}>
-                    {/* Level Card at Top */}
-                    <div className={`${styles.statusCard} ${styles.levelCard}`}>
-                      <div className={styles.firstContent}>
-                        <p className={styles.statusNumber}>{stats.level|| 0}</p>
-                        <p>Level</p>
-                        <div className={styles.xpProgress}>
-                          <div className={styles.xpProgressBar}>
-                            <div 
-                              className={styles.xpProgressFill} 
-                              style={{
-                                width: `${(stats.totalXP % 1000) / 10}%`
-                              }}
-                            />
-                          </div>
-                          <p className={styles.xpProgressText}>
-                            {stats.xpToNextLevel} XP to next level
-                          </p>
-                        </div>
+                    {/* First Row */}
+                    <div className={styles.statusRow}>
+                      <div className={`${styles.statusCard} ${styles.xpCard}`}>
+                        <p className={styles.statusNumber}>{profileData.courseXP || 0}+</p>
+                        <p>Course XP</p>
                       </div>
-                      <div className={styles.secondContent}>
-                        <p>Keep learning and gain levels</p>
+                      <div className={styles.statusCard}>
+                        <p className={styles.statusNumber}>{profileData.exercisesCompleted || 0}</p>
+                        <p>Exercises Completed</p>
+                      </div>
+                      <div className={styles.statusCard}>
+                        <p className={styles.statusNumber}>{profileData.streak || 0}</p>
+                        <p>Streak</p>
                       </div>
                     </div>
 
-                    {/* Other Stats Grid */}
-                    <div className={styles.statsGrid}>
-                      <div className={`${styles.statusCard} ${styles.xpCard}`}>
-                        <div className={styles.firstContent}>
-                          <p className={styles.statusNumber}>{stats.totalXP || 0}+</p>
-                          <p>Course XP</p>
-                        </div>
-                        <div className={styles.secondContent}>
-                          <p>Total Experience Points Earned</p>
-                        </div>
-                      </div>
-                      
+                    {/* Second Row */}
+                    <div className={styles.statusRow}>
                       <div className={styles.statusCard}>
-                        <div className={styles.firstContent}>
-                          <p className={styles.statusNumber}>{stats.exercisesCompleted || 0}</p>
-                          <p>Exercises</p>
-                        </div>
-                        <div className={styles.secondContent}>
-                          <p>Completed Exercises</p>
-                        </div>
+                        <p className={styles.statusNumber}>{profileData.completedCourses || 0}</p>
+                        <p>Completed Courses</p>
                       </div>
-                      
                       <div className={styles.statusCard}>
-                        <div className={styles.firstContent}>
-                          <p className={styles.statusNumber}>{profileData.streak || 0}</p>
-                          <p>Streak</p>
-                        </div>
-                        <div className={styles.secondContent}>
-                          <p>Days in a Row</p>
-                        </div>
-                      </div>
-                      
-                      <div className={styles.statusCard}>
-                        <div className={styles.firstContent}>
-                          <p className={styles.statusNumber}>{stats.completedCourses || 0}</p>
-                          <p>Courses</p>
-                        </div>
-                        <div className={styles.secondContent}>
-                          <p>Finished Courses</p>
-                        </div>
+                        <p className={styles.statusNumber}>{calculateLevel(profileData.courseXP) || 0}</p>
+                        <p>Level</p>
                       </div>
                     </div>
                   </div>
@@ -275,7 +174,4 @@ const calculateLevelProgress = (xp) => {
   );
 }
 
-
-
 export default ProfilePage;
-

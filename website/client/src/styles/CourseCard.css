@@ -1,7 +1,7 @@
 .course-card {
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--language-color);
   color: #fff;
   padding: 16px;
   border-radius: 25px;
@@ -27,8 +27,8 @@
   height: 200%;
   background: radial-gradient(
     circle,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0.05) 50%,
+    color-mix(in srgb, var(--language-color) 20%, transparent) 0%,
+    color-mix(in srgb, var(--language-color) 10%, transparent) 50%,
     transparent 100%
   );
   animation: rotate 20s linear infinite;
@@ -115,14 +115,12 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
 }
-
 .course-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 12px 40px var(--hover-color);
+  border: 1px solid color-mix(in srgb, white 20%, transparent);
+  background: var(--hover-color);
 }
-
 .progress-circle {
   position: relative;
   width: 35px;
@@ -177,7 +175,7 @@
 
   .course-info {
     backdrop-filter: none;
-    background: rgba(255, 255, 255, 0.08); /* Slightly more visible background */
+    background: color-mix(in srgb, var(--language-color) 40%, transparent);
   }
 
   .progress-circle,

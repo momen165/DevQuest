@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { getLastAccessedLesson } = require('./lesson.controller');
+const { calculateLevel, calculateXPToNextLevel } = require('../utils/xpCalculator');
 
 
 // Fetch all students
@@ -87,12 +88,15 @@ const getStudentById = async (req, res) => {
       WHERE lp.user_id = $1 AND lp.completed = true
     `;
     const stats = (await db.query(statsQuery, [studentId])).rows[0];
+    const totalXP = parseInt(stats.course_xp) || 0;
 
     const response = {
       ...userResult.rows[0],
       courses,
       exercisesCompleted: parseInt(stats.exercises_completed),
-      courseXP: parseInt(stats.course_xp),
+      courseXP: totalXP,
+      level: calculateLevel(totalXP),
+      xpToNextLevel: calculateXPToNextLevel(totalXP),
       completedCourses: courses.filter(c => c.progress >= 100).length
     };
 
@@ -194,91 +198,84 @@ const getProgressByUserId = async (req, res) => {
 };
 
 const getStudentStats = async (req, res) => {
-  const studentId = req.params.studentId;
-
-  try {
-    // Get completed courses (progress = 100%)
-    const completedCoursesQuery = `
-      SELECT COUNT(DISTINCT e.course_id) 
-      FROM enrollment e
-      WHERE e.user_id = $1 AND e.progress = 100`;
-
-    // Get exercises completed (only count distinct completed exercises)
-    const exercisesCompletedQuery = `
-      SELECT COUNT(DISTINCT lp.lesson_id) 
-      FROM lesson_progress lp
-      WHERE lp.user_id = $1 AND lp.completed = true`;
-
-    // Calculate total XP (sum XP only for completed lessons)
-    const totalXPQuery = `
-      SELECT COALESCE(SUM(l.xp), 0) as total_xp
-      FROM lesson_progress lp
-      JOIN lesson l ON lp.lesson_id = l.lesson_id
-      WHERE lp.user_id = $1 AND lp.completed = true`;
-
-    // Get user streak
-    const streakQuery = `
-      SELECT streak 
-      FROM users 
-      WHERE user_id = $1`;
-
-    const [
-      completedCoursesResult,
-      exercisesCompletedResult,
-      totalXPResult,
-      streakResult
-    ] = await Promise.all([
-      db.query(completedCoursesQuery, [studentId]),
-      db.query(exercisesCompletedQuery, [studentId]),
-      db.query(totalXPQuery, [studentId]),
-      db.query(streakQuery, [studentId])
-    ]);
-
-    // Define XP thresholds for each level
-    const LEVEL_THRESHOLDS = [
-      0,    // Level 0: 0 XP
-      100,  // Level 1: 100 XP
-      500,  // Level 2: 500 XP
-      850,  // Level 3: 850 XP
-      1200, // Level 4: 1200 XP
-    ];
-
-    const calculateLevel = (xp) => {
-      for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-        if (xp >= LEVEL_THRESHOLDS[i]) {
-          return i;
-        }
-      }
-      return 0;
-    };
-
-    const calculateXPToNextLevel = (xp, currentLevel) => {
-      if (currentLevel >= LEVEL_THRESHOLDS.length - 1) {
-        return 0; // Max level reached
-      }
-      return LEVEL_THRESHOLDS[currentLevel + 1] - xp;
-    };
-
-    const totalXP = parseInt(totalXPResult.rows[0].total_xp) || 0;
-    const level = calculateLevel(totalXP);
-
-    const stats = {
-      completedCourses: parseInt(completedCoursesResult.rows[0].count) || 0,
-      exercisesCompleted: parseInt(exercisesCompletedResult.rows[0].count) || 0,
-      totalXP: totalXP,
-      level: level,
-      xpToNextLevel: calculateXPToNextLevel(totalXP, level),
-      streak: streakResult.rows[0]?.streak || 0
-    };
-
-    res.json(stats);
-  } catch (err) {
-    console.error('Error fetching student stats:', err);
-    res.status(500).json({ error: 'Failed to fetch student statistics' });
-  }
+    const { userId } = req.params;
+    
+    try {
+        const query = `
+            SELECT 
+                COALESCE(SUM(l.xp), 0) as totalXP,
+                COUNT(DISTINCT lp.lesson_id) as exercisesCompleted
+            FROM lesson_progress lp
+            LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
+            WHERE lp.user_id = $1 AND lp.completed = true
+        `;
+        const result = await db.query(query, [userId]);
+        
+        // Calculate level based on total XP
+        const stats = result.rows[0];
+        const totalXP = parseInt(stats.totalxp) || 0;
+        const level = calculateLevel(totalXP);
+        const xpToNextLevel = calculateXPToNextLevel(totalXP);
+        
+        res.json({
+            totalXP,
+            exercisesCompleted: parseInt(stats.exercisescompleted) || 0,
+            level,
+            xpToNextLevel
+        });
+    } catch (err) {
+        console.error('Error fetching student stats:', err);
+        res.status(500).json({ error: 'Failed to fetch student statistics' });
+    }
 };
 
-// ...existing code...
+const getCourseStats = async (req, res) => {
+    const { courseId } = req.params;
+    const userId = req.user.user_id;
+    
+    try {
+        const query = `
+            WITH stats AS (
+                SELECT 
+                    COALESCE(SUM(l.xp), 0) as courseXP,
+                    COUNT(DISTINCT lp.lesson_id) as exercisesCompleted
+                FROM lesson_progress lp
+                JOIN lesson l ON lp.lesson_id = l.lesson_id
+                JOIN section s ON l.section_id = s.section_id
+                WHERE lp.user_id = $1 
+                AND s.course_id = $2
+                AND lp.completed = true
+            )
+            SELECT 
+                stats.*,
+                u.streak
+            FROM stats
+            CROSS JOIN users u
+            WHERE u.user_id = $1
+        `;
+        const result = await db.query(query, [userId, courseId]);
+        
+        // Handle case where no rows are returned
+        const stats = result.rows[0] || {
+            coursexp: 0,
+            exercisescompleted: 0,
+            streak: 0
+        };
+        
+        const courseXP = parseInt(stats.coursexp) || 0;
+        
+        res.json({
+            courseXP,
+            exercisesCompleted: parseInt(stats.exercisescompleted) || 0,
+            streak: parseInt(stats.streak) || 0,
+            level: calculateLevel(courseXP),
+            xpToNextLevel: calculateXPToNextLevel(courseXP)
+        });
+    } catch (err) {
+        console.error('Error fetching course stats:', err);
+        res.status(500).json({ error: 'Failed to fetch course statistics' });
+    }
+};
 
 module.exports = {
   getAllStudents,
@@ -287,4 +284,5 @@ module.exports = {
   getEnrollmentsByUserId,
   getProgressByUserId,
   getStudentStats,
+  getCourseStats
 };

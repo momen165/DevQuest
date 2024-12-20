@@ -20,4 +20,6 @@ router.get('/lesson-progress', lessonController.getLessonProgress);
 // Add this new route
 router.post('/lesson/fix-orders', authenticateToken, lessonController.fixLessonOrders);
 
+router.get('/lessons/section/:sectionId/progress', authenticateToken, lessonController.getLessonsBySection);
+
 module.exports = router;

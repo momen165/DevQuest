@@ -48,8 +48,8 @@ const addSection = async (req, res) => {
 const getAdminSections = async (req, res) => {
   const { course_id } = req.query;
 
-  if (!req.user.admin) {
-    return res.status(403).json({ error: 'Access denied. Admins only.' });
+  if (!course_id) {
+    return res.status(400).json({ error: 'course_id is required' });
   }
 
   try {
@@ -62,7 +62,8 @@ const getAdminSections = async (req, res) => {
         json_agg(
           json_build_object(
             'lesson_id', l.lesson_id,
-            'name', l.name
+            'name', l.name,
+            'lesson_order', l.lesson_order
           ) ORDER BY l.lesson_order
         ) as lessons
       FROM section s
@@ -115,20 +116,20 @@ const getUserSections = async (req, res) => {
 
 // Get section by ID
 const getSectionById = async (req, res) => {
-  const { sectionId } = req.params;
+  const { section_id } = req.params;
 
   try {
     const query = `
       SELECT 
-        section_id, 
-        course_id, 
-        name, 
-        description,
-        section_order
-      FROM section
-      WHERE section_id = $1
+        s.section_id, 
+        s.course_id,
+        s.name, 
+        s.description,
+        s.section_order
+      FROM section s
+      WHERE s.section_id = $1
     `;
-    const result = await db.query(query, [sectionId]);
+    const result = await db.query(query, [section_id]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Section not found' });

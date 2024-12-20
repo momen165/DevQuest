@@ -1,9 +1,9 @@
 .Page {
-  background: linear-gradient(135deg, #0f1d3d, #142850); /* Darker blue gradient */
+  background: linear-gradient(135deg, #0f1d3d, #142850);
   min-height: 100vh;
   display: flex;
   flex-direction: row;
-  margin: 0;
+  margin: 70px 0 0 0; /* Add top margin to account for navbar */
   color: #ecdfe7;
   font-family: 'Inter', sans-serif;
 }
@@ -11,10 +11,10 @@
 .Section {
   width: 100%;
   max-width: 1240px;
-  padding: 20px;
-  margin: 20px auto;
+  padding: 30px; /* Increased padding */
+  margin: 0 auto; /* Adjusted margin */
   border-radius: 10px;
-  background: rgba(12, 12, 12, 0.1); /* Darker section background */
+  background: rgba(12, 12, 12, 0.1);
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
@@ -187,11 +187,20 @@
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
+.section-completed {
+  position: relative;
+  border-left: 4px solid #4CAF50;
+}
 
+
+.section-completed.content-open::after {
+  background-color: #4CAF50;
+  opacity: 0.8;
+}
 .course-header {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 30px;
+  padding: 20px 0; /* Added vertical padding */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .course-header h1 {
