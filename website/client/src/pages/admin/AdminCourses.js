@@ -8,6 +8,12 @@ import axios from 'axios';
 import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
 
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+    timeout: 10000,
+});
+
 const AdminCourses = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -45,23 +51,25 @@ const AdminCourses = () => {
     fetchCourses();
   }, [token]);
 
-  
-const handleEditSections = async (course) => {
-  setEditingCourse(course);
-  setEditingSections(true);
+  const handleEditSections = async (course) => {
+    setEditingCourse(course);
+    setEditingSections(true);
 
-  try {
-    const response = await axios.get(
-      `/api/admin/sections/course?course_id=${course.course_id}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setSections(response.data);
-  } catch (err) {
-    handleError(err, 'Failed to fetch sections.');
-  }
-};
+    try {
+      const response = await api.get(`/sections`, {
+        params: {
+          course_id: course.course_id
+        },
+        headers: { 
+          Authorization: `Bearer ${token}` 
+        }
+      });
+      setSections(response.data);
+    } catch (err) {
+      handleError(err, 'Failed to fetch sections.');
+    }
+  };
 
-// ...existing code...
   const handleFileUpload = async (file) => {
     try {
       const formData = new FormData();
@@ -145,34 +153,33 @@ const handleEditSections = async (course) => {
         ) : editingSections ? (
             <SectionEditComponent
                 sections={sections}
-            courseId={editingCourse?.course_id}
-            onSectionUpdate={(updatedSections) => {
-              const payload = updatedSections.map((section, index) => ({
-                section_id: section.section_id,
-                order: index,
-              }));
-              axios
-                .post(
-                  '/api/sections/reorder',
-                  { sections: payload },
-                  {
-                    headers: { Authorization: `Bearer ${token}` },
-                  }
-                )
-                .then(() =>
-                  axios.get(
-                    `/api/section?course_id=${editingCourse?.course_id}`,
-                    {
-                      headers: { Authorization: `Bearer ${token}` },
-                    }
-                  )
-                )
-                .then((response) => setSections(response.data))
-                .catch((err) => handleError(err, 'Failed to reorder sections.'));
-            }}
-            onDeleteSection={deleteSection}
-            onClose={handleCloseSections}
-          />
+                courseId={editingCourse?.course_id}
+                onSectionUpdate={(updatedSections) => {
+                    const payload = updatedSections.map((section, index) => ({
+                        section_id: section.section_id,
+                        order: index,
+                    }));
+                    api.post(
+                        '/sections/reorder',
+                        { sections: payload },
+                        {
+                            headers: { Authorization: `Bearer ${token}` },
+                        }
+                    )
+                    .then(() => 
+                        api.get(`/sections`, {
+                            params: {
+                                course_id: editingCourse?.course_id
+                            },
+                            headers: { Authorization: `Bearer ${token}` },
+                        })
+                    )
+                    .then((response) => setSections(response.data))
+                    .catch((err) => handleError(err, 'Failed to reorder sections.'));
+                }}
+                onDeleteSection={deleteSection}
+                onClose={handleCloseSections}
+            />
         ) : editingCourse || isAddingCourse ? (
           <EditCourseForm
             course={editingCourse}
