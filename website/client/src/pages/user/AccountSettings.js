@@ -1,249 +1,236 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import Sidebar from 'pages/admin/components/Sidebar';
 import axios from 'axios';
-import Navbar from 'components/Navbar';
-import Sidebar from 'components/AccountSettingsSidebar';
 import { useAuth } from 'AuthContext';
-import 'styles/AccountSettings.css';
-import defaultProfilePic from '../../assets/images/default-profile-pic.png';
-import toast, { Toaster } from 'react-hot-toast';
+import './styles/AdminSettingsPage.css';
 
-function ProfilePage() {
-  const { user, setUser } = useAuth();
-  const navigate = useNavigate();
+const ActivityDebug = ({ data }) => (
+  <div style={{ 
+    padding: '10px', 
+    background: '#f0f0f0', 
+    marginTop: '10px',
+    fontSize: '12px' 
+  }}>
+    <pre>{JSON.stringify(data, null, 2)}</pre>
+  </div>
+);
 
-  const [name, setName] = useState('');
-  const [country, setCountry] = useState('');
-  const [bio, setBio] = useState('');
+const AdminSettingsPage = () => {
+  const [newAdminId, setNewAdminId] = useState('');
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [adminActivity, setAdminActivity] = useState([]);
+  const [metrics, setMetrics] = useState(null);
+  const [performanceMetrics, setPerformanceMetrics] = useState(null);
+  const { user } = useAuth();
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    if (!user || !user.token) {
-      navigate('/');
-    } else {
-     
-      if (user.name) setName(user.name);
-      if (user.country) setCountry(user.country);
-      if (user.bio) setBio(user.bio);
+    // Get the user object from localStorage
+    const userObj = JSON.parse(localStorage.getItem('user'));
+    if (userObj?.token) {
+      // Set default headers for all axios requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userObj.token}`;
+      axios.defaults.baseURL = 'http://localhost:3000'; // Add your backend URL here
     }
-  }, [user, navigate]);
+  }, []);
 
-  const handleRemoveProfilePic = async () => {
+  useEffect(() => {
+    if (user?.userId) {
+      fetchInitialData();
+      fetchSystemSettings();
+    }
+  }, [user]);
+
+  const fetchInitialData = async () => {
     try {
-      await axios.delete('/api/removeProfilePic', {
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
-        },
-      });
-  
-      const updatedUser = { ...user, profileimage: null };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      
-      toast.success('Profile picture removed successfully', {
-        duration: 4000,
-        style: {
-          background: '#333',
-          color: '#fff',
-          borderRadius: '10px',
-          padding: '16px',
-        },
-        icon: '🗑️',
-      });
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to remove profile picture', {
-        duration: 4000,
-        style: {
-          background: '#333',
-          color: '#fff',
-          borderRadius: '10px',
-          padding: '16px',
-        },
-        icon: '❌',
-      });
+      const [
+        activityResponse,
+        metricsResponse,
+        performanceResponse
+      ] = await Promise.all([
+        axios.get('/api/admin/activities'), // Updated endpoint
+        axios.get('/api/admin/metrics/system'), // Updated endpoint
+        axios.get('/api/admin/metrics/performance') // Updated endpoint
+      ]);
+
+      setAdminActivity(activityResponse.data);
+      setMetrics(metricsResponse.data);
+      setPerformanceMetrics(performanceResponse.data);
+
+    } catch (err) {
+      if (err.response?.status === 403) {
+        setError('Access denied. Admin privileges required.');
+        // Optionally redirect to home page
+        // window.location.href = '/';
+      } else {
+        console.error('Error fetching admin data:', err);
+        setError(err.response?.data?.error || 'Failed to fetch data');
+      }
     }
   };
-  
-  const handleProfilePicChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-  
-    const formData = new FormData();
-    formData.append('profilePic', file);
-  
+
+  const fetchSystemSettings = async () => {
     try {
-      const response = await axios.post('/api/uploadProfilePic', formData, {
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-  
-      const profileimage = response.data.profileimage;
-      const updatedUser = { ...user, profileimage };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      
-      toast.success('Profile picture updated successfully', {
-        duration: 4000,
-        style: {
-          background: '#333',
-          color: '#fff',
-          borderRadius: '10px',
-          padding: '16px',
-        },
-        icon: '🖼️',
-      });
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to upload profile picture', {
-        duration: 4000,
-        style: {
-          background: '#333',
-          color: '#fff',
-          borderRadius: '10px',
-          padding: '16px',
-        },
-        icon: '❌',
-      });
+      const response = await axios.get('/api/admin/system-settings');
+      setMaintenanceMode(response.data.maintenanceMode);
+    } catch (err) {
+      console.error('Error fetching system settings:', err);
+      setError('Failed to fetch system settings');
     }
   };
-  
-  const handleSaveChanges = async (e) => {
+
+  const handleAddAdmin = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
 
-    const loadingToast = toast.loading('Saving changes...', {
-      style: {
-        background: '#333',
-        color: '#fff',
-        borderRadius: '10px',
-        padding: '16px',
-      },
-    });
+    if (!newAdminId || isNaN(newAdminId)) {
+      setError('Please enter a valid user ID');
+      return;
+    }
 
     try {
-      await axios.put('/api/updateProfile', 
-        { name, country, bio },
-        {
-          headers: {
-            'Authorization': `Bearer ${user.token}`,
-          },
-        }
-      );
+      const response = await axios.post('/api/admin/add-admin', { // Updated endpoint
+        userId: parseInt(newAdminId, 10)  // Convert to integer
+      });
+      console.log('Response:', response); // Debug response
+      setSuccess(response.data.message);
+      setNewAdminId('');
+      // Refresh the activity list
+      fetchInitialData();
+    } catch (err) {
+      console.error('Error details:', err.response || err); // Debug error
+      setError(err.response?.data?.error || 'Error adding admin');
+      console.error('Error adding admin:', err);
+    }
+  };
 
-      const updatedUser = { ...user, name, country, bio };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+  const handleMaintenanceToggle = async () => {
+    try {
+      const response = await axios.post('/api/admin/maintenance-mode', { // Updated endpoint
+        enabled: !maintenanceMode 
+      });
+      setMaintenanceMode(!maintenanceMode);
+      setSuccess(response.data.message);
       
-      toast.dismiss(loadingToast);
-      toast.success('Profile updated successfully', {
-        duration: 4000,
-        style: {
-          background: '#333',
-          color: '#fff',
-          borderRadius: '10px',
-          padding: '16px',
-        },
-        icon: '✅',
+      // Log the activity
+      await axios.post('/api/admin/activities/log', {
+        type: 'System',
+        description: `Maintenance mode ${!maintenanceMode ? 'enabled' : 'disabled'}`
       });
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      toast.error(error.response?.data?.error || 'Failed to update profile', {
-        duration: 4000,
-        style: {
-          background: '#333',
-          color: '#fff',
-          borderRadius: '10px',
-          padding: '16px',
-        },
-        icon: '❌',
-      });
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error toggling maintenance mode');
     }
   };
 
   return (
-    <>
-      <Navbar />
-      <Toaster position="top-right" />
-      <div className="user-profile-settings-container">
-        <Sidebar activeLink="profile" />
-
-        <div className="user-profile-settings-content">
-          <h2>{name ? `Welcome, ${name}!` : 'Loading...'}</h2>
-          <div className="user-profile-settings-header">
-            <div className="user-profile-avatar-container">
-              <img
-                src={
-                  user.profileimage
-                    ? `${user.profileimage}?${new Date().getTime()}`
-                    : defaultProfilePic
-                }
-                alt="Profile"
-              />
-
-              <input
-                type="file"
-                id="profilePicInput"
-                style={{ display: 'none' }}
-                onChange={handleProfilePicChange}
-              />
-              <button
-                className="user-profile-btn user-profile-update-btn"
-                onClick={() => document.getElementById('profilePicInput').click()}
-              >
-                Update
-              </button>
-              <button className="user-profile-btn user-profile-remove-btn" onClick={handleRemoveProfilePic}>
-                Remove
-              </button>
-            </div>
-          </div>
-
-          <form className="user-profile-form" onSubmit={handleSaveChanges}>
-            <label className="user-profile-label" htmlFor="name">Name</label>
+    <div className="admin-settings-container">
+      <Sidebar />
+      <div className="admin-settings-main">
+        <h2>Admin Settings</h2>
+        
+        <section className="settings-section">
+          <h3>Add Admin</h3>
+          {error && <div className="error-message">{error}</div>}
+          {success && <div className="success-message">{success}</div>}
+          <form onSubmit={handleAddAdmin}>
             <input
-              type="text"
-              id="name"
-              className="user-profile-input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              type="number"  // Changed to number type
+              value={newAdminId}
+              onChange={(e) => setNewAdminId(e.target.value)}
+              placeholder="Enter user ID"
+              min="1"  // Only allow positive numbers
             />
-
-            <label className="user-profile-label" htmlFor="country">Country</label>
-            <select
-              id="country"
-              className="user-profile-select"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-            >
-              <option value="Other">Other</option>
-              <option value="Palestine">Palestine</option>
-              <option value="Jordan">Jordan</option>
-              <option value="USA">USA</option>
-              <option value="UK">UK</option>
-            </select>
-
-            <label className="user-profile-label" htmlFor="bio">Bio</label>
-            <textarea
-              id="bio"
-              className="user-profile-textarea"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-            ></textarea>
-
-            <div className="user-profile-form-buttons">
-              <button type="submit" className="user-profile-btn user-profile-save-btn">Save Changes</button>
-              <button
-                type="button"
-                className="user-profile-btn user-profile-cancel-btn"
-                onClick={() => navigate('/AccountSettings')}
-              >
-                Cancel
-              </button>
-            </div>
+            <button type="submit">Add Admin</button>
           </form>
-        </div>
-      </div>
-    </>
-  );
-}
+        </section>
 
-export default ProfilePage;
+        <section className="settings-section">
+          <h3>Maintenance Mode</h3>
+          <div className="maintenance-toggle">
+            <label>
+              <input
+                type="checkbox"
+                checked={maintenanceMode}
+                onChange={handleMaintenanceToggle}
+              />
+              Enable Maintenance Mode
+            </label>
+          </div>
+        </section>
+
+        <section className="settings-section">
+          <h3>Your Recent Activity</h3>
+          <div className="activity-list">
+            {adminActivity && adminActivity.length > 0 ? (
+              adminActivity.map((activity) => (
+                <div key={activity.id} className="activity-item">
+                  <div className="activity-details">
+                    <span className="activity-type">{activity.type}</span>
+                    <p>{activity.description}</p>
+                    <small>{new Date(activity.created_at).toLocaleString()}</small>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-activity">No activities found</div>
+            )}
+          </div>
+        </section>
+
+        {metrics && (
+          <section className="settings-section">
+            <h3>System Metrics</h3>
+            <div className="metrics-grid">
+              <div className="metric-card">
+                <h4>Total Users</h4>
+                <p>{metrics.total_users}</p>
+              </div>
+              <div className="metric-card">
+                <h4>Total Courses</h4>
+                <p>{metrics.total_courses}</p>
+              </div>
+              <div className="metric-card">
+                <h4>New Enrollments (24h)</h4>
+                <p>{metrics.new_enrollments_24h}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {performanceMetrics && (
+          <section className="settings-section">
+            <h3>Performance Metrics</h3>
+            <div className="metrics-grid">
+              <div className="metric-card">
+                <h4>Avg. Lesson Completion Time</h4>
+                <p>{Math.round(performanceMetrics.avgLessonCompletionTime / 60)} minutes</p>
+              </div>
+              <div className="metric-card">
+                <h4>Active Users (7 days)</h4>
+                <p>{performanceMetrics.activeUsers7Days}</p>
+              </div>
+              <div className="metric-card">
+                <h4>Total Lessons Completed</h4>
+                <p>{performanceMetrics.totalLessonsCompleted}</p>
+              </div>
+            </div>
+            <div className="top-courses">
+              <h4>Top Courses by Enrollment</h4>
+              <ul>
+                {performanceMetrics.topCourses.map((course, index) => (
+                  <li key={index}>
+                    {course.course_name}: {course.enrollment_count} enrollments
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdminSettingsPage;

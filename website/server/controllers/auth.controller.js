@@ -484,6 +484,21 @@ const sendFeedbackReplyEmail = async (email, name, comment, reply) => {
     await sendSupportEmail(email, "We've Responded to Your Feedback - Devquest", emailContent);
 };
 
+const checkAdminStatus = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const adminQuery = 'SELECT 1 FROM admins WHERE admin_id = $1';
+    const result = await db.query(adminQuery, [userId]);
+    
+    if (result.rowCount === 0) {
+      return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+    }
+    next();
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 module.exports = {
   signup,
@@ -494,6 +509,11 @@ module.exports = {
   sendPasswordResetEmail,
     resetPassword,
     checkAuth,
-  sendFeedbackReplyEmail,
+
+  sendFeedbackReplyEmail, // Export the new function
+  checkAdminStatus,
+
+
   sendEmail,
+
 };

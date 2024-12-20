@@ -63,7 +63,7 @@ const addSubscription = async (req, res) => {
       await client.query('BEGIN');
       const subscriptionQuery = `
         INSERT INTO subscription (subscription_id, subscription_start_date, subscription_end_date, subscription_type,
-                                  amount_paid, status)
+        amount_paid, status)
         VALUES (
           $1,
           CURRENT_DATE,

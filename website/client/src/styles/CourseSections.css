@@ -1,84 +1,73 @@
 .Page {
-  background: linear-gradient(to bottom, #1E3C90 0%, #09112A 100%);
+  background: linear-gradient(135deg, #0f1d3d, #142850); /* Darker blue gradient */
   min-height: 100vh;
   display: flex;
   flex-direction: row;
   margin: 0;
-color: #ecdfe7;
+  color: #ecdfe7;
+  font-family: 'Inter', sans-serif;
 }
 
-  .Section {
-    width: 1240px;
-    padding: 20px;
-    margin: 20px auto;
-    border-radius: 10px;
-  }
-  
-  .lesson-list {
-    background:#131414; 
-    color: white;
-    width: 100%;
-    border-radius: 10px;
-    padding: 10px;
-  }
-  
-  .lesson-list h3 {
-    margin-top: 0;
-  }
-  
-  .lesson-list ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .lesson-list li {
-    background: #0A0A0B;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-    /* .user-sidebar{
-      display: flex;
-      flex-direction: column;
-      width: 591px;
-      height: 319px;
-      align-items: flex-start;
-      background: #0A0A0B;
-      border-radius: 17px;
-      color: white;
+.Section {
+  width: 100%;
+  max-width: 1240px;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 10px;
+  background: rgba(12, 12, 12, 0.1); /* Darker section background */
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
 
-    }
-    .user-info{
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
-      padding: 0px;
-      gap: 10px;
-    }
-    .user-progress{
-      display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-      padding: 0px;
-      gap: 24px;
-    } */
-   .rating{
-    margin: 100px 50px 0px 0px;
-   }
+.lesson-list {
+  background: #0a0a0a; /* Darker background */
+  color: white;
+  width: 100%;
+  border-radius: 10px;
+  padding: 10px; /* Increased padding */
+}
+
+.lesson-list h3 {
+  margin-top: 0;
+}
+
+.lesson-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.lesson-list li {
+  background: #080809; /* Darker background */
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rating {
+  margin: 100px 50px 0px 0px;
+}
+
 .user-sidebar {
   display: flex;
   flex-direction: column;
-  width: 400px; 
-  padding: 20px;
-  background: #0A0A0B; 
+  width: 400px;
+  padding: 25px;
+  background: linear-gradient(145deg, #0c0c0e, #151518); /* Darker gradient */
   border-radius: 17px;
   color: white;
-  font-family: Arial, sans-serif;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
 }
+
+.user-sidebar:hover {
+  transform: translateY(-5px);
+}
+
 .status-title {
   font-size: 1.2em;
   font-weight: bold;
@@ -94,10 +83,29 @@ color: #ecdfe7;
 
 .user-icon {
   width: 50px;
-
   height: 50px;
   border-radius: 50%;
   background: url('assets/icons/user-icon.svg'); 
+  margin-right: 15px;
+  overflow: hidden;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.default-avatar {
+  width: 100%;
+  height: 100%;
+  background-color: #2196f3;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5em;
+  font-weight: bold;
 }
 
 .user-details .username {
@@ -110,7 +118,6 @@ color: #ecdfe7;
   color: #aaa; 
 }
 
-
 .user-progress {
   display: flex;
   justify-content: space-between;
@@ -120,16 +127,24 @@ color: #ecdfe7;
 
 .progress-box {
   text-align: center;
-  background-color: #222; 
-  border-radius: 8px;
-  padding: 15px;
-  width: 80px;
+  background: linear-gradient(145deg, #151518, #1d1d20); /* Darker gradient */
+  border-radius: 12px;
+  padding: 20px;
+  width: 90px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.progress-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .progress-value {
-  font-size: 1.2em;
+  font-size: 1.4em;
   font-weight: bold;
-  color: #7cff78; 
+  background: linear-gradient(90deg, #7cff78, #4CAF50);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin: 0;
 }
 
@@ -138,153 +153,131 @@ color: #ecdfe7;
   color: #ccc;
 }
 
-.subscription-message {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    text-align: center;
+.xp-progress {
+  margin-top: 12px;
+  width: 100%;
 }
 
-.subscription-message h3 {
-    color: #dc3545;
-    margin-bottom: 10px;
+.xp-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
 }
 
-.subscribe-button {
-    display: inline-block;
-    background-color: #007bff;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    text-decoration: none;
-    margin-top: 10px;
-    transition: background-color 0.3s;
+.xp-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50, #76ff03);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  position: relative;
 }
 
-.subscribe-button:hover {
-    background-color: #0056b3;
-}
-
-.lesson-counter {
-    background-color: #e9ecef;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-}
-
-.lesson-counter p {
-    margin: 0;
-    color: #495057;
-    font-weight: 500;
-}
-
-.subscription-message {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 20px;
-  margin: 20px 0;
+.xp-progress-text {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 8px;
   text-align: center;
-}
-
-.subscription-message h3 {
-  color: #dc3545;
-  margin-bottom: 10px;
-}
-
-.subscribe-button {
-  display: inline-block;
-  background-color: #007bff;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  text-decoration: none;
-  margin-top: 10px;
-  transition: background-color 0.3s;
-}
-
-.subscribe-button:hover {
-  background-color: #0056b3;
-}
-
-.lesson-counter {
-  background-color: #e9ecef;
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-}
-
-.lesson-counter p {
-  margin: 0;
-  color: #495057;
   font-weight: 500;
 }
 
-.locked-lesson {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  margin: 5px 0;
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
-.locked-lesson span {
-  color: #666;
+.course-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.subscribe-link {
-  background-color: #007bff;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  text-decoration: none;
-  font-size: 0.9em;
+.course-header h1 {
+    font-size: 2.5em;
+    font-weight: 700;
+    margin-bottom: 10px;
+    background: linear-gradient(45deg, #fff, #e0e0e0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.subscribe-link:hover {
-  background-color: #0056b3;
+.course-breadcrumb {
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.6);
 }
 
-.subscription-message {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 20px;
-  margin: 20px 0;
-  text-align: center;
+.course-breadcrumb .separator {
+    margin: 0 10px;
+    color: rgba(255, 255, 255, 0.3);
 }
 
-.subscription-message h3 {
-  color: #dc3545;
-  margin-bottom: 15px;
+.course-breadcrumb .current {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
 }
 
-.subscribe-button {
-  display: inline-block;
-  background-color: #28a745;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  text-decoration: none;
-  margin-top: 15px;
-  transition: background-color 0.3s;
+.lesson-section {
+    background: rgba(0, 0, 0, 0.4); /* Darker lesson section */
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.03); /* More subtle border */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.subscribe-button:hover {
-  background-color: #218838;
+.lesson-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* Darker shadow */
 }
 
-.lesson-counter {
-  background-color: #fff3cd;
-  border: 1px solid #ffeeba;
-  color: #856404;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-  text-align: center;
+.lesson-section h2 {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
+.lesson-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    padding: 0px 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+.lesson-item {
+    background: rgba(5, 5, 5, 0.95); /* Darker item background */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 20px 25px; /* Increased padding */
+    margin: 12px 0; /* Add some vertical spacing */
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 95%;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: white;
+}
+
+.lesson-item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.lesson-item.completed {
+    border-left: 4px solid #4CAF50;
+    background: rgba(76, 175, 80, 0.05);
+}
+
+.lesson-item span {
+    font-weight: 500;
+    font-size: 1.1em;
+}
