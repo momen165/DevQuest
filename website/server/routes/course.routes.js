@@ -17,6 +17,12 @@ router.get('/courses', courseController.getCourses);
 // Get a specific course by ID
 router.get('/courses/:course_id', courseController.getCourseById);
 
+// Get course stats for a user
+router.get('/courses/:course_id/stats/:user_id', courseController.getUserCourseStats);
+
+// Get user's overall stats
+router.get('/users/:user_id/stats', courseController.getUserOverallStats);
+
 // Delete a course
 router.delete('/courses/:course_id', authenticateToken, courseController.deleteCourse);
 

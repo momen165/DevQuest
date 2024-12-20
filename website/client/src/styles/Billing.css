@@ -1,145 +1,179 @@
 .billing-page {
     display: flex;
-    min-height: calc(100vh - 70px);
-    background-color: #0f184a;
-    margin-top: 70px;
-    margin-left: 250px;
-    width: calc(100% - 250px);
-}
-
-.billing-content {
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #94bbd4, #b8d4e3);
+  }
+  
+  
+  .billing-content {
     flex: 1;
     padding: 50px;
-    background: linear-gradient(180deg, #1E3C90, #09112A);
-    border-left: 2px solid #1f2d5b;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-left: 2px solid #dcdcdc;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin: 20px;
-}
-
-.billing-details {
+    width: calc(100% - 290px);
+  }
+  
+  .billing-details {
     margin-top: 20px;
-}
-
-.billing-details p {
+  }
+  
+  .billing-details p {
     margin-bottom: 15px;
-}
-
-.highlight {
+  }
+  
+  .billing-highlight {
     font-weight: bold;
     color: #6fb8ff; /* Light blue color for highlighting */
-}
-.billing-content h1 {
+  }
+  
+  .billing-content h1 {
     margin-bottom: 2rem;
     color: #ffffff;
-}
-.subscription-card {
-    background-color: white;
-    border-radius: 8px;
+  }
+  
+  .billing-subscription-card {
+    background: white;
     padding: 2rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
     margin-bottom: 2rem;
-}
-.edit-payment-btn, .cancel-btn {
-    display: inline-block;
-    padding: 10px 20px;
-    border-radius: 20px;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-
-.edit-payment-btn {
-    background-color: #2b4ac8;
-    margin-left: 10px;
-}
-
-.subscription-info {
+  }
+  
+  .billing-subscription-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  
+  
+  .billing-subscription-info {
     margin: 1.5rem 0;
-}
-
-.info-row {
-    display: flex;
-    justify-content: space-between;
+  }
+  
+  .billing-info-row {
     padding: 1rem;
     border-bottom: 1px solid #e5e7eb;
-}
-
-.info-row:last-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease;
+  }
+  
+  .billing-info-row:last-child {
     border-bottom: none;
-}
-
-.info-row span:first-child {
-    color: #000000;
+  }
+  
+  .billing-info-row span:first-child {
+    color: #374151;
     font-weight: 500;
-}
-
-.info-row span:last-child {
+  }
+  
+  .billing-info-row span:last-child {
     color: #111827;
     font-weight: 600;
-}
-
-.manage-subscription-btn,
-.subscribe-btn {
-    width: 100%;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.manage-subscription-btn {
-    background-color: #3b82f6;
-    color: white;
-}
-
-.subscribe-btn {
-    background-color: #10b981;
-    color: white;
-}
-
-.manage-subscription-btn:hover,
-.subscribe-btn:hover {
-    opacity: 0.9;
-}
-
-.no-subscription {
+  }
+  
+  .billing-info-row:hover {
+    background-color: #f8fafc;
+  }
+  
+  
+  
+  .billing-no-subscription {
     text-align: center;
     padding: 3rem;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.billing-history {
+  }
+  
+  .billing-history {
     background-color: white;
     border-radius: 8px;
     padding: 2rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.error-message,
-.success-message {
+  }
+  
+  .billing-error-message,
+  .billing-success-message {
     padding: 1rem;
     border-radius: 4px;
     margin-bottom: 1rem;
     text-align: center;
-}
-
-.error-message {
+  }
+  
+  .billing-error-message {
     background-color: #fee2e2;
     color: #dc2626;
-}
-
-.success-message {
+  }
+  
+  .billing-success-message {
     background-color: #dcfce7;
     color: #16a34a;
-}
-
-.loading {
+  }
+  
+  .billing-loading {
     text-align: center;
     padding: 2rem;
     color: #6b7280;
-}
+  }
+  .billing-edit-payment-btn, .billing-cancel-btn {
+    padding: 15px 25px;
+    border: unset;
+    border-radius: 15px; /* Adjust as needed */
+    color: #212121; /* Adjust as needed */
+    z-index: 1;
+    background: #e8e8e8; /* Adjust as needed */
+    position: relative;
+    font-weight: 1000;
+    font-size: 16px;
+    -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+    box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+    transition: all 250ms;
+    overflow: hidden;
+  }
+  
+  .billing-manage-subscription-btn {
+    padding: 15px 25px;
+    border: unset;
+    border-radius: 15px; /* Adjust as needed */
+    color: #212121; /* Adjust as needed */
+    z-index: 1;
+    background: #e8e8e8; /* Adjust as needed */
+    position: relative;
+    font-weight: 1000;
+    font-size: 16px;
+    -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+    box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+    transition: all 250ms;
+    overflow: hidden;
+  }
+  
+  .billing-manage-subscription-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    border-radius: 15px; /* Adjust as needed */
+    background: linear-gradient(145deg, #3b82f6, #2563eb);
+    z-index: -1;
+    -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+    box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+    transition: all 250ms;
+  }
+  
+  .billing-manage-subscription-btn:hover {
+    color: #e8e8e8; /* Adjust as needed */
+  }
+  
+  .billing-manage-subscription-btn:hover::before {
+    width: 100%;
+  }

@@ -9,21 +9,30 @@ function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Clear previous messages
+    setError('');
+    setMessage('');
+    
     if (!currentPassword || !newPassword || !confirmPassword) {
+      setError('Please fill in all password fields');
       toast.error('Please fill in all password fields');
       return;
     }
 
     if (newPassword.length < 8) {
+      setError('New password must be at least 8 characters long');
       toast.error('New password must be at least 8 characters long');
       return;
     }
   
     if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
       toast.error('Passwords do not match');
       return;
     }
@@ -48,12 +57,15 @@ function ChangePassword() {
         }
       );
   
+      setMessage('Password changed successfully!');
       toast.success('Password changed successfully!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error changing password. Please try again.');
+      const errorMessage = error.response?.data?.message || 'Error changing password. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
   
@@ -64,7 +76,13 @@ function ChangePassword() {
         <Sidebar activeLink="login" />
         <div className="change-password-content">
           <h2>Change Password</h2>
-          <form className="password-form" onSubmit={handleSubmit}>
+
+          {error && <p className="change-password-error">{error}</p>} {/* Show error message */}
+          {message && <p className="change-password-success">{message}</p>} {/* Show success message */}
+          <form className="change-password-form" onSubmit={handleSubmit}>
+
+       
+
             <label htmlFor="current-password">Current Password</label>
             <input
               type="password"
@@ -93,9 +111,9 @@ function ChangePassword() {
               required
             />
 
-            <div className="form-buttons">
-              <button type="submit" className="save-btn">Save Changes</button>
-              <button type="button" className="cancel-btn">Cancel</button>
+            <div className="change-password-form-buttons">
+              <button type="submit" className="change-password-save-btn">Save Changes</button>
+              <button type="button" className="change-password-cancel-btn">Cancel</button>
             </div>
           </form>
         </div>

@@ -20,6 +20,25 @@ const logActivity = async (actionType, actionDescription, userId = null) => {
 };
 
 /**
+ * Logs an admin activity to the database
+ * @param {number} adminId - ID of the admin performing the action.
+ * @param {string} actionType - Type of action (e.g., 'Course', 'Section', 'Lesson').
+ * @param {string} actionDescription - Detailed description of the action.
+ */
+const logAdminActivity = async (adminId, actionType, actionDescription) => {
+  try {
+    const query = `
+      INSERT INTO admin_activity (admin_id, action_type, action_description, created_at)
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+    `;
+    await db.query(query, [adminId, actionType, actionDescription]);
+    console.log(`Admin activity logged: ${actionType} - ${actionDescription}`);
+  } catch (err) {
+    console.error('Error logging admin activity:', err.message || err);
+  }
+};
+
+/**
  * Fetches recent activities from the database.
  * @param {number} limit - Number of recent activities to fetch (default: 10).
  * @returns {Promise<Array>} - List of recent activities.
@@ -43,4 +62,5 @@ const getRecentActivities = async (limit = 30) => {
 module.exports = {
   logActivity,
   getRecentActivities,
+  logAdminActivity,
 };
