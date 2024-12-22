@@ -35,6 +35,7 @@ const languageMappings = {
   16: 'swift',
   17: 'dart',
   73: 'rust',
+  45: 'assembly',
 };
 
 const CopyNotification = styled.div`

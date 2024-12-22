@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import 'styles/Navbar.css';
-import Logo from 'assets/icons/logo.svg';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import defaultProfilePic from '../assets/images/default-profile-pic.png';
@@ -54,7 +53,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <Link className="navbar-logo" to="/">
-          <img src={Logo} alt="DevQuest Logo" className="navbar-logo-image"/>
+          <img src="/newLogo.png" alt="DevQuest Logo" className="navbar-logo-image"/>
         </Link>
 
         <div className="mobile-menu-icon" onClick={toggleMobileMenu}>
@@ -96,12 +95,14 @@ const Navbar = () => {
                     <button
                       className={`value ${location.pathname === '/AccountSettings' ? 'active' : ''}`}
                       onClick={() => window.location.href = '/AccountSettings'}
+                      style={{"--index": 1}}
                     >
                       Account Settings
                     </button>
                     <button
                       className={`value ${location.pathname === '/ProfilePage' ? 'active' : ''}`}
                       onClick={() => window.location.href = '/ProfilePage'}
+                      style={{"--index": 2}}
                     >
                       Profile Page
                     </button>
@@ -109,11 +110,16 @@ const Navbar = () => {
                       <button
                         className={`value ${location.pathname === '/dashboard' ? 'active' : ''}`}
                         onClick={() => window.location.href = '/dashboard'}
+                        style={{"--index": 3}}
                       >
                         Dashboard
                       </button>
                     )}
-                    <button onClick={handleLogout} className="value logout-button">
+                    <button 
+                      onClick={handleLogout} 
+                      className="value logout-button"
+                      style={{"--index": 4}}
+                    >
                       Log out
                     </button>
                   </div>

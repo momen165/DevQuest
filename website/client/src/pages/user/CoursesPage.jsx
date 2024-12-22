@@ -97,21 +97,58 @@ const CoursesPage = () => {
   }, [user]);
   
   const handleFilter = (filter) => {
-    if (filter === 'All') {
-      setFilteredCourses([...courses].sort((a, b) => a.title?.localeCompare(b.title)));
-    } else if (filter === 'Difficulty') {
-      setFilteredCourses(
-          [...courses].sort((a, b) => {
-            const levels = { Beginner: 1, Intermediate: 2, Advanced: 3 };
-            return (levels[a.difficulty] || 0) - (levels[b.difficulty] || 0);
-          })
-      );
-    } else if (filter === 'Beginner') {
-      setFilteredCourses(courses.filter((course) => course.difficulty === 'Beginner'));
-    } else if (filter === 'popular') {
-      setFilteredCourses([...courses].sort((a, b) => (userscount[b.course_id] || 0) - (userscount[a.course_id] || 0)));
-    } else if (filter === 'rating') {
-      setFilteredCourses([...courses].sort((a, b) => ratings[b.course_id] - ratings[a.course_id]));
+    switch (filter.toLowerCase()) {
+      case 'all':
+        setFilteredCourses([...courses].sort((a, b) => 
+          (a.name || '').localeCompare(b.name || '')
+        ));
+        break;
+        
+      case 'difficulty':
+        setFilteredCourses([...courses].sort((a, b) => {
+          const levels = { beginner: 1, intermediate: 2, advanced: 3 };
+          return (levels[a.difficulty?.toLowerCase()] || 0) - (levels[b.difficulty?.toLowerCase()] || 0);
+        }));
+        break;
+        
+      case 'beginner':
+        setFilteredCourses(
+          courses.filter((course) => 
+            course.difficulty?.toLowerCase() === 'beginner'
+          )
+        );
+        break;
+        
+      case 'intermediate':
+        setFilteredCourses(
+          courses.filter((course) => 
+            course.difficulty?.toLowerCase() === 'intermediate'
+          )
+        );
+        break;
+        
+      case 'advanced':
+        setFilteredCourses(
+          courses.filter((course) => 
+            course.difficulty?.toLowerCase() === 'advanced'
+          )
+        );
+        break;
+        
+      case 'popular':
+        setFilteredCourses([...courses].sort((a, b) => 
+          (userscount[b.course_id] || 0) - (userscount[a.course_id] || 0)
+        ));
+        break;
+        
+      case 'rating':
+        setFilteredCourses([...courses].sort((a, b) => 
+          (ratings[b.course_id] || 0) - (ratings[a.course_id] || 0)
+        ));
+        break;
+        
+      default:
+        setFilteredCourses([...courses]);
     }
   };
 
@@ -123,13 +160,13 @@ const CoursesPage = () => {
       setFilteredCourses(courses);
     } else {
       const searchResults = courses.filter(course => {
-        const title = course.title || course.name || '';
-        const description = course.description || '';
-        const difficulty = course.difficulty || '';
+        const name = (course.name || '').toLowerCase();
+        const description = (course.description || '').toLowerCase();
+        const difficulty = (course.difficulty || '').toLowerCase();
         
-        return title.toLowerCase().includes(term) ||
-               description.toLowerCase().includes(term) ||
-               difficulty.toLowerCase().includes(term);
+        return name.includes(term) ||
+               description.includes(term) ||
+               difficulty.includes(term);
       });
       setFilteredCourses(searchResults);
     }
