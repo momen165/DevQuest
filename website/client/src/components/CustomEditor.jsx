@@ -72,7 +72,7 @@ const DEFAULT_CONFIG = {
 			{language: 'php', label: 'PHP'},
 			{language: 'ruby', label: 'Ruby'},
 			{language: 'typescript', label: 'TypeScript'},
-			// Add custom languages here
+		
 			{language: 'go', label: 'Go'},
 			{language: 'swift', label: 'Swift'},
 			{language: 'kotlin', label: 'Kotlin'},
