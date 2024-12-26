@@ -15,6 +15,7 @@ const DashboardContent = () => {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [error, setError] = useState(null);
   const [showActivityWindow, setShowActivityWindow] = useState(false);
+  const [allActivities, setAllActivities] = useState([]);
 
   const token = JSON.parse(localStorage.getItem('user'))?.token;
   const { user } = useAuth();
@@ -54,7 +55,8 @@ const DashboardContent = () => {
         setCoursesCount(coursesResponse.data.length);
 
         const activityResponse = await axios.get('/api/activities/recent', { headers });
-        setRecentActivity(activityResponse.data);
+        setAllActivities(activityResponse.data);
+        setRecentActivity(activityResponse.data.slice(0, 5));
       } catch (err) {
         console.error('Error fetching dashboard data:', err.response?.data || err.message);
         setError(err.response?.data?.error || 'Failed to fetch dashboard data.');
@@ -168,7 +170,7 @@ const DashboardContent = () => {
         )}
 
         {showActivityWindow && (
-            <ActivityWindow activities={recentActivity} onClose={closeActivityWindow} />
+            <ActivityWindow activities={allActivities} onClose={closeActivityWindow} />
         )}
       </div>
   );

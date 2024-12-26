@@ -9,8 +9,6 @@ const languageBackgrounds = {
   62: 'rgba(248, 152, 32, 0.5)',   // Java - Orange
   101: 'rgba(49, 122, 204, 0.5)',    // TypeScript - Deep blue
   100: 'rgba(83, 130, 161, 0.5)',   // Python alt - Steel blue
- 
- 
   104: 'rgba(85, 85, 85, 0.5)',     // C - Dark gray
   28: 'rgba(0, 172, 215, 1)',       // Go - Cyan
   68: 'rgba(119, 123, 179, 0.5)',   // PHP - Purple
@@ -24,11 +22,11 @@ const CourseCard = ({ title, level, rating, students, description, courseId, ima
   const navigate = useNavigate();
   const fullImageUrl = image;
 
-  console.log('Language received in CourseCard:', language_id); // Add this debug line
+ 
 
   const getBackgroundColor = (langId) => {
     const color = languageBackgrounds[langId] || languageBackgrounds.default;
-    console.log('Language ID:', langId, 'Color:', color); // Debug line
+   
     return color;
   };
 

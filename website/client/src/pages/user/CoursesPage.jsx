@@ -9,6 +9,13 @@ import SupportForm from 'components/SupportForm';
 import axios from 'axios';
 import AnimatedLogo from 'components/AnimatedLogo';
 
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+const isCacheValid = (timestamp) => {
+  if (!timestamp) return false;
+  return (new Date().getTime() - timestamp) < CACHE_DURATION;
+};
+
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
@@ -26,21 +33,15 @@ const CoursesPage = () => {
       setLoading(true);
       try {
         const cachedData = localStorage.getItem('coursesData');
-        const cachedEnrollments = localStorage.getItem(`enrollments_${user?.user_id}`);
-
-        if (cachedData) {
-          const {courses, ratings, userscount} = JSON.parse(cachedData);
-          setCourses(courses);
-          setFilteredCourses(courses);
-          setRatings(ratings);
-          setUserscount(userscount);
+        const parsedCache = cachedData ? JSON.parse(cachedData) : null;
+        
+        if (parsedCache && isCacheValid(parsedCache.timestamp)) {
+          setCourses(parsedCache.courses);
+          setFilteredCourses(parsedCache.courses);
+          setRatings(parsedCache.ratings);
+          setUserscount(parsedCache.userscount);
         }
-
-        if (user?.user_id && cachedEnrollments) {
-          setEnrollments(JSON.parse(cachedEnrollments));
-        }
-
-        // Replace fetch with axios
+        
         const [coursesResponse, enrollmentsResponse] = await Promise.all([
           axios.get('/api/getCoursesWithRatings'),
           user?.user_id
@@ -50,17 +51,24 @@ const CoursesPage = () => {
 
         const {courses, ratings, userscount} = coursesResponse.data;
 
-        // Update state with fresh data
         setCourses(courses);
         setFilteredCourses(courses);
         setRatings(ratings || {});
         setUserscount(userscount || {});
         setEnrollments(enrollmentsResponse.data || {});
 
-        // Cache the data
-        localStorage.setItem('coursesData', JSON.stringify({courses, ratings, userscount}));
+        localStorage.setItem('coursesData', JSON.stringify({
+          courses,
+          ratings,
+          userscount,
+          timestamp: new Date().getTime()
+        }));
+        
         if (user?.user_id) {
-          localStorage.setItem(`enrollments_${user.user_id}`, JSON.stringify(enrollmentsResponse.data));
+          localStorage.setItem(`enrollments_${user.user_id}`, JSON.stringify({
+            data: enrollmentsResponse.data,
+            timestamp: new Date().getTime()
+          }));
         }
       } catch (err) {
         console.error('Error:', err);
@@ -72,7 +80,6 @@ const CoursesPage = () => {
 
     fetchCoursesAndRatings();
   }, [user]);
-
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -91,21 +98,58 @@ const CoursesPage = () => {
   }, [user]);
   
   const handleFilter = (filter) => {
-    if (filter === 'All') {
-      setFilteredCourses([...courses].sort((a, b) => a.title?.localeCompare(b.title)));
-    } else if (filter === 'Difficulty') {
-      setFilteredCourses(
-          [...courses].sort((a, b) => {
-            const levels = { Beginner: 1, Intermediate: 2, Advanced: 3 };
-            return (levels[a.difficulty] || 0) - (levels[b.difficulty] || 0);
-          })
-      );
-    } else if (filter === 'Beginner') {
-      setFilteredCourses(courses.filter((course) => course.difficulty === 'Beginner'));
-    } else if (filter === 'popular') {
-      setFilteredCourses([...courses].sort((a, b) => (userscount[b.course_id] || 0) - (userscount[a.course_id] || 0)));
-    } else if (filter === 'rating') {
-      setFilteredCourses([...courses].sort((a, b) => ratings[b.course_id] - ratings[a.course_id]));
+    switch (filter.toLowerCase()) {
+      case 'all':
+        setFilteredCourses([...courses].sort((a, b) => 
+          (a.name || '').localeCompare(b.name || '')
+        ));
+        break;
+        
+      case 'difficulty':
+        setFilteredCourses([...courses].sort((a, b) => {
+          const levels = { beginner: 1, intermediate: 2, advanced: 3 };
+          return (levels[a.difficulty?.toLowerCase()] || 0) - (levels[b.difficulty?.toLowerCase()] || 0);
+        }));
+        break;
+        
+      case 'beginner':
+        setFilteredCourses(
+          courses.filter((course) => 
+            course.difficulty?.toLowerCase() === 'beginner'
+          )
+        );
+        break;
+        
+      case 'intermediate':
+        setFilteredCourses(
+          courses.filter((course) => 
+            course.difficulty?.toLowerCase() === 'intermediate'
+          )
+        );
+        break;
+        
+      case 'advanced':
+        setFilteredCourses(
+          courses.filter((course) => 
+            course.difficulty?.toLowerCase() === 'advanced'
+          )
+        );
+        break;
+        
+      case 'popular':
+        setFilteredCourses([...courses].sort((a, b) => 
+          (userscount[b.course_id] || 0) - (userscount[a.course_id] || 0)
+        ));
+        break;
+        
+      case 'rating':
+        setFilteredCourses([...courses].sort((a, b) => 
+          (ratings[b.course_id] || 0) - (ratings[a.course_id] || 0)
+        ));
+        break;
+        
+      default:
+        setFilteredCourses([...courses]);
     }
   };
 
@@ -117,13 +161,13 @@ const CoursesPage = () => {
       setFilteredCourses(courses);
     } else {
       const searchResults = courses.filter(course => {
-        const title = course.title || course.name || '';
-        const description = course.description || '';
-        const difficulty = course.difficulty || '';
+        const name = (course.name || '').toLowerCase();
+        const description = (course.description || '').toLowerCase();
+        const difficulty = (course.difficulty || '').toLowerCase();
         
-        return title.toLowerCase().includes(term) ||
-               description.toLowerCase().includes(term) ||
-               difficulty.toLowerCase().includes(term);
+        return name.includes(term) ||
+               description.includes(term) ||
+               difficulty.includes(term);
       });
       setFilteredCourses(searchResults);
     }

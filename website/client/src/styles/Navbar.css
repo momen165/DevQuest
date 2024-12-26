@@ -2,7 +2,7 @@
 .navbar {
   width: 100%;
   height: 70px;
-  background: rgba(30, 60, 144, 0.95);
+  background: rgb(30, 60, 144);
   backdrop-filter: blur(10px);
   color: #ffffff;
   display: flex;
@@ -22,16 +22,20 @@
   width: 100%;
   padding: 0 20px;
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.08);
+  height: 70px; 
 }
 
 .navbar-logo {
   display: flex;
   align-items: center;
   margin-right: 50px;
+ 
 }
 
 .navbar-logo-image {
   margin-right: 8px;
+  width: 200px;
+  height: auto;
 }
 
 .navbar-links {
@@ -128,86 +132,102 @@
 .dropdown-content {
   display: none;
   position: fixed;
-  top: 70px;
+  top: 75px;
   right: 20px;
-  background-color: rgba(13, 17, 23, 0.95);
-  backdrop-filter: blur(10px);
-  min-width: 200px;
-  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
+  background: rgba(23, 25, 35, 0.95);
+  min-width: 220px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   z-index: 2100;
-  border-radius: 10px;
-  padding: 10px 0;
+  border-radius: 12px;
+  padding: 8px;
   opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transform: translateY(10px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(20px);
+  transition: all 0.3s cubic-bezier(0.21, 1.11, 0.7, 1.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
 }
 
 .dropdown-show {
   display: block;
   opacity: 1;
   transform: translateY(0);
+  pointer-events: all;
 }
 
 .value {
-  font-size: 15px;
+  font-size: 14px;
   background-color: transparent;
   border: none;
   padding: 12px 16px;
-  color: white;
+  color: #e1e3e6;
   display: flex;
-  position: relative;
-  gap: 5px;
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.2s ease;
-  box-sizing: border-box;
+  width: 100%;
+  text-align: left;
+  font-weight: 500;
+  transform: translateX(-10px);
+  opacity: 0;
+  animation: slideIn 0.3s ease forwards;
+  animation-delay: calc(var(--index) * 0.05s);
 }
 
-.value:not(:active):hover,
-.value:focus {
-  display: flex;
-  box-sizing: border-box;
-  border: 2px solid #1a1f24;
-  color: #637185;
+@keyframes slideIn {
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.value:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
 }
 
 .value:focus,
-.value:active {
-  background-color: #1a1f24;
+.value:active,
+.value.active {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
   outline: none;
-  margin-left: 17px;
 }
 
 .value::before {
   content: "";
   position: absolute;
-  top: 5px;
-  left: -15px;
-  width: 5px;
-  height: 80%;
+  left: 0;
+  width: 3px;
+  height: 0;
   background-color: #2f81f7;
-  border-radius: 5px;
+  border-radius: 3px;
   opacity: 0;
-  transition: 1s;
+  transition: all 0.2s ease;
 }
 
 .value:focus::before,
-.value:active::before {
+.value:active::before,
+.value.active::before {
+  height: 70%;
   opacity: 1;
 }
 
-.value svg {
-  width: 20px;
+.logout-button {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 4px;
+  padding-top: 12px;
+  color: #ff4d4d;
 }
 
-.input:hover > :not(.value:hover) {
-  transition: 300ms;
-  filter: blur(1.5px);
-  transform: scale(0.95, 0.95);
+.logout-button:hover {
+  background-color: rgba(255, 77, 77, 0.1);
 }
 
 /* ...existing code... */
@@ -233,19 +253,27 @@
 
 .dropdown-connector {
   position: absolute;
-  top: -75px;
-  right: calc(50% - 90px);
-  width: 0;
-  height: 0;
-  /* border-left: 20px solid #0d1117;
-  border-right: 20px solid #0d1117;
-  border-bottom: 20px solid #0d1117; */
-  border: 20px solid #0d1117;
-  border-bottom: 60px solid #0d1117;
-  border-left: 40px solid #0d1117;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  z-index: 0;
+  top: -8px;
+  right: 20px;
+  width: 16px;
+  height: 16px;
+  background: rgba(23, 25, 35, 0.95);
+  transform: rotate(45deg) scale(0);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  z-index: 2099;
+  animation: popIn 0.2s ease forwards;
+  animation-delay: 0.1s;
+}
+
+@keyframes popIn {
+  from {
+    transform: rotate(45deg) scale(0);
+  }
+  to {
+    transform: rotate(45deg) scale(1);
+  }
 }
 
 /* Mobile menu icon */

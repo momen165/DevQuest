@@ -9,7 +9,9 @@ import { useNavigate } from 'react-router-dom';
 
 const stripePromise = loadStripe('pk_test_51MEwjHHxgK7P1VPXXJ1r4MdpeelwFLaBX9kslA7Z4O6V5CjE8B20DVkiSmp6XB0HPwKVnYFYacECLxYMZUOO4Fmm00m79WAvXD'); // Replace with your actual publishable key
 
-const SUBSCRIPTION_REFRESH_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 const PricingPage = () => {
   const [isMonthly, setIsMonthly] = useState(true);
@@ -23,18 +25,14 @@ const PricingPage = () => {
       const stored = localStorage.getItem('subscriptionStatus');
       if (stored) {
         const data = JSON.parse(stored);
-        // Validate the parsed data has the expected structure
         if (data && typeof data.status === 'boolean' && typeof data.timestamp === 'number') {
-          // Check if the stored data is less than 24 hours old
-          if (Date.now() - data.timestamp < SUBSCRIPTION_REFRESH_INTERVAL) {
+          if (Date.now() - data.timestamp < CACHE_DURATION) {
             return data.status;
           }
         }
       }
     } catch (error) {
-      // If there's any error parsing the stored data, remove it
       console.error('Error parsing stored subscription status:', error);
-      localStorage.removeItem('subscriptionStatus');
     }
     return false;
   });
@@ -43,34 +41,32 @@ const PricingPage = () => {
   useEffect(() => {
     const checkSubscription = async () => {
       try {
+        // Check if we have a recent cache
         const stored = localStorage.getItem('subscriptionStatus');
         if (stored) {
           const data = JSON.parse(stored);
-          // Validate the parsed data
-          if (data && typeof data.timestamp === 'number') {
-            if (Date.now() - data.timestamp < SUBSCRIPTION_REFRESH_INTERVAL) {
-              return;
-            }
+          if (Date.now() - data.timestamp < CACHE_DURATION) {
+            return; // Use cached data if it's less than 5 minutes old
           }
         }
 
+        // Otherwise fetch from server
         const response = await axios.get(`http://localhost:5000/api/check`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
         
-        // Store the subscription status and timestamp in localStorage
         const subscriptionData = {
-          status: Boolean(response.data.hasActiveSubscription), // Ensure boolean
+          status: Boolean(response.data.hasActiveSubscription),
           timestamp: Date.now()
         };
         localStorage.setItem('subscriptionStatus', JSON.stringify(subscriptionData));
-        setHasActiveSubscription(response.data.hasActiveSubscription);
+        setHasActiveSubscription(subscriptionData.status);
       } catch (error) {
         console.error('Error checking subscription:', error);
-        // Clean up potentially corrupted data
         localStorage.removeItem('subscriptionStatus');
+        setHasActiveSubscription(false);
       }
     };
 
@@ -79,10 +75,8 @@ const PricingPage = () => {
     }
   }, [user]);
 
-  // Add cleanup for localStorage when user logs out
   useEffect(() => {
     if (!user) {
-      localStorage.removeItem('subscriptionStatus');
       setHasActiveSubscription(false);
     }
   }, [user]);
