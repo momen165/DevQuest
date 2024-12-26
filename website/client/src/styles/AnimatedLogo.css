@@ -1,0 +1,211 @@
+.animated-logo-card {
+  width: 100%;
+  height: 566px;
+  margin-top: 20px;
+  background: linear-gradient(0deg, #000, #272727); /* Updated background */
+  position: relative;
+  display: grid;
+  place-content: center;
+  overflow: hidden;
+  transition: all 0.5s ease-in-out;
+}
+
+.animated-logo-tools {
+  display: flex;
+  align-items: center;
+  padding: 9px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+}
+
+.animated-logo-circle {
+  padding: 0 4px;
+}
+
+.animated-logo-box {
+  display: inline-block;
+  align-items: center;
+  width: 10px;
+  height: 10px;
+  padding: 1px;
+  border-radius: 50%;
+}
+
+.animated-logo-red {
+  background-color: #ff605c;
+}
+
+.animated-logo-yellow {
+  background-color: #ffbd44;
+}
+
+.animated-logo-green {
+  background-color: #00ca4e;
+}
+
+#animated-logo-main, #animated-logo-second {
+  height: 100%;
+}
+
+#animated-logo-main {
+  fill: #bd9f67;
+  width: 100%;
+  height: 100%;
+}
+
+#animated-logo-second {
+  padding-bottom: 10px;
+  fill: none;
+  stroke: #bd9f67;
+  stroke-width: 1px;
+}
+
+.animated-logo-border {
+  position: absolute;
+  inset: 0px;
+  border: 2px solid #bd9f67;
+  opacity: 0;
+  transform: rotate(10deg);
+  transition: all 0.5s ease-in-out;
+}
+
+.animated-logo-bottom-text {
+  position: absolute;
+  left: 50%;
+  bottom: 9px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  background: black;
+  
+  text-transform: uppercase;
+  padding: 0px 5px 0px 8px;
+  color: #bd9f67;
+  opacity: 0;
+  letter-spacing: 7px;
+  transition: all 0.5s ease-in-out;
+}
+
+.animated-logo-content {
+  transition: all 0.5s ease-in-out;
+}
+
+.animated-logo-content .animated-logo {
+  height: 90px;
+  position: relative;
+  width: 85px;
+  overflow: hidden;
+  transition: all 1s ease-in-out;
+  display: flex;
+  align-items: center;
+}
+
+.animated-logo1 img {
+  width: 85px;
+  height: 90px;
+}
+
+.animated-logo2 img {
+  width: 211px;
+  height: 70px;
+    margin-top: -10px;
+}
+
+.animated-logo-content .animated-logo .animated-logo1 {
+  height: 90px;
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.animated-logo-content .animated-logo .animated-logo2 {
+  height: 90px;
+  position: absolute;
+  left: 85px;
+  display: flex;
+  align-items: center;
+  margin-top: -10px;
+}
+
+.animated-logo-content .animated-logo .animated-logo-trail {
+  position: absolute;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(189, 159, 103, 0) 90%, rgb(189, 159, 103) 100%);
+}
+
+.animated-logo-content .animated-logo-content-bottom-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin-top: 60px;
+  color: #bd9f67;
+  padding-left: 8px;
+  font-size: 16px;
+  opacity: 0;
+  letter-spacing: normal;
+  transition: all 0.5s ease-in-out 0.5s;
+}
+
+.animated-logo-card:hover {
+  border-radius: 0;
+  transform: scale(0.98);
+}
+
+.animated-logo-card:hover .animated-logo {
+  width: 296px; /* Width of first logo (85px) + second logo (211px) */
+  animation: opacity 1s ease-in-out;
+}
+
+.animated-logo-card:hover .animated-logo-border {
+  inset: 15px;
+  opacity: 1;
+  transform: rotate(0);
+}
+
+.animated-logo-card:hover .animated-logo-bottom-text {
+  letter-spacing: 3px;
+  opacity: 1;
+  transform: translateX(-50%);
+}
+
+.animated-logo-card:hover .animated-logo-content .animated-logo-content-bottom-text {
+  opacity: 1;
+  letter-spacing: 9.5px;
+}
+
+.animated-logo-card:hover .animated-logo-trail {
+  animation: trail 1s ease-in-out;
+}
+
+@keyframes opacity {
+  0% { border-right: 1px solid transparent; }
+  10% { border-right: 1px solid #bd9f67; }
+  80% { border-right: 1px solid #bd9f67; }
+  100% { border-right: 1px solid transparent; }
+}
+
+@keyframes trail {
+  0% {
+    background: linear-gradient(90deg, rgba(189, 159, 103, 0) 90%, rgb(189, 159, 103) 100%);
+    opacity: 0;
+  }
+  30% {
+    background: linear-gradient(90deg, rgba(189, 159, 103, 0) 70%, rgb(189, 159, 103) 100%);
+    opacity: 1;
+  }
+  70% {
+    background: linear-gradient(90deg, rgba(189, 159, 103, 0) 70%, rgb(189, 159, 103) 100%);
+    opacity: 1;
+  }
+  95% {
+    background: linear-gradient(90deg, rgba(189, 159, 103, 0) 90%, rgb(189, 159, 103) 100%);
+    opacity: 0;
+  }
+}
