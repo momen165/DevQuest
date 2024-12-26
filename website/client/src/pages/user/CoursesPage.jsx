@@ -7,6 +7,7 @@ import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
 import SupportForm from 'components/SupportForm';
 import axios from 'axios';
+import AnimatedLogo from 'components/AnimatedLogo';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -132,6 +133,7 @@ const CoursesPage = () => {
       <div className="courses-page">
         <Navbar />
         <header className="courses-header">
+          <AnimatedLogo />
           <p className="hero-head">All Courses</p>
           <p className="hero-para">
             A large number of courses on different topics are waiting for you.

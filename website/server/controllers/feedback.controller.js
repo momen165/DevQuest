@@ -155,4 +155,35 @@ const replyToFeedback = async (req, res) => {
   }
 };
 
-module.exports = { getFeedback, submitFeedback, getCoursesWithRatings, replyToFeedback };
+const getPublicFeedback = async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        f.feedback_id,
+        f.rating,
+        f.comment,
+        u.name,
+        u.profileimage,
+        u.country,
+        c.name as course_name,
+        c.difficulty
+        
+      FROM feedback f
+      JOIN users u ON f.user_id = u.user_id
+      JOIN course c ON f.course_id = c.course_id
+      WHERE f.rating >= 4
+        AND f.comment IS NOT NULL
+        AND f.comment != ''
+      ORDER BY f.rating DESC, RANDOM()
+      LIMIT 5;
+    `;
+    
+    const { rows } = await db.query(query);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Error fetching public feedback:', error.message);
+    res.status(500).json({ error: 'Failed to fetch feedback' });
+  }
+};
+
+module.exports = { getFeedback, submitFeedback, getCoursesWithRatings, replyToFeedback, getPublicFeedback };
