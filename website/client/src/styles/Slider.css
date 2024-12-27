@@ -1,3 +1,21 @@
+
+.home-slider__section,
+.home-slider__container,
+.home-slider__track,
+.home-slider__item,
+.home-slider__content-primary,
+.home-slider__content-secondary,
+.home-slider__icon-wrapper,
+.home-slider__info,
+.home-slider__loading,
+.home-slider__stats,
+.home-slider__stat-group,
+.home-slider__enrolled ,
+.home-slider__description {
+    box-sizing: border-box;
+}
+
+
 .home-slider__section {
   padding: 40px 20px;
   min-height: 700px;

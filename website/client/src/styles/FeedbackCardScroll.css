@@ -1,9 +1,13 @@
-*, *:before, *:after {
+/* Add box-sizing to these specific classes */
+.sticky-container,
+.sticky-card,
+.scroll-container,
+.scroll-feedback-card,
+.feedback-scroll-card-content,
+.feedback-scroll-user-info,
+.feedback-scroll-user-avatar {
     box-sizing: border-box;
 }
-
-
-
 
 
 
@@ -207,7 +211,7 @@
         0 20px 40px rgba(0, 0, 0, 0.15),
         0 0 0 1px rgba(255, 255, 255, 0.3),
         inset 0 0 80px rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(4px);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 400px; /* Increased from 350px */
     max-height: 400px; /* Increased from 350px */
@@ -231,7 +235,7 @@
         rgba(255, 255, 255, 0.8)
     );
     border-bottom: 2px solid rgba(0, 0, 0, 0.05);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(2px);
 }
 
 .feedback-scroll-user-avatar {
