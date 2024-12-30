@@ -2,77 +2,179 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from 'pages/admin/components/Sidebar';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
+import SuccessMessage from 'components/SuccessMessage';
+import ErrorMessage from 'components/ErrorMessage';
 import './styles/AdminSettingsPage.css';
-
-const ActivityDebug = ({ data }) => (
-  <div style={{ 
-    padding: '10px', 
-    background: '#f0f0f0', 
-    marginTop: '10px',
-    fontSize: '12px' 
-  }}>
-    <pre>{JSON.stringify(data, null, 2)}</pre>
-  </div>
-);
 
 const AdminSettingsPage = () => {
   const [newAdminId, setNewAdminId] = useState('');
+  const [isAddingAdmin, setIsAddingAdmin] = useState(true); // New state to track mode
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [adminActivity, setAdminActivity] = useState([]);
-  const [metrics, setMetrics] = useState(null);
-  const [performanceMetrics, setPerformanceMetrics] = useState(null);
   const { user } = useAuth();
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [showAdminSuccess, setShowAdminSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    // Get the user object from localStorage
     const userObj = JSON.parse(localStorage.getItem('user'));
     if (userObj?.token) {
-      // Set default headers for all axios requests
       axios.defaults.headers.common['Authorization'] = `Bearer ${userObj.token}`;
-      axios.defaults.baseURL = 'http://localhost:3000'; // Add your backend URL here
+      axios.defaults.baseURL = 'http://localhost:5000';
     }
   }, []);
 
-  useEffect(() => {
-    if (user?.userId) {
-      fetchInitialData();
-      fetchSystemSettings();
-    }
-  }, [user]);
+  const formatActivity = (activity) => {
+    return {
+      id: activity.activity_id || activity.id,
+      type: activity.action_type || activity.type,
+      description: activity.action_description || activity.description,
+      created_at: activity.created_at,
+      is_course_activity: activity.is_course_activity || false
+    };
+  };
 
-  const fetchInitialData = async () => {
+  const fetchAdminActivities = async () => {
     try {
-      const [
-        activityResponse,
-        metricsResponse,
-        performanceResponse
-      ] = await Promise.all([
-        axios.get('/api/admin/activities'), // Updated endpoint
-        axios.get('/api/admin/metrics/system'), // Updated endpoint
-        axios.get('/api/admin/metrics/performance') // Updated endpoint
-      ]);
-
-      setAdminActivity(activityResponse.data);
-      setMetrics(metricsResponse.data);
-      setPerformanceMetrics(performanceResponse.data);
-
-    } catch (err) {
-      if (err.response?.status === 403) {
-        setError('Access denied. Admin privileges required.');
-        // Optionally redirect to home page
-        // window.location.href = '/';
+      const response = await axios.get('/api/admin/activities');
+      if (Array.isArray(response.data)) {
+        const formattedActivities = response.data.map(formatActivity);
+        setAdminActivity(formattedActivities);
       } else {
-        console.error('Error fetching admin data:', err);
-        setError(err.response?.data?.error || 'Failed to fetch data');
+        console.error('Invalid activities data format:', response.data);
+        setAdminActivity([]);
       }
+    } catch (err) {
+      console.error('Error fetching admin activities:', err);
+      setAdminActivity([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      if (!user?.userId) return;
+
+      try {
+        const statusResponse = await axios.get('/api/admin/status');
+        if (!statusResponse.data.isAdmin) {
+          setError('Access denied. Admin privileges required.');
+          return;
+        }
+
+        await Promise.all([
+          fetchAdminActivities(),
+          fetchSystemSettings() // Make sure to fetch the current maintenance mode state
+        ]);
+
+      } catch (err) {
+        console.error('Error fetching initial data:', err);
+        setError('Failed to load admin data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInitialData();
+
+    const interval = setInterval(fetchAdminActivities, 5000);
+    return () => clearInterval(interval);
+  }, [user?.userId]);
+
+  // Add useEffect specifically for maintenance mode
+  useEffect(() => {
+    const fetchMaintenanceStatus = async () => {
+      try {
+        const response = await axios.get('/api/admin/system-settings');
+        console.log('Current maintenance status:', response.data);
+        setMaintenanceMode(!!response.data.maintenanceMode); // Convert to boolean
+      } catch (err) {
+        console.error('Error fetching maintenance status:', err);
+        setError('Failed to fetch maintenance status');
+      }
+    };
+
+    fetchMaintenanceStatus();
+  }, []); // Run once on component mount
+
+  // Updated helper function to handle message visibility
+  const showMessageWithTimeout = (type, message, subText) => {
+    if (type === 'success') {
+      setSuccessMessage({ message, subText });
+      setShowAdminSuccess(true);
+    } else {
+      setErrorMessage({ message, subText });
+      setShowError(true);
+    }
+    
+    setTimeout(() => {
+      if (type === 'success') {
+        setShowAdminSuccess(false);
+      } else {
+        setShowError(false);
+      }
+    }, 5000);
+  };
+
+  const handleAdminAction = async (e) => {
+    e.preventDefault();
+    const action = isAddingAdmin ? 'add' : 'remove';
+
+    if (!newAdminId || isNaN(newAdminId)) {
+      showMessageWithTimeout('error', 'Invalid Input', 'Please enter a valid user ID');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`/api/admin/${action}-admin`, {
+        userId: parseInt(newAdminId, 10)
+      });
+      showMessageWithTimeout('success', 'Success', response.data.message);
+      setNewAdminId('');
+    } catch (err) {
+      showMessageWithTimeout('error', 'Error', err.response?.data?.error || `Error ${action}ing admin`);
+    }
+  };
+
+  const handleMaintenanceToggle = async () => {
+    try {
+      const newState = !maintenanceMode;
+      
+      const response = await axios.post('/api/admin/maintenance-mode', {
+        enabled: newState
+      });
+      
+      if (response.status === 200) {
+        setMaintenanceMode(newState);
+        showMessageWithTimeout(
+          'success',
+          'Maintenance Mode Updated',
+          `Maintenance mode ${newState ? 'enabled' : 'disabled'} successfully`
+        );
+        
+        const currentState = await axios.get('/api/admin/system-settings');
+        setMaintenanceMode(!!currentState.data.maintenanceMode);
+      }
+    } catch (err) {
+      showMessageWithTimeout(
+        'error',
+        'Error',
+        err.response?.data?.error || 'Error toggling maintenance mode'
+      );
+      
+      const currentState = await axios.get('/api/admin/system-settings');
+      setMaintenanceMode(!!currentState.data.maintenanceMode);
     }
   };
 
   const fetchSystemSettings = async () => {
     try {
       const response = await axios.get('/api/admin/system-settings');
+      console.log('Fetched maintenance mode:', response.data.maintenanceMode);
       setMaintenanceMode(response.data.maintenanceMode);
     } catch (err) {
       console.error('Error fetching system settings:', err);
@@ -80,153 +182,157 @@ const AdminSettingsPage = () => {
     }
   };
 
-  const handleAddAdmin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (!newAdminId || isNaN(newAdminId)) {
-      setError('Please enter a valid user ID');
-      return;
-    }
-
-    try {
-      const response = await axios.post('/api/admin/add-admin', { // Updated endpoint
-        userId: parseInt(newAdminId, 10)  // Convert to integer
-      });
-      console.log('Response:', response); // Debug response
-      setSuccess(response.data.message);
-      setNewAdminId('');
-      // Refresh the activity list
-      fetchInitialData();
-    } catch (err) {
-      console.error('Error details:', err.response || err); // Debug error
-      setError(err.response?.data?.error || 'Error adding admin');
-      console.error('Error adding admin:', err);
-    }
+  const openActivityDetails = (activity) => {
+    setSelectedActivity(activity);
   };
 
-  const handleMaintenanceToggle = async () => {
-    try {
-      const response = await axios.post('/api/admin/maintenance-mode', { // Updated endpoint
-        enabled: !maintenanceMode 
-      });
-      setMaintenanceMode(!maintenanceMode);
-      setSuccess(response.data.message);
-      
-      // Log the activity
-      await axios.post('/api/admin/activities/log', {
-        type: 'System',
-        description: `Maintenance mode ${!maintenanceMode ? 'enabled' : 'disabled'}`
-      });
-    } catch (err) {
-      setError(err.response?.data?.error || 'Error toggling maintenance mode');
+  const closeActivityDetails = () => {
+    setSelectedActivity(null);
+  };
+
+  const renderActivities = () => {
+    if (isLoading) {
+      return <div>Loading activities...</div>;
     }
+
+    if (!adminActivity || !Array.isArray(adminActivity) || adminActivity.length === 0) {
+      return <div className="no-activity">No activities found</div>;
+    }
+
+    return (
+      <div className="all-activities">
+        <div className="activity-header">
+          <h4>Your Activityes</h4>
+        </div>
+        {adminActivity.map((activity) => {
+          const uniqueKey = `${activity.id}_${activity.created_at}`;
+          
+          return (
+            <div key={uniqueKey} className="activity-item">
+              <div className="activity-details">
+                <div className="activity-header">
+                  <span className="activity-type">{activity.type}</span>
+                  <small className="activity-date">{new Date(activity.created_at).toLocaleString()}</small>
+                </div>
+                <div className="activity-body">
+                  <p className='activity-body-para'>{activity.description}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
     <div className="admin-settings-container">
+      {/* Floating notifications */}
+      {showAdminSuccess && successMessage && (
+        <div className="success-floating-notification">
+          <SuccessMessage 
+            onClose={() => setShowAdminSuccess(false)}
+            message={successMessage.message}
+            subText={successMessage.subText}
+          />
+        </div>
+      )}
+      {showError && errorMessage && (
+        <div className="error-floating-notification">
+          <ErrorMessage 
+            onClose={() => setShowError(false)}
+            message={errorMessage.message}
+            subText={errorMessage.subText}
+          />
+        </div>
+      )}
+
       <Sidebar />
       <div className="admin-settings-main">
-        <h2>Admin Settings</h2>
+        <h2 className="admin-settings-title">Admin Settings</h2>
         
-        <section className="settings-section">
-          <h3>Add Admin</h3>
-          {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
-          <form onSubmit={handleAddAdmin}>
+        {/* Combined Add/Remove Admin Section */}
+        <section className="admin-settings-section">
+          <h3 className="admin-settings-section-title">Manage Admins</h3>
+          <form className="admin-settings-form" onSubmit={handleAdminAction}>
             <input
-              type="number"  // Changed to number type
+              className="admin-settings-input"
+              type="number"
               value={newAdminId}
               onChange={(e) => setNewAdminId(e.target.value)}
               placeholder="Enter user ID"
-              min="1"  // Only allow positive numbers
+              min="1"
             />
-            <button type="submit">Add Admin</button>
+            <div className="admin-settings-controls">
+              <div className="admin-settings-action-buttons">
+                <button 
+                  type="button"
+                  className={`admin-settings-mode-btn ${isAddingAdmin ? 'active' : ''}`}
+                  onClick={() => setIsAddingAdmin(true)}
+                >
+                  Add
+                </button>
+                <button 
+                  type="button"
+                  className={`admin-settings-mode-btn ${!isAddingAdmin ? 'active' : ''}`}
+                  onClick={() => setIsAddingAdmin(false)}
+                >
+                  Remove
+                </button>
+              </div>
+              <button 
+                className={`admin-settings-submit-btn ${!isAddingAdmin ? 'admin-settings-remove-btn' : ''}`}
+                type="submit"
+              >
+                {isAddingAdmin ? 'Add Admin' : 'Remove Admin'}
+              </button>
+            </div>
           </form>
         </section>
 
-        <section className="settings-section">
-          <h3>Maintenance Mode</h3>
-          <div className="maintenance-toggle">
-            <label>
+        {/* Maintenance Mode Section - Second */}
+        <section className="admin-settings-section">
+          <h3 className="admin-settings-section-title">System Maintenance</h3>
+          <div className="admin-settings-toggle-container">
+            <label className="admin-settings-toggle-switch">
               <input
+                className="admin-settings-toggle-input"
                 type="checkbox"
                 checked={maintenanceMode}
                 onChange={handleMaintenanceToggle}
               />
-              Enable Maintenance Mode
+              <span className="admin-settings-toggle-slider"></span>
             </label>
+            <span className="toggle-label">
+              Maintenance Mode: {maintenanceMode ? 'Enabled' : 'Disabled'}
+            </span>
+            <p className="maintenance-description">
+              Current Status: {maintenanceMode ? 'Site is in maintenance mode' : 'Site is operating normally'}
+            </p>
           </div>
         </section>
 
+        {/* Activities Section - Third */}
         <section className="settings-section">
-          <h3>Your Recent Activity</h3>
           <div className="activity-list">
-            {adminActivity && adminActivity.length > 0 ? (
-              adminActivity.map((activity) => (
-                <div key={activity.id} className="activity-item">
-                  <div className="activity-details">
-                    <span className="activity-type">{activity.type}</span>
-                    <p>{activity.description}</p>
-                    <small>{new Date(activity.created_at).toLocaleString()}</small>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="no-activity">No activities found</div>
-            )}
+            {renderActivities()}
           </div>
         </section>
 
-        {metrics && (
-          <section className="settings-section">
-            <h3>System Metrics</h3>
-            <div className="metrics-grid">
-              <div className="metric-card">
-                <h4>Total Users</h4>
-                <p>{metrics.total_users}</p>
-              </div>
-              <div className="metric-card">
-                <h4>Total Courses</h4>
-                <p>{metrics.total_courses}</p>
-              </div>
-              <div className="metric-card">
-                <h4>New Enrollments (24h)</h4>
-                <p>{metrics.new_enrollments_24h}</p>
-              </div>
-            </div>
-          </section>
-        )}
+        
 
-        {performanceMetrics && (
-          <section className="settings-section">
-            <h3>Performance Metrics</h3>
-            <div className="metrics-grid">
-              <div className="metric-card">
-                <h4>Avg. Lesson Completion Time</h4>
-                <p>{Math.round(performanceMetrics.avgLessonCompletionTime / 60)} minutes</p>
-              </div>
-              <div className="metric-card">
-                <h4>Active Users (7 days)</h4>
-                <p>{performanceMetrics.activeUsers7Days}</p>
-              </div>
-              <div className="metric-card">
-                <h4>Total Lessons Completed</h4>
-                <p>{performanceMetrics.totalLessonsCompleted}</p>
-              </div>
+        {selectedActivity && (
+          <div className="modal">
+            <div className="modal-content">
+              <button className="close-button" onClick={closeActivityDetails}>
+                &times;
+              </button>
+              <h3>Activity Details</h3>
+              <p>{selectedActivity.action_description}</p>
+              <p>Type: {selectedActivity.action_type}</p>
+              <p>Date: {new Date(selectedActivity.created_at).toLocaleString()}</p>
             </div>
-            <div className="top-courses">
-              <h4>Top Courses by Enrollment</h4>
-              <ul>
-                {performanceMetrics.topCourses.map((course, index) => (
-                  <li key={index}>
-                    {course.course_name}: {course.enrollment_count} enrollments
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
+          </div>
         )}
       </div>
     </div>
