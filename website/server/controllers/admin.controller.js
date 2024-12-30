@@ -28,7 +28,7 @@ const getAdminActivities = async (req, res) => {
       FROM admin_activity
       WHERE admin_id = $1
       ORDER BY created_at DESC
-      LIMIT 50
+      LIMIT 10
     `;
     const { rows } = await db.query(query, [req.user.userId]);
     res.status(200).json(rows);
@@ -107,14 +107,26 @@ const addAdmin = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Add user as admin
-    await db.query('INSERT INTO admins (admin_id) VALUES ($1) ON CONFLICT DO NOTHING', [userId]);
+    // Check if user is already an admin
+    const adminCheck = await db.query('SELECT 1 FROM admins WHERE admin_id = $1', [userId]);
+    if (adminCheck.rowCount > 0) {
+      // Log the attempt
+      await logAdminActivity(
+        req.user.userId,
+        'Admin',
+        `Attempted to add user ${userId} as admin but they are already an admin`
+      );
+      return res.status(400).json({ error: 'User is already an admin' });
+    }
 
-    // Log activity
-    await db.query(
-      `INSERT INTO admin_activity (admin_id, action_type, action_description) 
-       VALUES ($1, 'Admin', $2)`,
-      [req.user.userId, `Added user ${userId} as admin`]
+    // Add user as admin
+    await db.query('INSERT INTO admins (admin_id) VALUES ($1)', [userId]);
+
+    // Log successful addition
+    await logAdminActivity(
+      req.user.userId,
+      'Admin',
+      `Added user ${userId} as admin`
     );
 
     res.status(200).json({ message: 'Admin added successfully' });
@@ -124,8 +136,8 @@ const addAdmin = async (req, res) => {
   }
 };
 
-const toggleMaintenanceMode = async (req, res) => {
-  const { enabled } = req.body;
+const removeAdmin = async (req, res) => {
+  const { userId } = req.body;
 
   try {
     const isAdmin = await checkAdminAccess(req.user.userId);
@@ -133,8 +145,55 @@ const toggleMaintenanceMode = async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    await db.query('UPDATE system_settings SET maintenance_mode = $1', [enabled]);
+    // Prevent removing self
+    if (parseInt(userId) === req.user.userId) {
+      return res.status(400).json({ error: 'Cannot remove yourself as admin' });
+    }
+
+    // Check if user exists and is an admin
+    const adminCheck = await db.query('SELECT 1 FROM admins WHERE admin_id = $1', [userId]);
+    if (adminCheck.rowCount === 0) {
+      return res.status(404).json({ error: 'User is not an admin' });
+    }
+
+    // Remove admin
+    await db.query('DELETE FROM admins WHERE admin_id = $1', [userId]);
+
+    // Log activity
+    await logAdminActivity(
+      req.user.userId,
+      'Admin',
+      `Removed user ${userId} from admin role`
+    );
+
+    res.status(200).json({ message: 'Admin removed successfully' });
+  } catch (error) {
+    console.error('Error removing admin:', error);
+    res.status(500).json({ error: 'Failed to remove admin' });
+  }
+};
+
+const toggleMaintenanceMode = async (req, res) => {
+  try {
+    const isAdmin = await checkAdminAccess(req.user.userId);
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const { enabled } = req.body;
     
+    // Update maintenance mode using your schema
+    const query = `
+      INSERT INTO system_settings (setting_id, maintenance_mode, updated_at, updated_by) 
+      VALUES (1, $1, CURRENT_TIMESTAMP, $2)
+      ON CONFLICT (setting_id) DO UPDATE 
+      SET maintenance_mode = $1, 
+          updated_at = CURRENT_TIMESTAMP,
+          updated_by = $2
+      RETURNING maintenance_mode`;
+    
+    const { rows } = await db.query(query, [enabled, req.user.userId]);
+
     await logAdminActivity(
       req.user.userId,
       'System',
@@ -142,6 +201,7 @@ const toggleMaintenanceMode = async (req, res) => {
     );
 
     res.status(200).json({
+      maintenanceMode: rows[0].maintenance_mode,
       message: `Maintenance mode ${enabled ? 'enabled' : 'disabled'}`
     });
   } catch (error) {
@@ -157,9 +217,20 @@ const getSystemSettings = async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const { rows } = await db.query('SELECT maintenance_mode FROM system_settings LIMIT 1');
+    // Get settings using your schema
+    const query = `
+      INSERT INTO system_settings (setting_id, maintenance_mode, updated_at, updated_by) 
+      VALUES (1, false, CURRENT_TIMESTAMP, $1)
+      ON CONFLICT (setting_id) DO UPDATE 
+      SET setting_id = system_settings.setting_id
+      RETURNING maintenance_mode, updated_at, updated_by`;
+    
+    const { rows } = await db.query(query, [req.user.userId]);
+    
     res.status(200).json({
-      maintenanceMode: rows[0]?.maintenance_mode || false
+      maintenanceMode: rows[0]?.maintenance_mode || false,
+      updatedAt: rows[0]?.updated_at,
+      updatedBy: rows[0]?.updated_by
     });
   } catch (error) {
     console.error('Error fetching system settings:', error);
@@ -177,12 +248,34 @@ const checkAdminStatus = async (req, res) => {
   }
 };
 
+const getMaintenanceStatus = async (req, res) => {
+  try {
+    const query = `
+      SELECT maintenance_mode, updated_at, updated_by 
+      FROM system_settings 
+      WHERE setting_id = 1`;
+    
+    const { rows } = await db.query(query);
+    
+    res.status(200).json({
+      maintenanceMode: rows[0]?.maintenance_mode || false,
+      updatedAt: rows[0]?.updated_at,
+      updatedBy: rows[0]?.updated_by
+    });
+  } catch (error) {
+    console.error('Error fetching maintenance status:', error);
+    res.status(500).json({ error: 'Failed to fetch maintenance status' });
+  }
+};
+
 module.exports = {
   getAdminActivities,
   getSystemMetrics,
   getPerformanceMetrics,
   addAdmin,
+  removeAdmin,
   toggleMaintenanceMode,
   getSystemSettings,
-  checkAdminStatus
+  checkAdminStatus,
+  getMaintenanceStatus
 };
