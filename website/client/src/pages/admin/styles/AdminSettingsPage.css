@@ -1,295 +1,474 @@
+/* Base layout */
 .admin-settings-container {
-  display: flex; /* Keeps sidebar and main content side by side */
-  color: black;
-  height: 100vh; /* Makes the page take full viewport height */
-  background-color: #f0f2f5; /* Matches the background */
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1a1f35 0%, #2c3e50 100%);
+  display: flex;
+  color: #ffffff;
 }
 
 .admin-settings-main {
-  flex: 1; /* Ensures the main content takes up the remaining space */
-  padding: 20px;
-  background-color: #ffffff; /* White background for the main content */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Subtle shadow for contrast */
-  margin: 20px; /* Adds spacing between the content and the edge */
-  border-radius: 16px; /* Smooth corners for aesthetic */
+  flex: 1;
+  padding: 2.5rem;
+  margin: 1.5rem;
+  background: rgba(26, 32, 58, 0.95);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-.admin-settings-main h2 {
-  font-size: 24px;
-  color: #333; /* Slightly darker color for visibility */
-  margin-bottom: 20px;
-}
-
-.admin-settings-main p {
-  font-size: 16px;
-  color: #666; /* Lighter gray text for the description */
-  line-height: 1.5;
-}
-
-.settings-section {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.admin-settings-title {
+  font-size: 2.2rem;
   margin-bottom: 2rem;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-bottom: 3px solid #3498db;
+  padding-bottom: 1rem;
+}
+
+/* Section styles */
+.settings-section {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .settings-section:hover {
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
-.settings-section h3 {
-  font-size: 1.25rem;
+.admin-settings-section-title {
+  color: #3498db;
+  font-size: 1.5rem;
   font-weight: 600;
-  color: #1a202c;
-  margin-bottom: 20px;
-}
-
-.settings-section h2 {
   margin-bottom: 1.5rem;
-  color: #333;
-}
-
-.setting-item {
-  margin-bottom: 1rem;
-}
-
-.setting-item label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
 }
 
-form input[type="number"] {
-  padding: 12px 16px;
-  border: 1px solid #e2e8f0;
+/* Form elements */
+.admin-settings-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  background: rgba(26, 32, 58, 0.6);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(52, 152, 219, 0.2);
+  max-width: 600px;
+}
+
+.admin-settings-input {
+  height: 42px; /* Explicitly set height */
+  width: 100%;
+  max-width: 300px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 2px solid rgba(52, 152, 219, 0.3);
+  padding: 0 1.2rem;
   border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-  width: 200px;
-  margin-right: 12px;
-}
-
-form input[type="number"]:focus {
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-  outline: none;
-}
-
-form button {
-  padding: 12px 24px;
-  background: #4299e1;
   color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box; /* Ensure padding doesn't affect height */
+  line-height: normal; /* Reset line height */
 }
 
-form button:hover {
-  background: #3182ce;
+.admin-settings-input:focus {
+  border-color: #3498db;
+  background: rgba(52, 152, 219, 0.15);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
   transform: translateY(-1px);
 }
 
-.maintenance-toggle {
+.admin-settings-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #f7fafc;
-  padding: 16px;
-  border-radius: 8px;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 0.5rem;
 }
 
-.maintenance-toggle input[type="checkbox"] {
-  width: 40px;
-  height: 20px;
-  position: relative;
-  margin-right: 12px;
+.admin-settings-submit-btn {
+  padding: 0.85rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.activity-list {
-  max-height: 300px;
-  overflow-y: auto;
-  border-radius: 8px;
-  background: #ffffff;
+.admin-settings-submit-btn::before {
+  content: "👥";
+  font-size: 1.1rem;
+}
+
+.admin-settings-submit-btn.admin-settings-remove-btn::before {
+  content: "🚫";
+}
+
+.admin-settings-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.admin-settings-remove-btn {
+  background: #e74c3c;
+}
+
+.admin-settings-remove-btn:hover {
+  background: #c0392b;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+/* Activities list */
+.admin-settings-activity-list {
+  background: rgba(26, 32, 58, 0.6);
+  border-radius: 12px;
+  height: 500px;
+  overflow: hidden;
+  border: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+.all-activities {
+  padding: 1rem;
+  height: 100%; /* Take full height of parent */
+  overflow-y: auto; /* Enable vertical scrolling */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(52, 152, 219, 0.5) transparent; /* Firefox */
+}
+
+.all-activities::-webkit-scrollbar {
+  width: 6px;
+}
+
+.all-activities::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.all-activities::-webkit-scrollbar-thumb {
+  background-color: rgba(52, 152, 219, 0.5);
+  border-radius: 3px;
 }
 
 .activity-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 16px;
-  border-bottom: 1px solid #edf2f7;
-  transition: all 0.2s ease;
+  padding: 1rem;
+  margin: 0.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.activity-item:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.activity-item:nth-child(even) {
+  background: rgba(52, 152, 219, 0.05);
 }
 
 .activity-item:hover {
-  background-color: #f8f9fa;
+  transform: translateX(5px);
+  background: rgba(52, 152, 219, 0.1);
 }
 
 .activity-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
-.activity-description {
-  font-size: 14px;
-  color: #333;
-  line-height: 1.4;
-}
-
-.activity-meta {
+.admin-settings-activity-header {
   display: flex;
-  gap: 12px;
-  font-size: 12px;
-  color: #666;
+  justify-content: space-between;
   align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.activity-type {
-  background: #ebf8ff;
-  color: #2b6cb0;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.activity-user {
-  color: #555;
+.admin-settings-activity-type {
+  padding: 0.25rem 0.75rem;
+  background: rgba(52, 152, 219, 0.2);
+  border-radius: 20px;
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
-.activity-time {
-  color: #888;
-  margin-left: auto;
+.activity-date {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
 }
 
-.no-activity {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-  font-style: italic;
+.activity-body-para {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
 }
 
+/* Maintenance toggle */
+.admin-settings-toggle-container {
+  background: rgba(26, 32, 58, 0.6);
+  padding: 2rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+.admin-settings-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.admin-settings-toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.admin-settings-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: .4s;
+  border-radius: 34px;
+  border: 2px solid rgba(52, 152, 219, 0.3);
+}
+
+.admin-settings-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  background-color: white;
+  top: 2px;
+  
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.admin-settings-toggle-input:checked + .admin-settings-toggle-slider {
+  background-color: #3498db;
+  border-color: #2980b9;
+}
+
+.admin-settings-toggle-input:checked + .admin-settings-toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Metrics cards */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  margin-top: 15px;
+  gap: 1.5rem;
+  margin-top: 1rem;
 }
 
 .metric-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  padding: 24px;
+  background: rgba(26, 32, 58, 0.6);
+  padding: 1.5rem;
   border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.05);
   text-align: center;
   transition: all 0.3s ease;
+  border: 1px solid rgba(52, 152, 219, 0.2);
 }
 
 .metric-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  transform: translateY(-5px);
+  background: rgba(52, 152, 219, 0.1);
+  border-color: rgba(52, 152, 219, 0.4);
 }
 
-.metric-card h4 {
-  color: #4a5568;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 12px;
-}
-
-.metric-card p {
-  font-size: 1.875rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin: 0;
-}
-
-.error-message {
-  color: #c53030;
-  background-color: #fff5f5;
-  border: 1px solid #feb2b2;
-  padding: 12px 16px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-}
-
-.success-message {
-  color: #2f855a;
-  background-color: #f0fff4;
-  border: 1px solid #9ae6b4;
-  padding: 12px 16px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-}
-
-.error-text {
-  color: #dc3545;
-  font-style: italic;
-}
-
-.admin-page {
-  display: flex;
-  min-height: 100vh;
-}
-
-.admin-content {
-  flex: 1;
-  padding: 2rem;
-  background-color: #f5f5f5;
-}
-
-.message {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.message.success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.message.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.stat-item {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.stat-item h3 {
-  color: #666;
+/* Buttons and inputs */
+.admin-settings-submit-btn {
+  padding: 0.85rem 1.5rem;
   font-size: 0.9rem;
-  margin-bottom: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.stat-item p {
-  color: #333;
-  font-size: 1.5rem;
-  font-weight: bold;
+.admin-settings-submit-btn::before {
+  content: "👥";
+  font-size: 1.1rem;
+}
+
+.admin-settings-submit-btn.admin-settings-remove-btn::before {
+  content: "🚫";
+}
+
+.admin-settings-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.admin-settings-input {
+  background: rgba(255, 255, 255, 0.07);
+  border: 2px solid rgba(52, 152, 219, 0.3);
+  padding: 0.85rem 1.2rem;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.admin-settings-input:focus {
+  border-color: #3498db;
+  background: rgba(52, 152, 219, 0.15);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  transform: translateY(-1px);
+}
+
+.admin-settings-remove-btn {
+  background: #e74c3c;
+}
+
+.admin-settings-remove-btn:hover {
+  background: #c0392b;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+/* Messages */
+.admin-settings-error, 
+.admin-settings-success,
+.error-message,
+.success-message {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.message-visible {
+  opacity: 1;
+}
+
+.message-hidden {
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  pointer-events: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  5% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  95% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.admin-settings-error {
+  background: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  color: #ff6b6b;
+}
+
+.admin-settings-success {
+  background: rgba(46, 204, 113, 0.15);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  color: #2ecc71;
+}
+
+.admin-settings-error::before,
+.admin-settings-success::before {
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.admin-settings-error::before {
+  content: "⚠️";
+}
+
+.admin-settings-success::before {
+  content: "✅";
+}
+
+.admin-settings-action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.3rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-settings-mode-btn {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-settings-mode-btn.active {
+  background: rgba(52, 152, 219, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-settings-mode-btn:hover {
+  background: rgba(52, 152, 219, 0.2);
 }
