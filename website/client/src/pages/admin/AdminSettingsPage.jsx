@@ -123,9 +123,6 @@ const AdminSettingsPage = () => {
   const handleAdminAction = async (e) => {
     e.preventDefault();
     const action = isAddingAdmin ? 'add' : 'remove';
-    
-    setAdminError('');
-    setAdminSuccess('');
 
     if (!newAdminId || isNaN(newAdminId)) {
       showMessageWithTimeout('error', 'Invalid Input', 'Please enter a valid user ID');
