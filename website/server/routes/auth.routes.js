@@ -3,8 +3,6 @@ const authController = require('../controllers/auth.controller');
 const authenticateToken = require('../middleware/auth');
 const { body } = require('express-validator');
 
-
-
 const router = express.Router();
 
 // Validation middleware
@@ -15,16 +13,17 @@ const validateSignup = [
   body('country').trim().notEmpty().withMessage('Country is required')
 ];
 
-// Routes
+// Auth routes
 router.post('/signup', validateSignup, authController.signup);
 router.post('/login', authController.login);
+router.get('/verify-email', authController.verifyEmail);
+router.get('/check-auth', authController.checkAuth);
 
-router.put('/updateProfile', authenticateToken, authController.updateProfile);
-router.post('/changePassword', authenticateToken, authController.changePassword);
-
-
+// Protected routes
+router.use(authenticateToken);
+router.put('/update-profile', authController.updateProfile);
+router.post('/change-password', authController.changePassword);
 router.post('/password-reset', authController.sendPasswordResetEmail);
 router.post('/reset-password', authController.resetPassword);
-router.get('/check-auth', authController.checkAuth);
-router.get('/verify-email', authController.verifyEmail);
+
 module.exports = router;
