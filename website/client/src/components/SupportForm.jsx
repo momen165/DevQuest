@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import 'styles/SupportForm.css';
-import { FaComments } from 'react-icons/fa';
+import { FaComments, FaPaperPlane, FaUser, FaHeadset } from 'react-icons/fa';
 import { useAuth } from 'AuthContext';
+import 'styles/SupportForm.css';
 
 const SupportForm = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,12 +10,20 @@ const SupportForm = () => {
   const [responseMessage, setResponseMessage] = useState('');
   const [tickets, setTickets] = useState([]);
   const { user } = useAuth();
+  const chatContainerRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [tickets]);
 
   const toggleForm = () => {
-      if (!user) {
-          console.error('User is not authenticated');
-          return;
-      }
+    console.log('Toggle form clicked, user:', user);
     setIsOpen(!isOpen);
   };
 
@@ -31,10 +39,10 @@ const SupportForm = () => {
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && user) {
       fetchUserTickets();
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -52,50 +60,175 @@ const SupportForm = () => {
         const response = await axios.post('/api/support', { message }, config);
         console.log('Response from server:', response.data);
         setMessage('');
-        setResponseMessage('Message sent to admin.');
-        fetchUserTickets(); // Fetch tickets again to update the list
+        
+        // Only show success message if the ticket is still open
+        if (response.data.ticket.status !== 'closed') {
+          setResponseMessage('Message sent successfully');
+          await fetchUserTickets();
+        } else {
+          setResponseMessage('Starting a new support ticket...');
+          await fetchUserTickets();
+        }
+        
+        setTimeout(() => {
+          setResponseMessage('');
+        }, 3000);
       } catch (err) {
         console.error('Failed to send message:', err.response?.data || err.message);
-        setResponseMessage('Failed to send message.');
+        setResponseMessage('Failed to send message');
       }
     }
   };
 
+  const handleCloseTicket = async (ticketId) => {
+    try {
+      await axios.post(`/api/support-tickets/${ticketId}/close`, {}, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      setResponseMessage('Support ticket closed successfully');
+      await fetchUserTickets(); // Refresh tickets
+      
+      setTimeout(() => {
+        setResponseMessage('');
+      }, 3000);
+    } catch (err) {
+      console.error('Failed to close ticket:', err);
+      setResponseMessage('Failed to close ticket');
+    }
+  };
+
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const getClosedStatusText = (ticket) => {
+    if (ticket.status === 'closed') {
+      const closedTime = new Date(ticket.closed_at).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      switch (ticket.closed_by) {
+        case 'user':
+          return `Closed by user at ${closedTime}`;
+        case 'auto':
+          return `Auto-closed at ${closedTime}`;
+        default:
+          return `Closed at ${closedTime}`;
+      }
+    }
+    return null;
+  };
+
   return (
     <>
-      <div className="support-icon" onClick={toggleForm}>
+      <button 
+        className="sf-icon" 
+        onClick={toggleForm}
+        aria-label="Toggle support chat"
+      >
         <FaComments />
-      </div>
+      </button>
+
       {isOpen && (
-        <div className="support-form">
-          <div className="chat-container">
+        <div className="sf-wrapper">
+          <div className="sf-header">
+            <h2>Support Chat</h2>
+            <button 
+              className="sf-close-button"
+              onClick={toggleForm}
+              aria-label="Close support chat"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="sf-chat-container" ref={chatContainerRef}>
             {tickets.length === 0 ? (
-              <p className="no-messages">No support tickets available.</p>
+              <div className="sf-empty-message">
+                <FaHeadset size={24} />
+                <p>How can we help you today?</p>
+              </div>
             ) : (
-              tickets.map((ticket) =>
-                ticket.messages.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`chat-message-container ${
-                      msg.sender_type === 'admin' ? 'admin-message' : 'user-message'
-                    }`}
-                  >
-                    <p>{msg.message_content}</p>
+              <>
+                {tickets.map((ticket) => (
+                  <div key={ticket.ticket_id} className="sf-ticket-container">
+                    {ticket.status === 'closed' && (
+                      <div className="sf-ticket-status">
+                        {getClosedStatusText(ticket)}
+                      </div>
+                    )}
+                    {ticket.messages.map((msg, index) => (
+                      <div
+                        key={`${ticket.id}-${index}`}
+                        className={`sf-message-container ${
+                          msg.sender_type === 'admin' ? 'sf-message-admin' : 'sf-message-user'
+                        }`}
+                      >
+                        <div className="sf-message-avatar">
+                          {msg.sender_type === 'admin' ? 
+                            <FaHeadset /> : 
+                            <FaUser />
+                          }
+                        </div>
+                        <div className="sf-message-content">
+                          <div className="sf-message-text">{msg.message_content}</div>
+                          <div className="sf-message-timestamp">
+                            {formatTimestamp(msg.sent_at)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))
-              )
+                ))}
+              </>
             )}
           </div>
-          <form className="message-form" onSubmit={handleSendMessage}>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter your message..."
-              required
-            />
-            <button type="submit">Send</button>
+
+          {tickets.length > 0 && tickets.some(ticket => ticket.status !== 'closed') && (
+            <div className="sf-ticket-actions">
+              <button
+                className="sf-close-ticket-button"
+                onClick={() => handleCloseTicket(tickets[0].ticket_id)}
+              >
+                Mark as Solved
+              </button>
+            </div>
+          )}
+
+          <form className="sf-form" onSubmit={handleSendMessage}>
+            <div className="sf-input-container">
+              <textarea
+                className="sf-textarea"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type your message..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(e);
+                  }
+                }}
+                required
+              />
+              <button 
+                className="sf-send-button" 
+                type="submit"
+                aria-label="Send message"
+              >
+                <FaPaperPlane />
+              </button>
+            </div>
+            {responseMessage && (
+              <div className={`sf-response-text ${
+                responseMessage.includes('Failed') ? 'sf-error' : 'sf-success'
+              }`}>
+                {responseMessage}
+              </div>
+            )}
           </form>
-          {responseMessage && <p className="response-message">{responseMessage}</p>}
         </div>
       )}
     </>

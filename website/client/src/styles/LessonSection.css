@@ -165,6 +165,13 @@
   flex: initial;
   text-align: center;
   justify-content: center;
+  gap: 20px; /* Add gap between elements */
+}
+
+/* Add specific style for lesson number */
+.lesson-number {
+  margin-right: 10px; /* Additional right margin */
+  color: #888; /* Optional: slightly muted color to distinguish from title */
 }
 
 /* Subscription related styles */
