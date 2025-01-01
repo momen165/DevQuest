@@ -1,4 +1,4 @@
-.support-icon {
+.sf-icon {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -12,136 +12,283 @@
     justify-content: center;
     cursor: pointer;
     font-size: 24px;
-}
-
-.support-form {
+    z-index: 1000;
+    border: none;
+    transition: transform 0.2s, background-color 0.2s;
+  }
+  
+  .sf-icon:hover {
+    transform: scale(1.1);
+    background-color: #0056b3;
+  }
+  
+  .sf-wrapper {
     position: fixed;
     bottom: 80px;
     right: 20px;
-    width: 320px;
-    padding: 10px;
+    width: 350px;
     background-color: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.support-form textarea {
-    width: 100%;
-    height: 100px;
-    margin-bottom: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.support-form button {
-    padding: 10px;
+    max-height: 600px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .sf-header {
+    padding: 15px;
     background-color: #007bff;
     color: white;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .sf-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  
+  .sf-close-button {
+    background: none;
     border: none;
-    border-radius: 4px;
+    color: white;
+    font-size: 24px;
     cursor: pointer;
-}
-
-.support-responses {
-    margin-top: 15px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
-    max-height: 300px;
-    overflow-y: auto;
-    width: 100%;
-}
-
-.response-item {
-    background: #f5f5f5;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 4px;
-    border-left: 3px solid #007bff;
-}
-
-.response-item p {
-    margin: 5px 0;
-}
-
-.admin-reply {
-    background-color: #f8f9fa;
-    padding: 10px;
-    border-left: 3px solid #007bff;
-    margin: 5px 0;
-    border-radius: 4px;
-}
-
-.chat-container {
+    padding: 0 5px;
+  }
+  
+  .sf-chat-container {
     flex: 1;
     overflow-y: auto;
-    max-height: 300px;
-    padding: 10px;
+    padding: 15px;
     background: #f8f9fa;
+    margin: 10px;
     border-radius: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-}
-
-.chat-message-container {
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 10px;
-    max-width: 80%;
-}
-
-.user-message {
-    background: #007bff;
-    margin-left: auto;
-    border-radius: 10px 10px 0 10px;
-    color: white;
-    text-shadow: 0 0 5px rgba(0, 0, 0);
-}
-
-.admin-message {
-    background: #505355;
-    border-radius: 10px 10px 10px 0;
-    border-left: 3px solid #000000;
-    color: white;
-}
-
-.user-message small {
-    display: block;
-    font-size: 0.8em;
-    color: #666;
-    margin-top: 5px;
-}
-
-.message-form {
+    max-height: 400px;
+  }
+  
+  .sf-message-container {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.message-form textarea {
-    width: 100%;
-    height: 60px;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-}
-
-.message-form button {
+    align-items: flex-start;
+    margin: 10px 0;
+    gap: 8px;
+  }
+  
+  .sf-message-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .sf-message-user {
+    flex-direction: row-reverse;
+  }
+  
+  .sf-message-user .sf-message-avatar {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .sf-message-admin .sf-message-avatar {
+    background-color: #505355;
+    color: white;
+  }
+  
+  .sf-message-content {
+    max-width: 70%;
+  }
+  
+  .sf-message-text {
+    padding: 12px;
+    border-radius: 12px;
+    position: relative;
+    word-wrap: break-word;
+    line-height: 1.4;
+    font-size: 0.95rem;
+  }
+  
+  .sf-message-user .sf-message-text {
+    background-color: #007bff;
+    color: white;
+    border-radius: 12px 12px 0 12px;
+  }
+  
+  .sf-message-admin .sf-message-text {
+    background-color: #505355;
+    color: white;
+    border-radius: 12px 12px 12px 0;
+  }
+  
+  .sf-message-timestamp {
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 4px;
+    text-align: right;
+    font-weight: 400;
+  }
+  
+  .sf-input-container {
+    display: flex;
+    gap: 8px;
     padding: 10px;
+    background-color: white;
+    border-top: 1px solid #eee;
+  }
+  
+  .sf-textarea {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    color: black;
+    border-radius: 8px;
+    resize: none;
+    height: 40px;
+    line-height: 20px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+  
+  .sf-textarea::placeholder {
+    color: #999;
+    font-size: 0.95rem;
+  }
+  
+  .sf-send-button {
+    width: 40px;
+    height: 40px;
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+  }
+  
+  .sf-send-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .sf-empty-message {
     text-align: center;
-}
-
-.no-messages {
-    text-align: center;
-    color: #666;
+    color: #555;
     padding: 20px;
-}
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  .sf-empty-message p {
+    margin-top: 8px;
+  }
+  
+  .sf-response-text {
+    text-align: center;
+    padding: 5px;
+    margin: 0 10px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  
+  .sf-success {
+    color: #28a745;
+    background-color: #d4edda;
+  }
+  
+  .sf-error {
+    color: #dc3545;
+    background-color: #f8d7da;
+  }
+  
+  /* Scrollbar Styling */
+  .sf-chat-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .sf-chat-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  .sf-chat-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+  
+  .sf-chat-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  .sf-ticket-actions {
+    display: flex;
+    justify-content: center;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .sf-close-ticket-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    transition: background-color 0.2s;
+  }
+  
+  .sf-close-ticket-button:hover {
+    background-color: #218838;
+  }
+
+  .sf-ticket-container {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .sf-ticket-status {
+    text-align: center;
+    padding: 8px;
+    margin: 8px 0;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    color: #6c757d;
+    font-size: 0.9em;
+    font-style: italic;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }

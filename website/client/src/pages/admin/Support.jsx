@@ -5,6 +5,7 @@ import 'pages/admin/styles/Support.css';
 import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
 
+
 const Support = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,13 +17,22 @@ const Support = () => {
     const fetchTickets = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/support-tickets', {
-          headers: { Authorization: `Bearer ${user.token}` },
+        const response = await axios.get(`/api/support-tickets`, {
+          headers: { 
+            Authorization: `Bearer ${user.token}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 5000, // 5 seconds timeout
         });
         setTickets(response.data);
         setError(null);
       } catch (err) {
-        setError('Failed to load support tickets.');
+        console.error('Error details:', err);
+        if (err.code === 'ECONNREFUSED') {
+          setError('Unable to connect to server. Please check if the server is running.');
+        } else {
+          setError('Failed to load support tickets. Please try again later.');
+        }
       } finally {
         setLoading(false);
       }
@@ -37,13 +47,21 @@ const Support = () => {
 
   const handleReply = async (ticketId) => {
     try {
-      await axios.post(`/api/support-tickets/${ticketId}/reply`, { reply: reply[ticketId] }, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
+      await axios.post(`/api/support-tickets/${ticketId}/reply`, 
+        { reply: reply[ticketId] }, 
+        {
+          headers: { 
+            Authorization: `Bearer ${user.token}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 5000,
+        }
+      );
       setTickets(tickets.map(ticket => ticket.ticket_id === ticketId ? { ...ticket, messages: [...ticket.messages, { sender_type: 'admin', message_content: reply[ticketId], sent_at: new Date() }] } : ticket));
       setReply({ ...reply, [ticketId]: '' }); // Clear the reply input field
     } catch (err) {
       console.error('Failed to send reply:', err);
+      alert('Failed to send reply. Please try again.');
     }
   };
 
@@ -56,6 +74,21 @@ const Support = () => {
     } catch (err) {
       console.error('Failed to delete ticket:', err);
     }
+  };
+
+  const getStatusDisplay = (ticket) => {
+    if (ticket.status === 'closed') {
+      const closedTime = new Date(ticket.closed_at).toLocaleString();
+      switch (ticket.closed_by) {
+        case 'user':
+          return <span className="status-closed-user">Closed by user at {closedTime}</span>;
+        case 'auto':
+          return <span className="status-closed-auto">Auto-closed at {closedTime}</span>;
+        default:
+          return <span className="status-closed">Closed at {closedTime}</span>;
+      }
+    }
+    return <span className="status-open">Open</span>;
   };
 
     
@@ -86,7 +119,8 @@ const Support = () => {
                 <th>Ticket ID</th>
                 <th>User Email</th>
                 <th>Time Opened</th>
-                <th>Expiration Time</th>
+                <th>Status</th>
+                <th>Auto-close at</th>
                 <th>Messages</th>
                 <th>Actions</th>
               </tr>
@@ -97,6 +131,7 @@ const Support = () => {
                   <td>#{ticket.ticket_id}</td>
                   <td>{ticket.user_email}</td>
                   <td>{new Date(ticket.time_opened).toLocaleString()}</td>
+                  <td>{getStatusDisplay(ticket)}</td>
                   <td>{new Date(ticket.expiration_time).toLocaleString()}</td>
                   <td>
                     {ticket.messages.map((msg, index) => (
