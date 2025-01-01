@@ -11,6 +11,7 @@ const { handleError } = require('./utils/error.utils');
 require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const bodyParser = require('body-parser');
+const { closeExpiredTickets } = require('./controllers/support.controller');
 
 
 const {handleWebhook} = require("./controllers/payment.controller");
@@ -60,7 +61,7 @@ app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000'], // Allow both localhost variations
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -208,6 +209,9 @@ app.use((err, req, res, next) => {
     error: err.message || 'Internal Server Error',
   });
 });
+
+// Check for expired tickets every 5 minutes
+setInterval(closeExpiredTickets, 5 * 60 * 1000);
 
 // Start server
 app.listen(PORT, () => {
