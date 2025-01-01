@@ -15,7 +15,7 @@ const api = axios.create({
 
 const FREE_LESSON_LIMIT = 5;
 
-const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription }) => {
+const LessonList = ({ sectionName, sectionId, lessons: initialLessons, profileData, hasActiveSubscription }) => {
     const [isOpen, setIsOpen] = useState(true);
     const [lessons, setLessons] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -28,12 +28,15 @@ const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription
             setLoading(true);
             setError('');
             try {
+                
                 // Get lessons with progress
                 const response = await api.get(`/lessons/section/${sectionId}/progress`, {
                     headers: {
                         Authorization: `Bearer ${user.token}`,
                     },
                 });
+
+         
 
                 if (response.data) {
                     const lessons = Array.isArray(response.data) ? response.data : [];
@@ -44,20 +47,26 @@ const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription
                         }))
                         .sort((a, b) => (a.lesson_order || 0) - (b.lesson_order || 0));
                     
+                    
                     setLessons(sortedLessons);
                 }
             } catch (err) {
-                setError('Failed to fetch lessons.');
                 console.error('Error fetching lessons:', err);
+                setError('Failed to fetch lessons.');
             } finally {
                 setLoading(false);
             }
         };
         
         if (sectionId && user?.token) {
-            fetchLessons();
+            if (initialLessons && initialLessons.length > 0) {
+                
+                setLessons(initialLessons);
+            } else {
+                fetchLessons();
+            }
         }
-    }, [sectionId, user]);
+    }, [sectionId, user, initialLessons]);
 
     const toggleSection = () => {
         setIsOpen(!isOpen);
@@ -68,6 +77,8 @@ const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription
     const totalLessons = lessons.length;
     const completionPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
     const isSectionCompleted = totalLessons > 0 && completedLessons === totalLessons;
+
+    
 
     const renderProgressSegments = () => {
         return (
@@ -217,7 +228,7 @@ const LessonList = ({ sectionName, sectionId, profileData, hasActiveSubscription
 };
 
 const LessonSection = ({ lessons }) => {
-    console.log('Rendering lessons:', lessons); // Debug
+    
 
     return (
         <div style={{ position: 'relative', width: '200px', height: '200px' }}>

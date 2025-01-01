@@ -7,6 +7,7 @@ const updateUserStreak = require('./middleware/updateUserStreak');
 const fs = require('fs');
 const path = require('path');
 const sanitizeInput = require('./middleware/sanitizeInput');
+const { handleError } = require('./utils/error.utils');
 require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const bodyParser = require('body-parser');
@@ -150,6 +151,10 @@ app.use('/api', supportRoutes);
 app.use('/api', stripeRoutes);
 app.use('/api', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Error handling middleware (should be after all routes)
+app.use(handleError);
+
 app.get('/api/checkout-session/:sessionId', async (req, res) => {
   const {sessionId} = req.params;
   try {

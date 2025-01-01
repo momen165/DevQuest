@@ -155,7 +155,36 @@ const MonacoEditorComponent = ({
 
         } catch (err) {
             console.error('Error running code:', err.response?.data || err.message);
-            setConsoleOutput(`Error: ${err.message}`);
+            let errorMessage = '❌ Error Running Code\n\n';
+            
+            const errorData = err.response?.data;
+            if (errorData) {
+                errorMessage += `${errorData.error}\n`;
+                if (errorData.details) {
+                    errorMessage += `\n${errorData.details}`;
+                }
+            } else {
+                errorMessage += err.message || 'An unexpected error occurred.';
+            }
+            
+            // Add helpful tips based on the error
+            if (err.response?.status === 413) {
+                errorMessage += '\n\n💡 Tips:\n';
+                errorMessage += '• Reduce the number of output statements\n';
+                errorMessage += '• Consider using fewer loop iterations\n';
+                errorMessage += '• Check for infinite loops';
+            } else if (err.response?.status === 408) {
+                errorMessage += '\n\n💡 Tips:\n';
+                errorMessage += '• Check for infinite loops\n';
+                errorMessage += '• Reduce the complexity of your code\n';
+                errorMessage += '• Consider using more efficient algorithms';
+            } else if (err.response?.status === 429) {
+                errorMessage += '\n\n💡 Tips:\n';
+                errorMessage += '• Wait a few minutes before trying again\n';
+                errorMessage += '• Each user is limited to 50 requests per 15 minutes';
+            }
+            
+            setConsoleOutput(errorMessage);
         } finally {
             setIsRunning(false);
             // Start cooldown timer

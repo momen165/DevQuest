@@ -68,6 +68,8 @@ const CopyNotification = styled.div`
 const api = axios.create({
     baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
     timeout: 10000,
+    // Silence Axios errors in console
+    validateStatus: status => true
 });
 
 const LessonPage = () => {
@@ -87,6 +89,8 @@ const LessonPage = () => {
   const FREE_LESSON_LIMIT = 5;
   const [showCopyNotification, setShowCopyNotification] = useState(false);
   const [sections, setSections] = useState([]);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [completedLessonsCount, setCompletedLessonsCount] = useState(0);
 
   const resetState = () => {
     setCode('');
@@ -111,12 +115,52 @@ const LessonPage = () => {
       setError('');
       
       try {
+        // Check subscription status and completed lessons count first
+        const subscriptionResponse = await api.get('/check', {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          }
+        });
+
+        if (subscriptionResponse.status !== 200) {
+          navigate('/pricing');
+          return;
+        }
+
+        const { hasActiveSubscription: activeSubscription, completedLessons } = subscriptionResponse.data;
+        setHasActiveSubscription(activeSubscription);
+        setCompletedLessonsCount(completedLessons || 0);
+
+        // If user has no active subscription and has completed the free lesson limit, redirect to pricing
+        if (!activeSubscription && completedLessons >= FREE_LESSON_LIMIT) {
+          navigate('/pricing', { 
+            state: { 
+              message: 'You have reached the free lesson limit. Please subscribe to continue learning.' 
+            } 
+          });
+          return;
+        }
+
         // First get the lesson data
         const lessonResponse = await api.get(`/lesson/${lessonId}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
-          },
+          }
         });
+
+        if (lessonResponse.status === 403) {
+          navigate('/pricing', { 
+            state: { 
+              message: 'You have reached the free lesson limit. Please subscribe to continue learning.'
+            } 
+          });
+          return;
+        }
+
+        if (lessonResponse.status !== 200) {
+          navigate('/');
+          return;
+        }
 
         const lessonData = lessonResponse.data;
         setLesson(lessonData);
@@ -126,21 +170,24 @@ const LessonPage = () => {
         const sectionResponse = await api.get(`/sections/${lessonData.section_id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
-          },
+          }
         });
 
-        if (!sectionResponse.data) {
-          throw new Error('Section not found');
+        if (sectionResponse.status !== 200 || !sectionResponse.data) {
+          navigate('/');
+          return;
         }
 
         // Get all sections for the course
         const sectionsResponse = await api.get(`/sections/course/${sectionResponse.data.course_id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
-          },
+          }
         });
 
-        setSections(sectionsResponse.data || []);
+        if (sectionsResponse.status === 200) {
+          setSections(sectionsResponse.data || []);
+        }
 
         // Get ALL lessons for the course
         const allLessonsResponse = await api.get('/lesson', {
@@ -149,11 +196,13 @@ const LessonPage = () => {
           },
           headers: {
             Authorization: `Bearer ${user.token}`,
-          },
+          }
         });
         
-        setLessons(allLessonsResponse.data || []);
-        setTotalLessons(allLessonsResponse.data.length);
+        if (allLessonsResponse.status === 200) {
+          setLessons(allLessonsResponse.data || []);
+          setTotalLessons(allLessonsResponse.data.length);
+        }
 
         const progressResponse = await api.get(`/lesson-progress`, {
           params: {
@@ -162,16 +211,16 @@ const LessonPage = () => {
           },
           headers: {
             Authorization: `Bearer ${user.token}`,
-          },
+          }
         });
 
-        if (progressResponse.data.submitted_code) {
+        if (progressResponse.status === 200 && progressResponse.data.submitted_code) {
           setCode(progressResponse.data.submitted_code);
         }
-      } catch (err) {
+      } catch (_) {
+        // Silently handle any errors and redirect to home
         if (isMounted) {
-          console.error('Error fetching data:', err);
-          setError(err.response?.data?.error || 'Failed to fetch lesson data');
+          navigate('/');
         }
       } finally {
         if (isMounted) {
@@ -185,7 +234,7 @@ const LessonPage = () => {
     }
 
     return () => { isMounted = false; };
-  }, [lessonId, user]);
+  }, [lessonId, user, navigate]);
 
   if (loading) return <div className="centered-loader">
     <LoadingSpinner/>
