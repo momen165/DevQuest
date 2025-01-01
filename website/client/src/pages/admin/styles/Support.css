@@ -119,3 +119,24 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* Status styles */
+.status-open {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.status-closed-user {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.status-closed-auto {
+  color: #dc3545;
+  font-style: italic;
+}
+
+.status-closed {
+  color: #6c757d;
+  font-style: italic;
+}
+
