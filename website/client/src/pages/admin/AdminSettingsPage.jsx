@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from 'pages/admin/components/Sidebar';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
-import SuccessMessage from 'components/SuccessMessage';
-import ErrorMessage from 'components/ErrorMessage';
+import toast, { Toaster } from 'react-hot-toast';
 import './styles/AdminSettingsPage.css';
 
 const AdminSettingsPage = () => {
@@ -14,10 +13,6 @@ const AdminSettingsPage = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedActivity, setSelectedActivity] = useState(null);
-  const [showAdminSuccess, setShowAdminSuccess] = useState(false);
-  const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     const userObj = JSON.parse(localStorage.getItem('user'));
@@ -30,7 +25,7 @@ const AdminSettingsPage = () => {
   const formatActivity = (activity) => {
     return {
       id: activity.activity_id || activity.id,
-      type: activity.action_type || activity.type,
+      type: activity.action_type || activity.type,  
       description: activity.action_description || activity.description,
       created_at: activity.created_at,
       is_course_activity: activity.is_course_activity || false
@@ -101,23 +96,21 @@ const AdminSettingsPage = () => {
     fetchMaintenanceStatus();
   }, []); // Run once on component mount
 
-  // Updated helper function to handle message visibility
-  const showMessageWithTimeout = (type, message, subText) => {
-    if (type === 'success') {
-      setSuccessMessage({ message, subText });
-      setShowAdminSuccess(true);
-    } else {
-      setErrorMessage({ message, subText });
-      setShowError(true);
-    }
+  // Replace showNotification with simpler toast calls
+  const showNotification = (type, message, subText) => {
+    const content = subText ? `${message}\n${subText}` : message;
     
-    setTimeout(() => {
-      if (type === 'success') {
-        setShowAdminSuccess(false);
-      } else {
-        setShowError(false);
-      }
-    }, 5000);
+    if (type === 'success') {
+      toast.success(content, {
+        duration: 5000,
+        position: 'top-center',
+      });
+    } else {
+      toast.error(content, {
+        duration: 5000,
+        position: 'top-center',
+      });
+    }
   };
 
   const handleAdminAction = async (e) => {
@@ -125,7 +118,7 @@ const AdminSettingsPage = () => {
     const action = isAddingAdmin ? 'add' : 'remove';
 
     if (!newAdminId || isNaN(newAdminId)) {
-      showMessageWithTimeout('error', 'Invalid Input', 'Please enter a valid user ID');
+      showNotification('error', 'Invalid Input', 'Please enter a valid user ID');
       return;
     }
 
@@ -133,10 +126,10 @@ const AdminSettingsPage = () => {
       const response = await axios.post(`/api/admin/${action}-admin`, {
         userId: parseInt(newAdminId, 10)
       });
-      showMessageWithTimeout('success', 'Success', response.data.message);
+      showNotification('success', 'Success', response.data.message);
       setNewAdminId('');
     } catch (err) {
-      showMessageWithTimeout('error', 'Error', err.response?.data?.error || `Error ${action}ing admin`);
+      showNotification('error', 'Error', err.response?.data?.error || `Error ${action}ing admin`);
     }
   };
 
@@ -150,7 +143,7 @@ const AdminSettingsPage = () => {
       
       if (response.status === 200) {
         setMaintenanceMode(newState);
-        showMessageWithTimeout(
+        showNotification(
           'success',
           'Maintenance Mode Updated',
           `Maintenance mode ${newState ? 'enabled' : 'disabled'} successfully`
@@ -160,7 +153,7 @@ const AdminSettingsPage = () => {
         setMaintenanceMode(!!currentState.data.maintenanceMode);
       }
     } catch (err) {
-      showMessageWithTimeout(
+      showNotification(
         'error',
         'Error',
         err.response?.data?.error || 'Error toggling maintenance mode'
@@ -227,26 +220,7 @@ const AdminSettingsPage = () => {
 
   return (
     <div className="admin-settings-container">
-      {/* Floating notifications */}
-      {showAdminSuccess && successMessage && (
-        <div className="success-floating-notification">
-          <SuccessMessage 
-            onClose={() => setShowAdminSuccess(false)}
-            message={successMessage.message}
-            subText={successMessage.subText}
-          />
-        </div>
-      )}
-      {showError && errorMessage && (
-        <div className="error-floating-notification">
-          <ErrorMessage 
-            onClose={() => setShowError(false)}
-            message={errorMessage.message}
-            subText={errorMessage.subText}
-          />
-        </div>
-      )}
-
+      <Toaster />
       <Sidebar />
       <div className="admin-settings-main">
         <h2 className="admin-settings-title">Admin Settings</h2>

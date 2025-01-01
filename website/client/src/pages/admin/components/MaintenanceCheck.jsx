@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'AuthContext';
@@ -6,40 +6,81 @@ import '../styles/MaintenanceCheck.css';
 
 const MaintenanceCheck = ({ children }) => {
   const [isInMaintenance, setIsInMaintenance] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialCheck, setIsInitialCheck] = useState(true);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Cache the axios instance with configuration
+  const axiosInstance = useMemo(() => {
+    return axios.create({
+      timeout: 3000, // Shorter timeout
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
+  }, []);
+
   useEffect(() => {
+    let isMounted = true;
+
     const checkMaintenanceStatus = async () => {
       try {
-        const response = await axios.get('/api/admin/system-settings');
-        setIsInMaintenance(response.data.maintenanceMode);
+        const response = await axiosInstance.get('/api/admin/system-settings');
+        if (isMounted) {
+          setIsInMaintenance(response.data.maintenanceMode);
+        }
       } catch (err) {
         console.error('Error checking maintenance status:', err);
+        if (isMounted) {
+          setIsInMaintenance(false); // Fail open
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsInitialCheck(false);
+        }
       }
     };
 
+    // Initial check
     checkMaintenanceStatus();
-  }, []);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+    // Poll every 5 minutes instead of every minute
+    const pollInterval = setInterval(checkMaintenanceStatus, 300000);
 
-  const handleAdminLogin = async () => {
-    if (user) {
-      await logout(); // Logout current user
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
+  }, [axiosInstance]);
+
+  // Handle user session during maintenance mode
+  useEffect(() => {
+    if (isInMaintenance && user && !user.admin) {
+      sessionStorage.setItem('redirectPath', window.location.pathname);
+      logout();
     }
+  }, [isInMaintenance, user, logout]);
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    if (user) {
+      await logout();
+    }
+    sessionStorage.setItem('redirectPath', window.location.pathname);
     navigate('/LoginPage');
   };
 
+  // Don't show any loading state, just render children while checking
+  if (isInitialCheck) {
+    return children;
+  }
+
+  // Allow access if not in maintenance or if user is admin
   if (!isInMaintenance || user?.admin) {
     return children;
   }
 
+  // Maintenance mode page
   return (
     <div className="maintenance-page">
       <div className="maintenance-content">
@@ -53,8 +94,9 @@ const MaintenanceCheck = ({ children }) => {
           <p>
             Administrators can{' '}
             <button 
-              onClick={handleAdminLogin} 
+              onClick={handleAdminLogin}
               className="login-link"
+              aria-label="Administrator login"
             >
               log in here
             </button>
