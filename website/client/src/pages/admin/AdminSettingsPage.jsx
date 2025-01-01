@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from 'pages/admin/components/Sidebar';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
-import SuccessMessage from 'components/SuccessMessage';
-import ErrorMessage from 'components/ErrorMessage';
+import toast, { Toaster } from 'react-hot-toast';
 import './styles/AdminSettingsPage.css';
 
 const AdminSettingsPage = () => {
@@ -14,10 +13,6 @@ const AdminSettingsPage = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedActivity, setSelectedActivity] = useState(null);
-  const [showAdminSuccess, setShowAdminSuccess] = useState(false);
-  const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     const userObj = JSON.parse(localStorage.getItem('user'));
@@ -103,21 +98,12 @@ const AdminSettingsPage = () => {
 
   // Updated helper function to handle message visibility
   const showMessageWithTimeout = (type, message, subText) => {
+    const toastMessage = subText ? `${message}\n${subText}` : message;
     if (type === 'success') {
-      setSuccessMessage({ message, subText });
-      setShowAdminSuccess(true);
+      toast.success(toastMessage);
     } else {
-      setErrorMessage({ message, subText });
-      setShowError(true);
+      toast.error(toastMessage);
     }
-    
-    setTimeout(() => {
-      if (type === 'success') {
-        setShowAdminSuccess(false);
-      } else {
-        setShowError(false);
-      }
-    }, 5000);
   };
 
   const handleAdminAction = async (e) => {
@@ -227,26 +213,7 @@ const AdminSettingsPage = () => {
 
   return (
     <div className="admin-settings-container">
-      {/* Floating notifications */}
-      {showAdminSuccess && successMessage && (
-        <div className="success-floating-notification">
-          <SuccessMessage 
-            onClose={() => setShowAdminSuccess(false)}
-            message={successMessage.message}
-            subText={successMessage.subText}
-          />
-        </div>
-      )}
-      {showError && errorMessage && (
-        <div className="error-floating-notification">
-          <ErrorMessage 
-            onClose={() => setShowError(false)}
-            message={errorMessage.message}
-            subText={errorMessage.subText}
-          />
-        </div>
-      )}
-
+      <Toaster position="top-right" />
       <Sidebar />
       <div className="admin-settings-main">
         <h2 className="admin-settings-title">Admin Settings</h2>
