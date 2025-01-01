@@ -26,7 +26,7 @@ const fetchWithRetry = async (endpoint, config, retries = 0) => {
         return response;
     } catch (err) {
         if (retries < MAX_RETRIES) {
-            console.log(`Retrying request (${retries + 1}/${MAX_RETRIES})...`);
+            
             await sleep(RETRY_DELAY);
             return fetchWithRetry(endpoint, config, retries + 1);
         }
@@ -101,6 +101,8 @@ const CourseSection = () => {
                     }
                 };
 
+                
+
                 const [sectionsResponse, courseStatsResponse, overallStatsResponse, courseResponse] = await Promise.all([
                     fetchWithRetry(`/sections/course/${courseId}`, config),
                     fetchWithRetry(`/student/courses/${courseId}/stats`, config),
@@ -108,12 +110,20 @@ const CourseSection = () => {
                     fetchWithRetry(`/courses/${courseId}`, config)
                 ]);
 
+                
+
                 if (courseResponse.data) {
                     setCourseName(courseResponse.data.title);
                 }
                     
                 if (sectionsResponse.data) {
-                    setSections(sectionsResponse.data);
+                    // Ensure lessons array exists and is properly formatted
+                    const formattedSections = sectionsResponse.data.map(section => ({
+                        ...section,
+                        lessons: Array.isArray(section.lessons) ? section.lessons : []
+                    }));
+                    
+                    setSections(formattedSections);
                 }
                 
                 if (courseStatsResponse.data && overallStatsResponse.data) {
@@ -140,6 +150,8 @@ const CourseSection = () => {
             fetchData();
         }
     }, [courseId, user]);
+
+   
 
     return (
         <>
@@ -173,16 +185,19 @@ const CourseSection = () => {
                     ) : sections.length === 0 ? (
                         <p>No sections found for this course.</p>
                     ) : (
-                        sections.map((section) => (
-                            <LessonList
-                                key={section.section_id}
-                                sectionName={section.name}
-                                sectionId={section.section_id}
-                                lessons={section.lessons || []}
-                                profileData={profileData}
-                                hasActiveSubscription={hasActiveSubscription}
-                            />
-                        ))
+                        sections.map((section) => {
+                            
+                            return (
+                                <LessonList
+                                    key={section.section_id}
+                                    sectionName={section.name}
+                                    sectionId={section.section_id}
+                                    lessons={section.lessons}
+                                    profileData={profileData}
+                                    hasActiveSubscription={hasActiveSubscription}
+                                />
+                            );
+                        })
                     )}
                 </div>
                 <div className="rating">

@@ -52,11 +52,7 @@ const addSubscription = async (req, res) => {
     const subscriptionType = priceId === 'monthly' ? 'Monthly' : 'Yearly';
 
     // Log subscription details
-    console.log('Subscription details:', {
-      subscriptionId,
-      amountPaid,
-      subscriptionType,
-    });
+    ;
 
     const client = await db.connect();
     try {
@@ -137,13 +133,7 @@ const handleStripeWebhook = async (req, res) => {
       const endDate = new Date(subscription.current_period_end * 1000); // Convert timestamp
 
       // Log subscription details
-      console.log('Subscription details:', {
-        subscriptionId,
-        amountPaid,
-        subscriptionType,
-        startDate,
-        endDate,
-      });
+      ;
 
       // Fetch the user's email from the database
       const userQuery = 'SELECT email FROM users WHERE user_id = $1';
@@ -155,10 +145,7 @@ const handleStripeWebhook = async (req, res) => {
       const userEmail = userRows[0].email;
 
       // Log user details
-      console.log('User details:', {
-        userId,
-        userEmail,
-      });
+      ;
 
       const client = await db.connect();
       try {
@@ -267,7 +254,7 @@ const getSubscriptions = async (req, res) => {
       JOIN users u ON us.user_id = u.user_id;
     `;
     const {rows} = await db.query(query);
-    console.log('Fetched subscriptions:', rows);
+    
     res.status(200).json(rows.length ? rows : []);
   } catch (error) {
     console.error('Error fetching subscriptions:', error.stack);
@@ -398,7 +385,7 @@ const checkActiveSubscription = async (req, res) => {
     `;
 
     const { rows } = await db.query(query, [userId]);
-    console.log('Subscription check result:', rows); // Add this for debugging
+     // Add this for debugging
 
     if (rows.length > 0) {
       res.json({
