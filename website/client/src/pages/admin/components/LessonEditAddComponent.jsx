@@ -3,8 +3,27 @@ import { FaSave, FaTrash } from 'react-icons/fa';
 import axios from 'axios';
 import 'pages/admin/styles/LessonEditAddComponent.css';
 import CustomEditor from '../../../components/CustomEditor';
+import SimpleMonacoEditor from '../../../components/SimpleMonacoEditor';
 import ErrorAlert from './ErrorAlert';
 import { useAuth } from 'AuthContext'; // Import useAuth for context
+import he from 'he'; // Import the he library for HTML entity decoding
+
+const languageMappings = {
+  100: 'python',      // Python (3.12.5)
+  62: 'java',        // Java (OpenJDK 13.0.1)
+  105: 'cpp',        // C++ (GCC 14.1.0)
+  104: 'c',          // C (Clang 18.1.8)
+  102: 'javascript', // JavaScript (Node.js 22.08.0)
+  68: 'php',         // PHP (7.4.1)
+  72: 'ruby',        // Ruby (2.7.0)
+  101: 'typescript', // TypeScript (5.6.2)
+  78: 'kotlin',      // Kotlin (1.3.70)
+  73: 'rust',        // Rust (1.40.0)
+  51: 'csharp',      // C# (Mono 6.6.0.161)
+  95: 'go',          // Go (1.18.5)
+  83: 'swift',       // Swift (5.2.3)
+  61: 'haskell',     // Haskell (GHC 8.8.1)
+};
 
 const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDelete }) => {
   const [lessonName, setLessonName] = useState(lesson?.name || '');
@@ -12,6 +31,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
   const [xp, setXp] = useState(lesson?.xp || 0);
   const [error, setError] = useState('');
   const { user } = useAuth(); // Get user from context
+  const [languageId, setLanguageId] = useState(null);
 
   const [test_cases, setTestCases] = useState(() => {
     if (lesson?.test_cases) {
@@ -31,6 +51,8 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     return [{ input: '', expected_output: '' }];
   });
 
+  const [templateCode, setTemplateCode] = useState(lesson?.template_code || '');
+
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
   useEffect(() => {
@@ -38,11 +60,63 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     console.log('Parsed test cases:', test_cases);
   }, [lesson, test_cases]);
   useEffect(() => {
+    const fetchCourseLanguage = async () => {
+      try {
+        if (!section?.section_id) {
+          console.log('No section_id available:', section);
+          return;
+        }
+
+        // First get section data to get course_id
+        console.log('Fetching section data:', section);
+        const sectionResponse = await axios.get(`/api/sections/${section.section_id}`, {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+
+        if (!sectionResponse.data?.course_id) {
+          console.error('No course_id in section response:', sectionResponse.data);
+          return;
+        }
+
+        // Then get course data to get language_id
+        console.log('Fetching course data for course_id:', sectionResponse.data.course_id);
+        const courseResponse = await axios.get(`/api/courses/${sectionResponse.data.course_id}`, {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        
+        if (courseResponse.data?.language_id) {
+          const courseLanguageId = courseResponse.data.language_id;
+          console.log('Course Language ID:', courseLanguageId);
+          console.log('Language Mapping:', languageMappings[courseLanguageId]);
+          setLanguageId(courseLanguageId);
+        } else {
+          console.error('No language_id found in course data:', courseResponse.data);
+        }
+      } catch (err) {
+        console.error('Error fetching course language:', err);
+        setError('Failed to fetch course language');
+      }
+    };
+
+    if (section?.section_id) {
+      fetchCourseLanguage();
+    } else {
+      console.log('No section_id available:', section);
+    }
+  }, [section, user.token]);
+
+  useEffect(() => {
     if (lesson) {
       console.log('Lesson data received from API:', lesson);
       setLessonName(lesson.name || '');
       setEditorData(lesson.content || '');
       setXp(lesson.xp || 0);
+      
+      // Ensure template code is treated as raw text
+      const rawTemplateCode = lesson.template_code || '';
+      console.log('Raw template code before setting:', rawTemplateCode);
+      setTemplateCode(rawTemplateCode);
+
       if (lesson.test_cases) {
         try {
           const parsedCases = Array.isArray(lesson.test_cases)
@@ -112,24 +186,25 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
       const formattedTestCases = test_cases
         .filter(test => test.expected_output.trim())
         .map(test => ({
-          input: test.input,
-          expected_output: test.expected_output.replace(/\r\n/g, '\n') // Normalize line endings
+          input: test.input.trim(),
+          expected_output: test.expected_output.replace(/\r\n/g, '\n').replace(/^\s+|\s+$/g, '') // Normalize whitespace
         }));
 
-      // Prepare lesson data
+      // Prepare lesson data - ensure template code is raw
       const lessonData = {
         name: lessonName.trim(),
         content: editorData,
         section_id: section.section_id,
         xp: parseInt(xp) || 0,
-        test_cases: formattedTestCases
+        test_cases: formattedTestCases,
+        template_code: templateCode // Use raw template code directly
       };
 
       if (lesson?.lesson_id) {
         lessonData.lesson_id = lesson.lesson_id;
       }
 
-      console.log('Saving lesson with data:', lessonData);
+      console.log('Saving lesson with raw template code:', lessonData.template_code);
       await onSave(lessonData);
       setError('');
     } catch (err) {
@@ -250,6 +325,23 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
             + Add New Test Case
           </button>
           {errors.testCases && <p className="error">{errors.testCases}</p>}
+        </div>
+
+        <div className="form-group">
+          <label className="edit-add-label">🔧 Starter Template Code</label>
+          <div className="editor-container" style={{ height: "400px", marginBottom: "1rem" }}>
+            <SimpleMonacoEditor
+              code={templateCode}
+              setCode={setTemplateCode}
+              language={languageId ? (languageMappings[languageId] || 'plaintext') : 'plaintext'}
+            />
+          </div>
+          <small className="form-text text-muted">
+            This code will be provided as a starting point for students.
+            {languageId && languageMappings[languageId] && (
+              <span> (Language: {languageMappings[languageId]})</span>
+            )}
+          </small>
         </div>
 
         <div className="form-actions">

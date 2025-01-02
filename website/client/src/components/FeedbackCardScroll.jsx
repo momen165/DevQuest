@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import defaultProfilePic from '../assets/images/default-profile-pic.png';
 import 'styles/FeedbackCardScroll.css';
 
 const FeedbackCardScroll = () => {
@@ -13,13 +15,12 @@ const FeedbackCardScroll = () => {
     useEffect(() => {
         const fetchFeedback = async () => {
             try {
-                const response = await fetch('/api/feedback/public');
-                const data = await response.json();
+                const { data } = await axios.get('/api/feedback/public');
                 
                 // Transform the API data to match the card format
                 const transformedData = data.map(item => ({
                     name: item.name,
-                    avatar: item.profileimage || `/api/placeholder/150/150`, // Fallback to placeholder
+                    avatar: item.profileimage || defaultProfilePic,
                     rating: "★".repeat(item.rating),
                     text: item.comment,
                     courseName: item.course_name,

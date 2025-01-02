@@ -8,6 +8,7 @@ const {
 } = require('../utils/validation.utils');
 const courseQueries = require('../models/course.model');
 const { AppError, asyncHandler } = require('../utils/error.utils');
+const { clearCoursesCache } = require('./feedback.controller');
 
 const addCourse = asyncHandler(async (req, res) => {
   validateAdmin(req.user);
@@ -28,6 +29,9 @@ const addCourse = asyncHandler(async (req, res) => {
     throw new AppError('Failed to add course', 400);
   }
 
+  // Clear courses cache after adding new course
+  clearCoursesCache();
+  
   await logActivity('Course', `New course added: ${title} by user ID ${req.user.userId}`, req.user.userId);
   res.status(201).json(result.rows[0]);
 });
@@ -53,6 +57,9 @@ const editCourse = asyncHandler(async (req, res) => {
     throw new AppError('Course not found', 404);
   }
 
+  // Clear courses cache after editing course
+  clearCoursesCache();
+
   await logActivity('Course', `Course updated: ${title} by user ID ${req.user.userId}`, req.user.userId);
   res.status(200).json(result.rows[0]);
 });
@@ -63,8 +70,11 @@ const deleteCourse = asyncHandler(async (req, res) => {
   validateCourseId(course_id);
 
   await courseQueries.deleteCourseData(course_id);
-  await logActivity('Course', `Course deleted by user ID ${req.user.userId}`, req.user.userId);
   
+  // Clear courses cache after deleting course
+  clearCoursesCache();
+  
+  await logActivity('Course', `Course deleted by user ID ${req.user.userId}`, req.user.userId);
   res.status(200).json({ message: 'Course and related data deleted successfully.' });
 });
 

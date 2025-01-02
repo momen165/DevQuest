@@ -36,7 +36,11 @@
     border: 1px solid rgba(52, 152, 219, 0.5);
     border-radius: 4px;
     font-size: 16px;
-    color: #000000;
+    color: #ffffff;
+  }
+
+  .edit-course-form select{
+    color: #000 !important; 
   }
   
   .edit-course-form textarea {
