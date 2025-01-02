@@ -336,6 +336,16 @@ const adjustFontSize = (increment) => {
         cursorSmoothCaretAnimation: true,
         roundedSelection: true,
         automaticLayout: true,
+        // Quick Suggestions
+        quickSuggestions: true,
+        suggestOnTriggerCharacters: true,
+        acceptSuggestionOnEnter: "on",
+        tabCompletion: "on",
+        suggestSelection: "first",
+        formatOnType: true,
+        formatOnPaste: true,
+        snippetSuggestions: "on",
+
     }}
     value={code}
     onChange={(value) => setCode(value)}
