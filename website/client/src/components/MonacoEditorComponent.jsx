@@ -24,7 +24,8 @@ const MonacoEditorComponent = ({
       lessonId,
       languageId,
       setConsoleOutput,
-      setIsAnswerCorrect
+      setIsAnswerCorrect,
+      templateCode
 }) => {
   const editorRef = useRef(null);
   const initialCommentSet = useRef(false);
@@ -62,11 +63,15 @@ const MonacoEditorComponent = ({
 
   useEffect(() => {
     if (!initialCommentSet.current && !code) {
+      if (templateCode) {
+        setCode(templateCode);
+      } else {
         const initialComment = languageCommentMappings[language] || '// Write code below\n';
-      setCode(initialComment);
+        setCode(initialComment);
+      }
       initialCommentSet.current = true;
     }
-  }, [code, setCode, language]);
+  }, [code, setCode, language, templateCode]);
 
     const runCode = useCallback(async () => {
         if (isRunning || cooldown || !code.trim()) {
@@ -121,8 +126,8 @@ const MonacoEditorComponent = ({
             let output = '📋 Test Case Results\n\n';
             let allPassed = true;
             results.forEach((testCase, index) => {
-                const {input, expected_output, actual_output, status, compileError, error} = testCase;
-                const isCorrect = actual_output === expected_output;
+                const {input, expected_output, actual_output, status} = testCase;
+                const isCorrect = status === 'Passed';
                 if (!isCorrect) {
                     allPassed = false;
                 }
@@ -137,9 +142,6 @@ const MonacoEditorComponent = ({
                 output += `✨ Expected Output:\n\n${expected_output}\n\n`;
                 output += `📤 Your Output:\n\n${actual_output}\n\n`;
                 output += `${isCorrect ? '✅ Status: Passed' : '❌ Status: Failed'}\n\n`;
-                
-                if (error) output += `⚠️ Error: ${error}\n`;
-                if (compileError) output += `🚫 Compile Error: ${compileError}\n`;
             });
 
             if (allPassed) {
@@ -231,6 +233,14 @@ const adjustFontSize = (increment) => {
   }
 };
 
+  const resetToTemplate = () => {
+    if (window.confirm('Are you sure you want to reset your code to the template? This will erase your current changes.')) {
+      setCode(templateCode || (languageCommentMappings[language] || '// Write code below\n'));
+      setConsoleOutput('Output will appear here...');
+      setIsAnswerCorrect(false);
+    }
+  };
+
   return (
     <div className="editor-container">
       <button 
@@ -296,6 +306,16 @@ const adjustFontSize = (increment) => {
               <option value="off">Hide</option>
               <option value="on">Show</option>
             </select>
+          </div>
+
+          <div className="settings-group">
+            <button 
+              className="reset-button"
+              onClick={resetToTemplate}
+              title="Reset code to template"
+            >
+              Reset to Template
+            </button>
           </div>
         </div>
       )}

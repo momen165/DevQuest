@@ -9,75 +9,47 @@ import { useNavigate } from 'react-router-dom';
 
 const stripePromise = loadStripe('pk_test_51MEwjHHxgK7P1VPXXJ1r4MdpeelwFLaBX9kslA7Z4O6V5CjE8B20DVkiSmp6XB0HPwKVnYFYacECLxYMZUOO4Fmm00m79WAvXD'); // Replace with your actual publishable key
 
-
-
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
-
 const PricingPage = () => {
   const [isMonthly, setIsMonthly] = useState(true);
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingSubscription, setCheckingSubscription] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const { user } = useAuth(); // Get the user and token from AuthContext
-  const [hasActiveSubscription, setHasActiveSubscription] = useState(() => {
-    try {
-      const stored = localStorage.getItem('subscriptionStatus');
-      if (stored) {
-        const data = JSON.parse(stored);
-        if (data && typeof data.status === 'boolean' && typeof data.timestamp === 'number') {
-          if (Date.now() - data.timestamp < CACHE_DURATION) {
-            return data.status;
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing stored subscription status:', error);
-    }
-    return false;
-  });
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkSubscription = async () => {
+      if (!user) {
+        setCheckingSubscription(false);
+        return;
+      }
+      
       try {
-        // Check if we have a recent cache
-        const stored = localStorage.getItem('subscriptionStatus');
-        if (stored) {
-          const data = JSON.parse(stored);
-          if (Date.now() - data.timestamp < CACHE_DURATION) {
-            return; // Use cached data if it's less than 5 minutes old
-          }
-        }
-
-        // Otherwise fetch from server
+        setCheckingSubscription(true);
         const response = await axios.get(`http://localhost:5000/api/check`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
-        
-        const subscriptionData = {
-          status: Boolean(response.data.hasActiveSubscription),
-          timestamp: Date.now()
-        };
-        localStorage.setItem('subscriptionStatus', JSON.stringify(subscriptionData));
-        setHasActiveSubscription(subscriptionData.status);
+        setHasActiveSubscription(response.data.hasActiveSubscription);
       } catch (error) {
         console.error('Error checking subscription:', error);
-        localStorage.removeItem('subscriptionStatus');
         setHasActiveSubscription(false);
+      } finally {
+        setCheckingSubscription(false);
       }
     };
 
-    if (user) {
-      checkSubscription();
-    }
+    checkSubscription();
   }, [user]);
 
   useEffect(() => {
     if (!user) {
       setHasActiveSubscription(false);
+      setCheckingSubscription(false);
     }
   }, [user]);
 
@@ -140,7 +112,12 @@ const PricingPage = () => {
         <h1>Select the best plan that suits you</h1>
         <p>Unlock the full potential of DevQuest</p>
 
-        {hasActiveSubscription ? (
+        {checkingSubscription ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Checking subscription status...</p>
+          </div>
+        ) : hasActiveSubscription ? (
           <div className="active-subscription-notice">
             <h2>You already have an active subscription</h2>
             <p>You can manage your subscription in your account settings.</p>

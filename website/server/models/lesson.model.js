@@ -14,13 +14,13 @@ const lessonQueries = {
   },
 
   // Insert a new lesson
-  insertLesson: async (section_id, name, content, xp, test_cases, lesson_order) => {
+  insertLesson: async (section_id, name, content, xp, test_cases, lesson_order, template_code) => {
     const query = `
-      INSERT INTO lesson (section_id, name, content, xp, test_cases, lesson_order)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO lesson (section_id, name, content, xp, test_cases, lesson_order, template_code)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
-    const values = [section_id, name, content, xp || 0, JSON.stringify(test_cases || []), lesson_order];
+    const values = [section_id, name, content, xp || 0, JSON.stringify(test_cases || []), lesson_order, template_code || ''];
     return db.query(query, values);
   },
 
@@ -58,18 +58,19 @@ const lessonQueries = {
   },
 
   // Update lesson
-  updateLesson: async (lesson_id, name, content, xp, test_cases, section_id) => {
+  updateLesson: async (lesson_id, name, content, xp, test_cases, section_id, template_code) => {
     const query = `
       UPDATE lesson
       SET name = $1,
           content = $2,
           xp = $3,
           test_cases = $4,
-          section_id = $5
-      WHERE lesson_id = $6
+          section_id = $5,
+          template_code = $6
+      WHERE lesson_id = $7
       RETURNING *;
     `;
-    const values = [name, content, xp || 0, JSON.stringify(test_cases || []), section_id, lesson_id];
+    const values = [name, content, xp || 0, JSON.stringify(test_cases || []), section_id, template_code || '', lesson_id];
     return db.query(query, values);
   },
 
