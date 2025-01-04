@@ -6,6 +6,14 @@ import 'styles/LessonPage.css';
 import CircularProgress from "@mui/material/CircularProgress";
 import '../styles/MonacoEditor.css';
 
+// Unicode-safe Base64 encoding function
+const encodeUnicode = (str) => {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+        function toSolidBytes(match, p1) {
+            return String.fromCharCode('0x' + p1);
+        }));
+};
+
 const languageCommentMappings = {
     python: '# Write code below \n',
     javascript: '// Write code below \n',
@@ -94,7 +102,8 @@ const MonacoEditorComponent = ({
                 return;
             }
 
-            const encodedCode = btoa(code);
+            // Use the Unicode-safe Base64 encoding function
+            const encodedCode = encodeUnicode(code);
 
             const payload = {
                 lessonId: parseInt(lessonId, 10),

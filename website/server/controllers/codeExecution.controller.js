@@ -46,8 +46,22 @@ const helpers = {
       .replace(/\n+$/, '');
   },
 
-  decodeBase64: (str) => str ? Buffer.from(str, 'base64').toString('utf-8') : '',
-  encodeBase64: (str) => str ? Buffer.from(str).toString('base64') : '',
+  decodeBase64: (str) => {
+    if (!str) return '';
+    // First try UTF-8 decode
+    try {
+      return Buffer.from(str, 'base64').toString('utf-8');
+    } catch (e) {
+      // Fallback to binary if UTF-8 fails
+      return Buffer.from(str, 'base64').toString('binary');
+    }
+  },
+
+  encodeBase64: (str) => {
+    if (!str) return '';
+    // Properly handle Unicode characters by using UTF-8 encoding
+    return Buffer.from(str, 'utf-8').toString('base64');
+  },
 
   async executeCode(submission) {
     const headers = {
