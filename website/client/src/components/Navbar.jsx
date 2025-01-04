@@ -3,6 +3,7 @@ import 'styles/Navbar.css';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import defaultProfilePic from '../assets/images/default-profile-pic.png';
+import Logo from '../assets/icons/Logo.svg';
 import Avatar from '@mui/material/Avatar';
 
 const Navbar = () => {
@@ -13,11 +14,21 @@ const Navbar = () => {
   const location = useLocation();
 
   const toggleDropdown = () => {
-    setIsDropdownOpen((prevState) => !prevState);
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+    if (!isMobileMenuOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
+  };
+
+  const handleLinkClick = () => {
+    setIsMobileMenuOpen(false);
+    document.body.classList.remove('menu-open');
   };
 
   useEffect(() => {
@@ -30,11 +41,6 @@ const Navbar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  useEffect(() => {
-    return () => {
       document.body.classList.remove('menu-open');
     };
   }, []);
@@ -46,14 +52,16 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    window.location.reload();
+    setIsDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+    document.body.classList.remove('menu-open');
   };
 
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <Link className="navbar-logo" to="/">
-          <img src="/newLogo.png" alt="DevQuest Logo" className="navbar-logo-image"/>
+        <Link className="navbar-logo" to="/" onClick={handleLinkClick}>
+          <img src={Logo} alt="DevQuest Logo" className="navbar-logo-image" width="300" height="60"/>
         </Link>
 
         <div className="mobile-menu-icon" onClick={toggleMobileMenu}>
@@ -67,10 +75,10 @@ const Navbar = () => {
         <div className={`navbar-content ${isMobileMenuOpen ? 'active' : ''}`}>
           <ul className="navbar-links navbar-left-links">
             <li className="navbar-item">
-              <Link className="navbar-link" to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
+              <Link className="navbar-link" to="/" onClick={handleLinkClick}>Home</Link>
             </li>
             <li className="navbar-item">
-              <Link className="navbar-link" to="/CoursesPage" onClick={() => setIsMobileMenuOpen(false)}>Courses</Link>
+              <Link className="navbar-link" to="/CoursesPage" onClick={handleLinkClick}>Courses</Link>
             </li>
           </ul>
 
@@ -78,7 +86,7 @@ const Navbar = () => {
 
           <ul className="navbar-links navbar-right-links">
             <li className="navbar-item">
-              <Link className="navbar-link" to="/pricing" onClick={() => setIsMobileMenuOpen(false)}>Pricing</Link>
+              <Link className="navbar-link" to="/pricing" onClick={handleLinkClick}>Pricing</Link>
             </li>
 
             {user ? (
@@ -92,33 +100,32 @@ const Navbar = () => {
                 {isDropdownOpen && (
                   <div className="dropdown-content dropdown-show">
                     <div className="dropdown-connector"></div>
-                    <button
+                    <Link
+                      to="/AccountSettings"
                       className={`value ${location.pathname === '/AccountSettings' ? 'active' : ''}`}
-                      onClick={() => window.location.href = '/AccountSettings'}
-                      style={{"--index": 1}}
+                      onClick={handleLinkClick}
                     >
                       Account Settings
-                    </button>
-                    <button
+                    </Link>
+                    <Link
+                      to="/ProfilePage"
                       className={`value ${location.pathname === '/ProfilePage' ? 'active' : ''}`}
-                      onClick={() => window.location.href = '/ProfilePage'}
-                      style={{"--index": 2}}
+                      onClick={handleLinkClick}
                     >
                       Profile Page
-                    </button>
+                    </Link>
                     {user && user.admin && (
-                      <button
+                      <Link
+                        to="/dashboard"
                         className={`value ${location.pathname === '/dashboard' ? 'active' : ''}`}
-                        onClick={() => window.location.href = '/dashboard'}
-                        style={{"--index": 3}}
+                        onClick={handleLinkClick}
                       >
                         Dashboard
-                      </button>
+                      </Link>
                     )}
                     <button 
                       onClick={handleLogout} 
                       className="value logout-button"
-                      style={{"--index": 4}}
                     >
                       Log out
                     </button>
@@ -128,10 +135,10 @@ const Navbar = () => {
             ) : (
               <>
                 <li className="navbar-item">
-                  <Link className="navbar-link" to="/LoginPage" onClick={() => setIsMobileMenuOpen(false)}>Log in</Link>
+                  <Link className="navbar-link" to="/LoginPage" onClick={handleLinkClick}>Log in</Link>
                 </li>
                 <li className="navbar-item">
-                  <Link className="navbar-link" to="/RegistrationPage" onClick={() => setIsMobileMenuOpen(false)}>Sign up</Link>
+                  <Link className="navbar-link" to="/RegistrationPage" onClick={handleLinkClick}>Sign up</Link>
                 </li>
               </>
             )}

@@ -10,14 +10,22 @@ function Sidebar({ activeLink }) {
     <div className="sidebar">
       <ul>
         <Link to="/AccountSettings" className="link">
-          <li className={activeLink === 'AccountSettings' ? 'active' : ''}> <FaUser size={24} color='#007BFF' style={{  marginRight: '8px'  }} />  Profile</li>
-          
+          <li className={activeLink === 'profile' ? 'active' : ''}> 
+            <FaUser size={24} color={activeLink === 'profile' ? '#ffffff' : '#94bbd4'} style={{ marginRight: '12px' }} />  
+            Profile
+          </li>
         </Link>
         <Link to="/changepassword" className="link">
-  <li className={activeLink === 'login' ? 'active' : ''}> <FaRightToBracket size={24} color='#007BFF' style={{  marginRight: '8px'  }} /> Login</li>
+          <li className={activeLink === 'login' ? 'active' : ''}>
+            <FaRightToBracket size={24} color={activeLink === 'login' ? '#ffffff' : '#94bbd4'} style={{ marginRight: '12px' }} /> 
+            Login
+          </li>
         </Link>
         <Link to="/billing" className="link">
-          <li className={activeLink === 'billing' ? 'active' : ''}> <FaCreditCard size={24} color='#007BFF' style={{  marginRight: '8px'  }} /> Billing</li>
+          <li className={activeLink === 'billing' ? 'active' : ''}>
+            <FaCreditCard size={24} color={activeLink === 'billing' ? '#ffffff' : '#94bbd4'} style={{ marginRight: '12px' }} /> 
+            Billing
+          </li>
         </Link>
       </ul>
     </div>
