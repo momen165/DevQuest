@@ -376,38 +376,66 @@ const verifyEmail = handleAsync(async (req, res) => {
   }
 });
 
-const sendFeedbackReplyEmail = handleAsync(async (email, name, comment, reply) => {
-  const emailContent = helpers.getEmailTemplate(`
-    <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">We've Responded to Your Feedback</h1>
-    <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
-      Hello ${name}, thank you for taking the time to share your thoughts with us.
-    </p>
-    <div style="background-color: #F3F4F6; border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <p style="color: #6B7280; font-size: 15px; font-style: italic; margin: 0;">
-        Your feedback: "${comment}"
-      </p>
-    </div>
-    <div style="background-color: #EEF2FF; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #4F46E5;">
-      <p style="color: #111827; font-size: 15px; margin: 0;">
-        ${reply}
-      </p>
-    </div>
-    <p style="color: #4B5563; line-height: 1.6; text-align: center; margin-top: 32px;">
-      Your feedback helps us improve Devquest for everyone. Thank you for being part of our community!
-    </p>
-  `);
-
-  await helpers.sendEmail(
-    email,
-    "We've Responded to Your Feedback - Devquest",
-    emailContent,
-    {
-      senderEmail: process.env.SENDER_EMAIL_SUPPORT,
-      senderName: 'Devquest Support',
-      customId: 'feedback-reply'
+const sendFeedbackReplyEmail = async ({ email, name, comment, rating, courseName, reply }) => {
+  try {
+    if (!process.env.MAILJET_API_KEY || !process.env.MAILJET_SECRET_KEY) {
+      throw new Error('Missing required email configuration');
     }
-  );
-});
+
+    const emailContent = helpers.getEmailTemplate(`
+      <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">We've Responded to Your Feedback</h1>
+      <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
+        Hello ${name}, thank you for taking the time to share your thoughts with us.
+      </p>
+      <div style="background-color: #F3F4F6; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <p style="color: #4B5563; margin: 8px 0;">
+          <strong>Course:</strong> ${courseName}
+        </p>
+        <p style="color: #4B5563; margin: 8px 0;">
+          <strong>Your rating:</strong> ${'★'.repeat(rating)}${'☆'.repeat(5-rating)}
+        </p>
+        <p style="color: #4B5563; margin: 8px 0;">
+          <strong>Your feedback:</strong> "${comment || 'No comment provided'}"
+        </p>
+      </div>
+      <div style="background-color: #EEF2FF; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <p style="color: #4B5563; margin: 8px 0;">
+          <strong>Our response:</strong>
+        </p>
+        <p style="color: #4B5563; margin: 8px 0;">${reply}</p>
+      </div>
+      <p style="color: #6B7280; font-size: 14px; text-align: center; margin-top: 32px;">
+        Your feedback helps us improve Devquest for everyone. Thank you for being part of our community!
+      </p>
+    `);
+
+    const response = await mailjetClient
+      .post('send', { version: 'v3.1' })
+      .request({
+        Messages: [{
+          From: {
+            Email: process.env.SENDER_EMAIL_SUPPORT,
+            Name: 'Devquest Support'
+          },
+          To: [{
+            Email: email,
+            Name: name
+          }],
+          Subject: "We've Responded to Your Feedback",
+          HTMLPart: emailContent
+        }]
+      });
+
+    if (response.response.status !== 200) {
+      throw new Error(`Email sending failed with status: ${response.response.status}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error sending feedback reply email:', error);
+    throw new Error('Failed to send feedback reply email');
+  }
+};
 
 const checkAdminStatus = handleAsync(async (req, res, next) => {
   const { rowCount } = await db.query('SELECT 1 FROM admins WHERE admin_id = $1', [req.user.userId]);
