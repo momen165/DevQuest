@@ -24,10 +24,10 @@ const submitTicket = async (req, res) => {
       // Update the existing open support ticket with a new message
       const existingTicketId = checkResult.rows[0].ticket_id;
       
-      // First, update the expiration time with explicit timezone handling
+      // Update expiration time to 24 hours from now
       const updateExpirationQuery = `
         UPDATE support
-        SET expiration_time = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '5 minutes'
+        SET expiration_time = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '24 hours'
         WHERE ticket_id = $1
         RETURNING *;
       `;
@@ -48,10 +48,13 @@ const submitTicket = async (req, res) => {
         ticket: insertMessageResult.rows[0] 
       });
     } else {
-      // Create a new support ticket with explicit timezone
+      // Create a new support ticket with 24 hour expiration
       const insertTicketQuery = `
         INSERT INTO support (user_message, user_email, time_opened, expiration_time, status)
-        VALUES ($1, (SELECT email FROM users WHERE user_id = $2), (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '5 minutes', 'open')
+        VALUES ($1, (SELECT email FROM users WHERE user_id = $2), 
+                (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), 
+                (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '24 hours', 
+                'open')
         RETURNING *;
       `;
       const insertTicketValues = [message, userId];
@@ -223,11 +226,11 @@ const replyToTicket = async (req, res) => {
     const messageValues = [ticketId, sender_type, reply];
     const messageResult = await db.query(messageQuery, messageValues);
 
-    // If the reply is from user, update the expiration time with explicit timezone handling
+    // If the reply is from user, update the expiration time to 24 hours
     if (!isAdmin) {
       const updateExpirationQuery = `
         UPDATE support
-        SET expiration_time = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '5 minutes'
+        SET expiration_time = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '24 hours'
         WHERE ticket_id = $1
         RETURNING *;
       `;
@@ -322,6 +325,29 @@ const closeTicket = async (req, res) => {
   }
 };
 
+const getRecentTickets = async (req, res) => {
+  const isAdmin = req.user.admin;
+
+  try {
+    if (isAdmin) {
+      const query = `
+        SELECT ticket_id, user_email, time_opened, status
+        FROM support
+        WHERE time_opened > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC' - INTERVAL '24 hours')
+        ORDER BY time_opened DESC
+        LIMIT 5;
+      `;
+      const result = await db.query(query);
+      res.status(200).json(result.rows);
+    } else {
+      return res.status(403).json({ error: 'Access denied. Admins only.' });
+    }
+  } catch (err) {
+    console.error('Error fetching recent tickets:', err);
+    res.status(500).json({ error: 'Failed to fetch recent tickets.' });
+  }
+};
+
 module.exports = {
   submitTicket,
   getUserTicketsByUserId,
@@ -330,4 +356,5 @@ module.exports = {
   deleteTicket,
   closeExpiredTickets,
   closeTicket,
+  getRecentTickets,
 };
