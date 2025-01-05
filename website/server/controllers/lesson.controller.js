@@ -12,14 +12,16 @@ const addLesson = asyncHandler(async (req, res) => {
     throw new AppError('Access denied. Admins only.', 403);
   }
 
-  const { section_id, name, content, xp, test_cases } = req.body;
+  const { section_id, name, content, xp, test_cases, template_code } = req.body;
 
   if (!section_id || !name || !content) {
     throw new AppError('section_id, name, and content are required.', 400);
   }
 
   const nextOrder = await lessonQueries.getNextOrder(section_id);
-  const result = await lessonQueries.insertLesson(section_id, name, content, xp, test_cases, nextOrder);
+  // Decode HTML entities in template code
+  const decodedTemplateCode = template_code ? he.decode(template_code) : '';
+  const result = await lessonQueries.insertLesson(section_id, name, content, xp, test_cases, nextOrder, decodedTemplateCode);
   
   res.status(201).json(result.rows[0]);
 });
@@ -124,13 +126,15 @@ const getLessonById = asyncHandler(async (req, res) => {
 
 const editLesson = asyncHandler(async (req, res) => {
   const { lesson_id } = req.params;
-  const { name, content, xp, test_cases, section_id } = req.body;
+  const { name, content, xp, test_cases, section_id, template_code } = req.body;
 
   if (!name || !content || !section_id) {
     throw new AppError('Name, content, and section_id are required', 400);
   }
 
-  const result = await lessonQueries.updateLesson(lesson_id, name, content, xp, test_cases, section_id);
+  // Decode HTML entities in template code
+  const decodedTemplateCode = template_code ? he.decode(template_code) : '';
+  const result = await lessonQueries.updateLesson(lesson_id, name, content, xp, test_cases, section_id, decodedTemplateCode);
 
   if (result.rows.length === 0) {
     throw new AppError('Lesson not found', 404);

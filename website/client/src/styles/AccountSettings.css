@@ -1,54 +1,83 @@
 /* Base Layout */
 .account-settings-profile-page {
   display: flex;
-  width: 100%;
-  height: 100vh;
-  background: #94bbd4;
+  min-height: 100vh;
+  background: linear-gradient(-45deg, #0093E9, #00D4FF, #00B4DB, #0083B0);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .account-settings-profile-content {
   flex: 1;
-  padding: 50px;
-  background: rgb(231, 231, 231);
-  border-left: 2px solid #dcdcdc;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: 20px;
-  width: calc(100% - 290px);
-}
-
-/* Section Styles */
-.account-settings-profile-section,
-.account-settings-subscription-section {
-  background-color: white;
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 147, 233, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 1200px;
+  margin: 80px auto 20px auto;
+}
+
+.account-settings-profile-content h2 {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 600;
   margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Profile Header and Avatar */
+/* Profile Header */
 .account-settings-profile-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
+/* Avatar Section */
 .account-settings-profile-avatar {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: linear-gradient(145deg, rgba(0, 147, 233, 0.15), rgba(0, 180, 219, 0.15));
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
   margin-bottom: 2rem;
-  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 147, 233, 0.2);
 }
 
 .account-settings-profile-avatar img {
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #000000;
-  margin-bottom: 1rem;
+  border: 4px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 15px rgba(71, 118, 230, 0.3);
+  transition: all 0.3s ease;
+}
+
+.account-settings-profile-avatar img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(71, 118, 230, 0.4);
 }
 
 .account-settings-profile-pic-buttons {
@@ -58,21 +87,29 @@
 
 /* Form Elements */
 .account-settings-profile-form {
-  margin-top: 20px;
-  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(145deg, rgba(0, 147, 233, 0.15), rgba(0, 180, 219, 0.15));
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 147, 233, 0.2);
 }
 
 .account-settings-form-group {
   margin-bottom: 1.5rem;
-  position: relative;
 }
 
 .account-settings-form-group label {
   display: block;
-  margin-bottom: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #374151;
-  font-size: 0.95rem;
+  color: #94bbd4;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Input Styles */
@@ -82,190 +119,183 @@
 .account-settings-profile-content input[type="text"],
 .account-settings-profile-content input[type="number"],
 .account-settings-profile-content textarea {
-  background-color: #eee !important;
-  border: none !important;
-  padding: 1rem !important;
-  font-size: 1rem;
-  border-radius: 1rem !important;
   width: 100%;
-  max-width: 500px;
-  color: #000000 !important;
-  box-shadow: 0 0.4rem #dfd9d9 !important;
-  transition: border-color 0.3s ease;
-  resize: none;
+  max-width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 1.5rem;
-  padding-right: 3rem;
-  display: block;
+  box-sizing: border-box;
 }
 
 .account-settings-textarea {
+  min-height: 120px;
   resize: vertical;
-  min-height: 100px;
-  width: 100% !important;
-  max-width: 500px;
 }
 
 .account-settings-select {
   appearance: none;
-  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="%233498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><path d="M6 9l6-6 6 6"/></svg>');
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394bbd4'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 1rem center;
+  background-position: right 0.75rem center;
   background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+/* Add focus styles for inputs */
+.account-settings-profile-content input:focus,
+.account-settings-textarea:focus,
+.account-settings-select:focus {
+  outline: none;
+  border-color: rgba(0, 147, 233, 0.8);
+  box-shadow: 0 0 0 3px rgba(0, 147, 233, 0.2);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Button Styles */
 .settings-btn,
 .account-settings-btn {
-  padding: 15px 25px;
-  border: unset;
-  border-radius: 15px;
-  color: #212121;
-  z-index: 1;
-  background: #e8e8e8;
-  position: relative;
-  font-weight: 1000;
-  font-size: 16px;
-  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  transition: all 250ms;
-  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.settings-btn::before,
-.account-settings-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 0;
-  border-radius: 15px;
-  background-color: #212121;
-  z-index: -1;
-  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
-  transition: all 250ms;
-}
-
-.settings-btn:hover,
-.account-settings-btn:hover {
-  color: #e8e8e8;
-}
-
-.settings-btn:hover::before,
-.account-settings-btn:hover::before {
-  width: 100%;
-}
-
-/* Specific Button Variants */
 .settings-update-btn,
-.settings-remove-btn,
-.account-settings-update-btn,
-.account-settings-remove-btn {
-  padding: 10px 20px;
-  font-size: 14px;
+.account-settings-update-btn {
+  background: linear-gradient(135deg, #2c3e50, #3498db);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
 }
 
-.settings-remove-btn:hover::before,
-.account-settings-remove-btn:hover::before {
-  background-color: #ef4444;
+.settings-update-btn:hover,
+.account-settings-update-btn:hover {
+  background: linear-gradient(135deg, #34495e, #2980b9);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(44, 62, 80, 0.4);
+}
+
+.settings-remove-btn,
+.account-settings-remove-btn {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+.settings-remove-btn:hover,
+.account-settings-remove-btn:hover {
+  background: linear-gradient(135deg, #c0392b, #e74c3c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
 }
 
 .settings-save-btn,
 .account-settings-save-btn {
-  background-color: #10b981;
-  color: white;
+  background: linear-gradient(135deg, #2c3e50, #3498db);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
+}
+
+.settings-save-btn:hover,
+.account-settings-save-btn:hover {
+  background: linear-gradient(135deg, #34495e, #2980b9);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(44, 62, 80, 0.4);
 }
 
 .settings-cancel-btn,
 .account-settings-cancel-btn {
-  background-color: #ef4444;
-  color: white;
+  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 15px rgba(127, 140, 141, 0.3);
 }
 
-/* Modal Styles */
-.account-settings-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.account-settings-modal-content {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
+.settings-cancel-btn:hover,
+.account-settings-cancel-btn:hover {
+  background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(127, 140, 141, 0.4);
 }
 
 /* Message Styles */
 .account-settings-error-message,
 .account-settings-success-message {
   padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  text-align: center;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .account-settings-error-message {
-  background-color: #fee2e2;
-  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  color: #fecaca;
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .account-settings-success-message {
-  background-color: #dcfce7;
-  color: #16a34a;
+  background: rgba(22, 163, 74, 0.1);
+  color: #bbf7d0;
+  border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
-/* Subscription Styles */
-.account-settings-subscription-info {
-  margin-top: 1.5rem;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .account-settings-profile-content {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+  
+  .account-settings-profile-form {
+    max-width: 100%;
+  }
+  
+  .account-settings-profile-pic-buttons {
+    flex-direction: column;
+  }
 }
 
-.account-settings-subscription-detail {
-  display: flex;
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background-color: #f9fafb;
-  border-radius: 4px;
-}
-
-.account-settings-detail-label {
+/* Update text colors for better visibility */
+.account-settings-form-group label {
+  color: #ffffff;
+  font-size: 1rem;
   font-weight: 500;
-  width: 120px;
-  color: #374151;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.account-settings-detail-value {
-  color: #111827;
+.account-settings-profile-content h2 {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.account-settings-manage-subscription-button,
-.account-settings-subscribe-button {
-  width: 100%;
-  padding: 0.75rem;
-  margin-top: 1rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #3b82f6;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
+/* Input text colors */
+.account-settings-profile-content input,
+.account-settings-textarea,
+.account-settings-select {
+  color: #ffffff;
+  font-size: 1rem;
 }
 
-.account-settings-manage-subscription-button:hover,
-.account-settings-subscribe-button:hover {
-  background-color: #2563eb;
-}
-
-.account-settings-no-subscription {
-  text-align: center;
-  padding: 2rem;
-  background-color: #f9fafb;
-  border-radius: 4px;
+.account-settings-profile-content input::placeholder,
+.account-settings-textarea::placeholder,
+.account-settings-select::placeholder {
+  color: rgba(255, 255, 255, 0.7);
 }

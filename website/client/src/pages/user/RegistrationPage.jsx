@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import 'styles/AuthPage.css';
+import 'styles/AuthPages.css';
 import {useNavigate} from 'react-router-dom';
 import { useAuth } from 'AuthContext';
 

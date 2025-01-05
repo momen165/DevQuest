@@ -83,7 +83,7 @@ function ChangePassword() {
 
        
 
-            <label htmlFor="current-password">Current Password</label>
+            <label htmlFor="current-password" className="change-password-label">Current Password</label>
             <input
               type="password"
               id="current-password"
@@ -92,7 +92,7 @@ function ChangePassword() {
               required
             />
 
-            <label htmlFor="new-password">New Password</label>
+            <label htmlFor="new-password" className="change-password-label">New Password</label>
             <input
               type="password"
               id="new-password"
@@ -102,7 +102,7 @@ function ChangePassword() {
               minLength={8}
             />
 
-            <label htmlFor="confirm-password">Confirm Password</label>
+            <label htmlFor="confirm-password" className="change-password-label">Confirm Password</label>
             <input
               type="password"
               id="confirm-password"
