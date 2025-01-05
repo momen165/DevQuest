@@ -2,21 +2,22 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Sidebar from 'pages/admin/components/Sidebar';
 import 'pages/admin/styles/FeedbackPage.css';
-import {useAuth} from 'AuthContext';
-import CircularProgress from "@mui/material/CircularProgress"; // Assuming you use an Auth context
+import { useAuth } from 'AuthContext';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const FeedbackPage = () => {
-  const [feedbacks, setFeedbacks] = useState([]); // Feedback data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { user } = useAuth();
   const [reply, setReply] = useState('');
   const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
       try {
-        setLoading(true); // Start loading
+        setLoading(true);
         console.log(user.token);
 
         if (!user.token) {
@@ -26,7 +27,6 @@ const FeedbackPage = () => {
         }
 
         const response = await axios.get('http://localhost:5000/api/feedback', {
-
           headers: { Authorization: `Bearer ${user.token}` },
         });
 
@@ -36,7 +36,7 @@ const FeedbackPage = () => {
         } else {
           setFeedbacks(response.data);
         }
-        setError(null); // Clear any previous error
+        setError(null);
       } catch (err) {
         console.error('Error fetching feedback:', err.message);
         if (err.response?.status === 403) {
@@ -45,7 +45,7 @@ const FeedbackPage = () => {
           setError('Failed to load feedback.');
         }
       } finally {
-        setLoading(false); // Stop loading
+        setLoading(false);
       }
     };
 
@@ -64,17 +64,54 @@ const FeedbackPage = () => {
         headers: { Authorization: `Bearer ${user.token}` },
       });
 
+      setFeedbacks(feedbacks.map(feedback => 
+        feedback.feedback_id === selectedFeedback.feedback_id
+          ? { ...feedback, status: 'closed' }
+          : feedback
+      ));
+
       setReply('');
       setSelectedFeedback(null);
       alert('Reply sent successfully.');
     } catch (err) {
-      console.error('Error sending reply:', err.message);
+      console.error('Error sending reply:', err.response?.data?.error || err.message);
       alert(`Failed to send reply: ${err.response?.data?.error || err.message}`);
     }
   };
 
-  
- 
+  const handleReopen = async (feedbackId) => {
+    try {
+      await axios.post('http://localhost:5000/api/feedback/reopen', 
+        { feedback_id: feedbackId },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+
+      setFeedbacks(feedbacks.map(feedback => 
+        feedback.feedback_id === feedbackId
+          ? { ...feedback, status: 'open' }
+          : feedback
+      ));
+
+      alert('Feedback reopened successfully.');
+    } catch (err) {
+      console.error('Error reopening feedback:', err.message);
+      alert(`Failed to reopen feedback: ${err.response?.data?.error || err.message}`);
+    }
+  };
+
+  const handleStatusSort = () => {
+    const sortedFeedbacks = [...feedbacks].sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.status.localeCompare(b.status);
+      } else {
+        return b.status.localeCompare(a.status);
+      }
+    });
+
+    setFeedbacks(sortedFeedbacks);
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
+
   if (error) return <div className="feedback-error">{error}</div>;
 
   if (loading) {
@@ -93,6 +130,7 @@ const FeedbackPage = () => {
       <Sidebar />
       <div className="feedback-content">
         <h2 className="feedback-title">Feedback</h2>
+
         {feedbacks.length === 0 ? (
           <p>No feedback available at the moment.</p>
         ) : (
@@ -104,7 +142,9 @@ const FeedbackPage = () => {
                 <th>Feedback</th>
                 <th>Rating</th>
                 <th>Course Name</th>
-                <th>Status</th>
+                <th className="sortable" onClick={handleStatusSort}>
+                  Status {sortOrder === 'asc' ? '↑' : '↓'}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -116,7 +156,7 @@ const FeedbackPage = () => {
                   <td>{feedback.feedback}</td>
                   <td>{feedback.rating}</td>
                   <td>{feedback.course_name}</td>
-                  <td>{feedback.status}</td>
+                  <td className={`status ${feedback.status}`}>{feedback.status}</td>
                   <td>
                     {feedback.status === 'open' ? (
                       <button 
@@ -126,7 +166,12 @@ const FeedbackPage = () => {
                         Reply
                       </button>
                     ) : (
-                      <span className="feedback-status-closed">Closed</span>
+                      <button 
+                        className="feedback-btn reopen" 
+                        onClick={() => handleReopen(feedback.feedback_id)}
+                      >
+                        Reopen
+                      </button>
                     )}
                   </td>
                 </tr>
@@ -134,6 +179,7 @@ const FeedbackPage = () => {
             </tbody>
           </table>
         )}
+
         {selectedFeedback && (
           <form onSubmit={handleReplySubmit} className="feedback-form">
             <h3>Reply to Feedback #{selectedFeedback.feedback_id}</h3>

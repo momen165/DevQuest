@@ -33,6 +33,22 @@ const QUERIES = {
     WHERE f.rating >= 4 AND f.comment IS NOT NULL AND f.comment != ''
     ORDER BY f.rating DESC, RANDOM()
     LIMIT 5
+  `,
+  checkUserProgress: `
+    SELECT e.progress, f.feedback_id
+    FROM enrollment e
+    LEFT JOIN feedback f ON f.user_id = e.user_id AND f.course_id = e.course_id
+    WHERE e.user_id = $1 AND e.course_id = $2
+  `,
+  getRecentFeedback: `
+    SELECT f.feedback_id, u.name AS student_name, c.name AS course_name, 
+           f.comment, f.created_at
+    FROM feedback f
+    JOIN users u ON f.user_id = u.user_id
+    JOIN course c ON f.course_id = c.course_id
+    WHERE f.created_at >= NOW() - INTERVAL '48 HOURS'
+    ORDER BY f.created_at DESC
+    LIMIT 5
   `
 };
 
@@ -87,13 +103,47 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
   res.status(200).json(responseData);
 });
 
-// Submit feedback
+// Add this before submitFeedback function
+const checkFeedbackEligibility = async (userId, courseId) => {
+  const { rows } = await db.query(QUERIES.checkUserProgress, [userId, courseId]);
+  
+  if (!rows.length) {
+    throw new AppError('User is not enrolled in this course', 400);
+  }
+
+  const progress = parseFloat(rows[0].progress) || 0;
+  const existingFeedback = rows[0].feedback_id;
+
+  return {
+    canSubmitFeedback: progress >= 30 || (existingFeedback && progress === 100),
+    hasExistingFeedback: !!existingFeedback,
+    progress
+  };
+};
+
+// Modify submitFeedback function
 const submitFeedback = handleAsync(async (req, res) => {
   const { course_id, rating, comment } = req.body;
   
   if (!course_id || !rating || rating < 1 || rating > 5) {
     return res.status(400).json({ 
       error: 'Invalid input. Provide a valid course ID and a rating between 1 and 5.' 
+    });
+  }
+
+  const eligibility = await checkFeedbackEligibility(req.user.userId, course_id);
+
+  if (!eligibility.canSubmitFeedback) {
+    return res.status(403).json({ 
+      error: 'You need to complete at least 30% of the course to submit feedback',
+      progress: eligibility.progress
+    });
+  }
+
+  if (eligibility.hasExistingFeedback && eligibility.progress < 100) {
+    return res.status(403).json({ 
+      error: 'You need to complete the entire course to submit additional feedback',
+      progress: eligibility.progress
     });
   }
 
@@ -120,17 +170,44 @@ const replyToFeedback = handleAsync(async (req, res) => {
 
   await db.query('BEGIN');
   try {
-    const [updateResult, userDetails] = await Promise.all([
-      db.query('UPDATE feedback SET status = $1 WHERE feedback_id = $2 RETURNING *', ['closed', feedback_id]),
-      db.query('SELECT u.email, u.name, f.comment FROM feedback f JOIN users u ON f.user_id = u.user_id WHERE f.feedback_id = $1', [feedback_id])
-    ]);
+    // Get user details and feedback content with a more specific query
+    const userDetails = await db.query(
+      `SELECT u.email, u.name, f.comment, f.rating, c.name as course_name
+       FROM feedback f 
+       JOIN users u ON f.user_id = u.user_id 
+       JOIN course c ON f.course_id = c.course_id
+       WHERE f.feedback_id = $1`,
+      [feedback_id]
+    );
 
-    if (!updateResult.rows.length) {
-      throw new Error('Feedback not found');
+    if (!userDetails.rows.length) {
+      await db.query('ROLLBACK');
+      return res.status(404).json({ error: 'Feedback not found' });
     }
 
-    const { email, name, comment } = userDetails.rows[0];
-    await sendFeedbackReplyEmail(email, name, comment, reply);
+    // Update the feedback status to 'closed'
+    const updateResult = await db.query(
+      'UPDATE feedback SET status = $1 WHERE feedback_id = $2 RETURNING *',
+      ['closed', feedback_id]
+    );
+
+    const { email, name, comment, rating, course_name } = userDetails.rows[0];
+
+    // Send email with all the necessary information
+    try {
+      await sendFeedbackReplyEmail({
+        email,
+        name,
+        comment,
+        rating,
+        courseName: course_name,
+        reply
+      });
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError);
+      // Continue with the transaction even if email fails
+    }
+
     await db.query('COMMIT');
 
     res.status(200).json({ 
@@ -139,7 +216,11 @@ const replyToFeedback = handleAsync(async (req, res) => {
     });
   } catch (error) {
     await db.query('ROLLBACK');
-    throw error;
+    console.error('Error in replyToFeedback:', error);
+    res.status(500).json({ 
+      error: 'Failed to process feedback reply',
+      details: error.message 
+    });
   }
 });
 
@@ -149,11 +230,45 @@ const getPublicFeedback = handleAsync(async (req, res) => {
   res.status(200).json(rows);
 });
 
+// Add this function to get recent feedback
+const getRecentFeedback = handleAsync(async (req, res) => {
+  const { rows } = await db.query(QUERIES.getRecentFeedback);
+  res.status(200).json(rows || []);
+});
+
+const reopenFeedback = handleAsync(async (req, res) => {
+  const { feedback_id } = req.body;
+
+  if (!feedback_id) {
+    return res.status(400).json({ error: 'Feedback ID is required.' });
+  }
+
+  const updateResult = await db.query(
+    'UPDATE feedback SET status = $1 WHERE feedback_id = $2 RETURNING *',
+    ['open', feedback_id]
+  );
+
+  if (!updateResult.rows.length) {
+    return res.status(404).json({ error: 'Feedback not found' });
+  }
+
+  res.status(200).json({ 
+    message: 'Feedback reopened successfully',
+    feedback: updateResult.rows[0]
+  });
+});
+
 module.exports = { 
   getFeedback, 
   submitFeedback, 
   getCoursesWithRatings, 
   replyToFeedback, 
   getPublicFeedback,
+
+  checkFeedbackEligibility,
+  getRecentFeedback,
+  reopenFeedback,
+
   clearCoursesCache
+
 };

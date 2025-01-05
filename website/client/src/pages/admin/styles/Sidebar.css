@@ -1,10 +1,20 @@
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
 .admin-sidebar {
   width: 250px;
   background: linear-gradient(180deg, #16256b, #0f184a);
   color: #ffffff;
   padding: 20px;
-  
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  top: 0;
+  left: 0;
+  z-index: 100;
 }
 
 .admin-sidebar h2 {
@@ -83,6 +93,15 @@
   background: rgba(255, 107, 107, 0.1);
 }
 
+.sidebar-item.back-to-home {
+  margin-top: 330px;
+  color: #ffffff;
+}
+
+.sidebar-item.back-to-home:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Logout confirmation styling */
 .logout-confirmation {
   position: fixed;
@@ -157,4 +176,42 @@
   background-color: #e9ecef;
   transform: translateY(-2px);
 }
-  
+
+/* Add padding to main content to prevent overlap with fixed sidebar */
+.admin-support-container,
+.feedback-layout,
+.admin-courses-container,
+.admin-students-container,
+.admin-payment-container,
+.admin-settings-container,
+.dashboard-container {
+  width: 100%;
+}
+
+/* Add custom scrollbar styling */
+.admin-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Add main content wrapper */
+.admin-main-content {
+  flex: 1;
+  margin-left: 250px; /* Same as sidebar width */
+  padding: 20px;
+  min-height: 100vh;
+  width: calc(100% - 250px); /* Full width minus sidebar */
+  box-sizing: border-box;
+}

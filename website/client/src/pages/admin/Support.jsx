@@ -12,6 +12,7 @@ const Support = () => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
   const [reply, setReply] = useState({}); // State to hold replies for each ticket
+  const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -91,6 +92,19 @@ const Support = () => {
     return <span className="status-open">Open</span>;
   };
 
+  const handleStatusSort = () => {
+    const sortedTickets = [...tickets].sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.status.localeCompare(b.status);
+      } else {
+        return b.status.localeCompare(a.status);
+      }
+    });
+
+    setTickets(sortedTickets);
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
+
     
   if (error) return <div className="admin-support-error">{error}</div>;
 
@@ -119,7 +133,9 @@ const Support = () => {
                 <th>Ticket ID</th>
                 <th>User Email</th>
                 <th>Time Opened</th>
-                <th>Status</th>
+                <th className="sortable" onClick={handleStatusSort}>
+                  Status {sortOrder === 'asc' ? '↑' : '↓'}
+                </th>
                 <th>Auto-close at</th>
                 <th>Messages</th>
                 <th>Actions</th>

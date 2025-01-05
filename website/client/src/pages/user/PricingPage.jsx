@@ -5,6 +5,7 @@ import Navbar from 'components/Navbar';
 import { useAuth } from 'AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
 import SupportForm from 'components/SupportForm';
+import Footer from 'components/Footer';
 import { useNavigate } from 'react-router-dom';
 
 const stripePromise = loadStripe('pk_test_51MEwjHHxgK7P1VPXXJ1r4MdpeelwFLaBX9kslA7Z4O6V5CjE8B20DVkiSmp6XB0HPwKVnYFYacECLxYMZUOO4Fmm00m79WAvXD'); // Replace with your actual publishable key
@@ -125,18 +126,18 @@ const PricingPage = () => {
         ) : (
           <>
             {/* Toggle between Monthly and Yearly Plans */}
-            <div className="toggle-plan">
+            <div className="pricing-plan-toggle-container">
               <button
-                className={`toggle-button ${isMonthly ? 'active' : ''}`}
+                className={`pricing-plan-toggle-btn ${isMonthly ? 'pricing-plan-toggle-btn--active' : ''}`}
                 onClick={() => setIsMonthly(true)}
               >
                 Monthly
               </button>
               <button
-                className={`toggle-button ${!isMonthly ? 'active' : ''}`}
+                className={`pricing-plan-toggle-btn ${!isMonthly ? 'pricing-plan-toggle-btn--active' : ''}`}
                 onClick={() => setIsMonthly(false)}
               >
-                Yearly <span className="save-badge">save 30%</span>
+                Yearly <span className="pricing-plan-save-badge">save 30%</span>
               </button>
             </div>
 
@@ -175,6 +176,8 @@ const PricingPage = () => {
         </div>
       )}
       <SupportForm/>
+      <Footer />
+
     </div>
   );
 };

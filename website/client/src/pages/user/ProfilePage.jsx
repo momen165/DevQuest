@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from 'components/Navbar'; // Adjust the path to your Navbar component
 import styles from 'styles/ProfilePage.module.css';
 import { useAuth } from 'AuthContext';
+import Footer from 'components/Footer'; // Adjust the path to your Footer component
 import defaultProfilePic from "../../assets/images/default-profile-pic.png";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -204,6 +205,8 @@ function ProfilePage() {
             </div>
           </div>
         </div>
+      <Footer />
+
       </div>
     </>
   );
