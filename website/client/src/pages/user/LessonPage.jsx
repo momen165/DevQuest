@@ -13,30 +13,33 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const languageMappings = {
-  71: 'python',
-  63: 'javascript',
-  54: 'cpp',
-  102: 'java',
-  1: 'plaintext',
-  2: 'markdown',
-  3: 'html',
-  4: 'css',
-  5: 'json',
-  101: 'typescript',
-  7: 'xml',
-  8: 'sql',
-  9: 'ruby',
-  60: 'go',
-  11: 'php',
-  12: 'shell',
-  13: 'kotlin',
-  14: 'r',
-  15: 'csharp',
-  16: 'swift',
-  17: 'dart',
+  91: 'java',
+  102: 'javascript',
+  100: 'python',
+  104: 'c',
+  105: 'cpp',
+  95: 'go',
+  78: 'kotlin',
+  96: 'javafx',
+  87: 'fsharp',
   73: 'rust',
-  45: 'assembly',
+  81: 'scala',
+  72: 'ruby',
+  98: 'php',
+  82: 'sql',
+  101: 'typescript',
+  60: 'lua',
+  80: 'r',
+  44: 'executable',
+  85: 'perl',
+  59: 'fortran',
+  86: 'clojure',
+  64: 'bash',
+  88: 'groovy',
+  77: 'cobol'
 };
+
+
 
 const CopyNotification = styled.div`
   background: rgba(0, 0, 0, 0.8);
@@ -165,7 +168,7 @@ const LessonPage = () => {
         const lessonData = lessonResponse.data;
         setLesson(lessonData);
         setLanguageId(lessonData.language_id);
-
+        console.log('Language ID:', lessonData.language_id);
         // Get section data
         const sectionResponse = await api.get(`/sections/${lessonData.section_id}`, {
           headers: {
@@ -216,6 +219,8 @@ const LessonPage = () => {
 
         if (progressResponse.status === 200 && progressResponse.data.submitted_code) {
           setCode(progressResponse.data.submitted_code);
+        } else {
+          setCode(lessonData.template_code || '');
         }
       } catch (_) {
         // Silently handle any errors and redirect to home
@@ -265,6 +270,7 @@ const LessonPage = () => {
                   setConsoleOutput={setConsoleOutput}
                   setIsAnswerCorrect={setIsAnswerCorrect}
                   onCopy={showCopiedNotification}
+                  templateCode={lesson?.template_code}
               />
             </div>
 

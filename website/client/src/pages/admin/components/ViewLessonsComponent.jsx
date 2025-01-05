@@ -34,8 +34,15 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       
       const lessonsWithFormattedContent = response.data.map(lesson => ({
         ...lesson,
-        content: lesson.content || ''
+        content: lesson.content || '',
+        template_code: lesson.template_code || '' // Ensure template_code is loaded as is
       }));
+      
+      // Debug log
+      console.log('Loaded lessons:', lessonsWithFormattedContent.map(lesson => ({
+        ...lesson,
+        template_code_preview: lesson.template_code?.substring(0, 100) // Log first 100 chars of template code
+      })));
       
       setLessons(lessonsWithFormattedContent || []);
     } catch (err) {
@@ -68,13 +75,18 @@ const ViewLessonsComponent = ({ section, onClose }) => {
         }
       };
   
-      // Debug log to check content
-      console.log('Saving lesson content:', lessonData.content);
-      
+      // Prepare the lesson data
       const formattedLessonData = {
         ...lessonData,
-        content: lessonData.content || ''
+        content: lessonData.content || '',
+        template_code: lessonData.template_code || '' // Ensure template_code is passed as is
       };
+  
+      // Debug log
+      console.log('Saving lesson data:', {
+        ...formattedLessonData,
+        template_code_preview: formattedLessonData.template_code.substring(0, 100) // Log first 100 chars
+      });
   
       if (lessonData.lesson_id) {
         // Update existing lesson

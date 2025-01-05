@@ -208,7 +208,7 @@ const AdminCourses = () => {
               {courses.map((course) => (
                 <tr key={course.course_id}>
                   <td>{course.title}</td>
-                  <td>{course.users || '0'}</td>
+                  <td>{course.userscount || '0'}</td>
                   <td>
                     <FaEdit
                       className="icon edit-icon"

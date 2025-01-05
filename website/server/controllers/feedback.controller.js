@@ -1,5 +1,18 @@
 const db = require('../config/database');
 const { sendFeedbackReplyEmail } = require('./auth.controller');
+const NodeCache = require('node-cache');
+
+// Initialize cache with 5 minutes TTL
+const cache = new NodeCache({ stdTTL: 300 });
+
+// Cache key for courses data
+const COURSES_CACHE_KEY = 'courses_with_ratings';
+
+// Function to clear courses cache
+const clearCoursesCache = () => {
+  console.log('🧹 Cache CLEAR: Removing courses data from cache');
+  cache.del(COURSES_CACHE_KEY);
+};
 
 // SQL Queries
 const QUERIES = {
@@ -60,20 +73,34 @@ const getFeedback = handleAsync(async (req, res) => {
 
 // Get courses with ratings and user counts
 const getCoursesWithRatings = handleAsync(async (req, res) => {
+  // Check cache first
+  const cachedData = cache.get(COURSES_CACHE_KEY);
+  if (cachedData) {
+    console.log('🎯 Cache HIT: Returning cached courses data');
+    return res.status(200).json(cachedData);
+  }
+
+  console.log('🔍 Cache MISS: Fetching courses data from database');
   const [courses, ratings, userscount] = await Promise.all([
     db.query('SELECT * FROM course'),
     db.query('SELECT course_id, ROUND(AVG(rating), 2) AS avg_rating FROM feedback GROUP BY course_id'),
     db.query('SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id')
-  ]);
+  ]); 
 
   const ratingsMap = Object.fromEntries(ratings.rows.map(r => [r.course_id, r.avg_rating]));
   const userscountMap = Object.fromEntries(userscount.rows.map(u => [u.course_id, u.userscount]));
 
-  res.status(200).json({ 
+  const responseData = { 
     courses: courses.rows, 
     ratings: ratingsMap, 
     userscount: userscountMap 
-  });
+  };
+
+  // Store in cache
+  cache.set(COURSES_CACHE_KEY, responseData);
+  console.log('💾 Cache SET: Stored fresh courses data in cache');
+
+  res.status(200).json(responseData);
 });
 
 // Add this before submitFeedback function
@@ -237,7 +264,11 @@ module.exports = {
   getCoursesWithRatings, 
   replyToFeedback, 
   getPublicFeedback,
+
   checkFeedbackEligibility,
   getRecentFeedback,
-  reopenFeedback
+  reopenFeedback,
+
+  clearCoursesCache
+
 };
