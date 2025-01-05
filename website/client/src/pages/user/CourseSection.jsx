@@ -58,7 +58,7 @@ const CourseSection = () => {
     useEffect(() => {
         const fetchSubscriptionStatus = async () => {
             try {
-                const response = await api.get('/api/check', {
+                const response = await api.get('/check', {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
                     },
@@ -72,7 +72,7 @@ const CourseSection = () => {
 
         const fetchProfileData = async () => {
             try {
-                const response = await api.get(`/api/students/${user.user_id}`, {
+                const response = await api.get(`/students/${user.user_id}`, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
                     },
@@ -104,10 +104,10 @@ const CourseSection = () => {
                 
 
                 const [sectionsResponse, courseStatsResponse, overallStatsResponse, courseResponse] = await Promise.all([
-                    fetchWithRetry(`/api/sections/course/${courseId}`, config),
-                    fetchWithRetry(`/api/student/courses/${courseId}/stats`, config),
-                    fetchWithRetry(`/api/student/stats/${user.user_id}`, config),
-                    fetchWithRetry(`/api/courses/${courseId}`, config)
+                    fetchWithRetry(`/sections/course/${courseId}`, config),
+                    fetchWithRetry(`/student/courses/${courseId}/stats`, config),
+                    fetchWithRetry(`/student/stats/${user.user_id}`, config),
+                    fetchWithRetry(`/courses/${courseId}`, config)
                 ]);
 
                 
