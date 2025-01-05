@@ -55,8 +55,11 @@ import 'ckeditor5/ckeditor5.css';
 
 import 'styles/CustomEditor.css';
 
-const LICENSE_KEY =
-	'[REDACTED]';
+// const LICENSE_KEY =
+// 	'[REDACTED]';
+	
+	const LICENSE_KEY =
+	'GPL';
 
 
 const DEFAULT_CONFIG = {
