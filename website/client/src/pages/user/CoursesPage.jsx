@@ -10,13 +10,6 @@ import SupportForm from 'components/SupportForm';
 import axios from 'axios';
 import AnimatedLogo from 'components/AnimatedLogo';
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-const isCacheValid = (timestamp) => {
-  if (!timestamp) return false;
-  return (new Date().getTime() - timestamp) < CACHE_DURATION;
-};
-
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
@@ -33,16 +26,6 @@ const CoursesPage = () => {
     const fetchCoursesAndRatings = async () => {
       setLoading(true);
       try {
-        const cachedData = localStorage.getItem('coursesData');
-        const parsedCache = cachedData ? JSON.parse(cachedData) : null;
-        
-        if (parsedCache && isCacheValid(parsedCache.timestamp)) {
-          setCourses(parsedCache.courses);
-          setFilteredCourses(parsedCache.courses);
-          setRatings(parsedCache.ratings);
-          setUserscount(parsedCache.userscount);
-        }
-        
         const [coursesResponse, enrollmentsResponse] = await Promise.all([
           axios.get('/api/getCoursesWithRatings'),
           user?.user_id
@@ -57,20 +40,6 @@ const CoursesPage = () => {
         setRatings(ratings || {});
         setUserscount(userscount || {});
         setEnrollments(enrollmentsResponse.data || {});
-
-        localStorage.setItem('coursesData', JSON.stringify({
-          courses,
-          ratings,
-          userscount,
-          timestamp: new Date().getTime()
-        }));
-        
-        if (user?.user_id) {
-          localStorage.setItem(`enrollments_${user.user_id}`, JSON.stringify({
-            data: enrollmentsResponse.data,
-            timestamp: new Date().getTime()
-          }));
-        }
       } catch (err) {
         console.error('Error:', err);
         setError('Failed to load data');
@@ -84,18 +53,18 @@ const CoursesPage = () => {
 
   useEffect(() => {
     const fetchProgress = async () => {
+      if (!user) return;
+      
       try {
         const response = await axios.get(`/api/students/${user.user_id}`);
-        setProgress(response.data.courses); // Assuming progress data is in courses array
+        setProgress(response.data.courses);
       } catch (err) {
         console.error('Error:', err);
         setError('Failed to load progress data');
       }
     };
   
-    if (user) {
-      fetchProgress();
-    }
+    fetchProgress();
   }, [user]);
   
   const handleFilter = (filter) => {

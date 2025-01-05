@@ -1,5 +1,12 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const db = require('../config/database'); // Adjust path to your DB connection
+const db = require('../config/database'); 
+const NodeCache = require('node-cache');
+
+// Initialize cache with 5 minutes TTL
+const subscriptionCache = new NodeCache({
+  stdTTL: 300, // 5 minutes in seconds
+  checkperiod: 320
+});
 
 // Add a subscription
 const addSubscription = async (req, res) => {
@@ -373,6 +380,15 @@ const checkActiveSubscription = async (req, res) => {
   try {
     const userId = req.user.userId;
     
+    // Check cache first
+    const cacheKey = `subscription_${userId}`;
+    const cachedData = subscriptionCache.get(cacheKey);
+    
+    if (cachedData) {
+      console.log('\x1b[32m%s\x1b[0m', `🎯 Cache HIT for subscription check - User ID: ${userId}`);
+      return res.json(cachedData);
+    }
+    
     const query = `
       SELECT s.*
       FROM subscription s
@@ -385,24 +401,22 @@ const checkActiveSubscription = async (req, res) => {
     `;
 
     const { rows } = await db.query(query, [userId]);
-     // Add this for debugging
 
-    if (rows.length > 0) {
-      res.json({
-        hasActiveSubscription: true,
-        subscription: {
-          subscription_type: rows[0].subscription_type,
-          status: rows[0].status,
-          subscription_end_date: rows[0].subscription_end_date,
-          amount_paid: rows[0].amount_paid
-        }
-      });
-    } else {
-      res.json({
-        hasActiveSubscription: false,
-        subscription: null
-      });
-    }
+    const response = {
+      hasActiveSubscription: rows.length > 0,
+      subscription: rows.length > 0 ? {
+        subscription_type: rows[0].subscription_type,
+        status: rows[0].status,
+        subscription_end_date: rows[0].subscription_end_date,
+        amount_paid: rows[0].amount_paid
+      } : null
+    };
+
+    // Store in cache
+    subscriptionCache.set(cacheKey, response);
+    console.log('\x1b[33m%s\x1b[0m', `💾 Cache MISS - Storing subscription data for User ID: ${userId}`);
+    
+    res.json(response);
   } catch (error) {
     console.error('Error checking subscription:', error);
     res.status(500).json({ error: 'Failed to check subscription status' });
@@ -478,6 +492,6 @@ module.exports = {
   listSubscriptions,
   retrieveSubscription,
   retrieveSubscriptionFromStripe,
-  checkActiveSubscription, // Export the new function
+  checkActiveSubscription,
   checkSubscriptionStatusFromDb,
 };

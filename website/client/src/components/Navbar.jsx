@@ -1,141 +1,169 @@
-import React, { useState, useEffect, useRef } from 'react';
-import 'styles/Navbar.css';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import defaultProfilePic from '../assets/images/default-profile-pic.png';
-import Avatar from '@mui/material/Avatar';
+import Logo from '../assets/icons/Logo.svg';
+import '../styles/Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const location = useLocation();
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen((prevState) => !prevState);
-  };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
+  // Close menus when route changes
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
+    setIsMobileMenuOpen(false);
+    setIsProfileMenuOpen(false);
+  }, [location]);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
+  // Handle body scroll
   useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
     return () => {
       document.body.classList.remove('menu-open');
     };
-  }, []);
-
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-    document.body.classList.remove('menu-open');
-  }, [location]);
+  }, [isMobileMenuOpen]);
 
   const handleLogout = () => {
     logout();
-    window.location.reload();
+    setIsProfileMenuOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <Link className="navbar-logo" to="/">
-          <img src="/newLogo.png" alt="DevQuest Logo" className="navbar-logo-image"/>
+        {/* Logo */}
+        <Link to="/" className="navbar-logo">
+          <img src={Logo} alt="DevQuest Logo" />
         </Link>
 
-        <div className="mobile-menu-icon" onClick={toggleMobileMenu}>
-          <div className={`hamburger ${isMobileMenuOpen ? 'open' : ''}`}>
+        {/* Desktop Navigation */}
+        <div className="navbar-nav">
+          <Link to="/" className="nav-link">
+            Home
+          </Link>
+          <Link to="/CoursesPage" className="nav-link">
+            Courses
+          </Link>
+          <Link to="/pricing" className="nav-link">
+            Pricing
+          </Link>
+        </div>
+
+        {/* Auth Section */}
+        <div className="auth-section">
+          {user ? (
+            <div className="profile-button" onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}>
+              <img 
+                src={user.profileimage || defaultProfilePic} 
+                alt="Profile" 
+                className="profile-avatar"
+              />
+              <div className={`profile-dropdown ${isProfileMenuOpen ? 'active' : ''}`}>
+                <Link to="/ProfilePage" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>
+                  Profile
+                </Link>
+                <Link to="/AccountSettings" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>
+                  Settings
+                </Link>
+                {user.admin && (
+                  <Link to="/dashboard" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>
+                    Dashboard
+                  </Link>
+                )}
+                <button onClick={handleLogout} className="dropdown-item logout">
+                  Logout
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Link to="/LoginPage" className="login-button">
+                Log in
+              </Link>
+              <Link to="/RegistrationPage" className="signup-button">
+                Sign up
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="mobile-menu-button"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          <span className="sr-only">Open main menu</span>
+          <div className={`hamburger ${isMobileMenuOpen ? 'active' : ''}`}>
             <span></span>
             <span></span>
             <span></span>
           </div>
-        </div>
+        </button>
+      </div>
 
-        <div className={`navbar-content ${isMobileMenuOpen ? 'active' : ''}`}>
-          <ul className="navbar-links navbar-left-links">
-            <li className="navbar-item">
-              <Link className="navbar-link" to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
-            </li>
-            <li className="navbar-item">
-              <Link className="navbar-link" to="/CoursesPage" onClick={() => setIsMobileMenuOpen(false)}>Courses</Link>
-            </li>
-          </ul>
+      {/* Mobile Menu */}
+      <div className={`mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
+        <div className="mobile-menu-content">
+          {user && (
+            <div className="mobile-user-info">
+              <img
+                src={user.profileimage || defaultProfilePic}
+                alt="Profile"
+                className="profile-avatar"
+              />
+              <div className="user-details">
+                <div className="user-name">{user.name || 'User'}</div>
+                <div className="user-email">{user.email}</div>
+              </div>
+            </div>
+          )}
 
-          <input type="search" className="navbar-search" placeholder="Search..."/>
+          <Link to="/" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+            Home
+          </Link>
+          <Link to="/CoursesPage" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+            Courses
+          </Link>
+          <Link to="/pricing" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+            Pricing
+          </Link>
 
-          <ul className="navbar-links navbar-right-links">
-            <li className="navbar-item">
-              <Link className="navbar-link" to="/pricing" onClick={() => setIsMobileMenuOpen(false)}>Pricing</Link>
-            </li>
-
-            {user ? (
-              <li className="navbar-item dropdown" ref={dropdownRef}>
-                <Avatar
-                  src={user.profileimage ? user.profileimage : defaultProfilePic}
-                  alt="User Profile"
-                  className="navbar-profile-picture"
-                  onClick={toggleDropdown}
-                />
-                {isDropdownOpen && (
-                  <div className="dropdown-content dropdown-show">
-                    <div className="dropdown-connector"></div>
-                    <button
-                      className={`value ${location.pathname === '/AccountSettings' ? 'active' : ''}`}
-                      onClick={() => window.location.href = '/AccountSettings'}
-                      style={{"--index": 1}}
-                    >
-                      Account Settings
-                    </button>
-                    <button
-                      className={`value ${location.pathname === '/ProfilePage' ? 'active' : ''}`}
-                      onClick={() => window.location.href = '/ProfilePage'}
-                      style={{"--index": 2}}
-                    >
-                      Profile Page
-                    </button>
-                    {user && user.admin && (
-                      <button
-                        className={`value ${location.pathname === '/dashboard' ? 'active' : ''}`}
-                        onClick={() => window.location.href = '/dashboard'}
-                        style={{"--index": 3}}
-                      >
-                        Dashboard
-                      </button>
-                    )}
-                    <button 
-                      onClick={handleLogout} 
-                      className="value logout-button"
-                      style={{"--index": 4}}
-                    >
-                      Log out
-                    </button>
-                  </div>
-                )}
-              </li>
-            ) : (
-              <>
-                <li className="navbar-item">
-                  <Link className="navbar-link" to="/LoginPage" onClick={() => setIsMobileMenuOpen(false)}>Log in</Link>
-                </li>
-                <li className="navbar-item">
-                  <Link className="navbar-link" to="/RegistrationPage" onClick={() => setIsMobileMenuOpen(false)}>Sign up</Link>
-                </li>
-              </>
-            )}
-          </ul>
+          {user ? (
+            <>
+              <div className="mobile-divider" />
+              <Link to="/ProfilePage" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                Profile
+              </Link>
+              <Link to="/AccountSettings" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                Settings
+              </Link>
+              {user.admin && (
+                <Link to="/dashboard" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                  Dashboard
+                </Link>
+              )}
+              <button onClick={handleLogout} className="mobile-logout-button">
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="mobile-divider" />
+              <Link to="/LoginPage" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                Log in
+              </Link>
+              <Link to="/RegistrationPage" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

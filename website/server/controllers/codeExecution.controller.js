@@ -20,7 +20,7 @@ const CONFIG = {
     pollInterval: 2000,
     maxPollTime: 20000,
     maxOutputSize: 1024 * 100, // 100KB output limit
-    timeLimit: 5,  // 5 seconds execution time limit
+    timeLimit: 10,  // 5 seconds execution time limit
     memoryLimit: 512000  // 512MB memory limit
   }
 };
@@ -43,12 +43,25 @@ const helpers = {
     return output
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
-      .replace(/\n+$/, '')
-      .replace(/^\n+/, '');
+      .replace(/\n+$/, '');
   },
 
-  decodeBase64: (str) => str ? Buffer.from(str, 'base64').toString('utf-8') : '',
-  encodeBase64: (str) => str ? Buffer.from(str).toString('base64') : '',
+  decodeBase64: (str) => {
+    if (!str) return '';
+    // First try UTF-8 decode
+    try {
+      return Buffer.from(str, 'base64').toString('utf-8');
+    } catch (e) {
+      // Fallback to binary if UTF-8 fails
+      return Buffer.from(str, 'base64').toString('binary');
+    }
+  },
+
+  encodeBase64: (str) => {
+    if (!str) return '';
+    // Properly handle Unicode characters by using UTF-8 encoding
+    return Buffer.from(str, 'utf-8').toString('base64');
+  },
 
   async executeCode(submission) {
     const headers = {
@@ -203,10 +216,16 @@ const runCode = handleAsync(async (req, res) => {
     const normalizedExpected = helpers.normalizeOutput(expected_output);
     const normalizedActual = helpers.normalizeOutput(result.actual_output);
 
+    // If the normalized versions match but actual doesn't match expected,
+    // use the expected format
+    const finalOutput = normalizedExpected === normalizedActual 
+      ? expected_output  // Use the expected format when test passes
+      : result.actual_output;  // Keep original output when test fails
+
     const testResult = {
       input,
       expected_output,
-      actual_output: result.actual_output,
+      actual_output: finalOutput,
       status: normalizedExpected === normalizedActual ? 'Passed' : 'Failed',
       error: result.error,
       status_description: result.status_description

@@ -204,3 +204,25 @@
     background: #666;
 }
 
+.reset-button {
+  width: 100%;
+  padding: 8px;
+  background-color: #e74c3c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.reset-button:hover {
+  background-color: #c0392b;
+  transform: translateY(-1px);
+}
+
+.reset-button:active {
+  transform: translateY(1px);
+}
+
