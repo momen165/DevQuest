@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { submitTicket, replyToTicket, getTickets, getUserTicketsByUserId, deleteTicket, closeTicket } = require('../controllers/support.controller');
+const { submitTicket, replyToTicket, getTickets, getUserTicketsByUserId, deleteTicket, closeTicket, getRecentTickets } = require('../controllers/support.controller');
 const authenticateToken = require('../middleware/auth');
 
 router.post('/support', authenticateToken, submitTicket);
@@ -9,5 +9,6 @@ router.get('/user-support-tickets', authenticateToken, getUserTicketsByUserId); 
 router.post('/support-tickets/:ticketId/reply', authenticateToken, replyToTicket);
 router.delete('/support-tickets/:ticketId', authenticateToken, deleteTicket); // Route for deleting a support ticket
 router.post('/support-tickets/:ticketId/close', authenticateToken, closeTicket);
+router.get('/support-tickets/recent', authenticateToken, getRecentTickets);
 
 module.exports = router;

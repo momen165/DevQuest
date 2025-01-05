@@ -5,6 +5,7 @@ import FilterTabs from 'components/FilterTabs';
 import Navbar from 'components/Navbar';
 import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
+import Footer from 'components/Footer';
 import SupportForm from 'components/SupportForm';
 import axios from 'axios';
 import AnimatedLogo from 'components/AnimatedLogo';
@@ -217,6 +218,8 @@ const CoursesPage = () => {
           ))}
         </section> 
         <SupportForm/>
+        <Footer />
+
       </div>
   );
 };

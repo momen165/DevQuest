@@ -145,3 +145,28 @@
   height: 100%;
   width: 100%;
 }
+
+.feedback-btn.reopen {
+  background-color: #4a5568;
+}
+
+.feedback-btn.reopen:hover {
+  background-color: #2d3748;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.sortable:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.status {
+  text-transform: capitalize;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}

@@ -219,3 +219,86 @@
 .dashboard-to-homeLink:visited {
   color: #60a5fa;
 }
+
+.dashboard-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.recent-feedback {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feedback-item {
+  padding: 8px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.feedback-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.student-name {
+  font-weight: 600;
+  color: #60a5fa;
+}
+
+.time-ago {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.course-name {
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.recent-tickets {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.ticket-item {
+  padding: 8px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.ticket-status {
+  font-size: 0.875rem;
+  text-transform: capitalize;
+}
+
+.ticket-status.open {
+  color: #4ade80;
+}
+
+.ticket-status.closed {
+  color: #94a3b8;
+}
