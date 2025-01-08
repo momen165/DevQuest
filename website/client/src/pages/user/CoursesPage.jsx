@@ -9,6 +9,7 @@ import Footer from 'components/Footer';
 import SupportForm from 'components/SupportForm';
 import axios from 'axios';
 import AnimatedLogo from 'components/AnimatedLogo';
+const api_url = process.env.REACT_APP_API_URL;
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -23,13 +24,14 @@ const CoursesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+
     const fetchCoursesAndRatings = async () => {
       setLoading(true);
       try {
         const [coursesResponse, enrollmentsResponse] = await Promise.all([
-          axios.get('/api/getCoursesWithRatings'),
+          axios.get(`${api_url}/getCoursesWithRatings`),
           user?.user_id
-              ? axios.get(`/api/students/${user.user_id}/enrollments`)
+              ? axios.get(`${api_url}/students/${user.user_id}/enrollments`)
               : Promise.resolve({}),
         ]);
 
@@ -56,7 +58,7 @@ const CoursesPage = () => {
       if (!user) return;
       
       try {
-        const response = await axios.get(`/api/students/${user.user_id}`);
+        const response = await axios.get(`${api_url}/students/${user.user_id}`);
         setProgress(response.data.courses);
       } catch (err) {
         console.error('Error:', err);

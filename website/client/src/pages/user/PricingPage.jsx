@@ -8,8 +8,9 @@ import SupportForm from 'components/SupportForm';
 import Footer from 'components/Footer';
 import { useNavigate } from 'react-router-dom';
 
-const stripePromise = loadStripe('pk_test_51MEwjHHxgK7P1VPXXJ1r4MdpeelwFLaBX9kslA7Z4O6V5CjE8B20DVkiSmp6XB0HPwKVnYFYacECLxYMZUOO4Fmm00m79WAvXD'); // Replace with your actual publishable key
 
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+const api_url = process.env.REACT_APP_API_URL;
 const PricingPage = () => {
   const [isMonthly, setIsMonthly] = useState(true);
   const [showPopup, setShowPopup] = useState(false);
@@ -30,7 +31,7 @@ const PricingPage = () => {
       
       try {
         setCheckingSubscription(true);
-        const response = await axios.get(`http://localhost:5000/api/check`, {
+        const response = await axios.get(`${api_url}/check`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -68,7 +69,7 @@ const PricingPage = () => {
     setLoading(true);
     try {
       const stripe = await stripePromise;
-      const { data } = await axios.post('http://localhost:5000/api/create-checkout-session', {
+      const { data } = await axios.post(`${api_url}/create-checkout-session`, {
         priceId: isMonthly ? 'price_1QV9vuHxgK7P1VPXGB14mjGT' : 'price_1QVBWXHxgK7P1VPX5pSXWJbG', // Use actual price IDs
       }, {
         headers: {
