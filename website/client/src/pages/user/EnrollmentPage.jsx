@@ -5,6 +5,8 @@ import 'styles/EnrollmentPage.css';
 import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
 
+const api_url = process.env.REACT_APP_API_URL;
+
 const EnrollmentPage = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -23,13 +25,13 @@ const EnrollmentPage = () => {
 
     const fetchCourseData = async () => {
       try {
-        const { data } = await axios.get(`/api/courses/${courseId}`);
+        const { data } = await axios.get(`${api_url}/courses/${courseId}`);
         setCourse(data);
 
         // Check if the user is already enrolled in the course
         if (user.user_id) {
           const { data: enrollmentData } = await axios.get(
-            `/api/courses/${courseId}/enrollments/${user.user_id}`
+            `${api_url}/courses/${courseId}/enrollments/${user.user_id}`
           );
           setIsEnrolled(enrollmentData.isEnrolled);
         }

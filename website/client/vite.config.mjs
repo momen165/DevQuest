@@ -27,6 +27,10 @@ export default defineConfig(({ mode }) => {
 });
 
 function setEnv(mode) {
+    const envPath = resolve(__dirname, '.env');
+  
+    const env1 = loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]);
+  
     Object.assign(process.env, loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]));
     process.env.NODE_ENV ||= mode;
     const { homepage } = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
@@ -41,16 +45,22 @@ function setEnv(mode) {
 function envPlugin() {
     return {
         name: "env-plugin",
+      
         config(_, { mode }) {
-            const env = loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]);
+            const env2 = loadEnv(mode, resolve(__dirname), ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]);
+          
             return {
-                define: Object.fromEntries(Object.entries(env).map(([key, value]) => [
+                define: Object.fromEntries(Object.entries(env2).map(([key, value]) => [
                     `process.env.${key}`,
                     JSON.stringify(value),
                 ])),
+               
             };
+          
         },
+        
     };
+    
 }
 
 // Setup HOST, SSL, PORT

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
 import '../styles/Footer.css';
-import footerLogo from '../assets/icons/footerLogo.svg';
+import footerLogo from '../assets/icons/layer1.svg';
 import { FaLinkedin, FaGithub, FaTwitter, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 
 const Footer = () => {

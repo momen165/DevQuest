@@ -1,100 +1,172 @@
 # DevQuest
 
-DevQuest is a full-stack web application combining a React-based frontend and a Node.js backend. This project is designed for scalability, maintainability, and ease of use.
+## 🎯 Overview
+DevQuest is an interactive learning platform built with React, featuring a modern and responsive user interface designed for an optimal learning experience.
 
-## Table of Contents
-1. Project Structure
-2. Features
-3. Technologies Used
-4. Getting Started
-5. Scripts
-6. Environment Variables
-7. Contributing
-8. License
+## 🎯 Features
 
-## Project Structure
-- client/ — React frontend
-  - src/ — React source code
-  - public/ — Static files
-  - .env — Client-specific environment variables
-- server/ — Node.js backend
-  - src/ — Backend logic
-  - uploads/ — Uploaded files directory
-  - .env — Server-specific environment variables
-- node_modules/ — Shared dependencies
-- package.json — Shared dependencies and scripts for client and server
-- README.md — Project documentation
+### 🎨 User Interface
+- Modern gradient backgrounds
+- Dark/Light theme support
+- Responsive design
+- Interactive code editor
+- Real-time code execution
+- Progress tracking
+- Achievement system
 
-## Features
-### Frontend:
-- React-based SPA (Single Page Application)
-- API integration with Axios for smooth data flow
-- Modular and reusable components
-- Responsive UI design
+### 📚 Course Management
+- Interactive lesson interface
+- Split-view layout
+- Drag-and-drop section reordering
+- Progress tracking
+- Code execution environment
+- Practice exercises
 
-### Backend:
-- REST API built with Node.js and Express
-- Secure JWT-based user authentication
-- PostgreSQL database integration
-- File upload functionality using Multer
+### 🎮 User Experience
+- Intuitive navigation
+- Breadcrumb trails
+- Real-time feedback
+- Profile management
+- Subscription system
+- FAQ support
 
-## Technologies Used
-### Frontend:
-- React
+### 👑 Admin Features
+- Course management
+- User management
+- Content editing
+- Analytics dashboard
+- Maintenance controls
+
+## 🛠️ Tech Stack
+
+### 🏗️ Core
+- React 18
+- Vite
 - React Router DOM
 - Axios
+- Express Validator
+- JWT Authentication
+
+### 🎭 UI Components
+- Material-UI (MUI)
 - React Icons
+- GSAP Animations
+- React Slick
+- React Hot Toast
+- Styled Components
+- Lucide Icons
+- React Circular Progressbar
 
-### Backend:
-- Node.js
-- Express
-- PostgreSQL
-- JWT
-- Multer
+### 💻 Code Editor
+- Monaco Editor
+- CodeMirror
+  - Python support
+  - JavaScript support
+  - Java support
+  - C++ support
+- Highlight.js
 
-## Getting Started
-### Prerequisites:
-- Node.js (v16 or later)
-- npm (v8 or later)
-- PostgreSQL (configured locally or hosted)
+### 🔄 State & Forms
+- JWT with Decode
+- Express Validator
+- Node Cache
+- HTML React Parser
 
-### Installation:
-1. Clone the repository:
-   git clone https://github.com/your-username/DevQuest.git
-   cd DevQuest/website
+### 🎨 Styling
+- Styled Components
+- CSS Modules
+- SVGR for SVG handling
+- TailwindCSS
 
-2. Install dependencies:
-   npm install
+### 🛡️ Security
+- Helmet
+- XSS Protection
+- Express Rate Limit
+- CORS
 
-3. Set up environment variables:
-   - Create a `.env` file in the client directory for frontend configuration.
-   - Create a `.env` file in the server directory for backend configuration.
+### 📦 Additional Features
+- Stripe Integration
+- AWS S3 Integration
+- CKEditor 5
+- Sharp (Image Processing)
+- Drag and Drop (@hello-pangea/dnd)
 
-4. Start the development environment:
-   npm start
+## 📁 Project Structure
+```
+client/
+├── public/
+├── src/
+│   ├── assets/
+│   │   ├── icons/
+│   │   └── images/
+│   ├── components/
+│   ├── hooks/
+│   ├── pages/
+│   │   ├── admin/
+│   │   ├── auth/
+│   │   └── user/
+│   ├── services/
+│   ├── store/
+│   ├── utils/
+│   └── styles/
+└── .env
+```
 
-## Scripts
-- npm start: Starts both the frontend and backend.
-- npm run start:client: Starts the React frontend only.
-- npm run start:server: Starts the Node.js backend only.
-- npm run build: Builds the React app for production.
+## ⚙️ Environment Variables
+```
+VITE_API_URL=
+VITE_GITHUB_CLIENT_ID=
+VITE_STRIPE_PUBLIC_KEY=
+VITE_ENVIRONMENT=
+```
 
-## Environment Variables
-### Client (.env):
-- REACT_APP_API_URL: Base URL for the backend API (e.g., http://localhost:5000).
+## 🚀 Scripts
+```
+npm run dev      # Start development server
+npm run build    # Build for production
 
-### Server (.env):
-- PORT: Port for the backend server (default is 5000).
-- DB_URL: PostgreSQL database connection string.
-- JWT_SECRET: Secret key for JWT authentication.
+```
 
-## Contributing
-Contributions are welcome! Please follow these steps:
-1. Fork the repository.
-2. Create a new branch: git checkout -b feature-name.
-3. Commit your changes: git commit -m "Add a new feature".
-4. Push to the branch: git push origin feature-name.
-5. Open a pull request.
+## 📱 Pages
+- Home
+- Login/Register
+- Course Catalog
+- Course Details
+- Challenge Arena
+- User Dashboard
+- Profile Settings
+- Leaderboard
+- Achievement Gallery
+- Admin Dashboard
+- Subscription Management
 
-## License
-This project is licensed under the MIT License.
+## 🎨 Features Preview
+### 🏠 Home Page
+- Hero section
+- Featured courses
+- Learning paths
+- Success stories
+
+### 💻 Challenge Arena
+- Code editor
+- Real-time output
+- Test cases
+- Hints system
+
+### 📊 Dashboard
+- Progress tracking
+- Recent activities
+- Enrolled courses
+- Achievement badges
+
+### 👤 Profile
+- User statistics
+- Completed challenges
+- Earned certificates
+- Activity history
+
+### 👑 Admin Panel
+- Course management
+- User analytics
+- Content editor
+- System controls
