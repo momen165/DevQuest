@@ -268,3 +268,28 @@
   }
 }
 
+/* Add this to your existing styles */
+.template-button {
+  background: rgba(52, 152, 219, 0.2);
+  border: 1px solid #3498db;
+  color: #3498db;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 10px;
+}
+
+.template-button:hover {
+  background: rgba(52, 152, 219, 0.3);
+  transform: translateY(-1px);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+  align-items: center;
+}
+

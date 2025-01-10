@@ -26,7 +26,7 @@ function Billing() {
   // website/client/src/pages/user/Billing.js
 const fetchSubscriptionDetails = async () => {
   try {
-    const response = await axios.get('http://localhost:5000/api/check', {
+    const response = await axios.get('/api/check', {
       headers: {
         'Authorization': `Bearer ${user.token}`,
       },
