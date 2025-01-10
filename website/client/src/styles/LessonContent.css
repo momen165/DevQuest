@@ -1,35 +1,405 @@
 ﻿.lesson-content {
   color: white;
-  padding: 1rem;
   font-size: 16px;
   line-height: 1.6;
+  font-family: 'Lato', sans-serif;
+}
+.lesson-content p {
+  padding: 0 15px;
+  line-height: 1.6;
+}
+/* Updated heading styles */
+.lesson-content h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 1.5em 0 1em;
+  letter-spacing: -0.02em;
+}
+
+.lesson-content h2 {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  padding: 15px;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.3s ease;
+  background-color: #1a2636;  /* Default background */
+}
+
+.lesson-content h2:hover {
+  background-color: #233043;
+}
+
+.lesson-content h2.solution {
+  background-color: #1a362a;
+}
+
+.lesson-content h2.solution:hover {
+  background-color: #234335;
+}
+
+.lesson-content h2 + div {
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s ease-out;
+  background: #1a1b26;
+  border-top: 1px solid #2d2d2d;
+  opacity: 0;
+  padding: 0 1em;
+}
+
+.lesson-content h2 + div.show {
+  max-height: 500px; /* Adjust based on your content */
+  opacity: 1;
+  padding: 1em;
+}
+
+.lesson-content h2::after {
+  content: '▼';
+  font-size: 0.8em;
+  transition: transform 0.3s ease;
+  margin-left: 10px;
+}
+
+.lesson-content h2:has(+ div.show)::after {
+  transform: rotate(180deg);
 }
 
 .code-block {
   position: relative;
-  background-color: #161925;
-
-  border-radius: 1px;
-  
+  margin: 1em 2em;  /* Maintain margins */
+}
+.lesson-content h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin: 1em 0 0.6em;
 }
 
-.unique-copy-btn {
+/* Info box style */
+.lesson-content p.editor-info-box {
+  --background-size: 30px;
+  --background-color: #e91e63;
+  padding: 20px;
+  border: 1px solid var(--background-color);
+  background: linear-gradient(
+      135deg,
+      var(--background-color) 0%,
+      var(--background-color) var(--background-size),
+      transparent var(--background-size)
+    ),
+    linear-gradient(
+      135deg,
+      transparent calc(100% - var(--background-size)),
+      var(--background-color) calc(100% - var(--background-size)),
+      var(--background-color)
+    );
+  border-radius: 10px;
+  margin: 1.5em 2em;
+  box-shadow: 5px 5px 0 #ffe6ef;
+}
+
+/* Side quote styles */
+.lesson-content blockquote.editor-side-quote {
+  font-family: 'Oswald', sans-serif;
+  font-style: normal;
+  float: right;
+  width: 35%;
+  position: relative;
+  border: 0;
+  overflow: visible;
+  z-index: 1;
+  margin-left: 1em;
+}
+
+.lesson-content blockquote.editor-side-quote::before {
+  content: '"';
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: transparent;
-  border: none;
+  top: -37px;
+  left: -10px;
+  display: block;
+  font-size: 200px;
+  color: #e7e7e7;
+  z-index: -1;
+  line-height: 1;
+}
+
+/* Background styles with updated fonts */
+.lesson-content h1.editor-gray-background,
+.lesson-content h2.editor-gray-background,
+.lesson-content h3.editor-gray-background {
+  background-color: #2d2d2d;
+  padding: 15px;
+  margin: 1em 0;
+  color: white;
+}
+
+.lesson-content h1.editor-blue-background,
+.lesson-content h2.editor-blue-background,
+.lesson-content h3.editor-blue-background {
+  background-color: #1a2636;
+  padding: 15px;
+  margin: 1em 0;
+  color: white;
+}
+
+.lesson-content h1.editor-green-background,
+.lesson-content h2.editor-green-background,
+.lesson-content h3.editor-green-background {
+  background-color: #1a362a;
+  padding: 15px;
+  margin: 1em 0;
+  color: white;
+}
+
+/* Code block styles */
+.lesson-content pre.editor-code {
+  border: 0;
+  margin-left: 2em;
+  margin-right: 2em;
+  border-radius: 10px;
+}
+
+.lesson-content pre.editor-code--dark {
+  background: #272822;
   color: #fff;
+  box-shadow: 5px 5px 0 #0000001f;
+}
+
+.lesson-content pre.editor-code--light {
+  background: #dddfe0;
+  color: #000;
+  box-shadow: 5px 5px 0 #b3b3b3;
+}
+
+/* Text size classes */
+.lesson-content .text-tiny { font-size: 10px; }
+.lesson-content .text-small { font-size: 12px; }
+.lesson-content .text-default { font-size: 16px; }
+.lesson-content .text-big { font-size: 20px; }
+.lesson-content .text-huge { font-size: 24px; }
+
+/* Special styles */
+.lesson-content span.editor-marker {
+  background: yellow;
+}
+
+.lesson-content span.editor-spoiler {
+  background: #000;
+  color: #000;
+}
+
+.lesson-content span.editor-spoiler:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* Copy button styles */
+.copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  --button-bg: #ffffff20;
+  --button-hover-bg: #ffffff40;
+  --button-text-color: #ffffff;
+  --button-hover-text-color: #ffffff;
+  --button-border-radius: 4px;
+  --button-diameter: 32px;
+  --button-outline-width: 1px;
+  --button-outline-color: rgb(141, 141, 141);
+  box-sizing: border-box;
+  width: var(--button-diameter);
+  height: var(--button-diameter);
+  border-radius: var(--button-border-radius);
+  background-color: var(--button-bg);
+  color: var(--button-text-color);
+  border: none;
   cursor: pointer;
-  padding: 0.5rem;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  outline: none;
 }
 
-.unique-copy-btn:hover {
-  opacity: 1;
+/* Rest of your existing CSS styles */
+.tooltip {
+  position: absolute;
+  opacity: 0;
+  visibility: 0;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font: var(--tooltip-font-size) var(--tooltip-font-family);
+  color: var(--tootip-text-color);
+  background: var(--tooltip-bg);
+  padding: var(--tooltip-padding-y) var(--tooltip-padding-x);
+  border-radius: var(--toolptip-border-radius);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-.unique-icon {
-  font-size: 1rem;
+/* Keep the rest of your existing styles */
+/* ... */
+
+/* Adjust icon sizes */
+.copy .clipboard,
+.copy .checkmark {
+  font-size: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.copy .checkmark {
+  display: none;
+}
+
+.copy:focus:not(:focus-visible) .clipboard {
+  display: none;
+}
+
+.copy:focus:not(:focus-visible) .checkmark {
+  display: block;
+}
+
+/* Pre element styling */
+.code-block pre {
+  margin: 0;
+  overflow-x: auto;
+  background: #272822;
+  border-radius: 4px;
+}
+
+/* Code element styling */
+.code-block code {
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  display: block;
+}
+
+/* Hint and Solution containers */
+.hint-container,
+.solution-container {
+  background: #1a1b26;
+  border-radius: 8px;
+  margin: 1em 0;
+  overflow: hidden;
+  border: 1px solid #2d2d2d;
+}
+
+/* Title styling */
+.hint-title,
+.solution-title {
+  padding: 1em;
+  background: #1a2636;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1.1em;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.hint-title:hover,
+.solution-title:hover {
+  background: #233043;
+}
+
+/* Remove default arrow */
+.hint-container summary::-webkit-details-marker,
+.solution-container summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Content styling */
+.hint-content,
+.solution-content {
+  padding: 1em;
+  background: #1a1b26;
+  border-top: 1px solid #2d2d2d;
+}
+
+/* Animation for opening/closing */
+.hint-container[open] .hint-content,
+.solution-container[open] .solution-content {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom arrow indicator */
+.hint-title::after,
+.solution-title::after {
+  content: '▼';
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.hint-container[open] .hint-title::after,
+.solution-container[open] .solution-title::after {
+  transform: rotate(180deg);
+}
+
+/* Debug styles - to make sure elements are visible */
+.lesson-content h2 {
+  border: 1px solid #3498db;  /* Visible border for debugging */
+}
+
+.lesson-content h2 + div {
+  border: 1px solid #2ecc71;  /* Visible border for debugging */
+}
+
+/* Template-specific styles */
+.lesson-template {
+  color: white;
+  font-size: 16px;
+  line-height: 1.6;
+  font-family: 'Lato', sans-serif;
+}
+
+.lesson-template-heading {
+  background-color: #2d2d2d;
+  padding: 15px;
+  margin: 1em 0;
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.lesson-template-text {
+  padding: 0 15px;
+  line-height: 1.6;
+  margin: 1em 0;
+}
+
+.lesson-template-code {
+  border: 0;
+  margin: 1em 2em;
+  border-radius: 10px;
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 15px;
+}
+
+.lesson-template-code--dark {
+  background: #272822;
+  color: #fff;
+  box-shadow: 5px 5px 0 #0000001f;
 }

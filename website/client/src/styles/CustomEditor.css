@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap');
 
 @media print {
 	body {
@@ -217,4 +222,123 @@
 .custom-editor .ck.ck-toolbar .ck-button:focus {
 	box-shadow: none !important;
 	border-color: #2271b1 !important;
+}
+
+.custom-editor .ck-content p.editor-gray-background {
+	background-color: #2d2d2d;
+	padding: 15px;
+	border-radius: 4px;
+	margin: 1em 0;
+	color: white;
+}
+
+.custom-editor .ck-content p.editor-blue-background {
+	background-color: #e8f4ff;
+	padding: 15px;
+	border-radius: 4px;
+	margin: 1em 0;
+}
+
+.custom-editor .ck-content p.editor-green-background {
+	background-color: #e8fff0;
+	padding: 15px;
+	border-radius: 4px;
+	margin: 1em 0;
+}
+
+/* Heading backgrounds */
+.custom-editor .ck-content h1.editor-gray-background,
+.custom-editor .ck-content h2.editor-gray-background,
+.custom-editor .ck-content h3.editor-gray-background,
+.custom-editor .ck-content h4.editor-gray-background,
+.custom-editor .ck-content h5.editor-gray-background,
+.custom-editor .ck-content h6.editor-gray-background {
+	background-color: #2d2d2d;
+	padding: 15px;
+	border-radius: 4px;
+	margin: 1em 0;
+	color: white;
+}
+
+/* List backgrounds */
+.custom-editor .ck-content ul.editor-gray-background,
+.custom-editor .ck-content ol.editor-gray-background {
+	background-color: #2d2d2d;
+	padding: 15px 15px 15px 40px;
+	border-radius: 4px;
+	margin: 1em 0;
+	color: white;
+}
+
+/* Blockquote backgrounds */
+.custom-editor .ck-content blockquote.editor-gray-background {
+	background-color: #2d2d2d;
+	padding: 15px;
+	border-radius: 4px;
+	margin: 1em 0;
+	color: white;
+}
+
+/* Repeat for blue and green backgrounds */
+/* Blue backgrounds */
+.custom-editor .ck-content h1.editor-blue-background,
+.custom-editor .ck-content h2.editor-blue-background,
+.custom-editor .ck-content h3.editor-blue-background,
+.custom-editor .ck-content h4.editor-blue-background,
+.custom-editor .ck-content h5.editor-blue-background,
+.custom-editor .ck-content h6.editor-blue-background,
+.custom-editor .ck-content ul.editor-blue-background,
+.custom-editor .ck-content ol.editor-blue-background,
+.custom-editor .ck-content blockquote.editor-blue-background {
+	background-color: #1a2636;
+	padding: 15px;
+	border-radius: 4px;
+	margin: 1em 0;
+	color: white;
+}
+
+/* Green backgrounds */
+.custom-editor .ck-content h1.editor-green-background,
+.custom-editor .ck-content h2.editor-green-background,
+.custom-editor .ck-content h3.editor-green-background,
+.custom-editor .ck-content h4.editor-green-background,
+.custom-editor .ck-content h5.editor-green-background,
+.custom-editor .ck-content h6.editor-green-background,
+.custom-editor .ck-content ul.editor-green-background,
+.custom-editor .ck-content ol.editor-green-background,
+.custom-editor .ck-content blockquote.editor-green-background {
+	background-color: #1a362a;
+	padding: 15px;
+	border-radius: 4px;
+	margin: 1em 0;
+	color: white;
+}
+
+/* Font styles */
+.custom-editor .ck-content p.editor-font-nunito {
+	font-family: 'Nunito Sans', sans-serif;
+	line-height: 1.6;
+}
+
+.custom-editor .ck-content p.editor-font-inter {
+	font-family: 'Inter', sans-serif;
+	line-height: 1.6;
+}
+
+.custom-editor .ck-content p.editor-font-source {
+	font-family: 'Source Sans Pro', sans-serif;
+	line-height: 1.6;
+}
+
+/* Default font for the editor content */
+.custom-editor .ck-content {
+	font-family: 'Nunito Sans', sans-serif;
+	line-height: 1.6;
+}
+
+/* Make sure font styles work with backgrounds */
+.custom-editor .ck-content p.editor-gray-background,
+.custom-editor .ck-content p.editor-blue-background,
+.custom-editor .ck-content p.editor-green-background {
+	font-family: inherit;  /* This will keep the font when backgrounds are applied */
 }
