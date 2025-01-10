@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaCheck, FaBars } from 'react-icons/fa';
 import 'styles/LessonNavigation.css';
 import axios from "axios";
+import { useAuth } from 'AuthContext';
+
+// Create axios instance with default config
+
 
 const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, code, currentSectionId, sections, lessonXp }) => {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isCompleted, setIsCompleted] = useState(false);
     const [showMessage, setShowMessage] = useState(false);
     const [messageType, setMessageType] = useState('');
     const [messageText, setMessageText] = useState('');
+    const [menuSections, setMenuSections] = useState([]);
+    const [courseName, setCourseName] = useState('');
+    const [courseId, setCourseId] = useState(null);
+    const [openSectionId, setOpenSectionId] = useState(currentSectionId);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchLessonProgress = async () => {
@@ -35,30 +47,72 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
         fetchLessonProgress();
     }, [currentLessonId]);
 
-    // Group lessons by section and sort them
-    const lessonsBySection = lessons.reduce((acc, lesson) => {
-        if (!acc[lesson.section_id]) {
-            acc[lesson.section_id] = [];
-        }
-        acc[lesson.section_id].push(lesson);
-        return acc;
-    }, {});
+    // Add new effect to fetch menu data
+    useEffect(() => {
+        const fetchMenuData = async () => {
+            if (!currentSectionId || !user?.token) return;
+            
+            setLoading(true);
+            try {
+                // First get the course ID from the current section
+                const sectionResponse = await axios.get(`http://localhost:5000/api/sections/${currentSectionId}`, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    }
+                });
 
-    // Sort lessons within each section by lesson_order
-    Object.values(lessonsBySection).forEach(sectionLessons => {
-        sectionLessons.sort((a, b) => a.lesson_order - b.lesson_order);
-    });
+                if (sectionResponse.status === 200 && sectionResponse.data) {
+                    const courseId = sectionResponse.data.course_id;
+                    setCourseId(courseId);
 
-    // Sort sections by section_order
-    const sortedSections = sections?.sort((a, b) => a.section_order - b.section_order);
-    
-    // Get current section's lessons
-    const currentSectionLessons = lessonsBySection[currentSectionId] || [];
-    const lessonIndexInSection = currentSectionLessons.findIndex(lesson => lesson.lesson_id === currentLessonId);
+                    // Get course details for the name
+                    const courseResponse = await axios.get(`http://localhost:5000/api/courses/${courseId}`, {
+                        headers: {
+                            Authorization: `Bearer ${user.token}`,
+                        }
+                    });
 
-    // Get current section index
-    const currentSectionIndex = sortedSections?.findIndex(section => section.section_id === currentSectionId);
+                    if (courseResponse.status === 200) {
+                        setCourseName(courseResponse.data.title);
+                    }
 
+                    // Then get all sections for this course with their lessons
+                    const sectionsResponse = await axios.get(`http://localhost:5000/api/sections/course/${courseId}`, {
+                        headers: {
+                            Authorization: `Bearer ${user.token}`,
+                        }
+                    });
+
+                    if (sectionsResponse.status === 200) {
+                        setMenuSections(sectionsResponse.data || []);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching menu data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMenuData();
+    }, [currentSectionId, user]);
+
+    // Group lessons by section
+    const organizedSections = sections?.map(section => ({
+        ...section,
+        lessons: lessons.filter(lesson => lesson.section_id === section.id)
+            .sort((a, b) => a.lesson_order - b.lesson_order)
+    })).sort((a, b) => a.section_order - b.section_order);
+
+    // Calculate current section and lesson indices
+    const currentSectionIndex = organizedSections?.findIndex(section => section.id === currentSectionId) || 0;
+    const currentSection = organizedSections?.[currentSectionIndex];
+    const currentSectionLessons = currentSection?.lessons || [];
+    const lessonIndexInSection = currentSectionLessons.findIndex(lesson => lesson.id === currentLessonId);
+
+    const navigateToLesson = (sectionId, lessonId) => {
+        navigate(`/lesson/${lessonId}`);
+    };
 
     const goToPreviousLesson = () => {
         if (lessonIndexInSection > 0) {
@@ -84,9 +138,9 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
             // Go to next lesson in current section
             onNext();
             navigate(`/lesson/${currentSectionLessons[lessonIndexInSection + 1].lesson_id}`);
-        } else if (currentSectionIndex < sortedSections.length - 1) {
+        } else if (currentSectionIndex < organizedSections?.length - 1) {
             // Go to first lesson of next section
-            const nextSection = sortedSections[currentSectionIndex + 1];
+            const nextSection = organizedSections[currentSectionIndex + 1];
             const nextSectionLessons = lessonsBySection[nextSection.section_id] || [];
             
             if (nextSectionLessons.length === 0) {
@@ -149,40 +203,102 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
         }
     };
 
+    // Add this log to check the IDs
+    useEffect(() => {
+        console.log('Current section ID:', currentSectionId);
+        console.log('Open section ID:', openSectionId);
+        console.log('Menu sections:', menuSections);
+    }, [currentSectionId, openSectionId, menuSections]);
+
+    const toggleSection = (sectionId) => {
+        console.log('Toggling section:', sectionId);
+        console.log('Current openSectionId:', openSectionId);
+        setOpenSectionId(prevId => sectionId === prevId ? null : sectionId);
+    };
+
     return (
         <>
+            <div className={`lesson-nav-menu ${isMenuOpen ? 'open' : ''}`}>
+                {/* Course Header */}
+                <div className="lesson-nav-course-header" onClick={() => navigate(`/course/${courseId}`)}>
+                    <h2>{courseName}</h2>
+                </div>
+
+                {/* Sections */}
+                {menuSections.map((section) => (
+                    <div key={section.section_id} className="lesson-nav-section">
+                        <div 
+                            className="lesson-nav-section-title"
+                            onClick={() => toggleSection(section.section_id)}
+                            style={{ 
+                                cursor: 'pointer',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '10px'
+                            }}
+                        >
+                            <span>{section.name}</span>
+                            <span className={`arrow ${openSectionId === section.section_id ? 'open' : ''}`}>▼</span>
+                        </div>
+                        <div 
+                            className={`lesson-nav-section-content ${openSectionId === section.section_id ? 'open' : ''}`}
+                            style={{
+                                maxHeight: openSectionId === section.section_id ? '500px' : '0',
+                                overflow: 'hidden',
+                                transition: 'max-height 0.3s ease-in-out'
+                            }}
+                        >
+                            {section.lessons?.map((lesson) => (
+                                <div
+                                    key={lesson.lesson_id}
+                                    className={`lesson-nav-item ${lesson.lesson_id === currentLessonId ? 'active' : ''}`}
+                                    onClick={() => navigate(`/lesson/${lesson.lesson_id}`)}
+                                >
+                                    {lesson.name}
+                                    {lesson.completed && <FaCheck className="completion-icon" />}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
             {showMessage && (
                 <div className={`floating-message ${messageType}`}>
-                    <div className="message-content">
-                        {messageText}
-                   
-                    </div>
+                    <div className="message-content">{messageText}</div>
                 </div>
             )}
+            
             <div className="lesson-navigation">
-                <button
-                    className="nav-button prev-button"
-                    onClick={goToPreviousLesson}
-                    disabled={currentSectionIndex === 0 && lessonIndexInSection === 0}
-                >
-                    Prev
+                <button className="lesson-menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                    <FaBars />
                 </button>
-                <button
-                    className="nav-button complete-button"
-                    onClick={completeLesson}
-                    disabled={!isAnswerCorrect || isCompleted}
-                >
-                    Complete
-                </button>
-                {(lessonIndexInSection < currentSectionLessons.length - 1 || currentSectionIndex < sortedSections.length - 1) && (
+                <div className="nav-buttons-wrapper">
                     <button
-                        className="nav-button next-button"
-                        onClick={goToNextLesson}
-                        disabled={!isCompleted}
+                        className="nav-button prev-button"
+                        onClick={goToPreviousLesson}
+                        disabled={currentSectionIndex === 0 && lessonIndexInSection === 0}
                     >
-                        Next
+                        Prev
                     </button>
-                )}
+                    <button
+                        className="nav-button complete-button"
+                        onClick={completeLesson}
+                        disabled={!isAnswerCorrect || isCompleted}
+                    >
+                        Complete
+                    </button>
+                    {(lessonIndexInSection < currentSectionLessons.length - 1 || currentSectionIndex < organizedSections?.length - 1) && (
+                        <button
+                            className="nav-button next-button"
+                            onClick={goToNextLesson}
+                            disabled={!isCompleted}
+                        >
+                            Next
+                        </button>
+                    )}
+                </div>
             </div>
         </>
     );

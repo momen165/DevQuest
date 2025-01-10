@@ -25,9 +25,72 @@ const languageMappings = {
   61: 'haskell',     // Haskell (GHC 8.8.1)
 };
 
+const DEFAULT_LESSON_TEMPLATE = `<div class="lesson-template">
+  <h1 class="lesson-template-heading">Exercise</h1>
+
+  <div class="lesson-template-text">
+    [Brief explanation of the concept or feature being taught...]
+  </div>
+
+  <pre class="lesson-template-code lesson-template-code--dark">
+// Example code demonstrating the concept
+for (let i = 0; i < 5; i++) {
+  if (i == 1) {
+    continue;
+  }
+  console.log(i);
+}
+  </pre>
+
+  <div class="lesson-template-text">
+    The code above will output:
+  </div>
+
+  <pre class="lesson-template-code lesson-template-code--dark">
+0
+2
+3
+4
+  </pre>
+
+  <div class="lesson-template-text">
+    [Additional explanation if needed...]
+  </div>
+
+  <h1 class="lesson-template-heading">Instructions</h1>
+  <div class="lesson-template-text">
+    1. [First step]<br>
+    2. [Second step]<br>
+    3. [Third step]<br>
+  </div>
+
+  <div class="lesson-template-text">
+    The output should look like this:
+  </div>
+
+  <pre class="lesson-template-code lesson-template-code--dark">
+// Expected output
+2
+4
+6
+...
+42
+  </pre>
+
+  <h1 class="lesson-template-heading">Help</h1>
+  <div class="lesson-template-text">
+    Need help? Use the hint and solution buttons below to guide you through this exercise.
+  </div>
+</div>`;
+
 const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDelete }) => {
   const [lessonName, setLessonName] = useState(lesson?.name || '');
-  const [editorData, setEditorData] = useState(lesson?.content || '');
+  const [editorData, setEditorData] = useState(() => {
+    if (lesson?.content) {
+      return lesson.content;
+    }
+    return DEFAULT_LESSON_TEMPLATE;
+  });
   const [xp, setXp] = useState(lesson?.xp || 0);
   const [error, setError] = useState('');
   const { user } = useAuth(); // Get user from context
@@ -69,7 +132,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
 
         // First get section data to get course_id
         console.log('Fetching section data:', section);
-        const sectionResponse = await axios.get(`/api/sections/${section.section_id}`, {
+        const sectionResponse = await axios.get(`http://localhost:5000/api/sections/${section.section_id}`, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
 
@@ -80,7 +143,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
 
         // Then get course data to get language_id
         console.log('Fetching course data for course_id:', sectionResponse.data.course_id);
-        const courseResponse = await axios.get(`/api/courses/${sectionResponse.data.course_id}`, {
+        const courseResponse = await axios.get(`http://localhost:5000/api/courses/${sectionResponse.data.course_id}`, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         
@@ -93,8 +156,14 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
           console.error('No language_id found in course data:', courseResponse.data);
         }
       } catch (err) {
-        console.error('Error fetching course language:', err);
-        setError('Failed to fetch course language');
+        if (err.response?.status === 403) {
+          // Token expired, try to refresh or redirect to login
+          console.error('Token expired, please log in again');
+          // You might want to trigger a logout or token refresh here
+        } else {
+          console.error('Error fetching course language:', err);
+          setError('Failed to fetch course language');
+        }
       }
     };
 
@@ -111,6 +180,8 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
       setLessonName(lesson.name || '');
       setEditorData(lesson.content || '');
       setXp(lesson.xp || 0);
+      setHint(lesson.hint || '');
+      setSolution(lesson.solution || '');
       
       // Ensure template code is treated as raw text
       const rawTemplateCode = lesson.template_code || '';
@@ -197,7 +268,9 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         section_id: section.section_id,
         xp: parseInt(xp) || 0,
         test_cases: formattedTestCases,
-        template_code: templateCode // Use raw template code directly
+        template_code: templateCode ,
+        hint,        // Add hint
+        solution  // Use raw template code directly
       };
 
       if (lesson?.lesson_id) {
@@ -207,8 +280,9 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
       console.log('Saving lesson with raw template code:', lessonData.template_code);
       await onSave(lessonData);
       setError('');
-    } catch (err) {
-      setError(err.message || 'Failed to save lesson');
+    } catch (error) {
+      console.error('Error saving lesson:', error);
+      setError(error.message);
     } finally {
       setIsSaving(false);
     }
@@ -245,6 +319,9 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     const updatedTestCases = test_cases.filter((_, i) => i !== index);
     setTestCases(updatedTestCases);
   };
+
+  const [hint, setHint] = useState(lesson?.hint || '');
+  const [solution, setSolution] = useState(lesson?.solution || '');
 
   return (
     <div className={`lesson-edit-add-container ${isSaving ? 'loading' : ''}`}>
@@ -342,6 +419,26 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
               <span> (Language: {languageMappings[languageId]})</span>
             )}
           </small>
+        </div>
+
+        <div className="form-group">
+          <label className="edit-add-label">🏆 Hint</label>
+          <div className="editor-container">
+            <CustomEditor
+              initialData={hint}
+              onChange={setHint}
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label className="edit-add-label">✨ Solution</label>
+          <div className="editor-container">
+            <CustomEditor
+              initialData={solution}
+              onChange={setSolution}
+            />
+          </div>
         </div>
 
         <div className="form-actions">
