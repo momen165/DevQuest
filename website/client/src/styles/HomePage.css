@@ -30,8 +30,9 @@
 }
 
 .hero-content {
-    display: flex;
-    flex-direction: column;
+    flex: 1;
+   
+    max-width: 50%;
     margin-left: 30px;
     max-width: 50%;
     color: white;
