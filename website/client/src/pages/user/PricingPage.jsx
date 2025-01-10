@@ -30,7 +30,7 @@ const PricingPage = () => {
       
       try {
         setCheckingSubscription(true);
-        const response = await axios.get(`http://localhost:5000/api/check`, {
+        const response = await axios.get(`/api/check`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },

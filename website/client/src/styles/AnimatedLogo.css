@@ -155,7 +155,6 @@
 
 .animated-logo-card:hover {
   border-radius: 0;
-  transform: scale(0.98);
 }
 
 .animated-logo-card:hover .animated-logo {

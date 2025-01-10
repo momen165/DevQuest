@@ -14,13 +14,13 @@ const lessonQueries = {
   },
 
   // Insert a new lesson
-  insertLesson: async (section_id, name, content, xp, test_cases, lesson_order, template_code) => {
+  insertLesson: async (section_id, name, content, xp, test_cases, lesson_order, template_code, hint, solution) => {
     const query = `
-      INSERT INTO lesson (section_id, name, content, xp, test_cases, lesson_order, template_code)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO lesson (section_id, name, content, xp, test_cases, lesson_order, template_code, hint, solution)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *;
     `;
-    const values = [section_id, name, content, xp || 0, JSON.stringify(test_cases || []), lesson_order, template_code || ''];
+    const values = [section_id, name, content, xp || 0, JSON.stringify(test_cases || []), lesson_order, template_code || '', hint || '', solution || ''];
     return db.query(query, values);
   },
 
@@ -48,7 +48,9 @@ const lessonQueries = {
       SELECT 
         lesson.*, 
         COALESCE(lesson.test_cases::json, '[{"input": "", "expected_output": ""}]'::json) as test_cases,
-        course.language_id
+        course.language_id,
+        lesson.hint,
+        lesson.solution
       FROM lesson
       JOIN section ON lesson.section_id = section.section_id
       JOIN course ON section.course_id = course.course_id
@@ -58,7 +60,7 @@ const lessonQueries = {
   },
 
   // Update lesson
-  updateLesson: async (lesson_id, name, content, xp, test_cases, section_id, template_code) => {
+  updateLesson: async (lesson_id, name, content, xp, test_cases, section_id, template_code, hint, solution) => {
     const query = `
       UPDATE lesson
       SET name = $1,
@@ -66,11 +68,13 @@ const lessonQueries = {
           xp = $3,
           test_cases = $4,
           section_id = $5,
-          template_code = $6
-      WHERE lesson_id = $7
+          template_code = $6,
+          hint = $7,
+          solution = $8
+      WHERE lesson_id = $9
       RETURNING *;
     `;
-    const values = [name, content, xp || 0, JSON.stringify(test_cases || []), section_id, template_code || '', lesson_id];
+    const values = [name, content, xp || 0, JSON.stringify(test_cases || []), section_id, template_code || '', hint || '', solution || '', lesson_id];
     return db.query(query, values);
   },
 
