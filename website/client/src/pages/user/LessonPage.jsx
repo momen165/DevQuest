@@ -255,7 +255,11 @@ const LessonPage = () => {
         <div className="lesson-page">
         <div className="lesson-instructions">
           <h1>{lesson.name}</h1>
-          <LessonContent content={lesson.content}/>
+          <LessonContent 
+            content={lesson.content}
+            hint={lesson.hint}
+            solution={lesson.solution}
+          />
         </div>
 
           <div className="lesson-code-area">
@@ -275,8 +279,9 @@ const LessonPage = () => {
             </div>
 
             <div className="console">
-              <h3>Console</h3>
-              <pre id="console-output" className="console-output">
+              <div className="console-header">
+              <h3>Console</h3></div>
+              <pre className="console-output">
               {consoleOutput}
             </pre>
             </div>

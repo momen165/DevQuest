@@ -3,14 +3,14 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .editor-controls {
   position: absolute;
-  bottom: 0px;
+  bottom: 5px;
   left: 15px;
   display: flex;
   gap: 2px;
@@ -177,7 +177,7 @@
     white-space: pre;
     word-wrap: normal;
     font-family: 'Consolas', 'Monaco', monospace;
-    padding: 1.5rem;
+    padding: 10px 8px;
     line-height: 1.2;
     background-color: #1e1e1e;
     color: #d4d4d4;
