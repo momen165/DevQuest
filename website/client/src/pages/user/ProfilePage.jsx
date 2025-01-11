@@ -18,20 +18,15 @@ function ProfilePage() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await axios.get(`/api/students/${user.user_id}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
+        const profileResponse = await axios.get(`/api/students/${user.user_id}`, {
+          headers: { Authorization: `Bearer ${user.token}` },
         });
 
-        console.log('Profile Data:', response.data); // Debug log
-        console.log('Courses:', response.data.courses); // Debug log
-        console.log('Completed Courses:', response.data.courses?.filter(c => c.progress >= 100)); // Debug log
-        setProfileData(response.data);
+        setProfileData(profileResponse.data);
         setLoading(false);
       } catch (err) {
         console.error('Error:', err);
-        setError(err.response?.data?.error || err.message || 'Failed to load profile data');
+        setError(err.response?.data?.error || 'Failed to load profile data');
         setLoading(false);
       }
     };
@@ -55,159 +50,171 @@ function ProfilePage() {
       <div className={styles.profilePage}>
         <div className={styles.profilePageContainer}>
           <div className={styles.profileContentContainer}>
-            {/* Left Column: Profile Info and Status */}
-            <div className={styles.leftColumn}>
-              <div className={styles.profileHeader}>
-                <img src={user.profileimage ? `${user.profileimage}?${new Date().getTime()}` : defaultProfilePic}
-                     alt="Profile Avatar"
-                     className={styles.profileAvatar}/>
-                <h2 className={styles.profileName}>{user.name}</h2>
-                <p className={styles.bioTitle}>Bio</p>
-                <div className={styles.bioText}>
-                  {profileData.bio || 'No bio available'}
-                </div>
+            {/* Profile Header */}
+            <div className={styles.profileHeader}>
+              <img 
+                src={profileData?.profileimage || defaultProfilePic} 
+                alt="Profile" 
+                className={styles.profileAvatar}
+              />
+              <h2 className={styles.profileName}>{profileData?.name}</h2>
+              <p className={styles.bioTitle}>Bio</p>
+              <div className={styles.bioText}>
+                {profileData?.bio || 'No bio available'}
               </div>
-
-              {/* Status Section */}
-              <div className={styles.statusSection}>
-                <h3 className={styles.statusTitle}>My Status</h3>
-                <div className={styles.statusCards}>
-                  {/* Level Card */}
-                  <div className={`${styles.statusCard} ${styles.levelCard}`}>
-                    <div className={styles.firstContent}>
-                      <p className={styles.statusNumber}>{calculateLevel(profileData.courseXP) || 0}</p>
-                      <p>Level</p>
-                      <div className={styles.xpProgress}>
-                        <div className={styles.xpProgressBar}>
-                          <div 
-                            className={styles.xpProgressFill} 
-                            style={{
-                              width: `${(profileData.courseXP % 1000) / 10}%`
-                            }}
-                          />
-                        </div>
-                        <p className={styles.xpProgressText}>
-                          {1000 - (profileData.courseXP % 1000)} XP to next level
-                        </p>
-                      </div>
-                    </div>
-                    <div className={styles.secondContent}>
-                      <p>Keep learning and gain levels</p>
-                    </div>
-                  </div>
-
-                  {/* Other Stats Grid */}
-                  <div className={styles.statsGrid}>
-                    <div className={`${styles.statusCard} ${styles.xpCard}`}>
-                      <div className={styles.firstContent}>
-                        <p className={styles.statusNumber}>{profileData.courseXP || 0}+</p>
-                        <p>Course XP</p>
-                      </div>
-                      <div className={styles.secondContent}>
-                        <p>Total Experience Points Earned</p>
-                      </div>
-                    </div>
-                    
-                    <div className={styles.statusCard}>
-                      <div className={styles.firstContent}>
-                        <p className={styles.statusNumber}>{profileData.exercisesCompleted || 0}</p>
-                        <p>Exercises</p>
-                      </div>
-                      <div className={styles.secondContent}>
-                        <p>Completed Exercises</p>
-                      </div>
-                    </div>
-                    
-                    <div className={styles.statusCard}>
-                      <div className={styles.firstContent}>
-                        <p className={styles.statusNumber}>{profileData.streak || 0}</p>
-                        <p>Streak</p>
-                      </div>
-                      <div className={styles.secondContent}>
-                        <p>Days in a Row</p>
-                      </div>
-                    </div>
-                    
-                    <div className={styles.statusCard}>
-                      <div className={styles.firstContent}>
-                        <p className={styles.statusNumber}>{profileData.completedCourses || 0}</p>
-                        <p>Courses</p>
-                      </div>
-                      <div className={styles.secondContent}>
-                        <p>Finished Courses</p>
-                      </div>
-                    </div>
-                  </div>
+              <div className={styles.skillsSection}>
+                <h3 className={styles.sectionTitle}>My Skills</h3>
+                <div className={styles.skillsList}>
+                  {profileData?.skills?.map((skill, index) => (
+                    <span key={index} className={styles.skillTag}>
+                      {skill}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
 
+            {/* Main Content */}
+            <div className={styles.mainContent}>
+              {/* Left Column - Courses */}
+              <div className={styles.leftColumn}>
+                {profileData?.courses?.map((course) => (
+                  <div key={course.course_id} className={styles.courseCardprofile}>
+                    <div className={styles.leftsectionCourseCard}>
+                      <p className={styles.courseProgcardtext}>COURSE</p>
+                      <h1 className={styles.courseProgCardTitle}>{course.course_name}</h1>
+                      <h4 className={styles.ViewProgCardLessons}>
+                        {course.progress >= 100 
+                          ? 'Course Completed!' 
+                          : course.last_lesson 
+                            ? `Continue Lesson ${course.last_lesson.name}` 
+                            : 'Start Course'} 
+                        <i className="fa-solid fa-chevron-right" />
+                      </h4>
+                    </div>
+                    <div className={styles.rightProgCardSection}>
+                      <div className={styles.progressBarheader}>
+                        <h1 className={styles.sectionNameProgCard}>
+                          {course.progress >= 100 
+                            ? 'Completed' 
+                            : course.last_lesson 
+                              ? course.last_lesson.section_name 
+                              : 'Get Started'}
+                        </h1>
+                        <div className={styles.progressbarcontainer}>
+                          <div className={styles.progressbarbackground}>
+                            <div 
+                              className={`${styles.progressbarfill} ${course.progress >= 100 ? styles.completed : ''}`} 
+                              style={{width: `${course.progress}%`}}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <h1 className={styles.lessontitleProgCard}>
+                        {course.progress >= 100 
+                          ? 'Congratulations on completing this course!' 
+                          : course.last_lesson 
+                            ? course.last_lesson.name 
+                            : 'Begin Your Journey'}
+                      </h1>
+                      <input 
+                        type="button" 
+                        value={course.progress >= 100 ? "Review Course" : "Continue"} 
+                        className={`${styles.continuebuttonProgCard} ${course.progress >= 100 ? styles.reviewButton : ''}`}
+                        onClick={() => navigate(course.last_lesson ? 
+                          `/lesson/${course.last_lesson.lesson_id}` : 
+                          `/course/${course.course_id}`)} 
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-            {/* Right Column: Courses */}
-            <div className={styles.rightColumn}>
-              <h3 className={styles.coursesTitle}>My Courses</h3>
-               
+              {/* Right Column - Stats and Achievements */}
+              <div className={styles.rightColumn}>
+                <div className={styles.statusSection}>
+                  <h3 className={styles.statusTitle}>My Status</h3>
+                  <div className={styles.statusCards}>
+                    {/* Level Card */}
+                    <div className={`${styles.statusCard} ${styles.levelCard}`}>
+                      <div className={styles.firstContent}>
+                        <p className={styles.statusNumber}>{calculateLevel(profileData.courseXP) || 0}</p>
+                        <p>Level</p>
+                        <div className={styles.xpProgress}>
+                          <div className={styles.xpProgressBar}>
+                            <div 
+                              className={styles.xpProgressFill} 
+                              style={{
+                                width: `${(profileData.courseXP % 1000) / 10}%`
+                              }}
+                            />
+                          </div>
+                          <p className={styles.xpProgressText}>
+                            {1000 - (profileData.courseXP % 1000)} XP to next level
+                          </p>
+                        </div>
+                      </div>
+                      <div className={styles.secondContent}>
+                        <p>Keep learning and gain levels</p>
+                      </div>
+                    </div>
 
-                        {profileData && profileData.courses && profileData.courses.length > 0 ? (
-                          profileData.courses.map(course => (
-                            <div key={course.course_id} className={styles.courseCardprofile} data-completed={course.progress >= 100}>
-                              <div className={styles.leftsectionCourseCard}>
-                                <p className={styles.courseProgcardtext}>COURSE</p>
-                                <h1 className={styles.courseProgCardTitle}>{course.course_name}</h1>
-                                <h4 className={styles.ViewProgCardLessons}>
-                                  {course.progress >= 100 
-                                    ? 'Course Completed!' 
-                                    : course.last_lesson 
-                                      ? `Continue Lesson ${course.last_lesson.name}` 
-                                      : 'Start Course'} 
-                                  <i className="fa-solid fa-chevron-right" />
-                                </h4>
-                              </div>
-                              <div className={styles.rightProgCardSection}>
-                                <div className={styles.progressBarheader}>
-                                  <h1 className={styles.sectionNameProgCard}>
-                                    {course.progress >= 100 
-                                      ? 'Completed' 
-                                      : course.last_lesson 
-                                        ? course.last_lesson.section_name 
-                                        : 'Get Started'}
-                                  </h1>
-                                  <div className={styles.progressbarcontainer}>
-                                    <div className={styles.progressbarbackground}>
-                                      <div 
-                                        className={`${styles.progressbarfill} ${course.progress >= 100 ? styles.completed : ''}`} 
-                                        style={{width: `${course.progress}%`}}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                <h1 className={styles.lessontitleProgCard}>
-                                  {course.progress >= 100 
-                                    ? 'Congratulations on completing this course!' 
-                                    : course.last_lesson 
-                                      ? course.last_lesson.name 
-                                      : 'Begin Your Journey'}
-                                </h1>
-                                <input 
-                                  type="button" 
-                                  value={course.progress >= 100 ? "Review Course" : "Continue"} 
-                                  className={`${styles.continuebuttonProgCard} ${course.progress >= 100 ? styles.reviewButton : ''}`}
-                                  onClick={() => navigate(course.last_lesson ? 
-                                    `/lesson/${course.last_lesson.lesson_id}` : 
-                                    `/course/${course.course_id}`)} 
-                                />
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p>No courses available</p>
-                        )}
+                    {/* Other Stats Grid */}
+                    <div className={styles.statsGrid}>
+                      <div className={`${styles.statusCard} ${styles.xpCard}`}>
+                        <div className={styles.firstContent}>
+                          <p className={styles.statusNumber}>{profileData.courseXP || 0}+</p>
+                          <p>Course XP</p>
+                        </div>
+                        <div className={styles.secondContent}>
+                          <p>Total Experience Points Earned</p>
+                        </div>
+                      </div>
+                      
+                      <div className={styles.statusCard}>
+                        <div className={styles.firstContent}>
+                          <p className={styles.statusNumber}>{profileData.exercisesCompleted || 0}</p>
+                          <p>Exercises</p>
+                        </div>
+                        <div className={styles.secondContent}>
+                          <p>Completed Exercises</p>
+                        </div>
+                      </div>
+                      
+                      <div className={styles.statusCard}>
+                        <div className={styles.firstContent}>
+                          <p className={styles.statusNumber}>{profileData.streak || 0}</p>
+                          <p>Streak</p>
+                        </div>
+                        <div className={styles.secondContent}>
+                          <p>Days in a Row</p>
+                        </div>
+                      </div>
+                      
+                      <div className={styles.statusCard}>
+                        <div className={styles.firstContent}>
+                          <p className={styles.statusNumber}>{profileData.completedCourses || 0}</p>
+                          <p>Courses</p>
+                        </div>
+                        <div className={styles.secondContent}>
+                          <p>Finished Courses</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.achievementsSection}>
+                  <h3 className={styles.sectionTitle}>Achievements and badges</h3>
+                  <div className={styles.achievementsPlaceholder}>
+                    <p>Achievements coming soon!</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      <Footer />
-
       </div>
+      <Footer />
     </>
   );
 }

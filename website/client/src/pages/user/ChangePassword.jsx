@@ -72,19 +72,20 @@ function ChangePassword() {
   return (
     <>
       <Navbar />
-      <div className="change-password-page">
+      <div className="change-password-container">
         <Sidebar activeLink="login" />
-        <div className="change-password-content">
-          <h2>Change Password</h2>
+        <div className="change-password-main">
+          <h2 className="change-password-title">Change Password</h2>
 
-          {error && <p className="change-password-error">{error}</p>} {/* Show error message */}
-          {message && <p className="change-password-success">{message}</p>} {/* Show success message */}
-          <form className="change-password-form" onSubmit={handleSubmit}>
-
-       
-
-            <label htmlFor="current-password" className="change-password-label">Current Password</label>
+          {error && <div className="change-password-error-message">{error}</div>}
+          {message && <div className="change-password-success-message">{message}</div>}
+          
+          <form className="change-password-form-container" onSubmit={handleSubmit}>
+            <label className="change-password-input-label" htmlFor="current-password">
+              Current Password
+            </label>
             <input
+              className="change-password-input-field"
               type="password"
               id="current-password"
               value={currentPassword}
@@ -92,8 +93,11 @@ function ChangePassword() {
               required
             />
 
-            <label htmlFor="new-password" className="change-password-label">New Password</label>
+            <label className="change-password-input-label" htmlFor="new-password">
+              New Password
+            </label>
             <input
+              className="change-password-input-field"
               type="password"
               id="new-password"
               value={newPassword}
@@ -102,8 +106,11 @@ function ChangePassword() {
               minLength={8}
             />
 
-            <label htmlFor="confirm-password" className="change-password-label">Confirm Password</label>
+            <label className="change-password-input-label" htmlFor="confirm-password">
+              Confirm Password
+            </label>
             <input
+              className="change-password-input-field"
               type="password"
               id="confirm-password"
               value={confirmPassword}
@@ -111,9 +118,13 @@ function ChangePassword() {
               required
             />
 
-            <div className="change-password-form-buttons">
-              <button type="submit" className="change-password-save-btn">Save Changes</button>
-              <button type="button" className="change-password-cancel-btn">Cancel</button>
+            <div className="change-password-button-container">
+              <button type="submit" className="change-password-button change-password-save-button">
+                Save Changes
+              </button>
+              <button type="button" className="change-password-button change-password-cancel-button">
+                Cancel
+              </button>
             </div>
           </form>
         </div>
