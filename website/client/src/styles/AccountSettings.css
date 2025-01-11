@@ -2,9 +2,21 @@
 .account-settings-profile-page {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(-45deg, #0093E9, #00D4FF, #00B4DB, #0083B0);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
+  /*animation: gradientBG 15s ease infinite;*/
+  position: relative;
+}
+
+.account-settings-profile-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.02;
+  pointer-events: none;
 }
 
 @keyframes gradientBG {
@@ -23,23 +35,31 @@
   flex: 1;
   padding: 2rem;
   margin: 1rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(30, 41, 59, 0.7);
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  box-shadow: 0 8px 32px 0 rgba(0, 147, 233, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.2),
+    0 2px 4px -1px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.15);
   max-width: 1200px;
   margin: 80px auto 20px auto;
 }
 
 .account-settings-profile-content h2 {
   color: #ffffff;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.75rem;
+  font-weight: 700;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to right, #e2e8f0, #94a3b8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.025em;
 }
 
 /* Profile Header */
@@ -50,39 +70,136 @@
   color: #ffffff;
 }
 
-/* Avatar Section */
+/* Avatar Section with Camera Icon */
 .account-settings-profile-avatar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 2rem;
-  background: linear-gradient(145deg, rgba(0, 147, 233, 0.15), rgba(0, 180, 219, 0.15));
-  backdrop-filter: blur(4px);
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(0, 147, 233, 0.2);
+  position: relative;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 2rem;
 }
 
 .account-settings-profile-avatar img {
-  width: 120px;
-  height: 120px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4px 15px rgba(71, 118, 230, 0.3);
-  transition: all 0.3s ease;
-}
+  border: 2px solid #4f46e5;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
 
-.account-settings-profile-avatar img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(71, 118, 230, 0.4);
 }
 
 .account-settings-profile-pic-buttons {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: #4f46e5;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
   display: flex;
-  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-settings-profile-pic-buttons:hover {
+  background: #4338ca;
+  transform: scale(1.05);
+}
+
+.account-settings-profile-pic-buttons svg {
+  width: 14px;
+  height: 14px;
+  color: #ffffff;
+}
+
+/* Skills Section */
+.skills-container {
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.skills-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.skill-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  gap: 0.5rem;
+  background: linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); /* from-blue-500/10 to-purple-500/10 */
+  border: 1px solid #334155; /* Equivalent to border-slate-700 */
+  cursor: pointer;
+}
+
+.skill-remove-icon {
+  cursor: pointer;
+  opacity: 0.7;
+  font-size: 1.25rem;
+  margin-left: 0.25rem;
+  color: #94a3b8;
+  transition: color 0.2s ease;
+}
+
+.skill-remove-icon:hover {
+  color: #e2e8f0;
+}
+
+.skill-input-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.skill-input {
+  flex: 1;
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+}
+
+.skill-input:focus {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.skill-input::placeholder {
+  color: #94a3b8;
+}
+
+.add-skill-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 36px;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  margin-top: 4px;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-skill-btn:hover {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  transform: translateY(-1px);
 }
 
 /* Form Elements */
@@ -90,11 +207,14 @@
   max-width: 600px;
   margin: 0 auto;
   padding: 2rem;
-  background: linear-gradient(145deg, rgba(0, 147, 233, 0.15), rgba(0, 180, 219, 0.15));
+  background: rgba(30, 41, 59, 0.6);
   backdrop-filter: blur(4px);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(0, 147, 233, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.2),
+    0 2px 4px -1px rgba(0, 0, 0, 0.1);
 }
 
 .account-settings-form-group {
@@ -105,7 +225,7 @@
   display: block;
   font-size: 1rem;
   font-weight: 600;
-  color: #94bbd4;
+  color: #a5b4fc;
   margin-bottom: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -123,13 +243,13 @@
   max-width: 100%;
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.15);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
-  transition: all 0.3s ease;
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  color: #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 1.5rem;
   box-sizing: border-box;
 }
@@ -153,9 +273,10 @@
 .account-settings-textarea:focus,
 .account-settings-select:focus {
   outline: none;
-  border-color: rgba(0, 147, 233, 0.8);
-  box-shadow: 0 0 0 3px rgba(0, 147, 233, 0.2);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: rgba(15, 23, 42, 0.4);
+  transform: translateY(-1px);
 }
 
 /* Button Styles */
@@ -166,71 +287,115 @@
   justify-content: center;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.025em;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.settings-btn::before,
+.account-settings-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.settings-btn:hover::before,
+.account-settings-btn:hover::before {
+  left: 100%;
+}
+
+.settings-btn:active,
+.account-settings-btn:active {
+  transform: scale(0.98);
 }
 
 .settings-update-btn,
 .account-settings-update-btn {
-  background: linear-gradient(135deg, #2c3e50, #3498db);
-  color: #ffffff;
-  box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
+  background: linear-gradient(135deg, #4f46e5, #3730a3);
+  color: #e2e8f0;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .settings-update-btn:hover,
 .account-settings-update-btn:hover {
-  background: linear-gradient(135deg, #34495e, #2980b9);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #4338ca, #312e81);
+  transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(44, 62, 80, 0.4);
 }
 
 .settings-remove-btn,
 .account-settings-remove-btn {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: #ffffff;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  color: #fff;
   border: none;
-  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .settings-remove-btn:hover,
 .account-settings-remove-btn:hover {
-  background: linear-gradient(135deg, #c0392b, #e74c3c);
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
 }
 
 .settings-save-btn,
 .account-settings-save-btn {
-  background: linear-gradient(135deg, #2c3e50, #3498db);
-  color: #ffffff;
-  box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  color: #e2e8f0;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  margin-right: 10px;
 }
 
 .settings-save-btn:hover,
 .account-settings-save-btn:hover {
-  background: linear-gradient(135deg, #34495e, #2980b9);
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(44, 62, 80, 0.4);
 }
 
 .settings-cancel-btn,
 .account-settings-cancel-btn {
-  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-  color: #ffffff;
+  background: linear-gradient(135deg, #475569, #334155);
+  color: #e2e8f0;
   border: none;
-  box-shadow: 0 4px 15px rgba(127, 140, 141, 0.3);
+  box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
 }
 
 .settings-cancel-btn:hover,
 .account-settings-cancel-btn:hover {
-  background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+  background: linear-gradient(135deg, #334155, #1e293b);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(127, 140, 141, 0.4);
+}
+
+.settings-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  padding: 1px;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 /* Message Styles */
@@ -243,6 +408,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  backdrop-filter: blur(8px);
+  border-width: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .account-settings-error-message {

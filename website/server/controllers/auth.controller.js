@@ -184,6 +184,7 @@ const login = handleAsync(async (req, res) => {
     name: user.name,
     country: user.country,
     bio: user.bio,
+    skills: user.skills || [],
     admin: adminResult.rowCount > 0,
     profileimage: user.profileimage
   };
@@ -197,6 +198,7 @@ const login = handleAsync(async (req, res) => {
       name: user.name,
       country: user.country,
       bio: user.bio,
+      skills: user.skills || [],
       admin: adminResult.rowCount > 0,
       profileimage: user.profileimage
     }
@@ -204,12 +206,49 @@ const login = handleAsync(async (req, res) => {
 });
 
 const updateProfile = handleAsync(async (req, res) => {
-  const { name, country, bio } = req.body;
-  await db.query(
-    'UPDATE users SET name = $1, country = $2, bio = $3 WHERE user_id = $4',
-    [name, country, bio, req.user.userId]
-  );
-  res.status(200).json({ message: 'Profile updated successfully' });
+  const { name, country, bio, skills } = req.body;
+  
+  try {
+    const query = `
+      UPDATE users 
+      SET 
+        name = COALESCE($1, name),
+        country = COALESCE($2, country),
+        bio = COALESCE($3, bio),
+        skills = COALESCE($4, skills)
+      WHERE user_id = $5
+      RETURNING name, country, bio, skills, profileimage
+    `;
+
+    const values = [name, country, bio, skills, req.user.userId];
+    const result = await db.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const updatedUser = result.rows[0];
+    const userData = {
+      userId: req.user.userId,
+      name: updatedUser.name,
+      country: updatedUser.country,
+      bio: updatedUser.bio,
+      skills: updatedUser.skills,
+      admin: req.user.admin,
+      profileimage: updatedUser.profileimage
+    };
+
+    const token = helpers.generateToken(req.user.userId, userData);
+
+    res.status(200).json({
+      message: 'Profile updated successfully',
+      token,
+      user: userData
+    });
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
 });
 
 const changePassword = handleAsync(async (req, res) => {
