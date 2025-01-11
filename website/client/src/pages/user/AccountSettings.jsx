@@ -6,6 +6,7 @@ import Sidebar from 'components/AccountSettingsSidebar';
 import { useAuth } from 'AuthContext';
 import 'styles/AccountSettings.css';
 import defaultProfilePic from '../../assets/images/default-profile-pic.png';
+import { FaCamera } from 'react-icons/fa';
 
 function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -14,6 +15,8 @@ function ProfilePage() {
   const [name, setName] = useState('');
   const [country, setCountry] = useState('');
   const [bio, setBio] = useState('');
+  const [skills, setSkills] = useState('');
+  const [newSkill, setNewSkill] = useState('');
 
   useEffect(() => {
     if (!user || !user.token) {
@@ -22,6 +25,7 @@ function ProfilePage() {
       if (user.name) setName(user.name);
       if (user.country) setCountry(user.country);
       if (user.bio) setBio(user.bio);
+      if (user.skills) setSkills(user.skills.join(', '));
     }
   }, [user, navigate]);
 
@@ -73,8 +77,18 @@ function ProfilePage() {
     e.preventDefault();
 
     try {
-      const response = await axios.put('/api/updateProfile', 
-        { name, country, bio },
+      const skillsArray = skills
+        .split(',')
+        .map(skill => skill.trim())
+        .filter(skill => skill !== '');
+
+      const response = await axios.put('/api/update-profile', 
+        { 
+          name, 
+          country, 
+          bio,
+          skills: skillsArray 
+        },
         {
           headers: {
             'Authorization': `Bearer ${user.token}`,
@@ -82,7 +96,7 @@ function ProfilePage() {
         }
       );
 
-      const updatedUser = { ...user, name, country, bio };
+      const updatedUser = { ...user, name, country, bio, skills: skillsArray };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
       alert('Profile updated successfully');
@@ -103,29 +117,18 @@ function ProfilePage() {
           <div className="account-settings-profile-header">
             <div className="account-settings-profile-avatar">
               <img
-                src={
-                  user.profileimage
-                    ? `${user.profileimage}?${new Date().getTime()}`
-                    : defaultProfilePic
-                }
+                src={user.profileimage || defaultProfilePic}
                 alt="Profile"
               />
-
+              <label htmlFor="profilePicInput" className="account-settings-profile-pic-buttons">
+                <FaCamera size={16} color="#e2e8f0" />
+              </label>
               <input
                 type="file"
                 id="profilePicInput"
                 style={{ display: 'none' }}
                 onChange={handleProfilePicChange}
               />
-              <button
-                className="settings-btn settings-update-btn"
-                onClick={() => document.getElementById('profilePicInput').click()}
-              >
-                Update
-              </button>
-              <button className="settings-btn settings-remove-btn" onClick={handleRemoveProfilePic}>
-                Remove
-              </button>
             </div>
           </div>
 
@@ -160,6 +163,57 @@ function ProfilePage() {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
             ></textarea>
+
+            <label htmlFor="skills">Skills</label>
+            <div className="skills-container">
+              <div className="skills-wrapper">
+                {skills.split(',').map((skill, index) => (
+                  skill.trim() && (
+                    <div key={index} className="skill-badge">
+                      {skill.trim()}
+                      <span 
+                        className="skill-remove-icon"
+                        onClick={() => {
+                          const newSkills = skills
+                            .split(',')
+                            .filter((_, i) => i !== index)
+                            .join(', ');
+                          setSkills(newSkills);
+                        }}
+                      >
+                        ×
+                      </span>
+                    </div>
+                  )
+                ))}
+              </div>
+              <div className="skill-input-container">
+                <input
+                  type="text"
+                  className="skill-input"
+                  placeholder="Add a skill..."
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && newSkill.trim()) {
+                      setSkills(skills ? `${skills}, ${newSkill}` : newSkill);
+                      setNewSkill('');
+                    }
+                  }}
+                />
+                <button 
+                  className="add-skill-btn"
+                  onClick={() => {
+                    if (newSkill.trim()) {
+                      setSkills(skills ? `${skills}, ${newSkill}` : newSkill);
+                      setNewSkill('');
+                    }
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
 
             <div className="account-settings-form-buttons">
               <button type="submit" className="settings-btn settings-save-btn">Save Changes</button>
