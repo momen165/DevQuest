@@ -13,36 +13,86 @@
 
 .profileContentContainer {
   display: flex;
-  max-width: 1200px;
-  width: 100%;
+  flex-direction: column;
   gap: 20px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .leftColumn {
-  flex: 1;
-  margin-top: 110px;
-  max-width: 400px;
-  height: fit-content;
-  padding: 25px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 30px;
-  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.centerColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .rightColumn {
-  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.skillsSection {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 20px;
+}
+.skillsSection .sectionTitle {
+  margin-top: 5px;
+
+}
+
+.skillsList {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.skillTag {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.achievementsSection {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.achievementsPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .profileHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  width: 100%;
   margin-bottom: 20px;
-  padding: 20px;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
 }
 
 .profileAvatar {
@@ -59,6 +109,7 @@
   font-size: 2em;
   font-weight: bold;
   margin: 10px 0;
+  color: #fff;
 }
 
 .bioTitle {
@@ -570,51 +621,20 @@
 }
 
 /* Responsive styles */
-@media (max-width: 992px) {
-  .profileContentContainer {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .leftColumn, .rightColumn {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .statusSection {
-    max-width: 100%;
+@media (max-width: 1024px) {
+  .mainContent {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 768px) {
-  .profileName {
-    font-size: 1.5em;
-  }
-
-  .bioText {
-    padding: 10px;
-  }
-
-  .statusCard {
-    width: 100px;
-  }
+.mainContent {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
 }
 
-@media (max-width: 576px) {
-  .profileAvatar {
-    width: 100px;
-    height: 100px;
-  }
-
-  .profileName {
-    font-size: 1.2em;
-  }
-
-  .bioText {
-    font-size: 0.9em;
-  }
-
-  .statusCard {
-    width: 80px;
+@media (max-width: 1024px) {
+  .mainContent {
+    grid-template-columns: 1fr;
   }
 }

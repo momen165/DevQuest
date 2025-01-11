@@ -43,9 +43,16 @@ const getStudentById = async (req, res) => {
   const { studentId } = req.params;
 
   try {
-    // Get user info
+    // Update the user info query to include skills
     const userQuery = `
-      SELECT user_id, name, email, bio, streak
+      SELECT 
+        user_id, 
+        name, 
+        email, 
+        bio, 
+        streak,
+        skills,
+        profileimage
       FROM users 
       WHERE user_id = $1
     `;
@@ -61,7 +68,6 @@ const getStudentById = async (req, res) => {
         c.course_id,
         c.name as course_name,
         e.progress
-        
       FROM enrollment e
       JOIN course c ON e.course_id = c.course_id
       WHERE e.user_id = $1
@@ -74,22 +80,23 @@ const getStudentById = async (req, res) => {
       return {
         ...enrollment,
         last_lesson: lastLesson,
-        progress: parseFloat(enrollment.progress) || 0 // Ensure progress is a number
+        progress: parseFloat(enrollment.progress) || 0
       };
     }));
 
-    // Get other stats
+    // Get stats
     const statsQuery = `
       SELECT 
-        COUNT(DISTINCT lp.lesson_id) as exercises_completed,
-        COALESCE(SUM(l.xp), 0) as course_xp
+        COALESCE(SUM(l.xp), 0) as totalXP,
+        COUNT(DISTINCT lp.lesson_id) as exercises_completed
       FROM lesson_progress lp
       LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
       WHERE lp.user_id = $1 AND lp.completed = true
     `;
     const stats = (await db.query(statsQuery, [studentId])).rows[0];
-    const totalXP = parseInt(stats.course_xp) || 0;
+    const totalXP = parseInt(stats.totalxp) || 0;
 
+    // Combine all data
     const response = {
       ...userResult.rows[0],
       courses,
@@ -97,7 +104,8 @@ const getStudentById = async (req, res) => {
       courseXP: totalXP,
       level: calculateLevel(totalXP),
       xpToNextLevel: calculateXPToNextLevel(totalXP),
-      completedCourses: courses.filter(c => c.progress >= 100).length
+      completedCourses: courses.filter(c => c.progress >= 100).length,
+      skills: userResult.rows[0].skills || []
     };
 
     res.json(response);
