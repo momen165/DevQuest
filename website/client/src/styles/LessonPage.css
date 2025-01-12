@@ -8,7 +8,7 @@
 .lesson-page {
   display: flex;
   position: fixed;
-  top: 70px;
+  top: 100px;
   left: 0;
   right: 0;
   bottom: 64px;
@@ -16,7 +16,7 @@
   color: white;
   overflow: hidden;
   box-sizing: border-box;
-  z-index: 1000;
+  z-index: 100;
 }
 
 /* Left section - Instructions */
@@ -25,7 +25,7 @@
   flex: 2;
   background: #1a1b26;
   overflow-y: auto;
-  height: calc(100vh - 134px);
+  height: calc(100vh - 164px);
   width: 50% !important;
   color: white;
 }
@@ -46,7 +46,7 @@
   flex-direction: column;
   background-color: #0d1117;
   min-width: 300px;
-  height: calc(100vh - 134px);
+  height: calc(100vh - 164px);
 }
 
 /* Code editor */
