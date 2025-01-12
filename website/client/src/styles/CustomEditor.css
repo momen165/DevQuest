@@ -207,11 +207,11 @@
 	border: 1px solid #c4c4c4 !important;
 }
 
-.custom-editor .ck.ck-button {
+.custom-editor .ck.ck-button:not(.ck-color-grid__tile):not(.ck-color-table__tile) {
 	background: transparent !important;
 }
 
-.custom-editor .ck.ck-button:hover {
+.custom-editor .ck.ck-button:not(.ck-color-grid__tile):not(.ck-color-table__tile):hover {
 	background: #e9ecef !important;
 }
 

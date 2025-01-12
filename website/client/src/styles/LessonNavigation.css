@@ -326,3 +326,11 @@
 .lesson-nav-section-content.open {
     max-height: 500px;
 }
+
+.arrow {
+    transition: transform 0.3s ease;
+}
+
+.arrow.open {
+    transform: rotate(180deg);
+}
