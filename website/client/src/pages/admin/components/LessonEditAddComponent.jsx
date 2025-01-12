@@ -422,7 +422,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         </div>
 
         <div className="form-group">
-          <label className="edit-add-label">🏆 Hint</label>
+          <label className="edit-add-label">💡 Hint</label>
           <div className="editor-container">
             <CustomEditor
               initialData={hint}
