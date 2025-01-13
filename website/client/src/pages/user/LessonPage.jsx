@@ -168,7 +168,7 @@ const LessonPage = () => {
         const lessonData = lessonResponse.data;
         setLesson(lessonData);
         setLanguageId(lessonData.language_id);
-        console.log('Language ID:', lessonData.language_id);
+        
         // Get section data
         const sectionResponse = await api.get(`/sections/${lessonData.section_id}`, {
           headers: {
