@@ -11,6 +11,7 @@ const SupportForm = () => {
   const [tickets, setTickets] = useState([]);
   const { user } = useAuth();
   const chatContainerRef = useRef(null);
+  const pollingIntervalRef = useRef(null);
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -38,9 +39,22 @@ const SupportForm = () => {
     }
   };
 
+  // Set up polling when form is open
   useEffect(() => {
     if (isOpen && user) {
+      // Initial fetch
       fetchUserTickets();
+
+      // Set up polling every 5 seconds
+      pollingIntervalRef.current = setInterval(fetchUserTickets, 10000);
+
+      // Cleanup polling on unmount or when form closes
+      return () => {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+      };
     }
   }, [isOpen, user]);
 
@@ -64,11 +78,12 @@ const SupportForm = () => {
         // Only show success message if the ticket is still open
         if (response.data.ticket.status !== 'closed') {
           setResponseMessage('Message sent successfully');
-          await fetchUserTickets();
         } else {
           setResponseMessage('Starting a new support ticket...');
-          await fetchUserTickets();
         }
+        
+        // Fetch latest messages immediately after sending
+        await fetchUserTickets();
         
         setTimeout(() => {
           setResponseMessage('');

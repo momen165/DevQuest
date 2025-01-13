@@ -100,12 +100,25 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
     // Group lessons by section
     const organizedSections = sections?.map(section => ({
         ...section,
-        lessons: lessons.filter(lesson => lesson.section_id === section.id)
+        id: section.section_id,
+        lessons: lessons.filter(lesson => lesson.section_id === section.section_id)
+            .map(lesson => ({
+                ...lesson,
+                id: lesson.lesson_id,
+                lesson_id: lesson.lesson_id,
+                name: lesson.name,
+                completed: lesson.completed
+            }))
             .sort((a, b) => a.lesson_order - b.lesson_order)
     })).sort((a, b) => a.section_order - b.section_order);
 
+    // Add this debug log
+    
+
     // Calculate current section and lesson indices
-    const currentSectionIndex = organizedSections?.findIndex(section => section.id === currentSectionId) || 0;
+    const currentSectionIndex = organizedSections?.findIndex(section => 
+        section.section_id === currentSectionId || section.id === currentSectionId
+    ) || 0;
     const currentSection = organizedSections?.[currentSectionIndex];
     const currentSectionLessons = currentSection?.lessons || [];
     const lessonIndexInSection = currentSectionLessons.findIndex(lesson => lesson.id === currentLessonId);
@@ -117,11 +130,11 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
     const goToPreviousLesson = () => {
         if (lessonIndexInSection > 0) {
             // Go to previous lesson in current section
-            navigate(`/lesson/${currentSectionLessons[lessonIndexInSection - 1].lesson_id}`);
+            navigate(`/lesson/${currentSectionLessons[lessonIndexInSection - 1].id}`);
         } else if (currentSectionIndex > 0) {
             // Go to last lesson of previous section
-            const previousSection = sortedSections[currentSectionIndex - 1];
-            const previousSectionLessons = lessonsBySection[previousSection.section_id] || [];
+            const previousSection = organizedSections[currentSectionIndex - 1];
+            const previousSectionLessons = previousSection.lessons;
             
             if (previousSectionLessons.length === 0) {
                 console.error('No lessons found in previous section');
@@ -129,28 +142,31 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
             }
             
             const lastLessonInPreviousSection = previousSectionLessons[previousSectionLessons.length - 1];
-            navigate(`/lesson/${lastLessonInPreviousSection.lesson_id}`);
+            navigate(`/lesson/${lastLessonInPreviousSection.id}`);
         }
     };
 
     const goToNextLesson = () => {
+        
         if (lessonIndexInSection < currentSectionLessons.length - 1) {
             // Go to next lesson in current section
             onNext();
-            navigate(`/lesson/${currentSectionLessons[lessonIndexInSection + 1].lesson_id}`);
+            navigate(`/lesson/${currentSectionLessons[lessonIndexInSection + 1].id}`);
         } else if (currentSectionIndex < organizedSections?.length - 1) {
             // Go to first lesson of next section
             const nextSection = organizedSections[currentSectionIndex + 1];
-            const nextSectionLessons = lessonsBySection[nextSection.section_id] || [];
             
-            if (nextSectionLessons.length === 0) {
+            const nextSectionLessons = nextSection.lessons;
+         
+            
+            if (!nextSectionLessons || nextSectionLessons.length === 0) {
                 console.error('No lessons found in next section');
                 return;
             }
             
             const firstLessonInNextSection = nextSectionLessons[0];
             onNext();
-            navigate(`/lesson/${firstLessonInNextSection.lesson_id}`);
+            navigate(`/lesson/${firstLessonInNextSection.id}`);
         }
     };
 
@@ -203,16 +219,10 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
         }
     };
 
-    // Add this log to check the IDs
-    useEffect(() => {
-        console.log('Current section ID:', currentSectionId);
-        console.log('Open section ID:', openSectionId);
-        console.log('Menu sections:', menuSections);
-    }, [currentSectionId, openSectionId, menuSections]);
+    
 
     const toggleSection = (sectionId) => {
-        console.log('Toggling section:', sectionId);
-        console.log('Current openSectionId:', openSectionId);
+       
         setOpenSectionId(prevId => sectionId === prevId ? null : sectionId);
     };
 
