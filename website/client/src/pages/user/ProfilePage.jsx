@@ -79,7 +79,11 @@ function ProfilePage() {
               {/* Left Column - Courses */}
               <div className={styles.leftColumn}>
                 {profileData?.courses?.map((course) => (
-                  <div key={course.course_id} className={styles.courseCardprofile}>
+                  <div 
+                    key={course.course_id} 
+                    className={styles.courseCardprofile}
+                    data-completed={course.progress >= 100 ? "true" : "false"}
+                  >
                     <div className={styles.leftsectionCourseCard}>
                       <p className={styles.courseProgcardtext}>COURSE</p>
                       <h1 className={styles.courseProgCardTitle}>{course.course_name}</h1>
