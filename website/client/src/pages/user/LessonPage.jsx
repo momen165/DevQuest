@@ -14,13 +14,12 @@ import styled from 'styled-components';
 
 const languageMappings = {
   91: 'java',
-  102: 'javascript',
+  27: 'javascript',
   100: 'python',
   104: 'c',
   105: 'cpp',
   95: 'go',
   78: 'kotlin',
-  96: 'javafx',
   87: 'fsharp',
   73: 'rust',
   81: 'scala',
@@ -30,11 +29,7 @@ const languageMappings = {
   101: 'typescript',
   60: 'lua',
   80: 'r',
-  44: 'executable',
-  85: 'perl',
   59: 'fortran',
-  86: 'clojure',
-  64: 'bash',
   88: 'groovy',
   77: 'cobol'
 };
