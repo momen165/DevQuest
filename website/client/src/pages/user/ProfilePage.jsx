@@ -6,7 +6,7 @@ import Footer from 'components/Footer'; // Adjust the path to your Footer compon
 import defaultProfilePic from "../../assets/images/default-profile-pic.png";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { calculateLevel, calculateLevelProgress } from '../../utils/xpCalculator';
+import {calculateLevel, calculateLevelProgress, calculateXPToNextLevel} from '../../utils/xpCalculator';
 
 function ProfilePage() {
   const { user } = useAuth();
@@ -149,12 +149,12 @@ function ProfilePage() {
                             <div 
                               className={styles.xpProgressFill} 
                               style={{
-                                width: `${(profileData.courseXP % 1000) / 10}%`
+                                width: `${calculateLevelProgress(profileData.courseXP )}%`
                               }}
                             />
                           </div>
                           <p className={styles.xpProgressText}>
-                            {1000 - (profileData.courseXP % 1000)} XP to next level
+                            {Math.round(calculateXPToNextLevel(profileData.courseXP ))} XP to next level
                           </p>
                         </div>
                       </div>
