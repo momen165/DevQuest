@@ -6,6 +6,7 @@ import { FaRegCopy, FaCheck } from 'react-icons/fa';
 import 'highlight.js/styles/srcery.css';
 import 'styles/LessonContent.css';
 import LessonHelp from './LessonHelp';
+import { getFontClass } from '../utils/editorUtils';
 
 // Function to escape HTML
 const escapeHtml = (unsafe) => {
@@ -48,6 +49,18 @@ const LessonContent = ({ content, hint, solution }) => {
   const options = {
     replace: (node) => {
       if (!node || !node.name) return;
+
+      // Handle font family classes
+      if (node.attribs && node.attribs.style && node.attribs.style.includes('font-family')) {
+        const fontFamily = node.attribs.style.match(/font-family:\s*([^;]+)/)[1];
+        const fontClass = getFontClass(fontFamily.split(',')[0].replace(/['"]/g, '').trim());
+        
+        if (fontClass) {
+          node.attribs.class = node.attribs.class 
+            ? `${node.attribs.class} ${fontClass}`
+            : fontClass;
+        }
+      }
 
       if (node.name === 'pre' && node.children?.length > 0) {
         const codeNode = node.children[0];

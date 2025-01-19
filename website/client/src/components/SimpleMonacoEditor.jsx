@@ -161,7 +161,25 @@ const SimpleMonacoEditor = ({
           links: true,
           suggest: {
             showKeywords: true
-          }
+          },
+          hover: {
+            enabled: false
+          },
+          quickSuggestions: {
+            other: true,
+            comments: false,
+            strings: false
+          },
+          parameterHints: {
+            enabled: false
+          },
+          inlayHints: {
+            enabled: false
+          },
+          suggestLineHeight: 22,
+          suggestFontSize: 12,
+          'accessibility.verbosity.commandCenter': false,
+          hideCommandCenter: true
         }}
       />
     </div>
