@@ -177,6 +177,9 @@ const LessonList = ({ sectionName, sectionId, lessons: initialLessons, profileDa
             <div className="section-header" onClick={toggleSection}>
                 <div className="section-header-content">
                     <h2>{sectionName}</h2>
+                    {isOpen && lessons[0]?.description && (
+                        <p className="section-description">{lessons[0].description}</p>
+                    )}
                     {!isSectionCompleted && (
                         <div className={`lesson-section-progress ${isOpen ? 'right-aligned' : 'center-aligned'}`}>
                             {renderProgressSegments()}

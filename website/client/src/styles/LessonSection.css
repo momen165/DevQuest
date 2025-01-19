@@ -197,15 +197,15 @@
 .section-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   cursor: pointer;
-  padding: 10px 0;
+  padding: 15px 0;
   position: relative;
   z-index: 1;
 }
 
 .section-header h2 {
-  margin: 0;
+  margin: 0 0 5px 0;
   font-size: 1.3em;
 }
 
@@ -391,4 +391,19 @@
     opacity: 1;
     transform: translate(0, -50%);
   }
+}
+
+/* Add these styles for the section description */
+.section-header-content {
+    flex: 1;
+    padding-right: 20px;
+}
+
+.section-description {
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 5px 0 0 0;
+    font-weight: normal;
+    line-height: 1.4;
+    max-width: 80%;
 }

@@ -100,15 +100,31 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
     // Group lessons by section
     const organizedSections = sections?.map(section => ({
         ...section,
-        lessons: lessons.filter(lesson => lesson.section_id === section.id)
+        lessons: lessons.filter(lesson => lesson.section_id === section.section_id)
             .sort((a, b) => a.lesson_order - b.lesson_order)
     })).sort((a, b) => a.section_order - b.section_order);
 
     // Calculate current section and lesson indices
-    const currentSectionIndex = organizedSections?.findIndex(section => section.id === currentSectionId) || 0;
+    const currentSectionIndex = organizedSections?.findIndex(section => 
+        section.section_id === currentSectionId
+    ) || 0;
+
     const currentSection = organizedSections?.[currentSectionIndex];
     const currentSectionLessons = currentSection?.lessons || [];
-    const lessonIndexInSection = currentSectionLessons.findIndex(lesson => lesson.id === currentLessonId);
+    const lessonIndexInSection = currentSectionLessons.findIndex(lesson => 
+        lesson.lesson_id === currentLessonId
+    );
+
+    // Add debug logs
+    useEffect(() => {
+        console.log('Current Lesson ID:', currentLessonId);
+        console.log('Current Section ID:', currentSectionId);
+        console.log('Organized Sections:', organizedSections);
+        console.log('Current Section Index:', currentSectionIndex);
+        console.log('Current Section:', currentSection);
+        console.log('Current Section Lessons:', currentSectionLessons);
+        console.log('Lesson Index in Section:', lessonIndexInSection);
+    }, [currentLessonId, currentSectionId, organizedSections]);
 
     const navigateToLesson = (sectionId, lessonId) => {
         navigate(`/lesson/${lessonId}`);
@@ -120,8 +136,8 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
             navigate(`/lesson/${currentSectionLessons[lessonIndexInSection - 1].lesson_id}`);
         } else if (currentSectionIndex > 0) {
             // Go to last lesson of previous section
-            const previousSection = sortedSections[currentSectionIndex - 1];
-            const previousSectionLessons = lessonsBySection[previousSection.section_id] || [];
+            const previousSection = organizedSections[currentSectionIndex - 1];
+            const previousSectionLessons = previousSection.lessons || [];
             
             if (previousSectionLessons.length === 0) {
                 console.error('No lessons found in previous section');
@@ -134,14 +150,22 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
     };
 
     const goToNextLesson = () => {
+        console.log('Going to next lesson...');
+        console.log('Current lesson index:', lessonIndexInSection);
+        console.log('Total lessons in section:', currentSectionLessons.length);
+        
         if (lessonIndexInSection < currentSectionLessons.length - 1) {
             // Go to next lesson in current section
+            const nextLesson = currentSectionLessons[lessonIndexInSection + 1];
+            console.log('Next lesson:', nextLesson);
             onNext();
-            navigate(`/lesson/${currentSectionLessons[lessonIndexInSection + 1].lesson_id}`);
+            navigate(`/lesson/${nextLesson.lesson_id}`);
         } else if (currentSectionIndex < organizedSections?.length - 1) {
             // Go to first lesson of next section
             const nextSection = organizedSections[currentSectionIndex + 1];
-            const nextSectionLessons = lessonsBySection[nextSection.section_id] || [];
+            const nextSectionLessons = nextSection.lessons || [];
+            console.log('Next section:', nextSection);
+            console.log('Next section lessons:', nextSectionLessons);
             
             if (nextSectionLessons.length === 0) {
                 console.error('No lessons found in next section');
@@ -149,6 +173,7 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
             }
             
             const firstLessonInNextSection = nextSectionLessons[0];
+            console.log('First lesson in next section:', firstLessonInNextSection);
             onNext();
             navigate(`/lesson/${firstLessonInNextSection.lesson_id}`);
         }
@@ -215,6 +240,10 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
         console.log('Current openSectionId:', openSectionId);
         setOpenSectionId(prevId => sectionId === prevId ? null : sectionId);
     };
+
+    useEffect(() => {
+        console.log('Organized Sections:', organizedSections);
+    }, [organizedSections]);
 
     return (
         <>
