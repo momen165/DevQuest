@@ -208,15 +208,74 @@ const removeProfilePic = async (req, res) => {
   }
 };
 
+// Add new controller for editor uploads
+const uploadEditorImage = [
+  upload.single('file'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          error: 'No file uploaded.',
+          uploaded: 0
+        });
+      }
 
+      const file = req.file;
+      const fileKey = `editor-uploads/${uuidv4()}_${file.originalname}`;
 
+      // Process the image using sharp
+      let processedBuffer;
+      try {
+        processedBuffer = await sharp(file.buffer)
+          .resize(1200, null, {
+            withoutEnlargement: true,
+            fit: 'inside'
+          })
+          .toBuffer();
+      } catch (sharpError) {
+        processedBuffer = file.buffer;
+      }
 
+      const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: fileKey,
+        Body: processedBuffer,
+        ContentType: file.mimetype,
+        ACL: 'public-read'
+      };
 
+      try {
+        const command = new PutObjectCommand(params);
+        await s3Client.send(command);
 
+        const fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
+
+        res.status(200).json({
+          uploaded: 1,
+          url: fileUrl,
+          fileUrl: fileUrl // Keep both for compatibility
+        });
+      } catch (s3Error) {
+        console.error('S3 Upload Error:', s3Error);
+        res.status(500).json({ 
+          uploaded: 0,
+          error: `Failed to upload file to S3: ${s3Error.message}`
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected Upload Error:', error);
+      res.status(500).json({ 
+        uploaded: 0,
+        error: 'An unexpected error occurred during the upload process.'
+      });
+    }
+  }
+];
 
 module.exports = {
   testRoute,
   uploadFile,
   uploadProfilePic,
   removeProfilePic,
+  uploadEditorImage
 };

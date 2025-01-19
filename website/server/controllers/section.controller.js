@@ -96,7 +96,8 @@ const getUserSections = async (req, res) => {
           json_build_object(
             'lesson_id', l.lesson_id,
             'name', l.name,
-            'completed', COALESCE(lp.completed, false)
+            'completed', COALESCE(lp.completed, false),
+            'description', s.description
           ) ORDER BY l.lesson_order
         ) as lessons
       FROM section s
