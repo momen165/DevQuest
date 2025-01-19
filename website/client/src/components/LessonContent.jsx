@@ -8,12 +8,25 @@ import 'styles/LessonContent.css';
 import LessonHelp from './LessonHelp';
 import { getFontClass } from '../utils/editorUtils';
 
+// Function to escape HTML
+const escapeHtml = (unsafe) => {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 const LessonContent = ({ content, hint, solution }) => {
   // Initialize syntax highlighting
   useEffect(() => {
     // Remove previous highlighting
     document.querySelectorAll('pre code').forEach((block) => {
       block.removeAttribute('data-highlighted');
+      // Get the raw text content without escaping
+      const rawContent = block.textContent || '';
+      block.textContent = rawContent;
       hljs.highlightElement(block);
     });
   }, [content, hint, solution]);
