@@ -3,7 +3,7 @@ const db = require('../config/database');
 const { Buffer } = require('buffer');
 const NodeCache = require('node-cache');
 const rateLimit = require('express-rate-limit');
-
+//YygtxMr4Uud43e6NrsWjntszH8rUF95n
 // Configuration
 const CONFIG = {
   cache: {
@@ -16,12 +16,12 @@ const CONFIG = {
   },
   judge0: {
     host: 'judge0-ce.p.rapidapi.com',
-    apiKey: '179f6770f5msh61cd752c25cd483p180d42jsn40216ba79f4a',
+    apiKey: '179f6770f5msh61cd752c25cd483p180d42jsn40216ba79f4a',  // Your RapidAPI key
     pollInterval: 2000,
     maxPollTime: 20000,
-    maxOutputSize: 1024 * 100, // 100KB output limit
-    timeLimit: 10,  // 5 seconds execution time limit
-    memoryLimit: 512000  // 512MB memory limit
+    maxOutputSize: 1024 * 100,
+    timeLimit: 10,
+    memoryLimit: 512000
   }
 };
 
@@ -43,7 +43,18 @@ const helpers = {
     return output
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
-      .replace(/\n+$/, '');
+      .replace(/\n+$/, '')
+      .replace(/\[ /g, '[')
+      .replace(/ \]/g, ']')
+      .replace(/, /g, ',')
+      .replace(/\{ /g, '{')
+      .replace(/ \}/g, '}')
+      .replace(/: /g, ':')
+      .replace(/' /g, "'")
+      .replace(/ '/g, "'")
+      .replace(/'/g, '"')
+      .replace(/\s+/g, '')
+      .trim();
   },
 
   decodeBase64: (str) => {
@@ -65,54 +76,52 @@ const helpers = {
 
   async executeCode(submission) {
     const headers = {
-      'Content-Type': 'application/json',
-      'X-RapidAPI-Host': CONFIG.judge0.host,
-      'X-RapidAPI-Key': CONFIG.judge0.apiKey
+        'Content-Type': 'application/json',
+        'X-RapidAPI-Host': CONFIG.judge0.host,
+        'X-RapidAPI-Key': CONFIG.judge0.apiKey
     };
-
-    // Add execution constraints
-    const constrainedSubmission = {
-      ...submission,
-      time_limit: CONFIG.judge0.timeLimit,
-      memory_limit: CONFIG.judge0.memoryLimit,
-      enable_network: false  // Disable network access
-    };
-
-    // Submit code
-    const { data: { token } } = await axios.post(
-      `https://${CONFIG.judge0.host}/submissions?base64_encoded=true`,
-      constrainedSubmission,
-      { headers }
-    );
-
-    // Poll for results
-    const startTime = Date.now();
-    let result;
     
-    do {
-      if (Date.now() - startTime > CONFIG.judge0.maxPollTime) {
-        throw new Error('Polling timed out.');
-      }
-      await new Promise(resolve => setTimeout(resolve, CONFIG.judge0.pollInterval));
-      const response = await axios.get(
-        `https://${CONFIG.judge0.host}/submissions/${token}?base64_encoded=true`,
-        { headers }
-      );
-      result = response.data;
-    } while (result.status.id < 3);
+    try {
+        const base64SourceCode = Buffer.from(submission.source_code).toString('base64');
+        const base64ExpectedOutput = submission.expected_output ? 
+            Buffer.from(submission.expected_output).toString('base64') : '';
 
-    // Check output size before returning
-    const stdout = helpers.decodeBase64(result.stdout) || '';
-    if (stdout.length > CONFIG.judge0.maxOutputSize) {
-      throw new Error('Output size exceeds the maximum limit');
+        const response = await axios.post(
+            `https://${CONFIG.judge0.host}/submissions`,
+            {
+                source_code: base64SourceCode,
+                language_id: submission.language_id,
+                stdin: submission.stdin || '',
+                expected_output: base64ExpectedOutput,
+                time_limit: CONFIG.judge0.timeLimit,
+                memory_limit: CONFIG.judge0.memoryLimit,
+                enable_network: false
+            },
+            {
+                headers,
+                params: {
+                    base64_encoded: true,
+                    wait: true
+                },
+                timeout: 30000, // 30 seconds
+                timeoutErrorMessage: 'Request timed out while connecting to Judge0'
+            }
+        );
+
+        // Decode the response
+        return {
+            actual_output: response.data.stdout ? 
+                Buffer.from(response.data.stdout, 'base64').toString() : '',
+            error: response.data.stderr ? 
+                Buffer.from(response.data.stderr, 'base64').toString() : '',
+            compile_error: response.data.compile_output ? 
+                Buffer.from(response.data.compile_output, 'base64').toString() : '',
+            status_description: response.data.status?.description || 'Unknown'
+        };
+    } catch (error) {
+        console.error('Code execution error:', error);
+        throw error;
     }
-
-    return {
-      actual_output: stdout.replace(/\n+$/, '') || '',
-      error: helpers.decodeBase64(result.stderr),
-      compile_error: helpers.decodeBase64(result.compile_output),
-      status_description: result.status.description
-    };
   }
 };
 
@@ -161,82 +170,123 @@ const handleAsync = (fn) => async (req, res) => {
 
 // Main controller functions
 const runCode = handleAsync(async (req, res) => {
-  const { lessonId, code } = req.body;
-  const isBase64Encoded = req.query.base64_encoded === 'true';
+  let { code, lessonId } = req.body;
 
-  if (!lessonId || !code) {
-    return res.status(400).json({ error: 'Missing required fields: lessonId or code' });
+  if (!code || !lessonId) {
+    return res.status(400).json({ error: 'Code and lessonId are required.' });
   }
 
-  // Fetch language ID and test cases
-  const [langResult, lessonResult] = await Promise.all([
-    db.query(`
-      SELECT c.language_id
-      FROM course c
-      JOIN section s ON c.course_id = s.course_id
-      JOIN lesson l ON s.section_id = l.section_id
-      WHERE l.lesson_id = $1
-    `, [lessonId]),
-    db.query('SELECT test_cases FROM lesson WHERE lesson_id = $1', [lessonId])
-  ]);
-
-  if (!langResult.rows[0]?.language_id) {
-    return res.status(400).json({ error: 'Language ID not found for this lesson' });
-  }
-
-  const testCases = lessonResult.rows[0]?.test_cases;
-  if (!Array.isArray(testCases)) {
-    return res.status(404).json({ error: 'Lesson or test cases not found' });
-  }
-
-  if (testCases.some(test => !test.expected_output)) {
-    return res.status(400).json({ error: 'Invalid test case format: expected_output is required' });
-  }
-
-  const decodedCode = isBase64Encoded ? helpers.decodeBase64(code) : code;
-
-  // Process test cases
-  const results = await Promise.all(testCases.map(async ({ input, expected_output }) => {
-    const cacheKey = helpers.generateCacheKey(lessonId, decodedCode, input);
-    const cachedResult = codeExecutionCache.get(cacheKey);
-    
-    if (cachedResult) {
-      console.log('Cache hit for code execution');
-      return cachedResult;
+  // Decode the code if it's base64 encoded
+  try {
+    if (code.match(/^[A-Za-z0-9+/=]+$/)) {
+      code = Buffer.from(code, 'base64').toString('utf8');
     }
+  } catch (error) {
+    console.error('Error decoding code:', error);
+  }
 
-    const submission = {
-      source_code: helpers.encodeBase64(decodedCode),
-      language_id: langResult.rows[0].language_id,
-      stdin: helpers.encodeBase64(input),
-      expected_output: helpers.encodeBase64(expected_output)
-    };
+  try {
+    const [langResult, lessonResult] = await Promise.all([
+      db.query(`
+        SELECT c.language_id
+        FROM course c
+        JOIN section s ON c.course_id = s.course_id
+        JOIN lesson l ON s.section_id = l.section_id
+        WHERE l.lesson_id = $1
+      `, [lessonId]),
+      db.query('SELECT test_cases FROM lesson WHERE lesson_id = $1', [lessonId])
+    ]);
 
-    const result = await helpers.executeCode(submission);
-    const normalizedExpected = helpers.normalizeOutput(expected_output);
-    const normalizedActual = helpers.normalizeOutput(result.actual_output);
+    const testCases = lessonResult.rows[0]?.test_cases;
 
-    // If the normalized versions match but actual doesn't match expected,
-    // use the expected format
-    const finalOutput = normalizedExpected === normalizedActual 
-      ? expected_output  // Use the expected format when test passes
-      : result.actual_output;  // Keep original output when test fails
+    // Process test cases
+    const results = await Promise.all(testCases.map(async (testCase) => {
+      const result = await helpers.executeCode({
+        source_code: code,
+        language_id: langResult.rows[0].language_id,
+        stdin: '',
+        expected_output: ''
+      });
 
-    const testResult = {
-      input,
-      expected_output,
-      actual_output: finalOutput,
-      status: normalizedExpected === normalizedActual ? 'Passed' : 'Failed',
-      error: result.error,
-      status_description: result.status_description
-    };
+      let validationResult;
+      if (testCase.use_pattern) {
+        validationResult = validatePattern(result.actual_output, testCase.pattern);
+      } else if (testCase.auto_detect) {
+        validationResult = {
+          status: 'Passed',
+          actual_output: result.actual_output,
+          error: '',
+          status_description: 'Auto-detect success'
+        };
+      } else {
+        validationResult = validateExactMatch(result.actual_output, testCase.expected_output);
+      }
 
-    codeExecutionCache.set(cacheKey, testResult);
-    return testResult;
-  }));
+      return {
+        input: testCase.input,
+        expected_output: testCase.use_pattern ? testCase.pattern : testCase.expected_output,
+        ...validationResult,
+        auto_detect: testCase.auto_detect,
+        use_pattern: testCase.use_pattern,
+        pattern: testCase.pattern
+      };
+    }));
 
-  res.json({ results });
+    // Check if all test cases passed their respective validations
+    const allPassed = results.every(result => result.status === 'Passed');
+
+    res.json({ 
+      results,
+      success: allPassed,
+      message: allPassed ? 'All test cases passed!' : 'Some test cases failed.',
+      execution_successful: true,
+      validation_passed: allPassed
+    });
+
+  } catch (error) {
+    console.error('Error running code:', error);
+    res.status(500).json({ 
+      error: 'Failed to execute code', 
+      details: error.message,
+      execution_successful: false,
+      validation_passed: false
+    });
+  }
 });
+
+// Split validation into two separate functions
+const validatePattern = (actualOutput, pattern) => {
+  try {
+    const regex = new RegExp(`^(${pattern})$`, 'i');
+    // Remove trailing newlines and whitespace for pattern matching
+    const cleanOutput = actualOutput.trim();
+    const isMatch = regex.test(cleanOutput);
+    
+    return {
+      status: isMatch ? 'Passed' : 'Failed',
+      actual_output: actualOutput,
+      error: isMatch ? '' : `Output must be either ${pattern.split('|').join(' or ')} (any case). Got "${cleanOutput}" instead.`,
+      status_description: isMatch ? 'Pattern match successful' : 'Pattern match failed'
+    };
+  } catch (error) {
+    return {
+      status: 'Failed',
+      actual_output: actualOutput,
+      error: `Invalid pattern: ${error.message}`,
+      status_description: 'Pattern validation error'
+    };
+  }
+};
+
+const validateExactMatch = (actualOutput, expectedOutput) => {
+  const isMatch = helpers.normalizeOutput(actualOutput) === helpers.normalizeOutput(expectedOutput);
+  return {
+    status: isMatch ? 'Passed' : 'Failed',
+    actual_output: actualOutput,
+    error: isMatch ? '' : 'Output does not match expected value',
+    status_description: isMatch ? 'Exact match' : 'Match failed'
+  };
+};
 
 const getCacheStats = handleAsync(async (req, res) => {
   const stats = codeExecutionCache.getStats();
@@ -252,4 +302,65 @@ const getCacheStats = handleAsync(async (req, res) => {
   });
 });
 
-module.exports = { runCode, executionLimiter, getCacheStats };
+const executeCode = handleAsync(async (req, res) => {
+  const { code, language_id } = req.body;
+
+  if (!code || !language_id) {
+    return res.status(400).json({ error: 'Code and language_id are required.' });
+  }
+
+  // Modify the code to capture console.log outputs
+  const wrappedCode = `
+    let output = [];
+    const originalConsoleLog = console.log;
+    console.log = (...args) => {
+      output.push(args.join(' '));
+      originalConsoleLog.apply(console, args);
+    };
+    
+    try {
+      ${code}
+    } catch (error) {
+      console.error(error.message);
+    }
+    
+    console.log = originalConsoleLog;
+    output.join('\\n');
+  `;
+
+  const options = {
+    method: 'POST',
+    url: process.env.JUDGE0_API_URL,
+    params: { base64_encoded: 'false', wait: 'true' },
+    headers: {
+      'content-type': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    data: {
+      source_code: wrappedCode,
+      language_id: language_id,
+      stdin: '',
+    }
+  };
+
+  const response = await axios.request(options);
+  
+  // Extract the output from the response
+  let result = '';
+  if (response.data.stdout) {
+    result = response.data.stdout.trim();
+  } else if (response.data.stderr) {
+    result = `Error: ${response.data.stderr}`;
+  } else if (response.data.compile_output) {
+    result = `Compilation Error: ${response.data.compile_output}`;
+  }
+
+  res.json({
+    status: response.data.status,
+    output: result,
+    memory: response.data.memory,
+    time: response.data.time
+  });
+});
+
+module.exports = { runCode, executionLimiter, getCacheStats, executeCode };

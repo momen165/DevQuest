@@ -1,4 +1,0 @@
-first make the feedback page , implement the payment page ,make the profile overview page ,oh and the feedback replay from the admin and the settings 
-create the recnt activety of the admin add admin and that is it .
-dont forget about the lesson progress or status of the user in the course section page.
-for tomowro that is all :) 
