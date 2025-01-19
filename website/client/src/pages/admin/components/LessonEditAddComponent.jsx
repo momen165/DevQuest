@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaSave, FaTrash } from 'react-icons/fa';
+import { FaSave, FaTrash, FaQuestionCircle } from 'react-icons/fa';
 import axios from 'axios';
 import 'pages/admin/styles/LessonEditAddComponent.css';
 import CustomEditor from '../../../components/CustomEditor';
@@ -473,6 +473,24 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
 
                 {/* Validation Options */}
                 <div className="validation-options">
+                  {/* Normal Test Case */}
+                  <div className="validation-option">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={!testCase.auto_detect && !testCase.use_pattern}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            handleTestCaseChange(index, 'auto_detect', false);
+                            handleTestCaseChange(index, 'use_pattern', false);
+                          }
+                        }}
+                      />
+                      Normal Test Case
+                      <FaQuestionCircle className="help-icon" title="Use this when you want to check for an exact match between the student's output and your expected output." />
+                    </label>
+                  </div>
+
                   {/* Auto-detect Option */}
                   <div className="validation-option">
                     <label>
@@ -482,6 +500,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
                         onChange={(e) => handleTestCaseChange(index, 'auto_detect', e.target.checked)}
                       />
                       Auto-detect Output
+                      <FaQuestionCircle className="help-icon" title="Use this when you want to accept any console output. Useful for exercises where the output might vary (e.g., random numbers, user input)." />
                     </label>
                   </div>
 
@@ -494,6 +513,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
                         onChange={(e) => handleTestCaseChange(index, 'use_pattern', e.target.checked)}
                       />
                       Use Pattern Validation
+                      <FaQuestionCircle className="help-icon" title="Use this when you want to accept multiple possible outputs. Define valid outputs separated by | (e.g., 'Yes|No|Maybe' will accept any of these three answers)." />
                     </label>
                     {testCase.use_pattern && (
                       <div className="pattern-input">

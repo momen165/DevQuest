@@ -541,7 +541,6 @@
   margin: 15px 0;
   width: 100%;
   max-width: 800px !important;
-  border: 1px solid red; /* Temporary border to see the container */
 }
 
 .test-case .validation-options .validation-option .pattern-input input {
@@ -561,6 +560,52 @@
   color: rgba(255, 255, 255, 0.6);
   font-style: italic;
   padding: 0 8px;
+  line-height: 1.4;
+}
+
+/* Help icon styling */
+.help-icon {
+  margin-left: 8px;
+  color: #3498db;
+  font-size: 16px;
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.help-icon:hover {
+  color: #2980b9;
+}
+
+/* Validation option label styling */
+.validation-option label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Native tooltip styling */
+.help-icon[title] {
+  position: relative;
+}
+
+.help-icon[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: nowrap;
+  z-index: 1000;
+  font-weight: normal;
+  min-width: 200px;
+  white-space: normal;
   line-height: 1.4;
 }
 
