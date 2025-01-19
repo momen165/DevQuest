@@ -16,11 +16,35 @@ const lessonQueries = {
   // Insert a new lesson
   insertLesson: async (section_id, name, content, xp, test_cases, lesson_order, template_code, hint, solution) => {
     const query = `
-      INSERT INTO lesson (section_id, name, content, xp, test_cases, lesson_order, template_code, hint, solution)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      INSERT INTO lesson (
+        section_id, name, content, xp, test_cases, lesson_order, 
+        template_code, hint, solution, auto_detect
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *;
     `;
-    const values = [section_id, name, content, xp || 0, JSON.stringify(test_cases || []), lesson_order, template_code || '', hint || '', solution || ''];
+
+    // Process test cases to include pattern validation
+    const processedTestCases = test_cases.map(test => ({
+      input: test.input || '',
+      expected_output: test.expected_output || '',
+      auto_detect: test.auto_detect || false,
+      use_pattern: test.use_pattern || false,
+      pattern: test.pattern || ''
+    }));
+
+    const values = [
+      section_id, 
+      name, 
+      content, 
+      xp || 0, 
+      JSON.stringify(processedTestCases), 
+      lesson_order,
+      template_code || '', 
+      hint || '', 
+      solution || '',
+      processedTestCases[0]?.auto_detect || false
+    ];
     return db.query(query, values);
   },
 
@@ -47,10 +71,14 @@ const lessonQueries = {
     const query = `
       SELECT 
         lesson.*, 
-        COALESCE(lesson.test_cases::json, '[{"input": "", "expected_output": ""}]'::json) as test_cases,
+        COALESCE(
+          lesson.test_cases,
+          '[{"input": "", "expected_output": "", "auto_detect": false, "use_pattern": false, "pattern": ""}]'::jsonb
+        ) as test_cases,
         course.language_id,
         lesson.hint,
-        lesson.solution
+        lesson.solution,
+        lesson.auto_detect
       FROM lesson
       JOIN section ON lesson.section_id = section.section_id
       JOIN course ON section.course_id = course.course_id
@@ -60,21 +88,56 @@ const lessonQueries = {
   },
 
   // Update lesson
-  updateLesson: async (lesson_id, name, content, xp, test_cases, section_id, template_code, hint, solution) => {
+  updateLesson: async (
+    lesson_id, 
+    name, 
+    content, 
+    xp, 
+    test_cases, 
+    section_id, 
+    template_code, 
+    hint, 
+    solution,
+    auto_detect
+  ) => {
+    // Process test cases while preserving all fields
+    const processedTestCases = test_cases.map(test => ({
+      input: test.input || '',
+      expected_output: test.expected_output || '',
+      auto_detect: test.auto_detect ?? false,
+      use_pattern: test.use_pattern ?? false,
+      pattern: test.pattern ?? ''
+    }));
+
     const query = `
       UPDATE lesson
-      SET name = $1,
-          content = $2,
-          xp = $3,
-          test_cases = $4,
-          section_id = $5,
-          template_code = $6,
-          hint = $7,
-          solution = $8
-      WHERE lesson_id = $9
+      SET 
+        name = $1,
+        content = $2,
+        xp = $3,
+        test_cases = $4::jsonb,  -- Explicitly cast to JSONB
+        section_id = $5,
+        template_code = $6,
+        hint = $7,
+        solution = $8,
+        auto_detect = $9
+      WHERE lesson_id = $10
       RETURNING *;
     `;
-    const values = [name, content, xp || 0, JSON.stringify(test_cases || []), section_id, template_code || '', hint || '', solution || '', lesson_id];
+
+    const values = [
+      name,
+      content,
+      xp || 0,
+      JSON.stringify(processedTestCases),
+      section_id,
+      template_code || '',
+      hint || '',
+      solution || '',
+      auto_detect,
+      lesson_id
+    ];
+
     return db.query(query, values);
   },
 

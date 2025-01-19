@@ -100,28 +100,31 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
     // Group lessons by section
     const organizedSections = sections?.map(section => ({
         ...section,
-        id: section.section_id,
         lessons: lessons.filter(lesson => lesson.section_id === section.section_id)
-            .map(lesson => ({
-                ...lesson,
-                id: lesson.lesson_id,
-                lesson_id: lesson.lesson_id,
-                name: lesson.name,
-                completed: lesson.completed
-            }))
             .sort((a, b) => a.lesson_order - b.lesson_order)
     })).sort((a, b) => a.section_order - b.section_order);
 
-    // Add this debug log
-    
-
     // Calculate current section and lesson indices
     const currentSectionIndex = organizedSections?.findIndex(section => 
-        section.section_id === currentSectionId || section.id === currentSectionId
+        section.section_id === currentSectionId
     ) || 0;
+
     const currentSection = organizedSections?.[currentSectionIndex];
     const currentSectionLessons = currentSection?.lessons || [];
-    const lessonIndexInSection = currentSectionLessons.findIndex(lesson => lesson.id === currentLessonId);
+    const lessonIndexInSection = currentSectionLessons.findIndex(lesson => 
+        lesson.lesson_id === currentLessonId
+    );
+
+    // Add debug logs
+    useEffect(() => {
+        console.log('Current Lesson ID:', currentLessonId);
+        console.log('Current Section ID:', currentSectionId);
+        console.log('Organized Sections:', organizedSections);
+        console.log('Current Section Index:', currentSectionIndex);
+        console.log('Current Section:', currentSection);
+        console.log('Current Section Lessons:', currentSectionLessons);
+        console.log('Lesson Index in Section:', lessonIndexInSection);
+    }, [currentLessonId, currentSectionId, organizedSections]);
 
     const navigateToLesson = (sectionId, lessonId) => {
         navigate(`/lesson/${lessonId}`);
@@ -130,11 +133,11 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
     const goToPreviousLesson = () => {
         if (lessonIndexInSection > 0) {
             // Go to previous lesson in current section
-            navigate(`/lesson/${currentSectionLessons[lessonIndexInSection - 1].id}`);
+            navigate(`/lesson/${currentSectionLessons[lessonIndexInSection - 1].lesson_id}`);
         } else if (currentSectionIndex > 0) {
             // Go to last lesson of previous section
             const previousSection = organizedSections[currentSectionIndex - 1];
-            const previousSectionLessons = previousSection.lessons;
+            const previousSectionLessons = previousSection.lessons || [];
             
             if (previousSectionLessons.length === 0) {
                 console.error('No lessons found in previous section');
@@ -142,31 +145,37 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
             }
             
             const lastLessonInPreviousSection = previousSectionLessons[previousSectionLessons.length - 1];
-            navigate(`/lesson/${lastLessonInPreviousSection.id}`);
+            navigate(`/lesson/${lastLessonInPreviousSection.lesson_id}`);
         }
     };
 
     const goToNextLesson = () => {
+        console.log('Going to next lesson...');
+        console.log('Current lesson index:', lessonIndexInSection);
+        console.log('Total lessons in section:', currentSectionLessons.length);
         
         if (lessonIndexInSection < currentSectionLessons.length - 1) {
             // Go to next lesson in current section
+            const nextLesson = currentSectionLessons[lessonIndexInSection + 1];
+            console.log('Next lesson:', nextLesson);
             onNext();
-            navigate(`/lesson/${currentSectionLessons[lessonIndexInSection + 1].id}`);
+            navigate(`/lesson/${nextLesson.lesson_id}`);
         } else if (currentSectionIndex < organizedSections?.length - 1) {
             // Go to first lesson of next section
             const nextSection = organizedSections[currentSectionIndex + 1];
+            const nextSectionLessons = nextSection.lessons || [];
+            console.log('Next section:', nextSection);
+            console.log('Next section lessons:', nextSectionLessons);
             
-            const nextSectionLessons = nextSection.lessons;
-         
-            
-            if (!nextSectionLessons || nextSectionLessons.length === 0) {
+            if (nextSectionLessons.length === 0) {
                 console.error('No lessons found in next section');
                 return;
             }
             
             const firstLessonInNextSection = nextSectionLessons[0];
+            console.log('First lesson in next section:', firstLessonInNextSection);
             onNext();
-            navigate(`/lesson/${firstLessonInNextSection.id}`);
+            navigate(`/lesson/${firstLessonInNextSection.lesson_id}`);
         }
     };
 
@@ -219,12 +228,22 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
         }
     };
 
-    
+    // Add this log to check the IDs
+    useEffect(() => {
+        console.log('Current section ID:', currentSectionId);
+        console.log('Open section ID:', openSectionId);
+        console.log('Menu sections:', menuSections);
+    }, [currentSectionId, openSectionId, menuSections]);
 
     const toggleSection = (sectionId) => {
-       
+        console.log('Toggling section:', sectionId);
+        console.log('Current openSectionId:', openSectionId);
         setOpenSectionId(prevId => sectionId === prevId ? null : sectionId);
     };
+
+    useEffect(() => {
+        console.log('Organized Sections:', organizedSections);
+    }, [organizedSections]);
 
     return (
         <>

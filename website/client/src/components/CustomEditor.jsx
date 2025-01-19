@@ -48,12 +48,23 @@ import {
 	TableToolbar,
 	TextTransformation,
 	Underline,
-	Undo
+	Undo,
+	Image,
+	ImageUpload,
+	ImageToolbar,
+	ImageStyle,
+	ImageResizeEditing,
+	ImageResizeButtons,
+	List,
 } from 'ckeditor5';
 
 import 'ckeditor5/ckeditor5.css';
 
 import 'styles/CustomEditor.css';
+
+import { getFontClass } from '../utils/editorUtils';
+import { useAuth } from '../AuthContext';
+import { FaQuestionCircle } from 'react-icons/fa';
 
 // const LICENSE_KEY =
 // 	'[REDACTED]';
@@ -107,6 +118,9 @@ const DEFAULT_CONFIG = {
 			'italic',
 			'underline',
 			'|',
+			'bulletedList',
+			'numberedList',
+			'|',
 			'link',
 			'insertTable',
 			'highlight',
@@ -116,7 +130,9 @@ const DEFAULT_CONFIG = {
 			'alignment',
 			'|',
 			'outdent',
-			'indent'
+			'indent',
+			'uploadImage',
+			'|'
 		],
 		shouldNotGroupWhenFull: false
 	},
@@ -124,53 +140,69 @@ const DEFAULT_CONFIG = {
 		AccessibilityHelp,
 		Alignment,
 		Autoformat,
-		AutoLink,
-		Autosave,
-		BlockQuote,
-		Bold,
-		Code,
-		CodeBlock,
-		Essentials,
-		FindAndReplace,
-		FontBackgroundColor,
-		FontColor,
-		FontFamily,
-		FontSize,
-		GeneralHtmlSupport,
-		Heading,
-		Highlight,
-		HorizontalLine,
-		Indent,
-		IndentBlock,
-		Italic,
-		Link,
-		Paragraph,
-		RemoveFormat,
-		SelectAll,
-		ShowBlocks,
-		SpecialCharacters,
-		SpecialCharactersArrows,
-		SpecialCharactersCurrency,
-		SpecialCharactersEssentials,
-		SpecialCharactersLatin,
-		SpecialCharactersMathematical,
-		SpecialCharactersText,
-		Strikethrough,
-		Style,
-		Subscript,
-		Superscript,
-		Table,
-		TableCaption,
-		TableCellProperties,
-		TableColumnResize,
-		TableProperties,
-		TableToolbar,
-		TextTransformation,
-		Underline,
-		Undo
+			AutoLink,
+			Autosave,
+			BlockQuote,
+			Bold,
+			Code,
+			CodeBlock,
+			Essentials,
+			FindAndReplace,
+			FontBackgroundColor,
+			FontColor,
+			FontFamily,
+			FontSize,
+			GeneralHtmlSupport,
+			Heading,
+			Highlight,
+			HorizontalLine,
+			Indent,
+			IndentBlock,
+			Italic,
+			Link,
+			Paragraph,
+			RemoveFormat,
+			SelectAll,
+			ShowBlocks,
+			SpecialCharacters,
+			SpecialCharactersArrows,
+			SpecialCharactersCurrency,
+			SpecialCharactersEssentials,
+			SpecialCharactersLatin,
+			SpecialCharactersMathematical,
+			SpecialCharactersText,
+			Strikethrough,
+			Style,
+			Subscript,
+			Superscript,
+			Table,
+			TableCaption,
+			TableCellProperties,
+			TableColumnResize,
+			TableProperties,
+			TableToolbar,
+			TextTransformation,
+			Underline,
+			Undo,
+			Image,
+			ImageUpload,
+			ImageToolbar,
+			ImageStyle,
+			ImageResizeEditing,
+			ImageResizeButtons,
+			List,
 	],
 	fontFamily: {
-		supportAllValues: true
+		options: [
+			'Source Sans Pro, sans-serif',
+			'Nunito Sans, sans-serif',
+			'Inter, sans-serif',
+			'Lato, sans-serif',
+			'Open Sans, sans-serif',
+			'Roboto, sans-serif'
+		],
+		supportAllValues: true,
+		defaultValue: 'Source Sans Pro, sans-serif'
 	},
 	fontSize: {
 		options: [
@@ -283,8 +315,16 @@ const DEFAULT_CONFIG = {
 			{
 				name: /.*/,
 				attributes: true,
-				classes: true,
+				classes: [
+					'editor-font-nunito',
+					'editor-font-inter',
+					'editor-font-source',
+					'editor-font-lato',
+					'editor-font-opensans',
+					'editor-font-roboto'
+				],
 				styles: {
+					'font-family': true,
 					'font-size': true,
 					// ... other styles
 				}
@@ -382,6 +422,96 @@ const DEFAULT_CONFIG = {
 				}
 			}
 		]
+	},
+	image: {
+		toolbar: [
+			'imageStyle:inline',
+			'imageStyle:block',
+			'imageStyle:side',
+			'|',
+			'toggleImageCaption',
+			'imageTextAlternative',
+			'|',
+			'resizeImage'
+		],
+		upload: {
+			types: ['jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'svg'],
+		},
+		resizeOptions: [
+			{
+				name: 'resizeImage:original',
+				value: null,
+				label: 'Original'
+			},
+			{
+				name: 'resizeImage:50',
+				value: '50',
+				label: '50%'
+			},
+			{
+				name: 'resizeImage:75',
+				value: '75',
+				label: '75%'
+			}
+		],
+		styles: [
+			'full',
+			'side',
+			'alignLeft',
+			'alignCenter',
+			'alignRight'
+		],
+	},
+	keystrokes: [
+		[ 'CTRL+ALT+J', 'codeBlock' ],
+		[ 'CTRL+ALT+P', 'codeBlock' ],
+		[ 'CTRL+ALT+H', 'codeBlock' ],
+	],
+
+	// Add custom handlers for the code block shortcuts
+	customConfig: {
+		keystrokes: {
+			'CTRL+ALT+I': (editor) => {
+				// Get the upload image command and execute it
+				const imageUploadCommand = editor.commands.get('uploadImage');
+				if (imageUploadCommand.isEnabled) {
+					// Create a hidden file input
+					const input = document.createElement('input');
+					input.type = 'file';
+					input.accept = 'image/*';
+					input.style.display = 'none';
+					
+					input.onchange = () => {
+						const file = input.files[0];
+						if (file) {
+							editor.execute('uploadImage', { file });
+						}
+					};
+
+					document.body.appendChild(input);
+					input.click();
+					document.body.removeChild(input);
+				}
+			},
+			'CTRL+ALT+J': (editor) => {
+				const codeBlockCommand = editor.commands.get('codeBlock');
+				if (codeBlockCommand.isEnabled) {
+					editor.execute('codeBlock', { language: 'javascript' });
+				}
+			},
+			'CTRL+ALT+P': (editor) => {
+				const codeBlockCommand = editor.commands.get('codeBlock');
+				if (codeBlockCommand.isEnabled) {
+					editor.execute('codeBlock', { language: 'python' });
+				}
+			},
+			'CTRL+ALT+H': (editor) => {
+				const codeBlockCommand = editor.commands.get('codeBlock');
+				if (codeBlockCommand.isEnabled) {
+						editor.execute('codeBlock', { language: 'html' });
+				}
+			}
+		}
 	}
 };
 
@@ -392,6 +522,7 @@ const CustomEditor = ({
 	className,
 	disabled
 }) => {
+	const { user } = useAuth();
 	const editorContainerRef = useRef(null);
 	const editorRef = useRef(null);
 	const [isLayoutReady, setIsLayoutReady] = useState(false);
@@ -412,6 +543,24 @@ const CustomEditor = ({
 
 	const handleReady = (editor) => {
 		editorRef.current = editor;
+
+		// Set up custom keystroke handlers with preventDefault
+		const customConfig = mergedConfig.customConfig || {};
+		if (customConfig.keystrokes) {
+			Object.entries(customConfig.keystrokes).forEach(([keystroke, handler]) => {
+				editor.keystrokes.set(keystroke, (keyEvtData, cancel) => {
+					keyEvtData.preventDefault();  // Prevent browser default
+					cancel();
+					handler(editor);
+				});
+			});
+		}
+
+		// Image upload adapter setup
+		editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+			return new ImageUploadAdapter(loader, user?.token);
+		};
+
 		editor.model.document.on('change:data', () => {
 			const data = editor.getData();
 			if (onChange) {
@@ -439,6 +588,18 @@ const CustomEditor = ({
 					ref={editorContainerRef}
 				>
 					<div className="editor-container__editor">
+						<div className="editor-help-tooltip">
+							<FaQuestionCircle className="help-icon" />
+							<div className="tooltip-content">
+								<h4>Keyboard Shortcuts</h4>
+								<ul>
+									<li><kbd>Ctrl + Alt + I</kbd> Insert Image</li>
+									<li><kbd>Ctrl + Alt + J</kbd> JavaScript Code Block</li>
+									<li><kbd>Ctrl + Alt + P</kbd> Python Code Block</li>
+									<li><kbd>Ctrl + Alt + H</kbd> HTML Code Block</li>
+								</ul>
+							</div>
+						</div>
 						<div ref={editorRef}>
 							{isLayoutReady && (
 								<CKEditor
@@ -456,5 +617,49 @@ const CustomEditor = ({
 		</div>
 	);
 };
+
+// Update ImageUploadAdapter to accept token in constructor
+class ImageUploadAdapter {
+	constructor(loader, token) {
+		this.loader = loader;
+		this.token = token;
+	}
+
+	async upload() {
+		try {
+			const file = await this.loader.file;
+			const formData = new FormData();
+			formData.append('file', file);
+
+			if (!this.token) {
+				throw new Error('Authentication token not found');
+			}
+
+			const response = await fetch(`api/upload`, {
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${this.token}`,
+				},
+				body: formData,
+			});
+
+			if (!response.ok) {
+				throw new Error('Upload failed');
+			}
+
+			const data = await response.json();
+			return {
+				default: data.fileUrl
+			};
+		} catch (error) {
+			console.error('Upload failed:', error);
+			throw error;
+		}
+	}
+
+	abort() {
+		// Abort upload if needed
+	}
+}
 
 export default CustomEditor;

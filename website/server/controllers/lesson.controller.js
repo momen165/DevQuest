@@ -140,32 +140,60 @@ const getLessonById = asyncHandler(async (req, res) => {
   }
 });
 
-const editLesson = asyncHandler(async (req, res) => {
+const updateLesson = asyncHandler(async (req, res) => {
   const { lesson_id } = req.params;
-  const { name, content, xp, test_cases, section_id, template_code, hint, solution } = req.body;
-
-  if (!name || !content || !section_id) {
-    throw new AppError('Name, content, and section_id are required', 400);
-  }
-
-  const decodedTemplateCode = template_code ? he.decode(template_code) : '';
-  const result = await lessonQueries.updateLesson(
-    lesson_id, 
+  const { 
     name, 
     content, 
     xp, 
     test_cases, 
     section_id, 
-    decodedTemplateCode,
-    hint,
-    solution
-  );
+    template_code, 
+    hint, 
+    solution,
+    auto_detect
+  } = req.body;
 
-  if (result.rows.length === 0) {
-    throw new AppError('Lesson not found', 404);
+  console.log('Updating lesson with data:', {
+    lesson_id,
+    name,
+    xp,
+    test_cases,
+    section_id,
+    auto_detect
+  });
+
+  try {
+    // Update test cases to include auto_detect
+    const formattedTestCases = test_cases.map(test => ({
+      ...test,
+      auto_detect: auto_detect
+    }));
+
+    console.log('Received lesson update with auto_detect:', auto_detect);
+
+    const result = await lessonQueries.updateLesson(
+      lesson_id,
+      name,
+      content,
+      xp,
+      formattedTestCases,
+      section_id,
+      template_code,
+      hint,
+      solution,
+      auto_detect
+    );
+
+    if (result.rows.length === 0) {
+      throw new AppError('Lesson not found', 404);
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating lesson:', error);
+    throw new AppError(error.message, 500);
   }
-
-  res.json(result.rows[0]);
 });
 
 // Delete a lesson
@@ -298,7 +326,7 @@ module.exports = {
   addLesson,
   getLessonsBySection,
   getLessonById,
-  editLesson,
+  editLesson: updateLesson,
   deleteLesson,
   reorderLessons,
   updateLessonProgress,

@@ -114,7 +114,7 @@ const MonacoEditorComponent = ({
             console.log('Sending request to run code with payload:', payload);
 
             const response = await axios.post(
-                '/api/run?base64_encoded=true',
+                `${process.env.REACT_APP_API_URL}/run?base64_encoded=true`,
                 payload,
                 {
                     headers: {
@@ -132,33 +132,49 @@ const MonacoEditorComponent = ({
                 return;
             }
 
-            let output = '📋 Test Case Results\n\n';
+            let output = '';
             let allPassed = true;
+            // Check if any test case has auto_detect enabled
+            const isAutoDetect = results.some(testCase => testCase.auto_detect);
+
             results.forEach((testCase, index) => {
-                const {input, expected_output, actual_output, status} = testCase;
+                const {input, expected_output, actual_output, status, auto_detect, use_pattern, error} = testCase;
                 const isCorrect = status === 'Passed';
                 if (!isCorrect) {
                     allPassed = false;
                 }
-                
-                output += `🔍 Test Case ${index + 1}\n`;
-                output += `${'─'.repeat(40)}\n\n`;
-                
-                if (input && input.trim()) {
+
+                if (auto_detect) {
+                    output += `Console Output:\n${actual_output}\n\n`;
+                    if (!isCorrect && error) {
+                        output += `❌ ${error}\n\n`;
+                    }
+                } else if (use_pattern) {
+                    output += `Console Output:\n${actual_output}\n\n`;
+                    output += `Pattern: ${testCase.pattern}\n\n`;
+                    if (isCorrect) {
+                        output += `✅ Output matches the pattern\n\n`;
+                    } else {
+                        output += `❌ ${error}\n\n`;
+                    }
+                } else {
+                    output += `📋 Test Case ${index + 1}\n`;
+                    output += `${'─'.repeat(40)}\n\n`;
                     output += `📥 Input:\n${input}\n\n`;
+                    output += `✨ Expected Output:\n${expected_output}\n\n`;
+                    output += `📤 Your Output:\n${actual_output}\n\n`;
+                    output += `${isCorrect ? '✅ Status: Passed' : '❌ Status: Failed'}`;
+                    if (!isCorrect && error) {
+                        output += `\n❗ ${error}`;
+                    }
+                    output += '\n\n';
                 }
-                
-                output += `✨ Expected Output:\n\n${expected_output}\n\n`;
-                output += `📤 Your Output:\n\n${actual_output}\n\n`;
-                output += `${isCorrect ? '✅ Status: Passed' : '❌ Status: Failed'}\n\n`;
             });
 
             if (allPassed) {
-                output += '🎉 Congratulations! All test cases passed!\n';
-                output += '🌟 You can proceed to the next lesson.';
+                output += '✅ All validations passed!\n';
             } else {
-                output += '❌ Some test cases failed.\n';
-                output += '📝 Please review your code and try again.';
+                output += '❌ Validation failed. Please check the requirements and try again.';
             }
 
             setConsoleOutput(output);
