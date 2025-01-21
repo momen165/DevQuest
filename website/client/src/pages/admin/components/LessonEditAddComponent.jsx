@@ -235,10 +235,6 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
 
     // Validate test cases
     for (const testCase of test_cases) {
-      if (!testCase.input.trim()) {
-        setError('Test case input is required');
-        return false;
-      }
       // Only require expected output if neither auto-detect nor pattern validation is enabled
       if (!testCase.auto_detect && !testCase.use_pattern && !testCase.expected_output.trim()) {
         setError('Test case expected output is required');
