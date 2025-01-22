@@ -19,7 +19,6 @@ const addLesson = asyncHandler(async (req, res) => {
   }
 
   const nextOrder = await lessonQueries.getNextOrder(section_id);
-  const decodedTemplateCode = template_code ? he.decode(template_code) : '';
   const result = await lessonQueries.insertLesson(
     section_id, 
     name, 
@@ -27,7 +26,7 @@ const addLesson = asyncHandler(async (req, res) => {
     xp, 
     test_cases, 
     nextOrder, 
-    decodedTemplateCode,
+    template_code ? he.decode(template_code) : '',
     hint,
     solution
   );
@@ -179,7 +178,7 @@ const updateLesson = asyncHandler(async (req, res) => {
       xp,
       formattedTestCases,
       section_id,
-      template_code,
+      template_code ? he.decode(template_code) : '',
       hint,
       solution,
       auto_detect

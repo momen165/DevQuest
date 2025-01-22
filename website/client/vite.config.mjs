@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 // Update the path to the new location of package.json
-const packageJsonPath = resolve(__dirname, '..', 'package.json');
+const packageJsonPath = resolve(__dirname, 'package.json');
 
 export default defineConfig(({ mode }) => {
     setEnv(mode);
@@ -21,8 +21,20 @@ export default defineConfig(({ mode }) => {
             importPrefixPlugin(),
             htmlPlugin(mode),
             svgrPlugin(),
-            proxyPlugin(),
         ],
+        server: {
+            proxy: {
+                '/api': {
+                    target: 'http://localhost:5000',
+                    changeOrigin: true,
+                    secure: false,
+                    ws: true
+                }
+            },
+            hmr: {
+                overlay: true
+            }
+        }
     };
 });
 
@@ -177,52 +189,6 @@ function svgrPlugin() {
                     map: null,
                 };
             }
-        },
-    };
-}
-
-// Configuring the Proxy in package.json
-function proxyPlugin() {
-    return {
-        name: "proxy-plugin",
-        config() {
-            const { proxy } = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-            const publicUrl = process.env.PUBLIC_URL || "";
-            const basePath = publicUrl.startsWith("http")
-                ? new URL(publicUrl).pathname
-                : publicUrl;
-            return {
-                server: {
-                    proxy: {
-                        "^.*": {
-                            target: proxy,
-                            changeOrigin: true,
-                            secure: false,
-                            ws: true,
-                            bypass(req) {
-                                const path = req.url || "";
-                                const pathWithoutBase = path.replace(new RegExp(`^(${basePath})?/`), "");
-                                if (req.method !== "GET")
-                                    return;
-                                if (!req.headers.accept?.includes("text/html") &&
-                                    !existsSync(resolve("public", pathWithoutBase)) &&
-                                    ![
-                                        "src",
-                                        "@id",
-                                        "@fs",
-                                        "@vite",
-                                        "@react-refresh",
-                                        "node_modules",
-                                        "__open-in-editor",
-                                    ].includes(pathWithoutBase.split("/")[0])) {
-                                    return;
-                                }
-                                return req.url;
-                            },
-                        },
-                    },
-                },
-            };
         },
     };
 }
