@@ -117,7 +117,13 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     return [{ input: '', expected_output: '', auto_detect: false, use_pattern: false, pattern: '' }];
   });
 
-  const [templateCode, setTemplateCode] = useState(lesson?.template_code || '');
+  const [templateCode, setTemplateCode] = useState(() => {
+    // Decode HTML entities when loading template code
+    if (lesson?.template_code) {
+      return he.decode(lesson.template_code);
+    }
+    return '';
+  });
 
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -279,37 +285,66 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
   };
 
   const handleSave = async () => {
+    if (!validate()) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError('');
+
     try {
-      setIsSaving(true);
-      setError('');
-
-      if (!validate()) return;
-
       const lessonData = {
+        section_id: section.section_id,
         name: lessonName,
         content: editorData,
         xp: parseInt(xp),
-        test_cases: test_cases.map(test => ({
-          input: test.input || '',
-          expected_output: test.auto_detect ? null : (test.expected_output || ''),
-          auto_detect: Boolean(test.auto_detect),
-          use_pattern: Boolean(test.use_pattern),
-          pattern: test.pattern || ''
-        })),
-        section_id: section.section_id,
-        template_code: templateCode,
+        test_cases,
+        template_code: templateCode, // Send template_code as is, without encoding
         hint,
-        solution
+        solution,
+        auto_detect: test_cases[0]?.auto_detect || false
       };
 
-      if (lesson?.lesson_id) {
-        lessonData.lesson_id = lesson.lesson_id;
-      }
+      if (lesson) {
+        // Update existing lesson
+        const response = await axios.put(
+          `${process.env.REACT_APP_API_URL}/lesson/${lesson.lesson_id}`,
+          lessonData,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
-      await onSave(lessonData);
-    } catch (error) {
-      console.error('Error saving lesson:', error);
-      setError(error.message);
+        if (response.status === 200) {
+          onSave(response.data);
+        } else {
+          setError('Failed to update lesson');
+        }
+      } else {
+        // Create new lesson
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/lesson`,
+          lessonData,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (response.status === 201) {
+          onSave(response.data);
+        } else {
+          setError('Failed to create lesson');
+        }
+      }
+    } catch (err) {
+      console.error('Error saving lesson:', err);
+      setError(err.response?.data?.message || 'An error occurred while saving the lesson');
     } finally {
       setIsSaving(false);
     }
