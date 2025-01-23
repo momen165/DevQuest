@@ -139,7 +139,7 @@ const CourseSection = () => {
                         profileImage: user.profileimage,
                         totalXP: overallStatsResponse.data.totalXP || 0,
                         level: overallStatsResponse.data.level || 0,
-                        xpToNextLevel: overallStatsResponse.data.xpToNextLevel || 0
+                        xpToNextLevel: Math.round(overallStatsResponse.data.xpToNextLevel || 0)
                     });
                 }
             } catch (err) {

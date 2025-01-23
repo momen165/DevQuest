@@ -56,9 +56,9 @@ const helpers = {
       </div>
       <div style="background-color: #F9FAFB; padding: 30px 20px; text-align: center;">
         <div style="margin-bottom: 20px;">
-          <a href="${process.env.WEBSITE_URL}/about" style="color: #6B7280; text-decoration: none; margin: 0 10px;">About</a>
-          <a href="${process.env.WEBSITE_URL}/contact" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Contact</a>
-          <a href="${process.env.WEBSITE_URL}/privacy" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+          <a href="${process.env.FRONTEND_URL}/about" style="color: #6B7280; text-decoration: none; margin: 0 10px;">About</a>
+          <a href="${process.env.FRONTEND_URL}/contact" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Contact</a>
+          <a href="${process.env.FRONTEND_URL}/privacy" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
         </div>
         <p style="color: #9CA3AF; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} Devquest. All rights reserved.</p>
       </div>

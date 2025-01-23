@@ -317,6 +317,44 @@ const lessonQueries = {
       ORDER BY lesson_id ASC
     `;
     return db.query(query, [section_id]);
+  },
+
+  getCourseIdFromSection: async (section_id) => {
+    const query = `
+      SELECT course_id 
+      FROM section 
+      WHERE section_id = $1
+    `;
+    return db.query(query, [section_id]);
+  },
+
+  recalculateProgressForCourse: async (course_id) => {
+    const query = `
+      WITH enrolled_users AS (
+        SELECT DISTINCT user_id 
+        FROM enrollment 
+        WHERE course_id = $1
+      ),
+      progress_calc AS (
+        SELECT 
+          eu.user_id,
+          COUNT(DISTINCT lp.lesson_id)::float / 
+          (SELECT COUNT(*)::float FROM lesson l 
+           JOIN section s ON l.section_id = s.section_id 
+           WHERE s.course_id = $1) * 100 as new_progress
+        FROM enrolled_users eu
+        LEFT JOIN lesson_progress lp ON eu.user_id = lp.user_id
+        WHERE lp.completed = true
+        AND lp.course_id = $1
+        GROUP BY eu.user_id
+      )
+      UPDATE enrollment e
+      SET progress = COALESCE(pc.new_progress, 0)
+      FROM progress_calc pc
+      WHERE e.user_id = pc.user_id
+      AND e.course_id = $1
+    `;
+    return db.query(query, [course_id]);
   }
 };
 
