@@ -241,34 +241,6 @@ const handleStripeWebhook = async (req, res) => {
   res.json({ received: true });
 };
 
-// Get all subscriptions
-const getSubscriptions = async (req, res) => {
-  if (!req.user.admin) {
-    console.error('Access denied: User is not an admin.');
-    return res.status(403).json({ error: 'Access denied. Admins only.' });
-  }
-
-  try {
-    const query = `
-      SELECT s.subscription_id,
-             u.name AS student_name,
-             s.amount_paid,
-             s.subscription_start_date,
-             s.subscription_type,
-             s.status
-      FROM subscription s
-      JOIN user_subscription us ON s.subscription_id = us.subscription_id
-      JOIN users u ON us.user_id = u.user_id;
-    `;
-    const {rows} = await db.query(query);
-    
-    res.status(200).json(rows.length ? rows : []);
-  } catch (error) {
-    console.error('Error fetching subscriptions:', error.stack);
-    res.status(500).json({ error: 'Failed to fetch subscriptions.' });
-  }
-};
-
 // List subscriptions
 const listSubscriptions = async (req, res) => {
   const { customerId, status, limit } = req.query;
@@ -313,69 +285,7 @@ const listSubscriptions = async (req, res) => {
   }
 };
 
-// Cancel a subscription
-const cancelSubscription = async (req, res) => {
-  const { subscriptionId } = req.body;
-
-  try {
-    const deletedSubscription = await stripe.subscriptions.del(subscriptionId);
-    console.log('Subscription cancelled successfully:', deletedSubscription);
-    res.status(200).json(deletedSubscription);
-  } catch (error) {
-    console.error('Error cancelling subscription:', error);
-    res.status(500).json({ error: 'Failed to cancel subscription.' });
-  }
-};
-
-// Update a subscription
-const updateSubscription = async (req, res) => {
-  const { subscriptionId, newPriceId } = req.body;
-
-  try {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    const subscriptionItemId = subscription.items.data[0].id;
-
-    const updatedSubscription = await stripe.subscriptions.update(subscriptionId, {
-      items: [{
-        id: subscriptionItemId, // Subscription item ID
-        price: newPriceId,   // New price ID (new plan)
-      }],
-    });
-    console.log('Subscription updated successfully:', updatedSubscription);
-    res.status(200).json(updatedSubscription);
-  } catch (error) {
-    console.error('Error updating subscription:', error);
-    res.status(500).json({ error: 'Failed to update subscription.' });
-  }
-};
-
-// Retrieve a subscription
-const retrieveSubscription = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const subscription = await stripe.subscriptions.retrieve(id);
-    res.status(200).json(subscription);
-  } catch (error) {
-    console.error('Error retrieving subscription:', error);
-    res.status(500).json({ error: 'Failed to retrieve subscription.' });
-  }
-};
-
-// Retrieve a subscription directly from Stripe
-const retrieveSubscriptionFromStripe = async (req, res) => {
-  const { subscriptionId } = req.params;
-
-  try {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    res.status(200).json(subscription);
-  } catch (error) {
-    console.error('Error retrieving subscription from Stripe:', error);
-    res.status(500).json({ error: 'Failed to retrieve subscription from Stripe.' });
-  }
-};
-
-// website/server/controllers/subscription.controller.js
+// Check active subscription
 const checkActiveSubscription = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -427,7 +337,6 @@ const checkSubscriptionStatusFromDb = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // Get subscription status and completed lessons in a single query
     const query = `
       WITH completed_lessons AS (
         SELECT COUNT(*) as lesson_count
@@ -453,7 +362,6 @@ const checkSubscriptionStatusFromDb = async (req, res) => {
 
     const { rows } = await db.query(query, [userId]);
     
-    // Format the response
     if (rows.length > 0 && rows[0].subscription_id) {
       res.json({
         hasActiveSubscription: true,
@@ -463,13 +371,9 @@ const checkSubscriptionStatusFromDb = async (req, res) => {
           status: rows[0].status,
           subscription_end_date: rows[0].subscription_end_date,
           amount_paid: rows[0].amount_paid
-          
         }
-        
       });
-     
     } else {
-      // User has no active subscription
       res.json({
         hasActiveSubscription: false,
         completedLessons: parseInt(rows[0]?.lesson_count) || 0,
@@ -480,13 +384,11 @@ const checkSubscriptionStatusFromDb = async (req, res) => {
     console.error('Error checking subscription status from DB:', error);
     res.status(500).json({ error: 'Failed to check subscription status' });
   }
- 
 };
 
 // Get subscription status for any user (admin only)
 const getSubscriptionStatusForUser = async (req, res) => {
   try {
-    // Check if user is admin
     if (!req.user.admin) {
       return res.status(403).json({ error: 'Access denied. Admins only.' });
     }
@@ -526,15 +428,8 @@ const getSubscriptionStatusForUser = async (req, res) => {
 };
 
 module.exports = {
-  addSubscription,
-  getSubscriptions,
-  cancelSubscription,
-  updateSubscription,
-  handleStripeWebhook,
-  listSubscriptions,
-  retrieveSubscription,
-  retrieveSubscriptionFromStripe,
   checkActiveSubscription,
   checkSubscriptionStatusFromDb,
+  listSubscriptions,
   getSubscriptionStatusForUser
 };
