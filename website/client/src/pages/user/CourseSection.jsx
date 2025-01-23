@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from 'components/Navbar';
 import LessonList from 'components/LessonSection';
 import RatingForm from 'components/RatingForm';
@@ -41,6 +41,7 @@ const fetchWithRetry = async (endpoint, config, retries = 0) => {
 const CourseSection = () => {
     const { courseId } = useParams();
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [sections, setSections] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -105,20 +106,30 @@ const CourseSection = () => {
                     }
                 };
 
-                
+                // First check if course exists
+                try {
+                    const courseResponse = await fetchWithRetry(`/courses/${courseId}`, config);
+                    if (courseResponse.data) {
+                        setCourseName(courseResponse.data.title);
+                    }
+                } catch (err) {
+                    if (err.response?.status === 404 || err.response?.status === 403) {
+                        setError(err.response?.data?.error || 'Course not available. Redirecting to home page...');
+                        setTimeout(() => {
+                            navigate('/');
+                        }, 2000);
+                        setLoading(false);
+                        return; // Stop further API calls if course doesn't exist
+                    }
+                    throw err; // Re-throw other errors
+                }
 
-                const [sectionsResponse, courseStatsResponse, overallStatsResponse, courseResponse] = await Promise.all([
+                // If course exists, fetch other data
+                const [sectionsResponse, courseStatsResponse, overallStatsResponse] = await Promise.all([
                     fetchWithRetry(`/sections/course/${courseId}`, config),
                     fetchWithRetry(`/student/courses/${courseId}/stats`, config),
-                    fetchWithRetry(`/student/stats/${user.user_id}`, config),
-                    fetchWithRetry(`/courses/${courseId}`, config)
+                    fetchWithRetry(`/student/stats/${user.user_id}`, config)
                 ]);
-
-                
-
-                if (courseResponse.data) {
-                    setCourseName(courseResponse.data.title);
-                }
                     
                 if (sectionsResponse.data) {
                     // Ensure lessons array exists and is properly formatted
@@ -153,7 +164,7 @@ const CourseSection = () => {
         if (courseId && user?.user_id) {
             fetchData();
         }
-    }, [courseId, user]);
+    }, [courseId, user, navigate]);
 
    
 

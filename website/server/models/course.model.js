@@ -75,6 +75,7 @@ const courseQueries = {
         course.description, 
         course.image,
         course.difficulty,
+        course.rating,
         COUNT(enrollment.user_id) AS userscount
       FROM course
       LEFT JOIN enrollment ON course.course_id = enrollment.course_id
@@ -83,7 +84,8 @@ const courseQueries = {
         course.name, 
         course.description, 
         course.image,
-        course.difficulty;
+        course.difficulty,
+        course.rating;
     `;
     return db.query(query);
   },
@@ -95,8 +97,10 @@ const courseQueries = {
         course.name AS title, 
         course.description, 
         course.difficulty, 
-        course.language_id, 
+        course.language_id,
+        course.status,
         course.image, 
+        course.rating,
         COUNT(enrollment.user_id) AS users
       FROM course
       LEFT JOIN enrollment ON course.course_id = enrollment.course_id
@@ -106,8 +110,10 @@ const courseQueries = {
         course.name, 
         course.description, 
         course.difficulty, 
-        course.language_id, 
-        course.image;
+        course.language_id,
+        course.status,
+        course.image,
+        course.rating;
     `;
     return db.query(query, [course_id]);
   },
@@ -199,4 +205,4 @@ const courseQueries = {
   }
 };
 
-module.exports = courseQueries; 
+module.exports = courseQueries;
