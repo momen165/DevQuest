@@ -11,7 +11,7 @@ import Footer from 'components/Footer';
 import FeedbackCardScroll from 'components/FeedbackCardScroll';
 
 // Asset Imports
-import heroimg from 'assets/images/logo-no-back-ground.png';
+import heroimg from 'assets/images/logo-noText.svg';
 
 // Style Imports
 import 'styles/HomePage.css';

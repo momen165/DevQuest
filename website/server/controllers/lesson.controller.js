@@ -31,6 +31,13 @@ const addLesson = asyncHandler(async (req, res) => {
     hint,
     solution
   );
+
+  // Get course_id from section
+  const courseResult = await lessonQueries.getCourseIdFromSection(section_id);
+  const courseId = courseResult.rows[0].course_id;
+
+  // Recalculate progress for all enrolled users
+  await lessonQueries.recalculateProgressForCourse(courseId);
   
   res.status(201).json(result.rows[0]);
 });

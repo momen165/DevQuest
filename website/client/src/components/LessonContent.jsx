@@ -8,6 +8,18 @@ import 'styles/LessonContent.css';
 import LessonHelp from './LessonHelp';
 import { getFontClass } from '../utils/editorUtils';
 
+
+
+// Function to escape HTML
+const escapeHtml = (unsafe) => {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
   const HINT_THRESHOLD = 2;  // Show hint after 2 failed attempts
   const SOLUTION_THRESHOLD = 4;  // Show solution after 4 failed attempts
@@ -29,6 +41,9 @@ const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
     // Remove previous highlighting
     document.querySelectorAll('pre code').forEach((block) => {
       block.removeAttribute('data-highlighted');
+      // Get the raw text content without escaping
+      const rawContent = block.textContent || '';
+      block.textContent = rawContent;
       hljs.highlightElement(block);
     });
   }, [content, hint, solution]);
