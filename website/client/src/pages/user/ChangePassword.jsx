@@ -253,60 +253,6 @@ function ChangePassword() {
                 placeholder="Enter your new email address"
               />
 
-
-            <div className="change-password-button-container">
-              <button type="submit" className="change-password-button change-password-save-button">
-                Save Changes
-              </button>
-              <button type="button" className="change-password-button change-password-cancel-button">
-                Cancel
-              </button>
-            </div>
-          </form>
-
-          <div className="danger-zone">
-            <h3>Danger Zone</h3>
-            <div className="delete-account-section">
-              <h4>Delete Account</h4>
-              <p>Once you delete your account, there is no going back. All your data will be permanently removed.</p>
-              <button 
-                className="delete-button"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                Delete Account
-              </button>
-            </div>
-          </div>
-
-          {showDeleteConfirm && (
-            <div className="modal-overlay">
-              <div className="modal">
-                <h3>Delete Account</h3>
-                <p>Are you sure you want to delete your account? This action cannot be undone and will:</p>
-                <ul>
-                  <li>Remove all your course progress</li>
-                  <li>Cancel any active subscriptions</li>
-                  <li>Delete all your lesson completions</li>
-                  <li>Remove your profile information</li>
-                </ul>
-                <div className="modal-actions">
-                  <button 
-                    className="cancel-button"
-                    onClick={() => setShowDeleteConfirm(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    className="delete-button"
-                    onClick={handleDeleteAccount}
-                  >
-                    Yes, Delete My Account
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
               <div className="change-password-button-container">
                 <button type="submit" className="change-password-button change-password-save-button">
                   Request Email Change
@@ -315,6 +261,53 @@ function ChangePassword() {
             </form>
           </div>
 
+          <div className="account-deletion-container">
+            <h3>Account Deletion</h3>
+            <div className="account-deletion-content">
+              <p className="account-deletion-text">
+                If you'd like to permanently delete your account and all associated data, 
+                you can do so by clicking the button below.
+              </p>
+              <button 
+                className="account-deletion-button"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                Delete Account
+              </button>
+            </div>
+          </div>
+
+          {showDeleteConfirm && (
+            <div className="account-deletion-modal-overlay">
+              <div className="account-deletion-modal">
+                <h3 className="account-deletion-modal-title">Confirm Account Deletion</h3>
+                <p className="account-deletion-modal-text">
+                  Are you sure you want to permanently delete your account? This action cannot be undone 
+                  and will remove all your data from our system.
+                </p>
+                <ul className="account-deletion-modal-list">
+                  <li>Course progress and achievements</li>
+                  <li>Completed lessons and exercises</li>
+                  <li>Profile information and settings</li>
+                  <li>Subscription and payment details</li>
+                </ul>
+                <div className="account-deletion-modal-actions">
+                  <button 
+                    className="account-deletion-cancel-button"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="account-deletion-confirm-button"
+                    onClick={handleDeleteAccount}
+                  >
+                    Delete Account
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
