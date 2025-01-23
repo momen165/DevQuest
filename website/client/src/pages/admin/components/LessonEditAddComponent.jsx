@@ -148,14 +148,14 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
 
       try {
         const sectionResponse = await axios.get(
-          `http://localhost:5000/api/sections/${section.section_id}`,
+          `${process.env.REACT_APP_API_URL}/sections/${section.section_id}`,
           { headers: { Authorization: `Bearer ${user.token}` }}
         );
 
         if (!sectionResponse.data?.course_id) return;
 
         const courseResponse = await axios.get(
-          `http://localhost:5000/api/courses/${sectionResponse.data.course_id}`,
+          `${process.env.REACT_APP_API_URL}/courses/${sectionResponse.data.course_id}`,
           { headers: { Authorization: `Bearer ${user.token}` }}
         );
         
@@ -313,8 +313,8 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     if (!lesson?.lesson_id) return;
     if (!window.confirm('Are you sure you want to delete this lesson?')) return;
     try {
-      await axios.delete(`/api/lesson/${lesson.lesson_id}`,{
-        headers: { Authorization: `Bearer ${user.token}` }, // Use token from context
+      await axios.delete(`${process.env.REACT_APP_API_URL}/lesson/${lesson.lesson_id}`,{
+        headers: { Authorization: `Bearer ${user.token}` },
       });
       onDelete(lesson.lesson_id);
     } catch (err) {

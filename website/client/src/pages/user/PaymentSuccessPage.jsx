@@ -17,7 +17,7 @@ const PaymentSuccessPage = () => {
         setSessionId(sessionId);
 
         if (sessionId) {
-            axios.get(`http://localhost:5000/api/checkout-session/${sessionId}`)
+            axios.get(`${process.env.REACT_APP_API_URL}/checkout-session/${sessionId}`)
                 .then(response => {
                     setMessage('Payment successful! Thank you for your purchase.');
                     setIsSuccess(true);
