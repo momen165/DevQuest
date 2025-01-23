@@ -253,16 +253,13 @@ function ChangePassword() {
                 placeholder="Enter your new email address"
               />
 
-
-            <div className="change-password-button-container">
-              <button type="submit" className="change-password-button change-password-save-button">
-                Save Changes
-              </button>
-              <button type="button" className="change-password-button change-password-cancel-button">
-                Cancel
-              </button>
-            </div>
-          </form>
+              <div className="change-password-button-container">
+                <button type="submit" className="change-password-button change-password-save-button">
+                  Request Email Change
+                </button>
+              </div>
+            </form>
+          </div>
 
           <div className="danger-zone">
             <h3>Danger Zone</h3>
@@ -306,15 +303,6 @@ function ChangePassword() {
               </div>
             </div>
           )}
-
-              <div className="change-password-button-container">
-                <button type="submit" className="change-password-button change-password-save-button">
-                  Request Email Change
-                </button>
-              </div>
-            </form>
-          </div>
-
         </div>
       </div>
     </>
