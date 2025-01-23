@@ -27,7 +27,10 @@ const LoginPage = () => {
     e.preventDefault();
    
     try {
-      const response = await axios.post('/api/login', formData);
+      const response = await axios.post('http://localhost:5000/api/login', {
+        email: formData.email,
+        password: formData.password
+      });
       const { token } = response.data; // Extract token and role from response
       login(token); // Pass both token and role to login function
       setSuccess(true);
@@ -61,7 +64,7 @@ const LoginPage = () => {
       </div>
       <div className="welcome-container">
         <h2>Welcome Back!</h2>
-        <p>Log in to continue your programming journey with us. We’re here to support your learning every step of the way. Let’s keep coding together!</p>
+        <p>Log in to continue your programming journey with us. We're here to support your learning every step of the way. Let's keep coding together!</p>
       </div>
     </div>
   );

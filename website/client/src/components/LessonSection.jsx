@@ -6,6 +6,7 @@ import 'styles/LessonSection.css';
 import 'styles/CourseSections.css';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
+import { CircularProgressbar } from "react-circular-progressbar";
 
 // Create axios instance with default config
 const api = axios.create({
@@ -81,85 +82,59 @@ const LessonList = ({ sectionName, sectionId, lessons: initialLessons, profileDa
     
 
     const renderProgressSegments = () => {
+        const completedCount = lessons.filter(lesson => lesson.completed).length;
+        const totalCount = lessons.length;
+        const percentage = Math.round((completedCount / totalCount) * 100) || 0;
+
+        console.log('Completed:', completedCount, 'Total:', totalCount, 'Percentage:', percentage);
+
         return (
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                <div className="lesson-progress-circle-wrapper">
-                    <CircularProgressbarWithChildren 
-                        value={100}
-                        strokeWidth={8}
-                        styles={{
-                            path: { stroke: '#222222' },
-                            trail: { stroke: 'transparent' },
-                        }}
-                    >
-                        <svg width="100%" height="100%" viewBox="0 0 36 36" style={{ position: 'absolute' }}>
-                            <g transform="translate(18, 18)">
-                                {/* Segments */}
-                                {lessons.map((lesson, index) => {
-                                    const segmentAngle = (360 / lessons.length) - 8;
-                                    const startAngle = (index * 360 / lessons.length) - 90 + 4;
-                                    const endAngle = startAngle + segmentAngle;
-                                    
-                                    const innerRadius = 12;
-                                    const outerRadius = 16;
-                                    const cornerRadius = 1.5;
-                                    
-                                    const startRadians = (startAngle * Math.PI) / 180;
-                                    const endRadians = (endAngle * Math.PI) / 180;
-                                    
-                                    // Calculate points and control points
-                                    const x1 = Math.cos(startRadians) * outerRadius;
-                                    const y1 = Math.sin(startRadians) * outerRadius;
-                                    const x2 = Math.cos(endRadians) * outerRadius;
-                                    const y2 = Math.sin(endRadians) * outerRadius;
-                                    const x3 = Math.cos(endRadians) * innerRadius;
-                                    const y3 = Math.sin(endRadians) * innerRadius;
-                                    const x4 = Math.cos(startRadians) * innerRadius;
-                                    const y4 = Math.sin(startRadians) * innerRadius;
-                                    
-                                    const startOuterAngleRad = startRadians - (Math.PI / 2) * 0.2;
-                                    const endOuterAngleRad = endRadians + (Math.PI / 2) * 0.2;
-                                    const startInnerAngleRad = startRadians + (Math.PI / 2) * 0.2;
-                                    const endInnerAngleRad = endRadians - (Math.PI / 2) * 0.2;
-
-                                    const d = `
-                                        M ${x1} ${y1}
-                                        A ${outerRadius} ${outerRadius} 0 ${segmentAngle <= 180 ? "0" : "1"} 1 ${x2} ${y2}
-                                        Q ${Math.cos(endOuterAngleRad) * (outerRadius - cornerRadius)} ${Math.sin(endOuterAngleRad) * (outerRadius - cornerRadius)}
-                                          ${x3} ${y3}
-                                        A ${innerRadius} ${innerRadius} 0 ${segmentAngle <= 180 ? "0" : "1"} 0 ${x4} ${y4}
-                                        Q ${Math.cos(startInnerAngleRad) * (innerRadius + cornerRadius)} ${Math.sin(startInnerAngleRad) * (innerRadius + cornerRadius)}
-                                          ${x1} ${y1}
-                                    `;
-
-                                    return (
-                                        <path
-                                            key={index}
-                                            d={d}
-                                            fill={lesson.completed ? '#4CAF50' : '#666'}
-                                            stroke="none"
-                                            style={{
-                                                transition: 'fill 0.3s ease',
-                                                filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))'
-                                            }}
-                                        />
-                                    );
-                                })}
-                                
-                                <circle cx="0" cy="0" r="10.5" fill="rgba(0,0,0,0.8)" />
-                            </g>
-                        </svg>
-                        <div style={{ 
-                            fontSize: '14px', 
-                            color: '#fff',
-                            fontWeight: 'bold',
-                            position: 'relative',
-                            zIndex: 2
-                        }}>
-                            {`${completedLessons}/${totalLessons}`}
-                        </div>
-                    </CircularProgressbarWithChildren>
-                </div>
+            <div style={{ width: '100%', height: '100%' }}>
+                <CircularProgressbar
+                    value={percentage}
+                    text={`${completedCount}/${totalCount}`}
+                    styles={{
+                        root: {
+                            filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.5))',
+                            backgroundColor: '#1a1a1a',
+                            borderRadius: '50%',
+                        },
+                        path: {
+                            stroke: '#00fff2',
+                            strokeLinecap: 'round',
+                            transition: 'stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                            filter: 'drop-shadow(0px 0px 8px rgba(0, 255, 255, 0.6))',
+                        },
+                        trail: {
+                            stroke: 'rgba(255, 255, 255, 0.05)',
+                            strokeLinecap: 'round',
+                        },
+                        text: {
+                            fill: '#fff',
+                            fontSize: '26px',
+                            fontWeight: '600',
+                            filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.8))',
+                            fontFamily: "'Inter', -apple-system, sans-serif",
+                            dominantBaseline: 'middle',
+                            textAnchor: 'middle',
+                            animation: 'textPulse 2s infinite',
+                        },
+                        background: {
+                            fill: '#0a0a0a'
+                        }
+                    }}
+                    strokeWidth={12}
+                    background={true}
+                />
+                <style>
+                    {`
+                        @keyframes textPulse {
+                            0% { opacity: 0.8; }
+                            50% { opacity: 1; }
+                            100% { opacity: 0.8; }
+                        }
+                    `}
+                </style>
             </div>
         );
     };
