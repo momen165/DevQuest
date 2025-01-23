@@ -28,9 +28,9 @@ const EditCourseForm = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('Published');
-  const [difficulty, setDifficulty] = useState('');
+  const [difficulty, setDifficulty] = useState('Beginner');
   const [image, setImage] = useState(null);
-  const [languageId, setLanguageId] = useState('');
+  const [languageId, setLanguageId] = useState(languageOptions[0]?.id || '100');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -39,17 +39,20 @@ const EditCourseForm = ({
       setTitle(course.title || '');
       setDescription(course.description || '');
       setStatus(course.status || 'Published');
-      setDifficulty(course.difficulty || '');
-      setLanguageId(course.language_id?.toString() || '');
+      setDifficulty(course.difficulty || 'Beginner');
+      setLanguageId(course.language_id?.toString() || '100');
     }
   }, [course]);
 
   const handleSave = async () => {
     setError('');
 
-
-    if (!title.trim() || !description.trim() || !status || !difficulty || !languageId) {
-      setError('All fields are required.');
+    if (!title.trim()) {
+      setError('Course title is required.');
+      return;
+    }
+    if (!description.trim()) {
+      setError('Course description is required.');
       return;
     }
 
@@ -128,7 +131,7 @@ const EditCourseForm = ({
 
         <div>
           <label>Status</label>
-          <select value={status} onChange={(e) => setStatus(e.target.value)} required>
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="Published">Published</option>
             <option value="Draft">Draft</option>
           </select>
@@ -136,7 +139,7 @@ const EditCourseForm = ({
 
         <div>
           <label>Difficulty</label>
-          <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} required>
+          <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
             <option value="Beginner">Beginner</option>
             <option value="Intermediate">Intermediate</option>
             <option value="Advanced">Advanced</option>
@@ -145,8 +148,7 @@ const EditCourseForm = ({
 
         <div>
           <label>Programming Language</label>
-          <select value={languageId} onChange={(e) => setLanguageId(e.target.value)} required>
-            <option value="">Select Language</option>
+          <select value={languageId} onChange={(e) => setLanguageId(e.target.value)}>
             {languageOptions.map((lang) => (
                 <option key={lang.id} value={lang.id}>
                   {lang.name}
