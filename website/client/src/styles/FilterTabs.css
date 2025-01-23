@@ -3,7 +3,7 @@
   justify-content: center;
   gap: 8px;
   padding: 0 0 40px 0; /* Remove top padding, add bottom padding */
-  top: 27px;
+  top: -9px;
 }
 
 

@@ -5,6 +5,7 @@ import axios from 'axios';
 import LessonEditAddComponent from './LessonEditAddComponent';
 import 'pages/admin/styles/ViewLessonsComponent.css';
 import ErrorAlert from './ErrorAlert';
+import he from 'he'; // Import he library for HTML encoding
 
 import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
@@ -60,57 +61,36 @@ const ViewLessonsComponent = ({ section, onClose }) => {
   
   const handleSaveLesson = async (lessonData) => {
     try {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      const token = userData?.token;
-  
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-  
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+      setLoading(true);
+      setError('');
+
+      // Send lesson data as is, without encoding template_code
+      const response = await axios.put(
+        `${process.env.REACT_APP_API_URL}/lesson/${lessonData.lesson_id}`,
+        lessonData,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+            'Content-Type': 'application/json',
+          },
         }
-      };
-  
-      // Prepare the lesson data
-      const formattedLessonData = {
-        ...lessonData,
-        content: lessonData.content || '',
-        template_code: lessonData.template_code || '' // Ensure template_code is passed as is
-      };
-  
-      // Debug log
-      console.log('Saving lesson data:', {
-        ...formattedLessonData,
-        template_code_preview: formattedLessonData.template_code.substring(0, 100) // Log first 100 chars
-      });
-  
-      if (lessonData.lesson_id) {
-        // Update existing lesson
-        await axios.put(
-          `/api/lesson/${lessonData.lesson_id}`,
-          formattedLessonData,
-          config
+      );
+
+      if (response.status === 200) {
+        // Update lessons list with the updated lesson
+        const updatedLessons = lessons.map(lesson =>
+          lesson.lesson_id === lessonData.lesson_id ? response.data : lesson
         );
+        setLessons(updatedLessons);
+        setEditingLesson(null);
       } else {
-        // Create new lesson
-        await axios.post(
-          '/api/lesson',
-          formattedLessonData,
-          config
-        );
+        setError('Failed to update lesson');
       }
-  
-      await fetchLessons(); // Refresh lessons list
-      setEditingLesson(null);
-      setIsAddingLesson(false);
     } catch (err) {
       console.error('Error saving lesson:', err);
-      setError(err.response?.data?.error || 'Failed to save lesson');
-      throw err;
+      setError(err.response?.data?.message || 'An error occurred while saving the lesson');
+    } finally {
+      setLoading(false);
     }
   };
 

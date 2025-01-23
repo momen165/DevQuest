@@ -14,7 +14,6 @@ const api_url = process.env.REACT_APP_API_URL;
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
-  const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuth();
@@ -24,7 +23,6 @@ const CoursesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-
     const fetchCoursesAndRatings = async () => {
       setLoading(true);
       try {
@@ -35,11 +33,10 @@ const CoursesPage = () => {
               : Promise.resolve({}),
         ]);
 
-        const {courses, ratings, userscount} = coursesResponse.data;
+        const {courses, userscount} = coursesResponse.data;
 
         setCourses(courses);
         setFilteredCourses(courses);
-        setRatings(ratings || {});
         setUserscount(userscount || {});
         setEnrollments(enrollmentsResponse.data || {});
       } catch (err) {
@@ -116,7 +113,7 @@ const CoursesPage = () => {
         
       case 'rating':
         setFilteredCourses([...courses].sort((a, b) => 
-          (ratings[b.course_id] || 0) - (ratings[a.course_id] || 0)
+          (b.rating || 0) - (a.rating || 0)
         ));
         break;
         
@@ -159,7 +156,7 @@ const CoursesPage = () => {
           <div className="search-container">
             <input
               type="text"
-              className="search-bar"
+              className="course-search-input"
               placeholder="Search for courses..."
               value={searchTerm}
               onChange={handleSearch}
@@ -174,7 +171,7 @@ const CoursesPage = () => {
                 courseId={course.course_id}
                 title={course.name}
                 level={course.difficulty || 'Unknown'}
-                rating={ratings[course.course_id] || 'N/A'}
+                rating={course.rating || 'N/A'}
                 students={userscount[course.course_id] || 0}
                 description={course.description}
                 image={course.image}

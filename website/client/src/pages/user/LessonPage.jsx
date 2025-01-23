@@ -11,6 +11,7 @@ import 'styles/LessonPage.css';
 import LoadingSpinner from './CircularProgress';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import he from 'he'; // Import he library for HTML entity decoding
 
 const languageMappings = {
   91: 'java',
@@ -222,7 +223,8 @@ const LessonPage = () => {
         if (progressResponse.status === 200 && progressResponse.data.submitted_code) {
           setCode(progressResponse.data.submitted_code);
         } else {
-          setCode(lessonData.template_code || '');
+          // Decode the template code before setting it
+          setCode(lessonData.template_code ? he.decode(lessonData.template_code) : '');
         }
       } catch (_) {
         // Silently handle any errors and redirect to home

@@ -319,11 +319,17 @@ const lessonQueries = {
     return db.query(query, [section_id]);
   },
 
+  // Get course and section info from section_id
   getCourseIdFromSection: async (section_id) => {
     const query = `
-      SELECT course_id 
-      FROM section 
-      WHERE section_id = $1
+      SELECT 
+        c.course_id,
+        c.name as course_name,
+        s.name as section_name,
+        s.section_id
+      FROM section s
+      JOIN course c ON s.course_id = c.course_id
+      WHERE s.section_id = $1;
     `;
     return db.query(query, [section_id]);
   },

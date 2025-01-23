@@ -1,0 +1,124 @@
+.feedback-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.feedback-modal-content {
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: white;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.feedback-modal-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(52, 152, 219, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.feedback-modal-header h2 {
+  margin: 0;
+  color: #3498db;
+}
+
+.feedback-modal-close {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.feedback-modal-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.feedback-modal-body {
+  padding: 20px;
+}
+
+.feedback-loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feedback-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.feedback-user {
+  font-weight: bold;
+  color: #3498db;
+}
+
+.feedback-rating {
+  display: flex;
+  align-items: center;
+}
+
+.feedback-comment {
+  margin: 10px 0;
+  line-height: 1.5;
+  color: #ecf0f1;
+}
+
+.feedback-status {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #bdc3c7;
+}
+
+.status-open {
+  color: #2ecc71;
+}
+
+.status-closed {
+  color: #e74c3c;
+}
+
+.no-feedback {
+  text-align: center;
+  padding: 40px;
+  color: #bdc3c7;
+  font-style: italic;
+} 

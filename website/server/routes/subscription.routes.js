@@ -9,7 +9,8 @@ const {
     retrieveSubscription, 
     retrieveSubscriptionFromStripe, 
     checkActiveSubscription,
-    checkSubscriptionStatusFromDb  // Add this import
+    checkSubscriptionStatusFromDb,
+    getSubscriptionStatusForUser
 } = require('../controllers/subscription.controller');
 const authenticateToken = require('../middleware/auth');
 const router = express.Router();
@@ -25,5 +26,6 @@ router.get('/check', authenticateToken, checkActiveSubscription); // Stripe chec
 router.get('/status', authenticateToken, checkSubscriptionStatusFromDb); // DB check
 router.get('/subscriptions', authenticateToken, getSubscriptions);
 router.get('/list-subscriptions', authenticateToken, listSubscriptions);
+router.get('/user/:userId', authenticateToken, getSubscriptionStatusForUser); // New route for checking any user's subscription
 
 module.exports = router;
