@@ -2,7 +2,6 @@
 
 .pricing-page {
   margin: 0;
-  font-family: 'Inter', Arial, sans-serif;
   background: linear-gradient(135deg, #1a1f35 0%, #2d1b69 100%);
   color: #FFFFFF;
   display: flex;
@@ -20,7 +19,6 @@
   width: 200%;
   height: 200%;
   background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%);
-  animation: rotate 30s linear infinite;
   z-index: 1;
 }
 
@@ -35,6 +33,7 @@
   padding: 80px 20px;
   position: relative;
   z-index: 2;
+ 
 }
 
 .pricing-content h1 {
@@ -344,4 +343,15 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Add z-index to ensure Navbar and Footer are above the background effects */
+.pricing-page > nav,
+.pricing-page > footer {
+  position: relative;
+  z-index: 3;
+  /* Reset any inherited styles */
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
 }

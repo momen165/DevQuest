@@ -9,6 +9,7 @@ const {
   getEnrollmentsByUserId,
   getStudentStats,
   getCourseStats,
+  deleteStudentAccount,
 } = require('../controllers/student.controller');
 
 // Middleware
@@ -21,6 +22,7 @@ router.get('/students/:studentId/courses', authenticateToken, getCoursesByStuden
 router.get('/students/:userId/enrollments', authenticateToken, getEnrollmentsByUserId);
 router.get('/student/stats/:userId', authenticateToken, getStudentStats);
 router.get('/student/courses/:courseId/stats', authenticateToken, getCourseStats);
+router.delete('/student/delete-account', authenticateToken, deleteStudentAccount);
 
 // Export router
 module.exports = router;

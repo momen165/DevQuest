@@ -19,7 +19,9 @@ const clearCoursesCache = () => {
 const QUERIES = {
   getAllFeedback: `
     SELECT f.feedback_id, u.name AS student_name, c.name AS course_name, 
-           f.comment, f.rating, f.status
+
+    f.comment AS feedback, f.rating, f.status, f.reply
+
     FROM feedback f
     JOIN users u ON f.user_id = u.user_id
     JOIN course c ON f.course_id = c.course_id
@@ -210,8 +212,8 @@ const replyToFeedback = handleAsync(async (req, res) => {
 
     // Update the feedback status to 'closed'
     const updateResult = await db.query(
-      'UPDATE feedback SET status = $1 WHERE feedback_id = $2 RETURNING *',
-      ['closed', feedback_id]
+      'UPDATE feedback SET status = $1, reply = $2 WHERE feedback_id = $3 RETURNING *',
+      ['closed', reply, feedback_id]
     );
 
     const { email, name, comment, rating, course_name } = userDetails.rows[0];

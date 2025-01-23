@@ -18,7 +18,7 @@ const SignupPage = () => {
     name: '',
     email: '',
     password: '',
-    country: '',
+    country: 'Palestine'  // Set default country
   });
 
   const handleChange = (e) => {
@@ -30,9 +30,9 @@ const SignupPage = () => {
   };
 
     const validateForm = () => {
-        const {name, email, password, country} = formData;
-        if (!name || !email || !password || !country) {
-            alert('All fields are required');
+        const {name, email, password} = formData;
+        if (!name || !email || !password) {
+            alert('Name, email and password are required');
             return false;
         }
         if (password.length < 8) {
@@ -138,8 +138,8 @@ const SignupPage = () => {
           </div>
           <div className="welcome-container">
               <h2>Welcome!</h2>
-              <p>Create your account to embark on your programming journey with us. Whether you’re a beginner or looking
-                  to sharpen your skills, we’re here to help you every step of the way. Let’s start coding together!</p>
+              <p>Create your account to embark on your programming journey with us. Whether you're a beginner or looking
+                  to sharpen your skills, we're here to help you every step of the way. Let's start coding together!</p>
           </div>
       </div>
   );
