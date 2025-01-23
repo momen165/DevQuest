@@ -157,25 +157,18 @@ const updateLesson = asyncHandler(async (req, res) => {
   });
 
   try {
-    // Update test cases to include auto_detect
-    const formattedTestCases = test_cases.map(test => ({
-      ...test,
-      auto_detect: auto_detect
-    }));
-
-    console.log('Received lesson update with auto_detect:', auto_detect);
-
+    // Instead, use the test cases directly
     const result = await lessonQueries.updateLesson(
       lesson_id,
       name,
       content,
       xp,
-      formattedTestCases,
+      test_cases,  // Use original test cases
       section_id,
       template_code,
       hint,
       solution,
-      auto_detect
+      test_cases[0]?.auto_detect || false  // Use first test case's auto_detect value
     );
 
     if (result.rows.length === 0) {

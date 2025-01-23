@@ -112,7 +112,7 @@ const PricingPage = () => {
   return (
     <div className="pricing-page">
       <Navbar />
-      <div className="pricing-content">
+      <main className="pricing-content">
         <h1>Select the best plan that suits you</h1>
         <p>Unlock the full potential of DevQuest</p>
 
@@ -156,7 +156,7 @@ const PricingPage = () => {
             <div id="card-container"></div>
           </>
         )}
-      </div>
+      </main>
 
       {/* Popup for Subscription Confirmation */}
       {showPopup && (

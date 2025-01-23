@@ -94,6 +94,7 @@ const LessonPage = () => {
   const [sections, setSections] = useState([]);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [completedLessonsCount, setCompletedLessonsCount] = useState(0);
+  const [failedAttempts, setFailedAttempts] = useState(0);
 
   const resetState = () => {
     setCode('');
@@ -107,6 +108,12 @@ const LessonPage = () => {
   const showCopiedNotification = () => {
     setShowCopyNotification(true);
     setTimeout(() => setShowCopyNotification(false), 2000);
+  };
+
+  const handleCodeResult = (success) => {
+    if (!success) {
+      setFailedAttempts(prev => prev + 1);
+    }
   };
 
   useEffect(() => {
@@ -259,6 +266,7 @@ const LessonPage = () => {
             content={lesson.content}
             hint={lesson.hint}
             solution={lesson.solution}
+            failedAttempts={failedAttempts}
           />
         </div>
 
@@ -273,7 +281,7 @@ const LessonPage = () => {
                   languageId={languageId}
                   setConsoleOutput={setConsoleOutput}
                   setIsAnswerCorrect={setIsAnswerCorrect}
-                  onCopy={showCopiedNotification}
+                  onCodeResult={handleCodeResult}
                   templateCode={lesson?.template_code}
               />
             </div>

@@ -494,3 +494,136 @@
   margin: 1.5em 0;
   border-radius: 8px;
 }
+
+/* Help Section Styles */
+.help-section {
+  margin: 2rem 0;
+  padding: 0 1.5rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.hint-section,
+.solution-section {
+  margin-bottom: 1rem;
+  background: #1E293B;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #2D3748;
+  transition: all 0.2s ease;
+}
+
+.hint-section:hover,
+.solution-section:hover {
+  border-color: #3182CE;
+}
+
+/* Button Styles */
+.hint-button,
+.solution-button {
+  width: 100%;
+  padding: 1rem;
+  background: #2D3748;
+  border: none;
+  color: #A0AEC0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Available State */
+.hint-button.available,
+.solution-button.available {
+  background: #2C5282;
+  color: #EBF8FF;
+}
+
+.hint-button.available:hover,
+.solution-button.available:hover {
+  background: #2B6CB0;
+}
+
+/* Disabled State */
+.hint-button:disabled,
+.solution-button:disabled {
+  background: #2D3748;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Attempts Counter */
+.attempts-needed {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: #A0AEC0;
+  background: #1A202C;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid #2D3748;
+}
+
+/* Content Styles */
+.hint-content,
+.solution-content {
+  padding: 1.25rem;
+  background: #1A202C;
+  color: #E2E8F0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  border-top: 1px solid #2D3748;
+}
+
+/* Code Blocks within Hint/Solution */
+.hint-content pre,
+.solution-content pre {
+  background: #2D3748;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.hint-content code,
+.solution-content code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9rem;
+}
+
+/* Animations */
+.hint-content,
+.solution-content {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .help-section {
+    margin: 1.5rem 0;
+    padding: 0 1rem;
+  }
+
+  .hint-button,
+  .solution-button {
+    padding: 0.875rem;
+    font-size: 0.875rem;
+  }
+
+  .attempts-needed {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
