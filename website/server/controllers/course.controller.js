@@ -90,10 +90,17 @@ const getCourseById = asyncHandler(async (req, res) => {
   const result = await courseQueries.getCourseById(course_id);
   
   if (result.rows.length === 0) {
-    throw new AppError('Course not found', 404);
+    throw new AppError('The course you are looking for does not exist or has been removed', 404);
   }
 
-  res.status(200).json(result.rows[0]);
+  const course = result.rows[0];
+  
+  // Only allow access to published courses unless user is admin
+  if (course.status !== 'Published' && (!req.user || !req.user.admin)) {
+    throw new AppError('This course is currently not available', 403);
+  }
+
+  res.status(200).json(course);
 });
 
 const getUserCourseStats = asyncHandler(async (req, res) => {

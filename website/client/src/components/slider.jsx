@@ -78,19 +78,13 @@ const CoursesSlider = () => {
     const fetchCoursesData = async () => {
       try {
         const response = await axios.get('/api/getCoursesWithRatings');
-        const { courses, ratings, userscount } = response.data;
-        
-        const processedRatings = Object.entries(ratings || {}).reduce((acc, [key, value]) => {
-          acc[key] = value ? Number(value) : 0;
-          return acc;
-        }, {});
+        const { courses, userscount } = response.data;
         
         const topCourses = [...courses]
-          .sort((a, b) => (processedRatings[b.course_id] || 0) - (processedRatings[a.course_id] || 0))
+          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
           .slice(0, 5);
 
         setCourses(topCourses);
-        setRatings(processedRatings);
         setUserscount(userscount || {});
       } catch (err) {
         console.error('Error fetching courses:', err);
@@ -213,9 +207,9 @@ const CoursesSlider = () => {
                       <div className="home-slider__stats">
                         <div className="home-slider__stat-group">
                           <div className="home-slider__rating">
-                            <span className="home-slider__star-filled">{'★'.repeat(Math.floor(ratings[course.course_id] || 0))}</span>
-                            <span className="home-slider__star-empty">{'☆'.repeat(5 - Math.floor(ratings[course.course_id] || 0))}</span>
-                            <span className="home-slider__rating-value">{Number(ratings[course.course_id] || 0).toFixed(1)}</span>
+                            <span className="home-slider__star-filled">{'★'.repeat(Math.floor(course.rating || 0))}</span>
+                            <span className="home-slider__star-empty">{'☆'.repeat(5 - Math.floor(course.rating || 0))}</span>
+                            <span className="home-slider__rating-value">{Number(course.rating || 0).toFixed(1)}</span>
                           </div>
                           <div className="home-slider__enrolled">
                             <span className="home-slider__enrolled-count">{userscount[course.course_id] || 0}</span>

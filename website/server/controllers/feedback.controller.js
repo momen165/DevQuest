@@ -1,6 +1,7 @@
 const db = require('../config/database');
 const { sendFeedbackReplyEmail } = require('./auth.controller');
 const NodeCache = require('node-cache');
+const { AppError } = require('../utils/error.utils');
 
 // Initialize cache with 5 minutes TTL
 const cache = new NodeCache({ stdTTL: 300 });
@@ -18,10 +19,11 @@ const clearCoursesCache = () => {
 const QUERIES = {
   getAllFeedback: `
     SELECT f.feedback_id, u.name AS student_name, c.name AS course_name, 
-           f.comment AS feedback, f.rating, f.status
+           f.comment, f.rating, f.status
     FROM feedback f
     JOIN users u ON f.user_id = u.user_id
     JOIN course c ON f.course_id = c.course_id
+    WHERE ($1::int IS NULL OR f.course_id = $1)
     ORDER BY f.feedback_id DESC
   `,
   getPublicFeedback: `
@@ -67,7 +69,8 @@ const getFeedback = handleAsync(async (req, res) => {
   if (!req.user.admin) {
     return res.status(403).json({ error: 'Access denied. Admins only.' });
   }
-  const { rows } = await db.query(QUERIES.getAllFeedback);
+  const courseId = req.query.course_id ? parseInt(req.query.course_id) : null;
+  const { rows } = await db.query(QUERIES.getAllFeedback, [courseId]);
   res.status(200).json(rows || []);
 });
 
@@ -81,18 +84,17 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
   }
 
   console.log('🔍 Cache MISS: Fetching courses data from database');
-  const [courses, ratings, userscount] = await Promise.all([
-    db.query('SELECT * FROM course'),
-    db.query('SELECT course_id, ROUND(AVG(rating), 2) AS avg_rating FROM feedback GROUP BY course_id'),
+  const [courses, userscount] = await Promise.all([
+    db.query('SELECT * FROM course WHERE status = \'Published\''),
     db.query('SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id')
   ]); 
 
-  const ratingsMap = Object.fromEntries(ratings.rows.map(r => [r.course_id, r.avg_rating]));
+  console.log('DEBUG - Course statuses:', courses.rows.map(c => ({ id: c.course_id, status: c.status })));
+
   const userscountMap = Object.fromEntries(userscount.rows.map(u => [u.course_id, u.userscount]));
 
   const responseData = { 
     courses: courses.rows, 
-    ratings: ratingsMap, 
     userscount: userscountMap 
   };
 
@@ -152,12 +154,33 @@ const submitFeedback = handleAsync(async (req, res) => {
     return res.status(404).json({ error: 'Course not found.' });
   }
 
-  const { rows } = await db.query(
-    'INSERT INTO feedback (user_id, course_id, rating, comment) VALUES ($1, $2, $3, $4) RETURNING *',
-    [req.user.userId, course_id, rating, comment || null]
-  );
+  await db.query('BEGIN');
+  try {
+    // Insert the feedback
+    const { rows } = await db.query(
+      'INSERT INTO feedback (user_id, course_id, rating, comment) VALUES ($1, $2, $3, $4) RETURNING *',
+      [req.user.userId, course_id, rating, comment || null]
+    );
 
-  res.status(201).json({ message: 'Feedback submitted successfully!', feedback: rows[0] });
+    // Update course rating
+    await db.query(
+      `UPDATE course 
+       SET rating = (
+         SELECT ROUND(AVG(rating)::numeric, 2)
+         FROM feedback 
+         WHERE course_id = $1
+       )
+       WHERE course_id = $1`,
+      [course_id]
+    );
+
+    await db.query('COMMIT');
+    clearCoursesCache();
+    res.status(201).json({ message: 'Feedback submitted successfully!', feedback: rows[0] });
+  } catch (error) {
+    await db.query('ROLLBACK');
+    throw error;
+  }
 });
 
 // Reply to feedback

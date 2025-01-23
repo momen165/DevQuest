@@ -4,6 +4,7 @@ import { FaEdit, FaTrash } from 'react-icons/fa';
 import 'pages/admin/styles/AdminCourses.css';
 import EditCourseForm from 'pages/admin/components/AddEditCourseComponent';
 import SectionEditComponent from 'pages/admin/components/SectionEditComponent';
+import CourseFeedbackModal from 'pages/admin/components/CourseFeedbackModal';
 import axios from 'axios';
 import { useAuth } from 'AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
@@ -22,6 +23,7 @@ const AdminCourses = () => {
   const [editingSections, setEditingSections] = useState(false);
   const [sections, setSections] = useState([]);
   const [isAddingCourse, setIsAddingCourse] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
   const { user } = useAuth(); // Get user from AuthContext
   const token = user?.token; // Extract token from user context
@@ -200,6 +202,7 @@ const AdminCourses = () => {
               <tr>
                 <th>Course Name</th>
                 <th>Number of Students Enrolled</th>
+                <th>Rating</th>
                 <th>Sections</th>
                 <th>Actions</th>
               </tr>
@@ -207,8 +210,22 @@ const AdminCourses = () => {
             <tbody>
               {courses.map((course) => (
                 <tr key={course.course_id}>
-                  <td>{course.title}</td>
+                  <td>
+                    <span 
+                      className="course-name-link"
+                      onClick={() => setSelectedCourse(course)}
+                    >
+                      {course.title}
+                    </span>
+                  </td>
                   <td>{course.userscount || '0'}</td>
+                  <td>
+                    <div className="course-rating">
+                      <span className="star-rating">{'★'.repeat(Math.floor(course.rating || 0))}</span>
+                      <span className="star-empty">{'☆'.repeat(5 - Math.floor(course.rating || 0))}</span>
+                      <span className="rating-value">({Number(course.rating || 0).toFixed(1)})</span>
+                    </div>
+                  </td>
                   <td>
                     <FaEdit
                       className="icon edit-icon"
@@ -232,6 +249,13 @@ const AdminCourses = () => {
               ))}
             </tbody>
           </table>
+        )}
+
+        {selectedCourse && (
+          <CourseFeedbackModal
+            course={selectedCourse}
+            onClose={() => setSelectedCourse(null)}
+          />
         )}
       </div>
     </div>

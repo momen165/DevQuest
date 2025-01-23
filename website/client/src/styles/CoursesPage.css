@@ -28,7 +28,8 @@
   height: 566px; /* Match AnimatedLogo height */
   justify-content: space-between;
   align-items: center;
-  margin-top: 70px;
+  margin-top: 100px; /* Match navbar height */
+  padding-top: 20px; /* Add some padding */
   overflow: hidden; /* Ensure content stays within bounds */
 }
 
@@ -38,7 +39,7 @@
   left: 0;
   width: 100%;
   z-index: 0;
-  margin-top: 0;
+  margin-top: 0; /* Remove margin since it's absolutely positioned */
 }
 
 .hero-head, .hero-para, .search-container, .courses-header > * {
@@ -169,4 +170,35 @@
     width: 90%;
     max-width: 1200px;
   }
+}
+
+.search-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 20px auto 40px;
+  padding: 0 20px;
+  transform: translateY(20px);
+}
+
+.course-search-input {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 16px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.course-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.course-search-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
