@@ -1,31 +1,18 @@
 // website/server/routes/subscription.routes.js
 const express = require('express');
 const { 
-    addSubscription, 
-    getSubscriptions, 
-    cancelSubscription, 
-    updateSubscription, 
-    listSubscriptions, 
-    retrieveSubscription, 
-    retrieveSubscriptionFromStripe, 
-    checkActiveSubscription,
+    checkActiveSubscription, 
     checkSubscriptionStatusFromDb,
-    getSubscriptionStatusForUser
+    getSubscriptionStatusForUser,
+    listSubscriptions
 } = require('../controllers/subscription.controller');
 const authenticateToken = require('../middleware/auth');
 const router = express.Router();
 
-// Stripe-related routes
-router.post('/subscribe', authenticateToken, addSubscription);
-router.delete('/subscription', authenticateToken, cancelSubscription);
-router.put('/subscription', authenticateToken, updateSubscription);
-router.get('/stripe-subscription/:subscriptionId', authenticateToken, retrieveSubscriptionFromStripe);
-router.get('/check', authenticateToken, checkActiveSubscription); // Stripe check
-
 // Database-only routes
 router.get('/status', authenticateToken, checkSubscriptionStatusFromDb); // DB check
-router.get('/subscriptions', authenticateToken, getSubscriptions);
+router.get('/check', authenticateToken, checkActiveSubscription); // Stripe check
 router.get('/list-subscriptions', authenticateToken, listSubscriptions);
-router.get('/user/:userId', authenticateToken, getSubscriptionStatusForUser); // New route for checking any user's subscription
+router.get('/user/:userId', authenticateToken, getSubscriptionStatusForUser); // Admin route
 
 module.exports = router;

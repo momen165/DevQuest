@@ -262,40 +262,6 @@ const handleWebhook = async (req, res) => {
   res.json({ received: true });
 };
 
-
-
-
-const cancelSubscription = async (req, res) => {
-  const { subscriptionId } = req.body;
-
-  try {
-    const deletedSubscription = await stripe.subscriptions.del(subscriptionId);
-    res.status(200).json(deletedSubscription);
-  } catch (error) {
-    console.error('Error cancelling subscription:', error);
-    res.status(500).json({ error: 'Failed to cancel subscription.' });
-  }
-};
-
-const updatePaymentMethod = async (req, res) => {
-  const { customerId, paymentMethodId } = req.body;
-
-  try {
-    await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
-    await stripe.customers.update(customerId, {
-      invoice_settings: {
-        default_payment_method: paymentMethodId,
-      },
-    });
-    res.status(200).json({ message: 'Payment method updated successfully.' });
-  } catch (error) {
-    console.error('Error updating payment method:', error);
-    res.status(500).json({ error: 'Failed to update payment method.' });
-  }
-};
-
-
-
 const createPortalSession = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -337,7 +303,5 @@ const createPortalSession = async (req, res) => {
 module.exports = {
   createCheckoutSession,
   handleWebhook,
-  cancelSubscription,
-  updatePaymentMethod,
-  createPortalSession,
+  createPortalSession
 };

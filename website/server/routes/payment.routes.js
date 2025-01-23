@@ -1,11 +1,17 @@
 const express = require('express');
-const { createCheckoutSession, handleWebhook } = require('../controllers/payment.controller'); // Remove listPaymentIntents
-const paymentController = require('../controllers/payment.controller');
-const router = express.Router();
+const { 
+    createCheckoutSession, 
+    handleWebhook,
+    createPortalSession 
+} = require('../controllers/payment.controller');
 const authMiddleware = require('../middleware/auth');
-router.post('/create-checkout-session', createCheckoutSession); // Create checkout session
-router.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook); // Handle webhook
+const router = express.Router();
 
-router.post('/create-portal-session', authMiddleware, paymentController.createPortalSession);
+// Stripe webhook handling
+router.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+
+// Protected routes
+router.post('/create-checkout-session', authMiddleware, createCheckoutSession);
+router.post('/create-portal-session', authMiddleware, createPortalSession);
 
 module.exports = router;
