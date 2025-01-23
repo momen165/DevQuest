@@ -15,25 +15,34 @@ const encodeUnicode = (str) => {
 };
 
 const languageCommentMappings = {
-    python: '# Write code below \n',
-    javascript: '// Write code below \n',
-    cpp: '// Write code below \n',
-    java: '// Write code below \n',
-    plaintext: '// Write code below \n',
-  // Add other languages as needed
+    python: '# Write code below \n',      // ID: 100
+    java: '// Write code below \n',       // ID: 62
+    cpp: '// Write code below \n',        // ID: 105
+    c: '// Write code below \n',          // ID: 104
+    javascript: '// Write code below \n',  // ID: 102
+    php: '// Write code below \n',        // ID: 68
+    ruby: '# Write code below \n',        // ID: 72
+    typescript: '// Write code below \n',  // ID: 101
+    kotlin: '// Write code below \n',      // ID: 78
+    rust: '// Write code below \n',       // ID: 73
+    csharp: '// Write code below \n',     // ID: 51
+    go: '// Write code below \n',         // ID: 95
+    swift: '// Write code below \n',      // ID: 83
+    haskell: '-- Write code below \n',    // ID: 61
+    plaintext: '// Write code below \n'
 };
 
 const MonacoEditorComponent = ({
-
-      language,
-      code,
-      setCode,
-      user,
-      lessonId,
-      languageId,
-      setConsoleOutput,
-      setIsAnswerCorrect,
-      templateCode
+    language,
+    code,
+    setCode,
+    user,
+    lessonId,
+    languageId,
+    setConsoleOutput,
+    setIsAnswerCorrect,
+    onCodeResult,
+    templateCode
 }) => {
   const editorRef = useRef(null);
   const initialCommentSet = useRef(false);
@@ -126,7 +135,7 @@ const MonacoEditorComponent = ({
 
             console.log('Received response from server:', response.data);
 
-            const {results} = response.data;
+            const { results, success } = response.data;
             if (!results || results.length === 0) {
                 setConsoleOutput('No results received from the server.');
                 return;
@@ -178,7 +187,12 @@ const MonacoEditorComponent = ({
             }
 
             setConsoleOutput(output);
-            setIsAnswerCorrect(allPassed);
+            setIsAnswerCorrect(success);
+
+            // Call onCodeResult with the success status
+            if (onCodeResult) {
+                onCodeResult(success);
+            }
 
         } catch (err) {
             console.error('Error running code:', err.response?.data || err.message);
@@ -212,6 +226,11 @@ const MonacoEditorComponent = ({
             }
             
             setConsoleOutput(errorMessage);
+
+            // Also call onCodeResult with false on error
+            if (onCodeResult) {
+                onCodeResult(false);
+            }
         } finally {
             setIsRunning(false);
             // Start cooldown timer
@@ -219,7 +238,7 @@ const MonacoEditorComponent = ({
                 setCooldown(false);
             }, COOLDOWN_DURATION);
         }
-    }, [code, languageId, user, setConsoleOutput, setIsAnswerCorrect, lessonId]);
+    }, [code, languageId, user, setConsoleOutput, setIsAnswerCorrect, onCodeResult, lessonId]);
 
   const copyCodeToClipboard = () => {
     navigator.clipboard.writeText(code).then(() => {

@@ -84,18 +84,32 @@ for (let i = 0; i < 5; i++) {
 </div>`;
 
 const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDelete }) => {
-  const [lessonName, setLessonName] = useState(lesson?.name || '');
-  const [editorData, setEditorData] = useState(() => {
-    if (lesson?.content) {
-      return lesson.content;
-    }
-    return DEFAULT_LESSON_TEMPLATE;
+  const { user } = useAuth();
+
+  // Helper function for default test case - Move this BEFORE any state declarations
+  const getDefaultTestCase = () => ({
+    input: '',
+    expected_output: '',
+    auto_detect: false,
+    use_pattern: false,
+    pattern: ''
   });
+
+  // Group related state together
+  // Lesson basic info
+  const [lessonName, setLessonName] = useState(lesson?.name || '');
+  const [editorData, setEditorData] = useState(() => lesson?.content || DEFAULT_LESSON_TEMPLATE);
   const [xp, setXp] = useState(lesson?.xp || 0);
+  const [templateCode, setTemplateCode] = useState(lesson?.template_code || '');
+  const [hint, setHint] = useState(lesson?.hint || '');
+  const [solution, setSolution] = useState(lesson?.solution || '');
+
+  // UI state
   const [error, setError] = useState('');
-  const { user } = useAuth(); // Get user from context
+  const [isSaving, setIsSaving] = useState(false);
   const [languageId, setLanguageId] = useState(null);
 
+  // Test cases state
   const [test_cases, setTestCases] = useState(() => {
     if (lesson?.test_cases) {
       try {
@@ -104,18 +118,19 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
           : JSON.parse(lesson.test_cases);
         return cases.map(test => ({
           input: test.input || '',
-          expected_output: test.expected_output || '',
-          auto_detect: Boolean(test.auto_detect),
-          use_pattern: Boolean(test.use_pattern),
+          expected_output: test.auto_detect ? '' : (test.expected_output || ''),
+          auto_detect: test.auto_detect === true,
+          use_pattern: test.use_pattern === true,
           pattern: test.pattern || ''
         }));
       } catch (error) {
         console.error('Error parsing test cases:', error);
-        return [{ input: '', expected_output: '', auto_detect: false, use_pattern: false, pattern: '' }];
+        return [getDefaultTestCase()];
       }
     }
-    return [{ input: '', expected_output: '', auto_detect: false, use_pattern: false, pattern: '' }];
+    return [getDefaultTestCase()];
   });
+
 
   const [templateCode, setTemplateCode] = useState(() => {
     // Decode HTML entities when loading template code
@@ -131,122 +146,56 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     console.log('Lesson data:', lesson);
     console.log('Parsed test cases:', test_cases);
   }, [lesson, test_cases]);
+
   useEffect(() => {
     const fetchCourseLanguage = async () => {
+      if (!section?.section_id) return;
+
       try {
-        if (!section?.section_id) {
-          console.log('No section_id available:', section);
-          return;
-        }
+        const sectionResponse = await axios.get(
+          `http://localhost:5000/api/sections/${section.section_id}`,
+          { headers: { Authorization: `Bearer ${user.token}` }}
+        );
 
-        // First get section data to get course_id
-        console.log('Fetching section data:', section);
-        const sectionResponse = await axios.get(`http://localhost:5000/api/sections/${section.section_id}`, {
-          headers: { Authorization: `Bearer ${user.token}` }
-        });
+        if (!sectionResponse.data?.course_id) return;
 
-        if (!sectionResponse.data?.course_id) {
-          console.error('No course_id in section response:', sectionResponse.data);
-          return;
-        }
-
-        // Then get course data to get language_id
-        console.log('Fetching course data for course_id:', sectionResponse.data.course_id);
-        const courseResponse = await axios.get(`http://localhost:5000/api/courses/${sectionResponse.data.course_id}`, {
-          headers: { Authorization: `Bearer ${user.token}` }
-        });
+        const courseResponse = await axios.get(
+          `http://localhost:5000/api/courses/${sectionResponse.data.course_id}`,
+          { headers: { Authorization: `Bearer ${user.token}` }}
+        );
         
         if (courseResponse.data?.language_id) {
-          const courseLanguageId = courseResponse.data.language_id;
-          console.log('Course Language ID:', courseLanguageId);
-          console.log('Language Mapping:', languageMappings[courseLanguageId]);
-          setLanguageId(courseLanguageId);
-        } else {
-          console.error('No language_id found in course data:', courseResponse.data);
+          setLanguageId(courseResponse.data.language_id);
         }
       } catch (err) {
-        if (err.response?.status === 403) {
-          // Token expired, try to refresh or redirect to login
-          console.error('Token expired, please log in again');
-          // You might want to trigger a logout or token refresh here
-        } else {
-          console.error('Error fetching course language:', err);
-          setError('Failed to fetch course language');
-        }
+        console.error('Error fetching course language:', err);
+        setError('Failed to fetch course language');
       }
     };
 
-    if (section?.section_id) {
-      fetchCourseLanguage();
-    } else {
-      console.log('No section_id available:', section);
-    }
+    fetchCourseLanguage();
   }, [section, user.token]);
 
-  useEffect(() => {
-    if (lesson) {
-      setLessonName(lesson.name || '');
-      setEditorData(lesson.content || '');
-      setXp(lesson.xp || 0);
-      setTemplateCode(lesson.template_code || '');
-      
-      // Process test cases with pattern validation data
-      if (lesson.test_cases) {
-        const processedTestCases = lesson.test_cases.map(test => ({
-          input: test.input || '',
-          expected_output: test.expected_output || '',
-          auto_detect: test.auto_detect || false,
-          use_pattern: test.use_pattern || false,
-          pattern: test.pattern || ''
-        }));
-        setTestCases(processedTestCases);
-      }
-    }
-  }, [lesson]);
-
-  const validateTestCases = () => {
-    const newErrors = {};
-    
-    // Require at least one test case
-    if (test_cases.length === 0) {
-      newErrors.testCases = 'At least one test case is required.';
-      return newErrors;
-    }
-
-    test_cases.forEach((testCase, index) => {
-      // Input is always required
-      if (!testCase.input.trim()) {
-        newErrors[`testCase${index}`] = `Test case ${index + 1} input is required.`;
-      }
-
-      // Only check for expected output if auto-detect is OFF and pattern validation is OFF
-      if (!testCase.auto_detect && !testCase.use_pattern && !testCase.expected_output.trim()) {
-        newErrors[`testCaseOutput${index}`] = `Test case ${index + 1} expected output is required.`;
-      }
-
-      // If auto-detect is on, only check for console.log presence
-      if (testCase.auto_detect && !testCase.input.includes('console.log')) {
-        newErrors[`testCase${index}`] = `Test case ${index + 1} must include at least one console.log statement when auto-detect is enabled.`;
-      }
-    });
-
-    return newErrors;
-  };
-
+  // Validation function
   const validate = () => {
     if (!lessonName.trim()) {
       setError('Lesson name is required');
       return false;
     }
 
-    // Validate test cases
     for (const testCase of test_cases) {
-      // Only require expected output if neither auto-detect nor pattern validation is enabled
-      if (!testCase.auto_detect && !testCase.use_pattern && !testCase.expected_output.trim()) {
-        setError('Test case expected output is required');
+
+      if (!testCase.input.trim()) {
+        setError('Test case input is required');
         return false;
       }
-      // Require pattern if pattern validation is enabled
+      
+
+      if (!testCase.auto_detect && !testCase.use_pattern && !testCase.expected_output.trim()) {
+        setError('Test case expected output is required when not using auto-detect or pattern validation');
+        return false;
+      }
+      
       if (testCase.use_pattern && !testCase.pattern.trim()) {
         setError('Pattern is required when pattern validation is enabled');
         return false;
@@ -256,32 +205,42 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     return true;
   };
 
-  const handleEditorChange = (data) => {
-    console.log('Editor content changed:', data);
-    setEditorData(data);
+  // Handler functions
+  const handleTestCaseChange = (index, field, value) => {
+    const updatedTestCases = [...test_cases];
+    
+    if (field === 'auto_detect') {
+      updatedTestCases[index] = {
+        ...updatedTestCases[index],
+        auto_detect: value === true,
+        expected_output: '',
+        use_pattern: false,
+        pattern: ''
+      };
+    } else if (field === 'use_pattern') {
+      updatedTestCases[index] = {
+        ...updatedTestCases[index],
+        use_pattern: value === true,
+        auto_detect: false,
+        expected_output: '',
+        pattern: value ? updatedTestCases[index].pattern : ''
+      };
+    } else {
+      updatedTestCases[index] = {
+        ...updatedTestCases[index],
+        [field]: value
+      };
+    }
+    
+    setTestCases(updatedTestCases);
   };
 
-  // Helper function to extract console.log content
-  const extractConsoleLogOutput = (code) => {
-    try {
-      // Match different types of console.log patterns
-      const patterns = [
-        /console\.log\((["'`])(.*?)\1\)/g,  // String literals
-        /console\.log\(([^"'`\n]+)\)/g,      // Variables and expressions
-        /console\.log\(`([^`]+)`\)/g         // Template literals
-      ];
+  const handleAddTestCase = () => {
+    setTestCases([...test_cases, getDefaultTestCase()]);
+  };
 
-      let outputs = [];
-      for (const regex of patterns) {
-        const matches = [...code.matchAll(regex)];
-        outputs = outputs.concat(matches.map(match => match[2] || match[1]));
-      }
-
-      return outputs.join('\n');
-    } catch (error) {
-      console.error('Error extracting console.log output:', error);
-      return '';
-    }
+  const handleRemoveTestCase = (index) => {
+    setTestCases(test_cases.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
@@ -292,14 +251,26 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     setIsSaving(true);
     setError('');
 
+     const processedTestCases = test_cases.map(test => ({
+        input: test.input || '',
+        auto_detect: test.auto_detect === true,
+        use_pattern: test.use_pattern === true,
+        pattern: test.pattern || '',
+        expected_output: test.auto_detect ? '' : (test.expected_output || '')
+      }));
+
+
     try {
+
       const lessonData = {
         section_id: section.section_id,
         name: lessonName,
         content: editorData,
         xp: parseInt(xp),
-        test_cases,
-        template_code: templateCode, // Send template_code as is, without encoding
+
+        test_cases: processedTestCases,
+        section_id: section.section_id,
+        template_code: templateCode,
         hint,
         solution,
         auto_detect: test_cases[0]?.auto_detect || false
@@ -364,68 +335,6 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     }
   };
 
-  const handleAddTestCase = () => {
-    setTestCases([
-      ...test_cases,
-      {
-        input: '',
-        expected_output: '',
-        auto_detect: false,
-        use_pattern: false,
-        pattern: ''  // e.g., "Heads|Tails" for coin flip
-      }
-    ]);
-  };
-
-  const handleTestCaseChange = (index, field, value) => {
-    const updatedTestCases = [...test_cases];
-    
-    if (field === 'auto_detect') {
-      updatedTestCases[index] = {
-        ...updatedTestCases[index],
-        auto_detect: value,
-        // When auto-detect is enabled, we don't need expected output
-        expected_output: '',
-        // Disable pattern validation when auto-detect is enabled
-        use_pattern: false,
-        pattern: ''
-      };
-    } else if (field === 'use_pattern') {
-      updatedTestCases[index] = {
-        ...updatedTestCases[index],
-        use_pattern: value,
-        // Disable auto-detect when pattern validation is enabled
-        auto_detect: false,
-        pattern: value ? updatedTestCases[index].pattern : '',
-        expected_output: ''
-      };
-    } else {
-      updatedTestCases[index] = {
-        ...updatedTestCases[index],
-        [field]: value
-      };
-    }
-    
-    setTestCases(updatedTestCases);
-  };
-
-  const handleRemoveTestCase = (index) => {
-    const updatedTestCases = test_cases.filter((_, i) => i !== index);
-    setTestCases(updatedTestCases);
-  };
-
-  const [hint, setHint] = useState(lesson?.hint || '');
-  const [solution, setSolution] = useState(lesson?.solution || '');
-
-  // Add debug logs
-  useEffect(() => {
-    console.log('Lesson loaded:', lesson);
-  }, [lesson]);
-
-  // Add a new state for pattern validation
-  const [usePatternValidation, setUsePatternValidation] = useState(false);
-  const [validationPattern, setValidationPattern] = useState('');
-
   return (
     <div className={`lesson-edit-add-container ${isSaving ? 'loading' : ''}`}>
       {isSaving && <div className="loader">Saving...</div>}
@@ -444,7 +353,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
             onChange={(e) => setLessonName(e.target.value)}
             placeholder="Enter a descriptive name for the lesson"
           />
-          {errors.lessonName && <p className="error">{errors.lessonName}</p>}
+          {error && <p className="error">{error}</p>}
         </div>
 
         <div className="form-group">
@@ -452,7 +361,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
           <div className="editor-container">
             <CustomEditor
               initialData={editorData}
-              onChange={handleEditorChange}
+              onChange={setEditorData}
               className="lesson-editor"
               config={{
                 placeholder: "Start writing your lesson content here...",

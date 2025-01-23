@@ -97,16 +97,15 @@ const lessonQueries = {
     section_id, 
     template_code, 
     hint, 
-    solution,
-    auto_detect
+    solution
   ) => {
     // Process test cases while preserving all fields
     const processedTestCases = test_cases.map(test => ({
       input: test.input || '',
       expected_output: test.expected_output || '',
-      auto_detect: test.auto_detect ?? false,
-      use_pattern: test.use_pattern ?? false,
-      pattern: test.pattern ?? ''
+      auto_detect: test.auto_detect === true,  // Force boolean
+      use_pattern: test.use_pattern === true,  // Force boolean
+      pattern: test.pattern || ''
     }));
 
     const query = `
@@ -115,13 +114,12 @@ const lessonQueries = {
         name = $1,
         content = $2,
         xp = $3,
-        test_cases = $4::jsonb,  -- Explicitly cast to JSONB
+        test_cases = $4::jsonb,
         section_id = $5,
         template_code = $6,
         hint = $7,
-        solution = $8,
-        auto_detect = $9
-      WHERE lesson_id = $10
+        solution = $8
+      WHERE lesson_id = $9
       RETURNING *;
     `;
 
@@ -134,7 +132,6 @@ const lessonQueries = {
       template_code || '',
       hint || '',
       solution || '',
-      auto_detect,
       lesson_id
     ];
 
