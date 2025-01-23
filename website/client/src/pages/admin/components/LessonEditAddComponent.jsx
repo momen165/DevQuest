@@ -131,7 +131,22 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     return [getDefaultTestCase()];
   });
 
-  // Single useEffect for fetching course language
+
+  const [templateCode, setTemplateCode] = useState(() => {
+    // Decode HTML entities when loading template code
+    if (lesson?.template_code) {
+      return he.decode(lesson.template_code);
+    }
+    return '';
+  });
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  useEffect(() => {
+    console.log('Lesson data:', lesson);
+    console.log('Parsed test cases:', test_cases);
+  }, [lesson, test_cases]);
+
   useEffect(() => {
     const fetchCourseLanguage = async () => {
       if (!section?.section_id) return;
@@ -169,11 +184,13 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     }
 
     for (const testCase of test_cases) {
+
       if (!testCase.input.trim()) {
         setError('Test case input is required');
         return false;
       }
       
+
       if (!testCase.auto_detect && !testCase.use_pattern && !testCase.expected_output.trim()) {
         setError('Test case expected output is required when not using auto-detect or pattern validation');
         return false;
@@ -227,13 +244,14 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
   };
 
   const handleSave = async () => {
-    try {
-      setIsSaving(true);
-      setError('');
+    if (!validate()) {
+      return;
+    }
 
-      if (!validate()) return;
+    setIsSaving(true);
+    setError('');
 
-      const processedTestCases = test_cases.map(test => ({
+     const processedTestCases = test_cases.map(test => ({
         input: test.input || '',
         auto_detect: test.auto_detect === true,
         use_pattern: test.use_pattern === true,
@@ -241,25 +259,63 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         expected_output: test.auto_detect ? '' : (test.expected_output || '')
       }));
 
+
+    try {
+
       const lessonData = {
+        section_id: section.section_id,
         name: lessonName,
         content: editorData,
         xp: parseInt(xp),
+
         test_cases: processedTestCases,
         section_id: section.section_id,
         template_code: templateCode,
         hint,
-        solution
+        solution,
+        auto_detect: test_cases[0]?.auto_detect || false
       };
 
-      if (lesson?.lesson_id) {
-        lessonData.lesson_id = lesson.lesson_id;
-      }
+      if (lesson) {
+        // Update existing lesson
+        const response = await axios.put(
+          `${process.env.REACT_APP_API_URL}/lesson/${lesson.lesson_id}`,
+          lessonData,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
-      await onSave(lessonData);
-    } catch (error) {
-      console.error('Error saving lesson:', error);
-      setError(error.message);
+        if (response.status === 200) {
+          onSave(response.data);
+        } else {
+          setError('Failed to update lesson');
+        }
+      } else {
+        // Create new lesson
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/lesson`,
+          lessonData,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (response.status === 201) {
+          onSave(response.data);
+        } else {
+          setError('Failed to create lesson');
+        }
+      }
+    } catch (err) {
+      console.error('Error saving lesson:', err);
+      setError(err.response?.data?.message || 'An error occurred while saving the lesson');
     } finally {
       setIsSaving(false);
     }
