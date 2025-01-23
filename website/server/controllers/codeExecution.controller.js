@@ -16,7 +16,7 @@ const CONFIG = {
   },
   judge0: {
     host: 'judge0-ce.p.rapidapi.com',
-    apiKey: '179f6770f5msh61cd752c25cd483p180d42jsn40216ba79f4a',  // Your RapidAPI key
+    apiKey: '23a6ece966msha3ac7a07f6815d7p1037ecjsn11289737fb3f',  // Your RapidAPI key
     pollInterval: 2000,
     maxPollTime: 20000,
     maxOutputSize: 1024 * 100,
@@ -85,13 +85,15 @@ const helpers = {
         const base64SourceCode = Buffer.from(submission.source_code).toString('base64');
         const base64ExpectedOutput = submission.expected_output ? 
             Buffer.from(submission.expected_output).toString('base64') : '';
+        const base64Input = submission.stdin ? 
+            Buffer.from(submission.stdin).toString('base64') : '';
 
         const response = await axios.post(
             `https://${CONFIG.judge0.host}/submissions`,
             {
                 source_code: base64SourceCode,
-                language_id: submission.language_id,
-                stdin: submission.stdin || '',
+                language_id: submission.language_id , // Default to C++17 if not specified
+                stdin: base64Input,
                 expected_output: base64ExpectedOutput,
                 time_limit: CONFIG.judge0.timeLimit,
                 memory_limit: CONFIG.judge0.memoryLimit,
@@ -111,7 +113,7 @@ const helpers = {
         // Decode the response
         return {
             actual_output: response.data.stdout ? 
-                Buffer.from(response.data.stdout, 'base64').toString() : '',
+                Buffer.from(response.data.stdout, 'base64').toString().trim() : '',
             error: response.data.stderr ? 
                 Buffer.from(response.data.stderr, 'base64').toString() : '',
             compile_error: response.data.compile_output ? 

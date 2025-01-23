@@ -132,7 +132,7 @@ const MonacoEditorComponent = ({
                     },
                 }
             );
-
+            console.log('sent request to run code with payload:', payload);
             console.log('Received response from server:', response.data);
 
             const { results, success } = response.data;
