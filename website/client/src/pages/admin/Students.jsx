@@ -114,10 +114,10 @@ const StudentSubscriptionTable = () => {
                   <td>{student.user_id}</td>
                   <td>{student.name || 'Unknown'}</td>
                   <td>{student.email || 'Unknown'}</td>
-                  <td>{student.subscription || 'N/A'}</td>
+                  <td>{student.subscription_type || 'N/A'}</td>
                   <td>
-                    <span className={`status-badge ${student.subscription ? 'active' : 'inactive'}`}>
-                      {student.subscription ? 'Active' : 'Inactive'}
+                    <span className={`status-badge ${student.is_verified ? 'active' : 'inactive'}`}>
+                      {student.is_verified ? 'Verified' : 'Unverified'}
                     </span>
                   </td>
                 </tr>

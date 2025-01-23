@@ -17,13 +17,19 @@ const getAllStudents = async (req, res) => {
         u.user_id, 
         u.name, 
         u.email, 
-        u.created_at, -- Ensure this column exists in the database
+        u.created_at,
+        u.is_verified,
+        s.subscription_type,
+        s.subscription_end_date,
         CASE 
-          WHEN us.subscription_id IS NOT NULL THEN 'Active'
-          ELSE 'Inactive'
-        END AS subscription
+          WHEN s.subscription_id IS NOT NULL AND s.status = 'active' AND s.subscription_end_date > CURRENT_TIMESTAMP THEN true
+          ELSE false
+        END AS has_active_subscription
       FROM users u
-      LEFT JOIN user_subscription us ON u.user_id = us.user_id;
+      LEFT JOIN user_subscription us ON u.user_id = us.user_id
+      LEFT JOIN subscription s ON us.subscription_id = s.subscription_id
+      WHERE (s.subscription_id IS NULL 
+        OR (s.status = 'active' AND s.subscription_end_date > CURRENT_TIMESTAMP));
     `;
 
     const { rows } = await db.query(query);

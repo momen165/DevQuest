@@ -483,6 +483,48 @@ const checkSubscriptionStatusFromDb = async (req, res) => {
  
 };
 
+// Get subscription status for any user (admin only)
+const getSubscriptionStatusForUser = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.admin) {
+      return res.status(403).json({ error: 'Access denied. Admins only.' });
+    }
+
+    const { userId } = req.params;
+    
+    const query = `
+      SELECT 
+        s.*,
+        us.user_id
+      FROM subscription s
+      JOIN user_subscription us ON s.subscription_id = us.subscription_id
+      WHERE us.user_id = $1 
+      AND s.status = 'active'
+      AND s.subscription_end_date > CURRENT_TIMESTAMP
+      ORDER BY s.subscription_start_date DESC
+      LIMIT 1;
+    `;
+
+    const { rows } = await db.query(query, [userId]);
+
+    const response = {
+      hasActiveSubscription: rows.length > 0,
+      subscription: rows.length > 0 ? {
+        subscription_type: rows[0].subscription_type,
+        status: rows[0].status,
+        subscription_end_date: rows[0].subscription_end_date,
+        amount_paid: rows[0].amount_paid
+      } : null
+    };
+    
+    res.json(response);
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+    res.status(500).json({ error: 'Failed to check subscription status' });
+  }
+};
+
 module.exports = {
   addSubscription,
   getSubscriptions,
@@ -494,4 +536,5 @@ module.exports = {
   retrieveSubscriptionFromStripe,
   checkActiveSubscription,
   checkSubscriptionStatusFromDb,
+  getSubscriptionStatusForUser
 };
