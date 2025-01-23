@@ -1,13 +1,13 @@
 .animated-logo-card {
   width: 100%;
   height: 566px;
-  margin-top: 20px;
-  background: linear-gradient(0deg, #000, #272727); /* Updated background */
+  background: linear-gradient(0deg, #000, #272727);
   position: relative;
   display: grid;
   place-content: center;
   overflow: hidden;
   transition: all 0.5s ease-in-out;
+  z-index: 1;
 }
 
 .animated-logo-tools {
@@ -153,33 +153,33 @@
   transition: all 0.5s ease-in-out 0.5s;
 }
 
-.animated-logo-card:hover {
+.animated-logo-card.animate {
   border-radius: 0;
 }
 
-.animated-logo-card:hover .animated-logo {
+.animated-logo-card.animate .animated-logo {
   width: 296px; /* Width of first logo (85px) + second logo (211px) */
   animation: opacity 1s ease-in-out;
 }
 
-.animated-logo-card:hover .animated-logo-border {
+.animated-logo-card.animate .animated-logo-border {
   inset: 15px;
   opacity: 1;
   transform: rotate(0);
 }
 
-.animated-logo-card:hover .animated-logo-bottom-text {
+.animated-logo-card.animate .animated-logo-bottom-text {
   letter-spacing: 3px;
   opacity: 1;
   transform: translateX(-50%);
 }
 
-.animated-logo-card:hover .animated-logo-content .animated-logo-content-bottom-text {
+.animated-logo-card.animate .animated-logo-content .animated-logo-content-bottom-text {
   opacity: 1;
   letter-spacing: 9.5px;
 }
 
-.animated-logo-card:hover .animated-logo-trail {
+.animated-logo-card.animate .animated-logo-trail {
   animation: trail 1s ease-in-out;
 }
 

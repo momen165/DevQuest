@@ -46,7 +46,7 @@ function ProfilePage() {
       alert(error.response?.data?.error || 'An error occurred while removing your profile picture');
     }
   };
-  
+  ;
   const handleProfilePicChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -117,7 +117,7 @@ function ProfilePage() {
           <div className="account-settings-profile-header">
             <div className="account-settings-profile-avatar">
               <img
-                src={user.profileimage || defaultProfilePic}
+                src={user?.profileimage || defaultProfilePic}
                 alt="Profile"
               />
               <label htmlFor="profilePicInput" className="account-settings-profile-pic-buttons">
