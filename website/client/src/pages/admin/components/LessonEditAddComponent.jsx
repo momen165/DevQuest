@@ -100,7 +100,13 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
   const [lessonName, setLessonName] = useState(lesson?.name || '');
   const [editorData, setEditorData] = useState(() => lesson?.content || DEFAULT_LESSON_TEMPLATE);
   const [xp, setXp] = useState(lesson?.xp || 0);
-  const [templateCode, setTemplateCode] = useState(lesson?.template_code || '');
+  const [templateCode, setTemplateCode] = useState(() => {
+    // Decode HTML entities when loading template code
+    if (lesson?.template_code) {
+      return he.decode(lesson.template_code);
+    }
+    return '';
+  });
   const [hint, setHint] = useState(lesson?.hint || '');
   const [solution, setSolution] = useState(lesson?.solution || '');
 
@@ -131,17 +137,6 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     return [getDefaultTestCase()];
   });
 
-
-  const [templateCode, setTemplateCode] = useState(() => {
-    // Decode HTML entities when loading template code
-    if (lesson?.template_code) {
-      return he.decode(lesson.template_code);
-    }
-    return '';
-  });
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [errors, setErrors] = useState({});
   useEffect(() => {
     console.log('Lesson data:', lesson);
     console.log('Parsed test cases:', test_cases);
@@ -184,13 +179,6 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     }
 
     for (const testCase of test_cases) {
-
-      if (!testCase.input.trim()) {
-        setError('Test case input is required');
-        return false;
-      }
-      
-
       if (!testCase.auto_detect && !testCase.use_pattern && !testCase.expected_output.trim()) {
         setError('Test case expected output is required when not using auto-detect or pattern validation');
         return false;
