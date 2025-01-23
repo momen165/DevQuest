@@ -3,8 +3,8 @@ const db = require('../config/database');
 const logActivity = async (actionType, actionDescription, userId = null) => {
   try {
     const query = `
-      INSERT INTO recent_activity (action_type, action_description, user_id)
-      VALUES ($1, $2, $3)
+      INSERT INTO recent_activity (action_type, action_description, user_id, created_at)
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem')
     `;
     await db.query(query, [actionType, actionDescription, userId]);
   } catch (err) {

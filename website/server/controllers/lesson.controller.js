@@ -34,6 +34,15 @@ const addLesson = asyncHandler(async (req, res) => {
   // Get course_id from section
   const courseResult = await lessonQueries.getCourseIdFromSection(section_id);
   const courseId = courseResult.rows[0].course_id;
+  const courseName = courseResult.rows[0].course_name;
+  const sectionName = courseResult.rows[0].section_name;
+
+  // Log lesson creation
+  await logActivity(
+    'lesson_created',
+    `Admin (ID: ${req.user.user_id}) created lesson "${name}" in section "${sectionName}" (ID: ${section_id}) of course "${courseName}" (ID: ${courseId}).`,
+    parseInt(req.user.user_id)
+  );
 
   // Recalculate progress for all enrolled users
   await lessonQueries.recalculateProgressForCourse(courseId);
@@ -188,6 +197,17 @@ const updateLesson = asyncHandler(async (req, res) => {
       throw new AppError('Lesson not found', 404);
     }
 
+    // Get course and section info before logging
+    const courseInfo = await lessonQueries.getCourseIdFromSection(section_id);
+    const { course_id: courseId, course_name: courseName, section_name: sectionName } = courseInfo.rows[0];
+
+    // Log lesson update
+    await logActivity(
+      'lesson_updated',
+      `Admin (ID: ${req.user.user_id}) updated lesson "${name}" (ID: ${lesson_id}) in section "${sectionName}" (ID: ${section_id}) of course "${courseName}" (ID: ${courseId}). `,
+      parseInt(req.user.user_id)
+    );
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Error updating lesson:', error);
@@ -203,12 +223,30 @@ const deleteLesson = asyncHandler(async (req, res) => {
 
   const { lesson_id } = req.params;
 
+  // Get lesson name before deletion for logging
+  const lessonResult = await lessonQueries.getLessonById(lesson_id);
+  if (lessonResult.rows.length === 0) {
+    throw new AppError('Lesson not found.', 404);
+  }
+  const lessonName = lessonResult.rows[0].name;
+
   await lessonQueries.deleteLessonProgress(lesson_id);
   const result = await lessonQueries.deleteLesson(lesson_id);
 
   if (result.rows.length === 0) {
     throw new AppError('Lesson not found.', 404);
   }
+
+  // Get course and section info before deletion logging
+  const courseInfo = await lessonQueries.getCourseIdFromSection(lessonResult.rows[0].section_id);
+  const { course_id: courseId, course_name: courseName, section_name: sectionName } = courseInfo.rows[0];
+
+  // Log lesson deletion
+  await logActivity(
+    'lesson_deleted',
+    `Admin (ID: ${req.user.user_id}) deleted lesson "${lessonName}" (ID: ${lesson_id}) from section "${sectionName}" (ID: ${lessonResult.rows[0].section_id}) of course "${courseName}" (ID: ${courseId})`,
+    parseInt(req.user.user_id)
+  );
 
   res.status(200).json({ message: 'Lesson deleted successfully.' });
 });

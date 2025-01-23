@@ -486,6 +486,117 @@ const checkAdminStatus = handleAsync(async (req, res, next) => {
   next();
 });
 
+const requestEmailChange = handleAsync(async (req, res) => {
+  const { newEmail } = req.body;
+  const userId = req.user.userId;
+
+  // Validate new email
+  if (!newEmail?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+
+  // Check if new email is already in use
+  const existingUser = await db.query('SELECT 1 FROM users WHERE email = $1', [newEmail.toLowerCase()]);
+  if (existingUser.rows.length > 0) {
+    return res.status(400).json({ error: 'Email is already in use' });
+  }
+
+  // Get current user's email
+  const { rows } = await db.query('SELECT email, name FROM users WHERE user_id = $1', [userId]);
+  if (rows.length === 0) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const currentEmail = rows[0].email;
+  const userName = rows[0].name;
+
+  // Generate verification token
+  const token = helpers.generateToken(userId, { 
+    newEmail,
+    currentEmail,
+    purpose: 'email_change',
+    expiresIn: CONFIG.jwt.verificationExpiresIn 
+  });
+
+  const verificationLink = `${process.env.FRONTEND_URL}/confirm-email-change?token=${token}`;
+
+  const emailContent = helpers.getEmailTemplate(`
+    <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">Email Change Request</h1>
+    <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
+      Hello ${userName}, we received a request to change your email address from ${currentEmail} to ${newEmail}.
+    </p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${verificationLink}" 
+         style="display: inline-block; background-color: #4F46E5; color: white; 
+                padding: 14px 32px; text-decoration: none; border-radius: 8px;
+                font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
+        Confirm Email Change
+      </a>
+    </div>
+    <div style="background-color: #F3F4F6; border-radius: 8px; padding: 16px; margin-top: 32px;">
+      <p style="color: #6B7280; font-size: 14px; margin: 0;">
+        If you didn't request this change, please ignore this email or contact our support team immediately.
+        This link will expire in 1 hour for security purposes.
+      </p>
+    </div>
+  `);
+
+  await helpers.sendEmail(currentEmail, 'Confirm Your Email Change Request - Devquest', emailContent);
+  
+  res.status(200).json({ 
+    message: 'Email change verification sent to your current email address' 
+  });
+});
+
+const confirmEmailChange = handleAsync(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ error: 'Verification token is required' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.purpose !== 'email_change') {
+      return res.status(400).json({ error: 'Invalid token purpose' });
+    }
+
+    const { userId, newEmail, currentEmail } = decoded;
+
+    // Double check if new email is still available
+    const existingUser = await db.query('SELECT 1 FROM users WHERE email = $1 AND user_id != $2', [newEmail.toLowerCase(), userId]);
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'Email is no longer available' });
+    }
+
+    // Update email
+    const { rowCount } = await db.query(
+      'UPDATE users SET email = $1 WHERE user_id = $2 AND email = $3',
+      [newEmail.toLowerCase(), userId, currentEmail]
+    );
+
+    if (rowCount === 0) {
+      return res.status(400).json({ error: 'Failed to update email. Please try again.' });
+    }
+
+    await logActivity('User', `Email changed from ${currentEmail} to ${newEmail}`, userId);
+    
+    res.status(200).json({ 
+      message: 'Email changed successfully. Please log in with your new email address.' 
+    });
+  } catch (error) {
+    console.error('Token verification error:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(400).json({ error: 'Invalid token' });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(400).json({ error: 'Token has expired. Please request a new email change.' });
+    }
+    throw error;
+  }
+});
+
 module.exports = {
   signup,
   login,
@@ -496,5 +607,7 @@ module.exports = {
   resetPassword,
   checkAuth,
   sendFeedbackReplyEmail,
-  checkAdminStatus
+  checkAdminStatus,
+  requestEmailChange,
+  confirmEmailChange
 };

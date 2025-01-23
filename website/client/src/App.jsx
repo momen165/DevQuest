@@ -12,6 +12,7 @@ const RegistrationPage = React.lazy(() => import('pages/user/RegistrationPage'))
 const ForgotPasswordPage = React.lazy(() => import('pages/user/ForgotPasswordPage'));
 const ResetPasswordPage = React.lazy(() => import('./pages/user/ResetPasswordPage'));
 const VerifyEmail = React.lazy(() => import('./pages/user/VerifyEmail'));
+const ConfirmEmailChange = React.lazy(() => import('./pages/user/ConfirmEmailChange'));
 const Unauthorized = React.lazy(() => import('pages/user/Unauthorized'));
 const NotFoundPage = React.lazy(() => import('pages/NotFoundPage'));
 const CoursesPage = React.lazy(() => import('pages/user/CoursesPage'));
@@ -50,6 +51,7 @@ function App() {
           <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
           <Route path="/Unauthorized" element={<Unauthorized />} />
 
           {/* Public Routes - With maintenance check */}
