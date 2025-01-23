@@ -27,14 +27,14 @@ const LoginPage = () => {
     e.preventDefault();
    
     try {
-      const response = await axios.post('http://localhost:5000/api/login', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/login`, {
         email: formData.email,
         password: formData.password
       });
-      const { token } = response.data; // Extract token and role from response
-      login(token); // Pass both token and role to login function
+      const { token } = response.data;
+      login(token);
       setSuccess(true);
-      setTimeout(() => navigate('/'), 1500); // Redirect to home after successful login
+      setTimeout(() => navigate('/'), 1500);
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please check your email and password.');
     }

@@ -25,12 +25,11 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
     useEffect(() => {
         const fetchLessonProgress = async () => {
             try {
-                const user = JSON.parse(localStorage.getItem('user'));
                 if (!user) {
                     throw new Error("User is not logged in.");
                 }
 
-                const response = await axios.get(`http://localhost:5000/api/lesson-progress?user_id=${user.user_id}&lesson_id=${currentLessonId}`, {
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/lesson-progress?user_id=${user.user_id}&lesson_id=${currentLessonId}`, {
                     headers: {
                         Authorization: `Bearer ${user.token}`,
                     },
@@ -45,7 +44,7 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
         };
 
         fetchLessonProgress();
-    }, [currentLessonId]);
+    }, [currentLessonId, user]);
 
     // Add new effect to fetch menu data
     useEffect(() => {
@@ -55,7 +54,7 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
             setLoading(true);
             try {
                 // First get the course ID from the current section
-                const sectionResponse = await axios.get(`http://localhost:5000/api/sections/${currentSectionId}`, {
+                const sectionResponse = await axios.get(`${process.env.REACT_APP_API_URL}/sections/${currentSectionId}`, {
                     headers: {
                         Authorization: `Bearer ${user.token}`,
                     }
@@ -66,7 +65,7 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
                     setCourseId(courseId);
 
                     // Get course details for the name
-                    const courseResponse = await axios.get(`http://localhost:5000/api/courses/${courseId}`, {
+                    const courseResponse = await axios.get(`${process.env.REACT_APP_API_URL}/courses/${courseId}`, {
                         headers: {
                             Authorization: `Bearer ${user.token}`,
                         }
@@ -77,7 +76,7 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
                     }
 
                     // Then get all sections for this course with their lessons
-                    const sectionsResponse = await axios.get(`http://localhost:5000/api/sections/course/${courseId}`, {
+                    const sectionsResponse = await axios.get(`${process.env.REACT_APP_API_URL}/sections/course/${courseId}`, {
                         headers: {
                             Authorization: `Bearer ${user.token}`,
                         }
@@ -195,12 +194,11 @@ const LessonNavigation = ({ currentLessonId, lessons, isAnswerCorrect, onNext, c
 
     const completeLesson = async () => {
         try {
-            const user = JSON.parse(localStorage.getItem('user'));
             if (!user) {
                 throw new Error("User is not logged in.");
             }
 
-            const response = await axios.put('http://localhost:5000/api/update-lesson-progress', {
+            const response = await axios.put(`${process.env.REACT_APP_API_URL}/update-lesson-progress`, {
                 user_id: user.user_id,
                 lesson_id: currentLessonId,
                 completed: true,
