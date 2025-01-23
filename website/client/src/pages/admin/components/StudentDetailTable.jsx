@@ -33,14 +33,9 @@ const StudentDetailTable = ({ studentId, onClose }) => {
           axios.get(`/api/students/${studentId}`, { headers }),
           axios.get(`/api/students/${studentId}/courses`, { headers })
         ]);
-
-        // Fetch subscription status
-        const subscriptionResponse = await axios.get('/api/check', {
-          headers: {
-            ...headers,
-            'X-User-Id': studentId
-          }
-        });
+ 
+        // Fetch subscription status using new endpoint
+        const subscriptionResponse = await axios.get(`/api/user/${studentId}`, { headers });
 
         setStudent(studentResponse.data);
         setCourses(coursesResponse.data);
