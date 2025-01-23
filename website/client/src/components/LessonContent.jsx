@@ -1,5 +1,5 @@
 // LessonContent.js
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import parse from 'html-react-parser';
 import hljs from 'highlight.js';
 import { FaRegCopy, FaCheck } from 'react-icons/fa';
@@ -8,7 +8,22 @@ import 'styles/LessonContent.css';
 import LessonHelp from './LessonHelp';
 import { getFontClass } from '../utils/editorUtils';
 
-const LessonContent = ({ content, hint, solution }) => {
+const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
+  const HINT_THRESHOLD = 2;  // Show hint after 2 failed attempts
+  const SOLUTION_THRESHOLD = 4;  // Show solution after 4 failed attempts
+
+  const [showHint, setShowHint] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
+
+  const canShowHint = failedAttempts >= HINT_THRESHOLD;
+  const canShowSolution = failedAttempts >= SOLUTION_THRESHOLD;
+
+  // Reset visibility when failedAttempts changes
+  useEffect(() => {
+    if (!canShowHint) setShowHint(false);
+    if (!canShowSolution) setShowSolution(false);
+  }, [canShowHint, canShowSolution]);
+
   // Initialize syntax highlighting
   useEffect(() => {
     // Remove previous highlighting
@@ -100,12 +115,56 @@ const LessonContent = ({ content, hint, solution }) => {
 
   return (
     <div className="lesson-content">
-      {parse(content, options)}
+      <div className="content-section">
+        {parse(content, options)}
+      </div>
+
       {(hint || solution) && (
-        <LessonHelp 
-          hint={hint || 'No hint available for this lesson.'}
-          solution={solution || 'No solution available for this lesson.'}
-        />
+        <div className="help-section">
+          {hint && (
+            <div className={`hint-section ${!canShowHint ? 'disabled' : ''}`}>
+              <button 
+                onClick={() => setShowHint(!showHint)}
+                className={`hint-button ${canShowHint ? 'available' : ''}`}
+                disabled={!canShowHint}
+              >
+                💡 {showHint ? 'Hide Hint' : 'Show Hint'}
+                {!canShowHint && (
+                  <span className="attempts-needed">
+                    (Available after {HINT_THRESHOLD - failedAttempts} more failed attempts)
+                  </span>
+                )}
+              </button>
+              {showHint && canShowHint && (
+                <div className="hint-content">
+                  {parse(hint)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {solution && (
+            <div className={`solution-section ${!canShowSolution ? 'disabled' : ''}`}>
+              <button 
+                onClick={() => setShowSolution(!showSolution)}
+                className={`solution-button ${canShowSolution ? 'available' : ''}`}
+                disabled={!canShowSolution}
+              >
+                ✨ {showSolution ? 'Hide Solution' : 'Show Solution'}
+                {!canShowSolution && (
+                  <span className="attempts-needed">
+                    (Available after {SOLUTION_THRESHOLD - failedAttempts} more failed attempts)
+                  </span>
+                )}
+              </button>
+              {showSolution && canShowSolution && (
+                <div className="solution-content">
+                  {parse(solution)}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

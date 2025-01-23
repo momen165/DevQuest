@@ -4,6 +4,8 @@ import Navbar from 'components/Navbar';
 import Sidebar from 'components/AccountSettingsSidebar';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useAuth } from 'AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -11,6 +13,9 @@ function ChangePassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,6 +74,37 @@ function ChangePassword() {
     }
   };
   
+  const handleDeleteAccount = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const response = await axios.delete(`http://localhost:5000/api/student/delete-account`, {
+        headers: {
+          Authorization: `Bearer ${userData.token}`
+        }
+      });
+
+      if (response.data.success) {
+        // Clear all local storage data
+        localStorage.clear();
+        
+        // Show success message
+        toast.success('Account deleted successfully');
+        
+        // Logout and redirect
+        await logout();
+        
+        // Small delay to ensure cleanup is complete
+        setTimeout(() => {
+          navigate('/');
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Delete account error:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to delete account';
+      toast.error(errorMessage);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -127,6 +163,49 @@ function ChangePassword() {
               </button>
             </div>
           </form>
+
+          <div className="danger-zone">
+            <h3>Danger Zone</h3>
+            <div className="delete-account-section">
+              <h4>Delete Account</h4>
+              <p>Once you delete your account, there is no going back. All your data will be permanently removed.</p>
+              <button 
+                className="delete-button"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                Delete Account
+              </button>
+            </div>
+          </div>
+
+          {showDeleteConfirm && (
+            <div className="modal-overlay">
+              <div className="modal">
+                <h3>Delete Account</h3>
+                <p>Are you sure you want to delete your account? This action cannot be undone and will:</p>
+                <ul>
+                  <li>Remove all your course progress</li>
+                  <li>Cancel any active subscriptions</li>
+                  <li>Delete all your lesson completions</li>
+                  <li>Remove your profile information</li>
+                </ul>
+                <div className="modal-actions">
+                  <button 
+                    className="cancel-button"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="delete-button"
+                    onClick={handleDeleteAccount}
+                  >
+                    Yes, Delete My Account
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

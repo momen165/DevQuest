@@ -201,23 +201,43 @@ const runCode = handleAsync(async (req, res) => {
 
     // Process test cases
     const results = await Promise.all(testCases.map(async (testCase) => {
+      // For auto-detect, we need to check if the code contains console.log
+      if (testCase.auto_detect) {
+        // Check if code contains console.log statements
+        const hasConsoleLog = code.includes('console.log');
+        if (!hasConsoleLog) {
+          return {
+            input: testCase.input,
+            status: 'Failed',
+            actual_output: '',
+            error: 'Auto-detect requires at least one console.log statement',
+            status_description: 'Auto-detect validation failed',
+            auto_detect: true
+          };
+        }
+      }
+
       const result = await helpers.executeCode({
         source_code: code,
         language_id: langResult.rows[0].language_id,
-        stdin: '',
-        expected_output: ''
+        stdin: testCase.input || '',
+        expected_output: testCase.expected_output || ''
       });
 
+      // Handle different validation types
       let validationResult;
-      if (testCase.use_pattern) {
-        validationResult = validatePattern(result.actual_output, testCase.pattern);
-      } else if (testCase.auto_detect) {
+      if (testCase.auto_detect) {
+        // For auto-detect, we just check if there's any output and no errors
         validationResult = {
-          status: 'Passed',
+          status: result.actual_output && !result.error ? 'Passed' : 'Failed',
           actual_output: result.actual_output,
-          error: '',
-          status_description: 'Auto-detect success'
+          error: result.error || (result.actual_output ? '' : 'No output detected'),
+          status_description: result.actual_output && !result.error ? 
+            'Auto-detect: Code executed successfully with output' : 
+            'Auto-detect: No output or execution error'
         };
+      } else if (testCase.use_pattern) {
+        validationResult = validatePattern(result.actual_output, testCase.pattern);
       } else {
         validationResult = validateExactMatch(result.actual_output, testCase.expected_output);
       }

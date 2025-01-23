@@ -170,3 +170,115 @@
   border-radius: 4px;
   font-size: 0.875rem;
 }
+
+.view-reply {
+  background-color: #4a90e2;
+  margin-bottom: 5px;
+}
+
+.feedback-reply-popup {
+  position: relative;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.reply-text {
+  margin: 0;
+  font-size: 0.9em;
+  color: #495057;
+  line-height: 1.4;
+}
+
+.feedback-btn {
+  margin: 2px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.feedback-btn:hover {
+  opacity: 0.9;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #1a2942;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #3498db;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.original-feedback, .admin-reply {
+  margin-bottom: 1.5rem;
+}
+
+.original-feedback h4, .admin-reply h4 {
+  color: #3498db;
+  margin-bottom: 0.5rem;
+}
+
+/* Button styles */
+.feedback-btn.reply-btn {
+  background-color: #3498db;
+  margin-right: 5px;
+}
+
+.feedback-btn.view-btn {
+  background-color: #2ecc71;
+  margin-left: 5px;
+}
+
+.feedback-btn.reopen {
+  background-color: #e74c3c;
+  margin-right: 5px;
+}

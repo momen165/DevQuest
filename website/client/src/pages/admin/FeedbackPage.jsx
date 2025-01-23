@@ -13,6 +13,7 @@ const FeedbackPage = () => {
   const [reply, setReply] = useState('');
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
+  const [viewingReply, setViewingReply] = useState(null);
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -112,6 +113,31 @@ const FeedbackPage = () => {
     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   };
 
+  const ReplyModal = ({ feedback, onClose }) => {
+    if (!feedback) return null;
+    
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>Admin Reply to Feedback #{feedback.feedback_id}</h3>
+            <button className="modal-close" onClick={onClose}>&times;</button>
+          </div>
+          <div className="modal-body">
+            <div className="original-feedback">
+              <h4>Original Feedback:</h4>
+              <p>{feedback.feedback}</p>
+            </div>
+            <div className="admin-reply">
+              <h4>Admin Reply:</h4>
+              <p>{feedback.reply}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (error) return <div className="feedback-error">{error}</div>;
 
   if (loading) {
@@ -160,18 +186,28 @@ const FeedbackPage = () => {
                   <td>
                     {feedback.status === 'open' ? (
                       <button 
-                        className="feedback-btn" 
+                        className="feedback-btn reply-btn" 
                         onClick={() => setSelectedFeedback(feedback)}
                       >
                         Reply
                       </button>
                     ) : (
-                      <button 
-                        className="feedback-btn reopen" 
-                        onClick={() => handleReopen(feedback.feedback_id)}
-                      >
-                        Reopen
-                      </button>
+                      <>
+                        <button 
+                          className="feedback-btn reopen" 
+                          onClick={() => handleReopen(feedback.feedback_id)}
+                        >
+                          Reopen
+                        </button>
+                        {feedback.reply && (
+                          <button 
+                            className="feedback-btn view-btn"
+                            onClick={() => setViewingReply(feedback)}
+                          >
+                            View Reply
+                          </button>
+                        )}
+                      </>
                     )}
                   </td>
                 </tr>
@@ -191,6 +227,13 @@ const FeedbackPage = () => {
             <button className="feedback-btn-action" type="submit">Send Reply</button>
             <button className="feedback-btn-action" type="button" onClick={() => setSelectedFeedback(null)}>Cancel</button>
           </form>
+        )}
+
+        {viewingReply && (
+          <ReplyModal 
+            feedback={viewingReply} 
+            onClose={() => setViewingReply(null)} 
+          />
         )}
       </div>
     </div>
