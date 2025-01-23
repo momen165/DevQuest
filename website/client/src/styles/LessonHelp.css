@@ -17,9 +17,9 @@
     cursor: pointer;
     font-weight: 500;
     font-size: 1.1em;
-    list-style: none;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     transition: background-color 0.3s ease;
   }
   
@@ -27,18 +27,33 @@
     background: #233043;
   }
   
-  .lesson-help-section[open] .lesson-help-title {
+  .lesson-help-content {
+    padding: 0;
+    max-height: 0;
+    opacity: 0;
+    background: #1a1b26;
+    overflow: hidden;
+    transition: all 0.3s ease-out;
+  }
+  
+  .lesson-help-section.open .lesson-help-content {
+    padding: 1em;
+    max-height: 500px;
+    opacity: 1;
+  }
+  
+  .lesson-help-section.open .lesson-help-title {
     border-bottom: 1px solid #2d2d2d;
   }
   
-  .lesson-help-content {
-    padding: 1em;
-    background: #1a1b26;
+  /* Arrow styles */
+  .arrow {
+    font-size: 0.8em;
+    transition: transform 0.3s ease;
   }
   
-  /* Animation for opening/closing */
-  .lesson-help-section[open] .lesson-help-content {
-    animation: slideDown 0.3s ease-out;
+  .arrow.open {
+    transform: rotate(180deg);
   }
   
   @keyframes slideDown {
@@ -50,20 +65,4 @@
       opacity: 1;
       transform: translateY(0);
     }
-  }
-  
-  /* Remove default arrow */
-  .lesson-help-section summary::-webkit-details-marker {
-    display: none;
-  }
-  
-  /* Custom arrow indicator */
-  .lesson-help-title::after {
-    content: '▼';
-    margin-left: auto;
-    transition: transform 0.3s ease;
-  }
-  
-  .lesson-help-section[open] .lesson-help-title::after {
-    transform: rotate(180deg);
   }

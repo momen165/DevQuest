@@ -213,10 +213,22 @@ const deleteSection = async (req, res) => {
 
     if (sectionResult.rowCount === 0) {
       await client.query('ROLLBACK');
+      client.release();
       return res.status(404).json({ error: 'Section not found.' });
     }
 
     const sectionName = sectionResult.rows[0].name;
+
+    // First, get all lesson IDs in this section
+    const lessonIdsQuery = 'SELECT lesson_id FROM lesson WHERE section_id = $1';
+    const lessonIdsResult = await client.query(lessonIdsQuery, [section_id]);
+    const lessonIds = lessonIdsResult.rows.map(row => row.lesson_id);
+
+    if (lessonIds.length > 0) {
+      // Delete lesson progress records first
+      const deleteLessonProgressQuery = 'DELETE FROM lesson_progress WHERE lesson_id = ANY($1)';
+      await client.query(deleteLessonProgressQuery, [lessonIds]);
+    }
 
     // Delete lessons associated with the section
     const deleteLessonsQuery = 'DELETE FROM lesson WHERE section_id = $1';
