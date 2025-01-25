@@ -1,172 +1,163 @@
 # DevQuest
 
 ## 🎯 Overview
-DevQuest is an interactive learning platform built with React, featuring a modern and responsive user interface designed for an optimal learning experience.
+DevQuest is an interactive coding education platform that combines hands-on learning with gamification elements. Built with React and Node.js, it offers a modern learning experience for aspiring developers.
 
-## 🎯 Features
+## ✨ Key Features
 
-### 🎨 User Interface
-- Modern gradient backgrounds
-- Dark/Light theme support
-- Responsive design
-- Interactive code editor
-- Real-time code execution
-- Progress tracking
+### 👨‍💻 Learning Experience
+- Interactive code editor with real-time execution
+- Multi-language support (Python, JavaScript, Java, C++, and more)
+- Automated test case validation
+- Progress tracking and achievements
+- Customizable learning paths
+- Instant feedback system
+
+### 📚 Course System
+- Structured learning paths
+- Interactive lessons with practice exercises
+- Code templates and hints
+- Solution checking with custom test cases
+- Course progress tracking
+- Section-based organization
+
+### 👤 User Features
+- Personalized dashboard
+- Progress tracking & statistics
+- Skill tracking system
+- Profile customization
 - Achievement system
+- Learning streaks
 
-### 📚 Course Management
-- Interactive lesson interface
-- Split-view layout
-- Drag-and-drop section reordering
-- Progress tracking
-- Code execution environment
-- Practice exercises
-
-### 🎮 User Experience
-- Intuitive navigation
-- Breadcrumb trails
-- Real-time feedback
-- Profile management
-- Subscription system
-- FAQ support
-
-### 👑 Admin Features
-- Course management
-- User management
-- Content editing
+### 👑 Admin Dashboard
+- Course management system
+- User administration
+- Content editing tools
 - Analytics dashboard
-- Maintenance controls
+- System maintenance controls
+- Activity logging
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-### 🏗️ Core
-- React 18
-- Vite
-- React Router DOM
-- Axios
-- Express Validator
-- JWT Authentication
+### Frontend
+- **Core**: React 18 + Vite
+- **State Management**: Context API
+- **Routing**: React Router DOM v6
+- **HTTP Client**: Axios
+- **UI Components**: 
+  - Material-UI
+  - React Icons
+  - Styled Components
+  - React Hot Toast
+- **Code Editor**: Monaco Editor
+- **Styling**: CSS Modules
 
-### 🎭 UI Components
-- Material-UI (MUI)
-- React Icons
-- GSAP Animations
-- React Slick
-- React Hot Toast
-- Styled Components
-- Lucide Icons
-- React Circular Progressbar
-
-### 💻 Code Editor
-- Monaco Editor
-- CodeMirror
-  - Python support
-  - JavaScript support
-  - Java support
-  - C++ support
-- Highlight.js
-
-### 🔄 State & Forms
-- JWT with Decode
-- Express Validator
-- Node Cache
-- HTML React Parser
-
-### 🎨 Styling
-- Styled Components
-- CSS Modules
-- SVGR for SVG handling
-- TailwindCSS
-
-### 🛡️ Security
-- Helmet
-- XSS Protection
-- Express Rate Limit
-- CORS
-
-### 📦 Additional Features
-- Stripe Integration
-- AWS S3 Integration
-- CKEditor 5
-- Sharp (Image Processing)
-- Drag and Drop (@hello-pangea/dnd)
+### Backend
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: PostgreSQL
+- **Authentication**: JWT
+- **File Storage**: AWS S3
+- **Payment Processing**: Stripe
+- **Security**:
+  - Helmet
+  - Express Rate Limit
+  - XSS Protection
+  - CORS
 
 ## 📁 Project Structure
 ```
-client/
-├── public/
-├── src/
-│   ├── assets/
-│   │   ├── icons/
-│   │   └── images/
-│   ├── components/
-│   ├── hooks/
-│   ├── pages/
-│   │   ├── admin/
-│   │   ├── auth/
-│   │   └── user/
-│   ├── services/
-│   ├── store/
-│   ├── utils/
-│   └── styles/
-└── .env
+project/
+├── client/                 # Frontend React application
+│   ├── public/            # Static files
+│   └── src/
+│       ├── components/    # Reusable components
+│       ├── pages/        # Page components
+│       ├── hooks/        # Custom React hooks
+│       ├── services/     # API services
+│       ├── utils/        # Utility functions
+│       └── styles/       # Global styles
+│
+├── server/                # Backend Node.js application
+│   ├── config/           # Configuration files
+│   ├── controllers/      # Route controllers
+│   ├── middleware/       # Custom middleware
+│   ├── models/          # Database models
+│   ├── routes/          # API routes
+│   └── utils/           # Utility functions
+│
+└── docs/                 # Documentation
 ```
 
-## ⚙️ Environment Variables
-```
-VITE_API_URL=
-VITE_GITHUB_CLIENT_ID=
-VITE_STRIPE_PUBLIC_KEY=
-VITE_ENVIRONMENT=
-```
+## ⚙️ Environment Setup
 
-## 🚀 Scripts
+### Frontend (.env)
 ```
-npm run dev      # Start development server
-npm run build    # Build for production
-
+VITE_API_URL=your_api_url
+VITE_STRIPE_PUBLIC_KEY=your_stripe_key
 ```
 
-## 📱 Pages
-- Home
-- Login/Register
-- Course Catalog
-- Course Details
-- Challenge Arena
-- User Dashboard
-- Profile Settings
-- Leaderboard
-- Achievement Gallery
-- Admin Dashboard
-- Subscription Management
+### Backend (.env)
+```
+PORT=3000
+NODE_ENV=development
+DATABASE_URL=your_postgresql_url
+JWT_SECRET=your_jwt_secret
+AWS_ACCESS_KEY_ID=your_aws_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret
+STRIPE_SECRET_KEY=your_stripe_secret
+```
 
-## 🎨 Features Preview
-### 🏠 Home Page
-- Hero section
-- Featured courses
-- Learning paths
-- Success stories
+## 🚀 Getting Started
 
-### 💻 Challenge Arena
-- Code editor
-- Real-time output
-- Test cases
-- Hints system
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/devquest.git
+cd devquest
+```
 
-### 📊 Dashboard
-- Progress tracking
-- Recent activities
-- Enrolled courses
-- Achievement badges
+2. Install dependencies
+```bash
+# Install frontend dependencies
+cd client
+npm install
 
-### 👤 Profile
-- User statistics
-- Completed challenges
-- Earned certificates
-- Activity history
+# Install backend dependencies
+cd ../server
+npm install
+```
 
-### 👑 Admin Panel
-- Course management
-- User analytics
-- Content editor
-- System controls
+3. Set up environment variables
+- Copy `.env.example` to `.env` in both client and server directories
+- Update the variables with your values
+
+4. Start development servers
+```bash
+# Start frontend (from client directory)
+npm run dev
+
+# Start backend (from server directory)
+npm run dev
+```
+
+## 🔒 Security Features
+- JWT authentication
+- Rate limiting
+- XSS protection
+- CORS configuration
+- Input validation
+- Secure password hashing
+- File upload validation
+
+## 🤝 Contributing
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Support
+For support, email support@devquest.com or join our Discord community.

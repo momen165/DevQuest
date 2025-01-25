@@ -24,8 +24,10 @@ const ResetPasswordPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (password.length < 8) {
-            setError('Password must be at least 8 characters long');
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        
+        if (!passwordRegex.test(password)) {
+            setError('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)');
             return;
         }
 
@@ -55,45 +57,46 @@ const ResetPasswordPage = () => {
 
     return (
         <div className="reset-password-container">
-    <div className="reset-password-box">
-        <h1 className='h1-reset-password'>Reset Password</h1>
-        
-        {error && <div className="error-message">{error}</div>}
-        {message && <div className="success-message">{message}</div>}
-        
-        <form onSubmit={handleSubmit}>
-            <div className="form-group">
-                <label className='label-reset-password' htmlFor="password">New Password</label>
-                <input
-                    className="reset-password"
-                    type="password"
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={loading}
-                    required
-                />
+            <div className="reset-password-box">
+                <h1 className='h1-reset-password'>Reset Password</h1>
+                
+                {error && <div className="error-message">{error}</div>}
+                {message && <div className="success-message">{message}</div>}
+                
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className='label-reset-password' htmlFor="password">New Password</label>
+                        <input
+                            className="reset-password"
+                            type="password"
+                            id="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            disabled={loading}
+                            required
+                        />
+                        <p className="hint">Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)</p>
+                    </div>
+                    
+                    <div className="form-group">
+                        <label className='label-reset-password' htmlFor="confirmPassword">Confirm Password</label>
+                        <input
+                            className="reset-password"
+                            type="password"
+                            id="confirmPassword"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            disabled={loading}
+                            required
+                        />
+                    </div>
+                    
+                    <button className="submit-button" type="submit" disabled={loading}>
+                        {loading ? 'Submitting...' : 'Submit'}
+                    </button>
+                </form>
             </div>
-            
-            <div className="form-group">
-                <label className='label-reset-password' htmlFor="confirmPassword">Confirm Password</label>
-                <input
-                    className="reset-password"
-                    type="password"
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={loading}
-                    required
-                />
-            </div>
-            
-            <button className="submit-button" type="submit" disabled={loading}>
-                {loading ? 'Submitting...' : 'Submit'}
-            </button>
-        </form>
-    </div>
-</div>
+        </div>
     );
 };
 
