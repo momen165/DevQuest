@@ -257,7 +257,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         xp: parseInt(xp),
 
         test_cases: processedTestCases,
-        section_id: section.section_id,
+       
         template_code: templateCode,
         hint,
         solution,

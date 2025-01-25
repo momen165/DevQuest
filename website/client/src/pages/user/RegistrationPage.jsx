@@ -35,8 +35,10 @@ const SignupPage = () => {
             alert('Name, email and password are required');
             return false;
         }
-        if (password.length < 8) {
-            alert('Password must be at least 8 characters');
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            alert('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)');
             return false;
         }
         return true;
@@ -109,7 +111,7 @@ const SignupPage = () => {
                           className="input"
                           autoComplete="new-password"
                       />
-                      <p className="hint">Use 8 or more characters with a mix of letters, numbers & symbols</p>
+                      <p className="hint">Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)</p>
                   </label>
                   <label>
                       Country

@@ -36,9 +36,12 @@ function ChangePassword() {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError('New password must be at least 8 characters long');
-      toast.error('New password must be at least 8 characters long');
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    
+    if (!passwordRegex.test(newPassword)) {
+      const errorMsg = 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
   
@@ -211,8 +214,8 @@ function ChangePassword() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
-                minLength={8}
               />
+              <p className="hint">Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)</p>
 
               <label className="change-password-input-label" htmlFor="confirm-password">
                 Confirm Password
