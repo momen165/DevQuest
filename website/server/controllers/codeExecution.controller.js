@@ -16,12 +16,56 @@ const CONFIG = {
   },
   judge0: {
     host: 'judge0-ce.p.rapidapi.com',
-    apiKey: '23a6ece966msha3ac7a07f6815d7p1037ecjsn11289737fb3f',  // Your RapidAPI key
+    apiKey: '23a6ece966msha3ac7a07f6815d7p1037ecjsn11289737fb3f',  //  RapidAPI key
     pollInterval: 2000,
     maxPollTime: 20000,
     maxOutputSize: 1024 * 100,
     timeLimit: 10,
     memoryLimit: 512000
+  }
+};
+
+// Add language-specific error handling configurations
+const LANGUAGE_CONFIGS = {
+  // JavaScript (Node.js)
+  27: {
+    formatError: (error) => {
+      if (error.includes('SyntaxError')) {
+        return `Syntax Error: ${error.split('\n')[0]}`;
+      }
+      return error;
+    }
+  },
+  // Python
+  100: {
+    formatError: (error) => {
+      if (error.includes('SyntaxError')) {
+        return error.split('\n').slice(0, 2).join('\n');
+      }
+      return error;
+    }
+  },
+  // Java
+  91: {
+    formatError: (error) => {
+      if (error.includes('error:')) {
+        return error.split('\n')
+          .filter(line => line.includes('error:'))
+          .join('\n');
+      }
+      return error;
+    }
+  },
+  // C++
+  105: {
+    formatError: (error) => {
+      if (error.includes('error:')) {
+        return error.split('\n')
+          .filter(line => line.includes('error:'))
+          .join('\n');
+      }
+      return error;
+    }
   }
 };
 
@@ -110,14 +154,19 @@ const helpers = {
             }
         );
 
-        // Decode the response
+        // Get language-specific error formatter
+        const languageConfig = LANGUAGE_CONFIGS[submission.language_id] || {
+          formatError: (error) => error // Default formatter
+        };
+
+        // Decode and format the response
         return {
             actual_output: response.data.stdout ? 
                 Buffer.from(response.data.stdout, 'base64').toString().trim() : '',
             error: response.data.stderr ? 
-                Buffer.from(response.data.stderr, 'base64').toString() : '',
+                languageConfig.formatError(Buffer.from(response.data.stderr, 'base64').toString()) : '',
             compile_error: response.data.compile_output ? 
-                Buffer.from(response.data.compile_output, 'base64').toString() : '',
+                languageConfig.formatError(Buffer.from(response.data.compile_output, 'base64').toString()) : '',
             status_description: response.data.status?.description || 'Unknown'
         };
     } catch (error) {
@@ -203,22 +252,6 @@ const runCode = handleAsync(async (req, res) => {
 
     // Process test cases
     const results = await Promise.all(testCases.map(async (testCase) => {
-      // For auto-detect, we need to check if the code contains console.log
-      if (testCase.auto_detect) {
-        // Check if code contains console.log statements
-        const hasConsoleLog = code.includes('console.log');
-        if (!hasConsoleLog) {
-          return {
-            input: testCase.input,
-            status: 'Failed',
-            actual_output: '',
-            error: 'Auto-detect requires at least one console.log statement',
-            status_description: 'Auto-detect validation failed',
-            auto_detect: true
-          };
-        }
-      }
-
       const result = await helpers.executeCode({
         source_code: code,
         language_id: langResult.rows[0].language_id,
@@ -226,10 +259,32 @@ const runCode = handleAsync(async (req, res) => {
         expected_output: testCase.expected_output || ''
       });
 
-      // Handle different validation types
+      // Check for compilation errors first
+      if (result.compile_error) {
+        return {
+          input: testCase.input,
+          status: 'Failed',
+          actual_output: '',
+          error: `Compilation Error: ${result.compile_error}`,
+          status_description: 'Compilation failed',
+          compile_error: result.compile_error
+        };
+      }
+
+      // Check for runtime errors
+      if (result.error) {
+        return {
+          input: testCase.input,
+          status: 'Failed',
+          actual_output: '',
+          error: `Runtime Error: ${result.error}`,
+          status_description: 'Runtime error occurred'
+        };
+      }
+
+      // Continue with existing validation logic
       let validationResult;
       if (testCase.auto_detect) {
-        // For auto-detect, we just check if there's any output and no errors
         validationResult = {
           status: result.actual_output && !result.error ? 'Passed' : 'Failed',
           actual_output: result.actual_output,
