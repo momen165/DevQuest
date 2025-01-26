@@ -12,9 +12,8 @@ require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const bodyParser = require('body-parser');
 const { closeExpiredTickets } = require('./controllers/support.controller');
+const { router: paymentRouter, webhookHandler } = require('./routes/payment.routes');
 
-
-const {handleWebhook} = require("./controllers/payment.controller");
 // Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -111,6 +110,9 @@ app.disable('x-powered-by');
 
 // Input sanitization
 
+// IMPORTANT: Place this before any middleware that parses the body
+app.post('/api/webhook', express.raw({type: 'application/json'}), webhookHandler);
+
 // Middleware for parsing JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -132,7 +134,6 @@ const activityRoutes = require('./routes/activity.routes');
 const codeExecutionRoutes = require('./routes/codeExecution.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const supportRoutes = require('./routes/support.routes');
-const paymentRoutes = require('./routes/payment.routes');
 const adminRoutes = require('./routes/admin.routes');
 
 // Use routes
@@ -147,7 +148,7 @@ app.use('/api', activityRoutes);
 app.use('/api', codeExecutionRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', supportRoutes);
-app.use('/api', paymentRoutes);
+app.use('/api', paymentRouter);
 app.use('/api/admin', adminRoutes);
 
 // Error handling middleware (should be after all routes)
