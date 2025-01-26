@@ -9,7 +9,15 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [imageKey, setImageKey] = useState(Date.now());
   const location = useLocation();
+
+  // Update imageKey when user profile image changes
+  useEffect(() => {
+    if (user?.profileimage) {
+      setImageKey(Date.now());
+    }
+  }, [user?.profileimage]);
 
   // Close menus when route changes
   useEffect(() => {
@@ -61,9 +69,14 @@ const Navbar = () => {
           {user ? (
             <div className="profile-button" onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}>
               <img 
-                src={user.profileimage || defaultProfilePic} 
+                key={imageKey}
+                src={`${user.profileimage || defaultProfilePic}${user.profileimage ? `?t=${imageKey}` : ''}`}
                 alt="Profile" 
                 className="profile-avatar"
+                onError={(e) => {
+                  console.error('[Navbar] Error loading profile image:', e);
+                  e.target.src = defaultProfilePic;
+                }}
               />
               <div className={`profile-dropdown ${isProfileMenuOpen ? 'active' : ''}`}>
                 <Link to="/ProfilePage" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>
@@ -114,9 +127,14 @@ const Navbar = () => {
           {user && (
             <div className="mobile-user-info">
               <img
-                src={user.profileimage || defaultProfilePic}
+                key={imageKey}
+                src={`${user.profileimage || defaultProfilePic}${user.profileimage ? `?t=${imageKey}` : ''}`}
                 alt="Profile"
                 className="profile-avatar"
+                onError={(e) => {
+                  console.error('[Navbar] Error loading profile image:', e);
+                  e.target.src = defaultProfilePic;
+                }}
               />
               <div className="user-details">
                 <div className="user-name">{user.name || 'User'}</div>

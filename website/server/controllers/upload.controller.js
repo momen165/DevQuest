@@ -102,108 +102,131 @@ const uploadProfilePic = [
   upload.single('profilePic'),
   async (req, res) => {
     try {
-  
-
-      const userId = req.user.user_id; // Accessing normalized user_id
+      
+      const userId = req.user.user_id;
 
       if (!userId) {
+        console.error('[uploadProfilePic] User ID missing from token');
         return res.status(400).json({ error: 'User ID is missing from the token' });
       }
 
+      if (!req.file) {
+        console.error('[uploadProfilePic] No file uploaded');
+        return res.status(400).json({ error: 'No file uploaded.' });
+      }
+
+     
+
       // Set the folder path and filename
       const folderPath = `user_images/`;
-      const filename = `profile_${userId}.png`; // Use user ID as the filename
-      const fullKey = `${folderPath}${filename}`; // Full path within the S3 bucket
+      const filename = `profile_${userId}.png`;
+      const fullKey = `${folderPath}${filename}`;
 
-      // Process the image using sharp
+   
       const processedBuffer = await sharp(req.file.buffer)
-        .resize(400, 400) // Resize to 400x400
-        .toFormat('png', { quality: 90 }) // Convert to PNG with 90% quality
+        .resize(400, 400)
+        .toFormat('png', { quality: 90 })
         .toBuffer();
+      
 
       // Define S3 upload parameters
       const params = {
         Bucket: process.env.S3_BUCKET_NAME,
-        Key: fullKey, // Store the image in the user_images folder
+        Key: fullKey,
         Body: processedBuffer,
         ContentType: 'image/*',
       };
 
       // Upload to S3
+      
       const command = new PutObjectCommand(params);
       await s3Client.send(command);
+    
 
-      // Generate the public S3 URL for the uploaded image
+      // Generate the public S3 URL
       const profileimage = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fullKey}`;
+     
 
       // Save the URL in the database
+   
       const query = 'UPDATE users SET profileimage = $1 WHERE user_id = $2';
       await db.query(query, [profileimage, userId]);
+
 
       res.status(200).json({
         message: 'Profile picture uploaded successfully',
         profileimage,
       });
+
     } catch (error) {
-      console.error('Error uploading profile picture:', error);
+      console.error('[uploadProfilePic] Error:', error);
+      console.error('[uploadProfilePic] Stack trace:', error.stack);
       res.status(500).json({ error: 'Failed to upload profile picture' });
     }
-  },
+  }
 ];
 
 
 const removeProfilePic = async (req, res) => {
   try {
-
+    
 
     if (!req.user || !req.user.user_id) {
+      console.error('[removeProfilePic] User information missing in token');
       return res.status(400).json({ error: 'User information missing in token' });
     }
 
     const userId = req.user.user_id;
+   
 
-    // Fetch the current profile picture URL from the database
+    // Fetch the current profile picture URL
+ 
     const querySelect = 'SELECT profileimage FROM users WHERE user_id = $1';
     const { rows } = await db.query(querySelect, [userId]);
 
     if (rows.length === 0) {
+      console.error('[removeProfilePic] User not found in database');
       return res.status(404).json({ error: 'User not found' });
     }
 
     const profileimage = rows[0].profileimage;
+    
 
     if (profileimage) {
-      // Extract the S3 key from the URL
+      // Extract the S3 key
       const keyPrefix = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
-      const key = profileimage.replace(keyPrefix, ''); // Remove prefix to get the S3 key
-
-      // Define S3 deletion parameters
-      const params = {
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: key, // Full S3 key for the image
-      };
+      const key = profileimage.replace(keyPrefix, '');
+ 
 
       try {
-        // Delete the file from S3
-        const command = new DeleteObjectCommand(params);
+     
+        const command = new DeleteObjectCommand({
+          Bucket: process.env.S3_BUCKET_NAME,
+          Key: key,
+        });
         await s3Client.send(command);
-
-      
+        
       } catch (s3Error) {
-        console.error('S3 deletion error:', s3Error);
+        console.error('[removeProfilePic] S3 deletion error:', s3Error);
+        console.error('[removeProfilePic] S3 error stack:', s3Error.stack);
         return res.status(500).json({ error: 'Failed to delete profile picture from S3' });
       }
 
-      // Remove the profileimage reference from the database
+      // Update database
+
       const queryUpdate = 'UPDATE users SET profileimage = NULL WHERE user_id = $1';
       await db.query(queryUpdate, [userId]);
+    
 
       res.status(200).json({ message: 'Profile picture removed successfully' });
+
     } else {
+ 
       res.status(400).json({ error: 'No profile picture to remove' });
     }
   } catch (error) {
-    console.error('Error removing profile picture:', error);
+    console.error('[removeProfilePic] Error:', error);
+    console.error('[removeProfilePic] Stack trace:', error.stack);
     res.status(500).json({ error: 'Failed to remove profile picture' });
   }
 };
