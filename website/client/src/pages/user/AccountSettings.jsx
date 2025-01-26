@@ -19,6 +19,7 @@ function ProfilePage() {
   const [newSkill, setNewSkill] = useState('');
 
   useEffect(() => {
+
     if (!user || !user.token) {
       navigate('/');
     } else {
@@ -30,45 +31,77 @@ function ProfilePage() {
   }, [user, navigate]);
 
   const handleRemoveProfilePic = async () => {
+
     try {
+
       const response = await axios.delete('/api/removeProfilePic', {
         headers: {
           'Authorization': `Bearer ${user.token}`,
         },
       });
+     
   
       const updatedUser = { ...user, profileimage: null };
+     
       setUser(updatedUser);
+     
       localStorage.setItem('user', JSON.stringify(updatedUser));
       alert('Profile picture removed successfully');
+     
     } catch (error) {
-      console.error('Error removing profile picture:', error);
+      console.error('[handleRemoveProfilePic] Error:', error);
+      console.error('[handleRemoveProfilePic] Response data:', error.response?.data);
+      console.error('[handleRemoveProfilePic] Stack:', error.stack);
       alert(error.response?.data?.error || 'An error occurred while removing your profile picture');
     }
   };
-  ;
+
   const handleProfilePicChange = async (e) => {
+
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      
+      return;
+    }
+  
+   
   
     const formData = new FormData();
     formData.append('profilePic', file);
   
+  
     try {
+ 
       const response = await axios.post('/api/uploadProfilePic', formData, {
         headers: {
           'Authorization': `Bearer ${user.token}`,
           'Content-Type': 'multipart/form-data',
         },
       });
+   
   
-      const profileimage = response.data.profileimage;
-      const updatedUser = { ...user, profileimage };
+      const { profileimage } = response.data;
+      if (!profileimage) {
+        console.error('[handleProfilePicChange] No profile image URL in response');
+        throw new Error('No profile image URL received from server');
+      }
+    
+
+      const updatedUser = { 
+        ...user, 
+        profileimage: `${profileimage}?t=${Date.now()}`
+      };
+    
+
       setUser(updatedUser);
+
       localStorage.setItem('user', JSON.stringify(updatedUser));
+
       alert('Profile picture updated successfully');
     } catch (error) {
-      console.error('Error uploading profile picture:', error);
+      console.error('[handleProfilePicChange] Error:', error);
+      console.error('[handleProfilePicChange] Response data:', error.response?.data);
+      console.error('[handleProfilePicChange] Stack:', error.stack);
       alert(error.response?.data?.error || 'An error occurred while uploading your profile picture');
     }
   };
@@ -116,9 +149,14 @@ function ProfilePage() {
           <h2>{name ? `Welcome, ${name}!` : 'Loading...'}</h2>
           <div className="account-settings-profile-header">
             <div className="account-settings-profile-avatar">
+              
               <img
-                src={user?.profileimage || defaultProfilePic}
+                src={`${user?.profileimage || defaultProfilePic}${user?.profileimage ? `?t=${Date.now()}` : ''}`}
                 alt="Profile"
+                onError={(e) => {
+                  console.error('[ProfilePage] Error loading profile image:', e);
+                  e.target.src = defaultProfilePic;
+                }}
               />
               <label htmlFor="profilePicInput" className="account-settings-profile-pic-buttons">
                 <FaCamera size={16} color="#e2e8f0" />
@@ -126,6 +164,7 @@ function ProfilePage() {
               <input
                 type="file"
                 id="profilePicInput"
+                accept="image/*"
                 style={{ display: 'none' }}
                 onChange={handleProfilePicChange}
               />
