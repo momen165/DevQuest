@@ -59,7 +59,7 @@ const languageBackgrounds = {
 };
 
 const SCROLL_SPEED = 2; // Pixels per frame
-const SCROLL_INTERVAL = 16; // Approximately 60fps
+
 
 const CoursesSlider = () => {
   const sliderRef = useRef(null);
@@ -164,7 +164,7 @@ const CoursesSlider = () => {
   return (
     <div className="home-slider__section">
       <div className="home-slider__header">
-        <h2 className="home-slider__title">Top-Rated Programming Courses</h2>
+        <h2 className="home-slider__title">Most popular Programming Courses</h2>
         <p className="home-slider__subtitle">Master your coding journey with our most popular courses</p>
       </div>
       <div 
@@ -182,7 +182,7 @@ const CoursesSlider = () => {
           {loading ? (
             <div className="home-slider__loading">
               <div className="home-slider__loading-spinner"></div>
-              <span>Loading amazing courses...</span>
+              <span>Loading courses...</span>
             </div>
           ) : (
             // Triple the courses for smooth infinite scroll
@@ -218,9 +218,7 @@ const CoursesSlider = () => {
                         </div>
                         <span className="home-slider__difficulty-badge">{course.difficulty || 'All Levels'}</span>
                       </div>
-                      <p className="home-slider__description">
-                        {truncateText(course.description)}
-                      </p>
+                      
                     </div>
                   </div>
                   <div className="home-slider__content-secondary">
