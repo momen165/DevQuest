@@ -170,7 +170,7 @@ const LessonList = ({ sectionName, sectionId, lessons: initialLessons, profileDa
             </div>
             <div className={`lesson-section-collapsible ${isOpen ? 'open' : ''}`}>
                 <div className="lesson-list">
-                    {lessons.map((lesson, index) => (
+                    {lessons.filter(lesson => lesson && lesson.lesson_id).map((lesson, index) => (
                         <Link 
                             to={`/lesson/${lesson.lesson_id}`} 
                             key={lesson.lesson_id}
@@ -220,46 +220,7 @@ const LessonSection = ({ lessons }) => {
                 }}
             >
                 <g transform="translate(18, 18)">
-                    {lessons?.map((lesson, index) => {
-                        const gapAngle = 8; // Gap between segments in degrees
-                        const totalGapSpace = gapAngle * lessons.length;
-                        const segmentAngle = (360 - totalGapSpace) / lessons.length;
-                        const startAngle = (index * (segmentAngle + gapAngle)) - 90;
-                        const endAngle = startAngle + segmentAngle;
-                        
-                        const innerRadius = 12;
-                        const outerRadius = 16;
-                        const cornerRadius = 1.5;
-                        
-                        const startRadians = (startAngle * Math.PI) / 180;
-                        const endRadians = (endAngle * Math.PI) / 180;
-                        
-                        // Calculate points and control points
-                        const x1 = Math.cos(startRadians) * outerRadius;
-                        const y1 = Math.sin(startRadians) * outerRadius;
-                        const x2 = Math.cos(endRadians) * outerRadius;
-                        const y2 = Math.sin(endRadians) * outerRadius;
-                        const x3 = Math.cos(endRadians) * innerRadius;
-                        const y3 = Math.sin(endRadians) * innerRadius;
-                        const x4 = Math.cos(startRadians) * innerRadius;
-                        const y4 = Math.sin(startRadians) * innerRadius;
-                        
-                        const startOuterAngleRad = startRadians - (Math.PI / 2) * 0.2;
-                     
-                        const endOuterAngleRad = endRadians + (Math.PI / 2) * 0.2;
-                        const startInnerAngleRad = startRadians + (Math.PI / 2) * 0.2;
-                        const endInnerAngleRad = endRadians - (Math.PI / 2) * 0.2;
-
-                        const d = `
-                            M ${x1} ${y1}
-                            A ${outerRadius} ${outerRadius} 0 ${segmentAngle <= 180 ? "0" : "1"} 1 ${x2} ${y2}
-                            Q ${Math.cos(endOuterAngleRad) * (outerRadius - cornerRadius)} ${Math.sin(endOuterAngleRad) * (outerRadius - cornerRadius)}
-                              ${x3} ${y3}
-                            A ${innerRadius} ${innerRadius} 0 ${segmentAngle <= 180 ? "0" : "1"} 0 ${x4} ${y4}
-                            Q ${Math.cos(startInnerAngleRad) * (innerRadius + cornerRadius)} ${Math.sin(startInnerAngleRad) * (innerRadius + cornerRadius)}
-                              ${x1} ${y1}
-                        `;
-
+                 
                         return (
                             <path
                                 key={index}
@@ -273,7 +234,7 @@ const LessonSection = ({ lessons }) => {
                                 }}
                             />
                         );
-                    })}
+                
                 </g>
             </svg>
         </div>
