@@ -1,17 +1,17 @@
-const db = require('../config/database');
-const { sendFeedbackReplyEmail } = require('./auth.controller');
-const NodeCache = require('node-cache');
-const { AppError } = require('../utils/error.utils');
+const db = require("../config/database");
+const { sendFeedbackReplyEmail } = require("./auth.controller");
+const NodeCache = require("node-cache");
+const { AppError } = require("../utils/error.utils");
 
 // Initialize cache with 5 minutes TTL
 const cache = new NodeCache({ stdTTL: 300 });
 
 // Cache key for courses data
-const COURSES_CACHE_KEY = 'courses_with_ratings';
+const COURSES_CACHE_KEY = "courses_with_ratings";
 
 // Function to clear courses cache
 const clearCoursesCache = () => {
-  console.log('🧹 Cache CLEAR: Removing courses data from cache');
+  console.log("🧹 Cache CLEAR: Removing courses data from cache");
   cache.del(COURSES_CACHE_KEY);
 };
 
@@ -53,7 +53,7 @@ const QUERIES = {
     WHERE f.created_at >= NOW() - INTERVAL '48 HOURS'
     ORDER BY f.created_at DESC
     LIMIT 5
-  `
+  `,
 };
 
 // Error handler wrapper
@@ -69,7 +69,7 @@ const handleAsync = (fn) => async (req, res) => {
 // Get all feedback for admins
 const getFeedback = handleAsync(async (req, res) => {
   if (!req.user.admin) {
-    return res.status(403).json({ error: 'Access denied. Admins only.' });
+    return res.status(403).json({ error: "Access denied. Admins only." });
   }
   const courseId = req.query.course_id ? parseInt(req.query.course_id) : null;
   const { rows } = await db.query(QUERIES.getAllFeedback, [courseId]);
@@ -81,38 +81,48 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
   // Check cache first
   const cachedData = cache.get(COURSES_CACHE_KEY);
   if (cachedData) {
-    console.log('🎯 Cache HIT: Returning cached courses data');
+    console.log("🎯 Cache HIT: Returning cached courses data");
     return res.status(200).json(cachedData);
   }
 
-  console.log('🔍 Cache MISS: Fetching courses data from database');
+  console.log("🔍 Cache MISS: Fetching courses data from database");
   const [courses, userscount] = await Promise.all([
-    db.query('SELECT * FROM course WHERE status = \'Published\''),
-    db.query('SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id')
-  ]); 
+    db.query("SELECT * FROM course WHERE status = 'Published'"),
+    db.query(
+      "SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id",
+    ),
+  ]);
 
-  console.log('DEBUG - Course statuses:', courses.rows.map(c => ({ id: c.course_id, status: c.status })));
+  console.log(
+    "DEBUG - Course statuses:",
+    courses.rows.map((c) => ({ id: c.course_id, status: c.status })),
+  );
 
-  const userscountMap = Object.fromEntries(userscount.rows.map(u => [u.course_id, u.userscount]));
+  const userscountMap = Object.fromEntries(
+    userscount.rows.map((u) => [u.course_id, u.userscount]),
+  );
 
-  const responseData = { 
-    courses: courses.rows, 
-    userscount: userscountMap 
+  const responseData = {
+    courses: courses.rows,
+    userscount: userscountMap,
   };
 
   // Store in cache
   cache.set(COURSES_CACHE_KEY, responseData);
-  console.log('💾 Cache SET: Stored fresh courses data in cache');
+  console.log("💾 Cache SET: Stored fresh courses data in cache");
 
   res.status(200).json(responseData);
 });
 
 // Add this before submitFeedback function
 const checkFeedbackEligibility = async (userId, courseId) => {
-  const { rows } = await db.query(QUERIES.checkUserProgress, [userId, courseId]);
-  
+  const { rows } = await db.query(QUERIES.checkUserProgress, [
+    userId,
+    courseId,
+  ]);
+
   if (!rows.length) {
-    throw new AppError('User is not enrolled in this course', 400);
+    throw new AppError("User is not enrolled in this course", 400);
   }
 
   const progress = parseFloat(rows[0].progress) || 0;
@@ -121,47 +131,56 @@ const checkFeedbackEligibility = async (userId, courseId) => {
   return {
     canSubmitFeedback: progress >= 30 || (existingFeedback && progress === 100),
     hasExistingFeedback: !!existingFeedback,
-    progress
+    progress,
   };
 };
 
 // Modify submitFeedback function
 const submitFeedback = handleAsync(async (req, res) => {
   const { course_id, rating, comment } = req.body;
-  
+
   if (!course_id || !rating || rating < 1 || rating > 5) {
-    return res.status(400).json({ 
-      error: 'Invalid input. Provide a valid course ID and a rating between 1 and 5.' 
+    return res.status(400).json({
+      error:
+        "Invalid input. Provide a valid course ID and a rating between 1 and 5.",
     });
   }
 
-  const eligibility = await checkFeedbackEligibility(req.user.userId, course_id);
+  const eligibility = await checkFeedbackEligibility(
+    req.user.userId,
+    course_id,
+  );
 
   if (!eligibility.canSubmitFeedback) {
-    return res.status(403).json({ 
-      error: 'You need to complete at least 30% of the course to submit feedback',
-      progress: eligibility.progress
+    return res.status(403).json({
+      error:
+        "You need to complete at least 30% of the course to submit feedback",
+      progress: eligibility.progress,
     });
   }
 
   if (eligibility.hasExistingFeedback && eligibility.progress < 100) {
-    return res.status(403).json({ 
-      error: 'You need to complete the entire course to submit additional feedback',
-      progress: eligibility.progress
+    return res.status(403).json({
+      error:
+        "You need to complete the entire course to submit additional feedback",
+      progress: eligibility.progress,
     });
   }
 
-  const courseExists = await db.query('SELECT 1 FROM course WHERE course_id = $1', [course_id]);
+  const courseExists = await db.query(
+    "SELECT 1 FROM course WHERE course_id = $1",
+    [course_id],
+  );
   if (!courseExists.rowCount) {
-    return res.status(404).json({ error: 'Course not found.' });
+    return res.status(404).json({ error: "Course not found." });
   }
 
-  await db.query('BEGIN');
+  await db.query("BEGIN");
   try {
     // Insert the feedback
     const { rows } = await db.query(
-      'INSERT INTO feedback (user_id, course_id, rating, comment) VALUES ($1, $2, $3, $4) RETURNING *',
-      [req.user.userId, course_id, rating, comment || null]
+      "INSERT INTO feedback (user_id, course_id, rating, comment) VALUES ($1, $2, $3, $4) RETURNING *",
+      [req.user.userId, course_id, rating, comment || null],
     );
 
     // Update course rating
@@ -173,14 +192,16 @@ const submitFeedback = handleAsync(async (req, res) => {
          WHERE course_id = $1
        )
        WHERE course_id = $1`,
-      [course_id]
+      [course_id],
     );
 
-    await db.query('COMMIT');
+    await db.query("COMMIT");
     clearCoursesCache();
-    res.status(201).json({ message: 'Feedback submitted successfully!', feedback: rows[0] });
+    res
+      .status(201)
+      .json({ message: "Feedback submitted successfully!", feedback: rows[0] });
   } catch (error) {
-    await db.query('ROLLBACK');
+    await db.query("ROLLBACK");
     throw error;
   }
 });
@@ -190,10 +211,12 @@ const replyToFeedback = handleAsync(async (req, res) => {
   const { feedback_id, reply } = req.body;
 
   if (!feedback_id || !reply) {
-    return res.status(400).json({ error: 'Feedback ID and reply message are required.' });
+    return res
+      .status(400)
+      .json({ error: "Feedback ID and reply message are required." });
   }
 
-  await db.query('BEGIN');
+  await db.query("BEGIN");
   try {
     // Get user details and feedback content with a more specific query
     const userDetails = await db.query(
@@ -202,18 +225,18 @@ const replyToFeedback = handleAsync(async (req, res) => {
        JOIN users u ON f.user_id = u.user_id 
        JOIN course c ON f.course_id = c.course_id
        WHERE f.feedback_id = $1`,
-      [feedback_id]
+      [feedback_id],
     );
 
     if (!userDetails.rows.length) {
-      await db.query('ROLLBACK');
-      return res.status(404).json({ error: 'Feedback not found' });
+      await db.query("ROLLBACK");
+      return res.status(404).json({ error: "Feedback not found" });
     }
 
     // Update the feedback status to 'closed'
     const updateResult = await db.query(
-      'UPDATE feedback SET status = $1, reply = $2 WHERE feedback_id = $3 RETURNING *',
-      ['closed', reply, feedback_id]
+      "UPDATE feedback SET status = $1, reply = $2 WHERE feedback_id = $3 RETURNING *",
+      ["closed", reply, feedback_id],
     );
 
     const { email, name, comment, rating, course_name } = userDetails.rows[0];
@@ -226,25 +249,25 @@ const replyToFeedback = handleAsync(async (req, res) => {
         comment,
         rating,
         courseName: course_name,
-        reply
+        reply,
       });
     } catch (emailError) {
-      console.error('Email sending failed:', emailError);
+      console.error("Email sending failed:", emailError);
       // Continue with the transaction even if email fails
     }
 
-    await db.query('COMMIT');
+    await db.query("COMMIT");
 
-    res.status(200).json({ 
-      message: 'Reply sent successfully and feedback closed.',
-      feedback: updateResult.rows[0]
+    res.status(200).json({
+      message: "Reply sent successfully and feedback closed.",
+      feedback: updateResult.rows[0],
     });
   } catch (error) {
-    await db.query('ROLLBACK');
-    console.error('Error in replyToFeedback:', error);
-    res.status(500).json({ 
-      error: 'Failed to process feedback reply',
-      details: error.message 
+    await db.query("ROLLBACK");
+    console.error("Error in replyToFeedback:", error);
+    res.status(500).json({
+      error: "Failed to process feedback reply",
+      details: error.message,
     });
   }
 });
@@ -265,35 +288,34 @@ const reopenFeedback = handleAsync(async (req, res) => {
   const { feedback_id } = req.body;
 
   if (!feedback_id) {
-    return res.status(400).json({ error: 'Feedback ID is required.' });
+    return res.status(400).json({ error: "Feedback ID is required." });
   }
 
   const updateResult = await db.query(
-    'UPDATE feedback SET status = $1 WHERE feedback_id = $2 RETURNING *',
-    ['open', feedback_id]
+    "UPDATE feedback SET status = $1 WHERE feedback_id = $2 RETURNING *",
+    ["open", feedback_id],
   );
 
   if (!updateResult.rows.length) {
-    return res.status(404).json({ error: 'Feedback not found' });
+    return res.status(404).json({ error: "Feedback not found" });
   }
 
-  res.status(200).json({ 
-    message: 'Feedback reopened successfully',
-    feedback: updateResult.rows[0]
+  res.status(200).json({
+    message: "Feedback reopened successfully",
+    feedback: updateResult.rows[0],
   });
 });
 
-module.exports = { 
-  getFeedback, 
-  submitFeedback, 
-  getCoursesWithRatings, 
-  replyToFeedback, 
+module.exports = {
+  getFeedback,
+  submitFeedback,
+  getCoursesWithRatings,
+  replyToFeedback,
   getPublicFeedback,
 
   checkFeedbackEligibility,
   getRecentFeedback,
   reopenFeedback,
 
-  clearCoursesCache
-
+  clearCoursesCache,
 };

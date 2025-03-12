@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { FaUserGraduate, FaUserPlus, FaBook } from 'react-icons/fa';
-import 'pages/admin/styles/DashboardContent.css';
-import axios from 'axios';
-import { useAuth } from 'AuthContext';
-import { Link } from 'react-router-dom';
-import ActivityWindow from 'pages/admin/components/ActivityWindow';
+import React, { useState, useEffect } from "react";
+import { FaUserGraduate, FaUserPlus, FaBook } from "react-icons/fa";
+import "pages/admin/styles/DashboardContent.css";
+import axios from "axios";
+import { useAuth } from "AuthContext";
+import { Link } from "react-router-dom";
+import ActivityWindow from "pages/admin/components/ActivityWindow";
 
 const DashboardContent = () => {
   const [studentsCount, setStudentsCount] = useState(0);
@@ -19,25 +19,25 @@ const DashboardContent = () => {
   const [recentFeedback, setRecentFeedback] = useState([]);
   const [recentTickets, setRecentTickets] = useState([]);
 
-  const token = JSON.parse(localStorage.getItem('user'))?.token;
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (!token) {
-          throw new Error('No token found. Please log in again.');
+          throw new Error("No token found. Please log in again.");
         }
 
         const headers = {
           Authorization: `Bearer ${token}`,
         };
 
-        const studentsResponse = await axios.get('/api/students', { headers });
+        const studentsResponse = await axios.get("/api/students", { headers });
         const { students = [], count = 0 } = studentsResponse.data || {};
 
         if (!Array.isArray(students)) {
-          throw new Error('Invalid students data received');
+          throw new Error("Invalid students data received");
         }
 
         setStudentsCount(count);
@@ -46,31 +46,41 @@ const DashboardContent = () => {
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
         const newStudents = students.filter((student) => {
-          const createdAt = student?.created_at ? new Date(student.created_at) : null;
+          const createdAt = student?.created_at
+            ? new Date(student.created_at)
+            : null;
           return createdAt && createdAt >= oneWeekAgo;
         });
 
         setNewStudentsCount(newStudents.length);
         setNewStudentsList(newStudents);
 
-        const coursesResponse = await axios.get('/api/courses', { headers });
+        const coursesResponse = await axios.get("/api/courses", { headers });
         setCoursesCount(coursesResponse.data.length);
 
-        const activityResponse = await axios.get('/api/activities/recent', { headers });
+        const activityResponse = await axios.get("/api/activities/recent", {
+          headers,
+        });
         setAllActivities(activityResponse.data);
         setRecentActivity(activityResponse.data.slice(0, 5));
 
-        const feedbackResponse = await axios.get('/api/feedback/recent', { headers });
+        const feedbackResponse = await axios.get("/api/feedback/recent", {
+          headers,
+        });
         setRecentFeedback(feedbackResponse.data);
 
-        const ticketsResponse = await axios.get('/api/support-tickets/recent', {
-          headers: { Authorization: `Bearer ${user.token}` }
+        const ticketsResponse = await axios.get("/api/support-tickets/recent", {
+          headers: { Authorization: `Bearer ${user.token}` },
         });
         setRecentTickets(ticketsResponse.data);
-
       } catch (err) {
-        console.error('Error fetching dashboard data:', err.response?.data || err.message);
-        setError(err.response?.data?.error || 'Failed to fetch dashboard data.');
+        console.error(
+          "Error fetching dashboard data:",
+          err.response?.data || err.message,
+        );
+        setError(
+          err.response?.data?.error || "Failed to fetch dashboard data.",
+        );
       }
     };
 
@@ -97,11 +107,11 @@ const DashboardContent = () => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) {
-      return 'Just now';
+      return "Just now";
     } else if (diffInHours === 1) {
-      return '1 hour ago';
+      return "1 hour ago";
     } else {
       return `${diffInHours} hours ago`;
     }
@@ -112,140 +122,162 @@ const DashboardContent = () => {
   }
 
   return (
-      <div className="dashboard-content">
-        <header className="dashboard-header">
-          <h1>Dashboard</h1>
-          <div className="profile">
-            <span>Welcome, {user?.name}</span>
-            <Link to="/" className='dashboard-to-homeLink'>← Back to website</Link>
-          </div>
-        </header>
+    <div className="dashboard-content">
+      <header className="dashboard-header">
+        <h1>Dashboard</h1>
+        <div className="profile">
+          <span>Welcome, {user?.name}</span>
+          <Link to="/" className="dashboard-to-homeLink">
+            ← Back to website
+          </Link>
+        </div>
+      </header>
 
-        <div className="stats-cards">
-          <div className="card">
-            <FaUserGraduate className="icon" />
-            <h3>{studentsCount}</h3>
-            <p>Students</p>
+      <div className="stats-cards">
+        <div className="card">
+          <FaUserGraduate className="icon" />
+          <h3>{studentsCount}</h3>
+          <p>Students</p>
+        </div>
+        <div className="card">
+          <FaUserPlus className="icon" />
+          <h3>{newStudentsCount}</h3>
+          <p>New Students in the last week</p>
+        </div>
+        <div className="card">
+          <FaBook className="icon" />
+          <h3>{coursesCount}</h3>
+          <p>Courses</p>
+        </div>
+      </div>
+
+      <div className="activity-section">
+        <div className="recent-activity">
+          <div className="activity-header">
+            <h2>Recent Activity</h2>
+            <button className="see-all-button" onClick={openActivityWindow}>
+              See all
+            </button>
           </div>
-          <div className="card">
-            <FaUserPlus className="icon" />
-            <h3>{newStudentsCount}</h3>
-            <p>New Students in the last week</p>
-          </div>
-          <div className="card">
-            <FaBook className="icon" />
-            <h3>{coursesCount}</h3>
-            <p>Courses</p>
-          </div>
+          <ul>
+            {recentActivity.length > 0 ? (
+              recentActivity.map((activity) => (
+                <li key={activity.activity_id}>
+                  <div
+                    className="activity-short"
+                    onClick={() => openActivityDetails(activity)}
+                  >
+                    {activity.action_description.length > 50
+                      ? `${activity.action_description.substring(0, 50)}...`
+                      : activity.action_description}
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li>No recent activity available.</li>
+            )}
+          </ul>
         </div>
 
-        <div className="activity-section">
-          <div className="recent-activity">
+        <div className="dashboard-sidebar">
+          <div className="new-students">
             <div className="activity-header">
-              <h2>Recent Activity</h2>
-              <button className="see-all-button" onClick={openActivityWindow}>See all</button>
+              <h2>New Students</h2>
+              <button className="see-all-button">See all</button>
             </div>
             <ul>
-              {recentActivity.length > 0 ? (
-                  recentActivity.map((activity) => (
-                      <li key={activity.activity_id}>
-                        <div className="activity-short" onClick={() => openActivityDetails(activity)}>
-                          {activity.action_description.length > 50 
-                            ? `${activity.action_description.substring(0, 50)}...`
-                            : activity.action_description}
-                        </div>
-                      </li>
-                  ))
+              {newStudentsList.length > 0 ? (
+                newStudentsList.map((student) => (
+                  <li key={student.user_id}>
+                    {student.name} ({student.email})
+                  </li>
+                ))
               ) : (
-                  <li>No recent activity available.</li>
+                <li>No new students registered in the last week.</li>
               )}
             </ul>
           </div>
 
-          <div className="dashboard-sidebar">
-            <div className="new-students">
-              <div className="activity-header">
-                <h2>New Students</h2>
-                <button className="see-all-button">See all</button>
-              </div>
-              <ul>
-                {newStudentsList.length > 0 ? (
-                    newStudentsList.map((student) => (
-                        <li key={student.user_id}>
-                          {student.name} ({student.email})
-                        </li>
-                    ))
-                ) : (
-                    <li>No new students registered in the last week.</li>
-                )}
-              </ul>
+          <div className="recent-feedback">
+            <div className="activity-header">
+              <h2>New Feedback</h2>
+              <Link to="/Feedback" className="see-all-button">
+                See all
+              </Link>
             </div>
+            <ul>
+              {recentFeedback.length > 0 ? (
+                recentFeedback.map((feedback) => (
+                  <li key={feedback.feedback_id} className="feedback-item">
+                    <div className="feedback-header">
+                      <span className="student-name">
+                        {feedback.student_name}
+                      </span>
+                      <span className="time-ago">
+                        {formatTimeAgo(feedback.created_at)}
+                      </span>
+                    </div>
+                    <div className="course-name">{feedback.course_name}</div>
+                  </li>
+                ))
+              ) : (
+                <li>No new feedback in the last 48 hours.</li>
+              )}
+            </ul>
+          </div>
 
-            <div className="recent-feedback">
-              <div className="activity-header">
-                <h2>New Feedback</h2>
-                <Link to="/Feedback" className="see-all-button">See all</Link>
-              </div>
-              <ul>
-                {recentFeedback.length > 0 ? (
-                  recentFeedback.map((feedback) => (
-                    <li key={feedback.feedback_id} className="feedback-item">
-                      <div className="feedback-header">
-                        <span className="student-name">{feedback.student_name}</span>
-                        <span className="time-ago">{formatTimeAgo(feedback.created_at)}</span>
-                      </div>
-                      <div className="course-name">{feedback.course_name}</div>
-                    </li>
-                  ))
-                ) : (
-                  <li>No new feedback in the last 48 hours.</li>
-                )}
-              </ul>
+          <div className="recent-tickets">
+            <div className="activity-header">
+              <h2>New Support Tickets</h2>
+              <Link to="/admin/support" className="see-all-button">
+                See all
+              </Link>
             </div>
-
-            <div className="recent-tickets">
-              <div className="activity-header">
-                <h2>New Support Tickets</h2>
-                <Link to="/admin/support" className="see-all-button">See all</Link>
-              </div>
-              <ul>
-                {recentTickets.length > 0 ? (
-                  recentTickets.map((ticket) => (
-                    <li key={ticket.ticket_id} className="ticket-item">
-                      <div className="ticket-header">
-                        <span className="student-name">{ticket.user_email}</span>
-                        <span className="time-ago">{formatTimeAgo(ticket.time_opened)}</span>
-                      </div>
-                      <div className={`ticket-status ${ticket.status}`}>
-                        {ticket.status}
-                      </div>
-                    </li>
-                  ))
-                ) : (
-                  <li>No new support tickets in the last 24 hours</li>
-                )}
-              </ul>
-            </div>
+            <ul>
+              {recentTickets.length > 0 ? (
+                recentTickets.map((ticket) => (
+                  <li key={ticket.ticket_id} className="ticket-item">
+                    <div className="ticket-header">
+                      <span className="student-name">{ticket.user_email}</span>
+                      <span className="time-ago">
+                        {formatTimeAgo(ticket.time_opened)}
+                      </span>
+                    </div>
+                    <div className={`ticket-status ${ticket.status}`}>
+                      {ticket.status}
+                    </div>
+                  </li>
+                ))
+              ) : (
+                <li>No new support tickets in the last 24 hours</li>
+              )}
+            </ul>
           </div>
         </div>
-
-        {selectedActivity && (
-            <div className="modal">
-              <div className="modal-content">
-                <button className="close-button" onClick={closeActivityDetails}>
-                  &times;
-                </button>
-                <h3>Activity Details</h3>
-                <p>{selectedActivity.action_description}</p>
-                <p>Date: {new Date(selectedActivity.created_at).toLocaleString()}</p>
-              </div>
-            </div>
-        )}
-
-        {showActivityWindow && (
-            <ActivityWindow activities={allActivities} onClose={closeActivityWindow} />
-        )}
       </div>
+
+      {selectedActivity && (
+        <div className="modal">
+          <div className="modal-content">
+            <button className="close-button" onClick={closeActivityDetails}>
+              &times;
+            </button>
+            <h3>Activity Details</h3>
+            <p>{selectedActivity.action_description}</p>
+            <p>
+              Date: {new Date(selectedActivity.created_at).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {showActivityWindow && (
+        <ActivityWindow
+          activities={allActivities}
+          onClose={closeActivityWindow}
+        />
+      )}
+    </div>
   );
 };
 

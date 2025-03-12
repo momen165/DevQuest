@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import parse from 'html-react-parser';
-import '../styles/LessonHelp.css';
+import React, { useState } from "react";
+import parse from "html-react-parser";
+import "../styles/LessonHelp.css";
 
 const LessonHelp = ({ hint, solution }) => {
   const [isHintOpen, setIsHintOpen] = useState(false);
@@ -18,24 +18,20 @@ const LessonHelp = ({ hint, solution }) => {
 
   return (
     <div className="lesson-help">
-      <div className={`lesson-help-section ${isHintOpen ? 'open' : ''}`}>
+      <div className={`lesson-help-section ${isHintOpen ? "open" : ""}`}>
         <div className="lesson-help-title" onClick={toggleHint}>
           👀 Get a Hint
-          <span className={`arrow ${isHintOpen ? 'open' : ''}`}>▼</span>
+          <span className={`arrow ${isHintOpen ? "open" : ""}`}>▼</span>
         </div>
-        <div className="lesson-help-content">
-          {parse(hint)}
-        </div>
+        <div className="lesson-help-content">{parse(hint)}</div>
       </div>
 
-      <div className={`lesson-help-section ${isSolutionOpen ? 'open' : ''}`}>
+      <div className={`lesson-help-section ${isSolutionOpen ? "open" : ""}`}>
         <div className="lesson-help-title" onClick={toggleSolution}>
           ✨ Solution
-          <span className={`arrow ${isSolutionOpen ? 'open' : ''}`}>▼</span>
+          <span className={`arrow ${isSolutionOpen ? "open" : ""}`}>▼</span>
         </div>
-        <div className="lesson-help-content">
-          {parse(solution)}
-        </div>
+        <div className="lesson-help-content">{parse(solution)}</div>
       </div>
     </div>
   );

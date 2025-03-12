@@ -1,7 +1,9 @@
-const db = require('../config/database');
-const { getLastAccessedLesson } = require('./lesson.controller');
-const { calculateLevel, calculateXPToNextLevel } = require('../utils/xpCalculator');
-
+const db = require("../config/database");
+const { getLastAccessedLesson } = require("./lesson.controller");
+const {
+  calculateLevel,
+  calculateXPToNextLevel,
+} = require("../utils/xpCalculator");
 
 // Fetch all students
 const getAllStudents = async (req, res) => {
@@ -9,7 +11,7 @@ const getAllStudents = async (req, res) => {
     // Role-based access control
     if (!req.user.admin) {
       console.error(`Access denied for user: ${req.user.userId}`);
-      return res.status(403).json({ error: 'Access denied. Admins only.' });
+      return res.status(403).json({ error: "Access denied. Admins only." });
     }
 
     const query = `
@@ -35,8 +37,10 @@ const getAllStudents = async (req, res) => {
     const { rows } = await db.query(query);
     res.status(200).json({ students: rows, count: rows.length });
   } catch (err) {
-    console.error('Error fetching students:', err.message || err);
-    res.status(500).json({ error: 'An error occurred while fetching students data.' });
+    console.error("Error fetching students:", err.message || err);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching students data." });
   }
 };
 
@@ -65,7 +69,7 @@ const getStudentById = async (req, res) => {
     const userResult = await db.query(userQuery, [studentId]);
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Student not found' });
+      return res.status(404).json({ error: "Student not found" });
     }
 
     // Get enrolled courses with progress
@@ -81,14 +85,19 @@ const getStudentById = async (req, res) => {
     const enrollments = (await db.query(coursesQuery, [studentId])).rows;
 
     // Add last lesson information to each course
-    const courses = await Promise.all(enrollments.map(async (enrollment) => {
-      const lastLesson = await getLastAccessedLesson(studentId, enrollment.course_id);
-      return {
-        ...enrollment,
-        last_lesson: lastLesson,
-        progress: parseFloat(enrollment.progress) || 0
-      };
-    }));
+    const courses = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        const lastLesson = await getLastAccessedLesson(
+          studentId,
+          enrollment.course_id,
+        );
+        return {
+          ...enrollment,
+          last_lesson: lastLesson,
+          progress: parseFloat(enrollment.progress) || 0,
+        };
+      }),
+    );
 
     // Get stats
     const statsQuery = `
@@ -110,29 +119,28 @@ const getStudentById = async (req, res) => {
       courseXP: totalXP,
       level: calculateLevel(totalXP),
       xpToNextLevel: calculateXPToNextLevel(totalXP),
-      completedCourses: courses.filter(c => c.progress >= 100).length,
-      skills: userResult.rows[0].skills || []
+      completedCourses: courses.filter((c) => c.progress >= 100).length,
+      skills: userResult.rows[0].skills || [],
     };
 
     res.json(response);
   } catch (err) {
-    console.error('Error fetching student data:', err);
-    res.status(500).json({ error: 'Failed to fetch student data' });
+    console.error("Error fetching student data:", err);
+    res.status(500).json({ error: "Failed to fetch student data" });
   }
 };
-
 
 // Fetch courses for a specific student
 const getCoursesByStudentId = async (req, res) => {
   const { studentId } = req.params;
-// Role-based access control
+  // Role-based access control
   if (!req.user.admin) {
     console.error(`Access denied for user: ${req.user.userId}`);
-    return res.status(403).json({ error: 'Access denied. Admins only.' });
+    return res.status(403).json({ error: "Access denied. Admins only." });
   }
 
   if (!studentId || isNaN(studentId)) {
-    return res.status(400).json({ error: 'Invalid student ID.' });
+    return res.status(400).json({ error: "Invalid student ID." });
   }
 
   try {
@@ -149,20 +157,19 @@ const getCoursesByStudentId = async (req, res) => {
 
     res.status(200).json(rows.length > 0 ? rows : []); // Return empty array if no courses found
   } catch (err) {
-    console.error('Error fetching courses for student:', err.message || err);
-    res.status(500).json({ error: 'Failed to fetch courses for the student.' });
+    console.error("Error fetching courses for student:", err.message || err);
+    res.status(500).json({ error: "Failed to fetch courses for the student." });
   }
 };
 
 // Fetch enrollment status for a specific user and course
-
 
 // Fetch all enrollments for a specific user
 const getEnrollmentsByUserId = async (req, res) => {
   const { userId } = req.params;
 
   if (!userId || isNaN(userId)) {
-    return res.status(400).json({ error: 'Invalid user ID.' });
+    return res.status(400).json({ error: "Invalid user ID." });
   }
 
   try {
@@ -179,8 +186,8 @@ const getEnrollmentsByUserId = async (req, res) => {
 
     res.status(200).json(enrollments);
   } catch (err) {
-    console.error('Error fetching enrollments:', err.message || err);
-    res.status(500).json({ error: 'Failed to fetch enrollments.' });
+    console.error("Error fetching enrollments:", err.message || err);
+    res.status(500).json({ error: "Failed to fetch enrollments." });
   }
 };
 
@@ -189,7 +196,7 @@ const getProgressByUserId = async (req, res) => {
   const { userId } = req.params;
 
   if (!userId || isNaN(userId)) {
-    return res.status(400).json({ error: 'Invalid user ID.' });
+    return res.status(400).json({ error: "Invalid user ID." });
   }
 
   try {
@@ -206,16 +213,16 @@ const getProgressByUserId = async (req, res) => {
 
     res.status(200).json(progress);
   } catch (err) {
-    console.error('Error fetching progress:', err.message || err);
-    res.status(500).json({ error: 'Failed to fetch progress.' });
+    console.error("Error fetching progress:", err.message || err);
+    res.status(500).json({ error: "Failed to fetch progress." });
   }
 };
 
 const getStudentStats = async (req, res) => {
-    const { userId } = req.params;
-    
-    try {
-        const query = `
+  const { userId } = req.params;
+
+  try {
+    const query = `
             SELECT 
                 COALESCE(SUM(l.xp), 0) as totalXP,
                 COUNT(DISTINCT lp.lesson_id) as exercisesCompleted
@@ -223,32 +230,32 @@ const getStudentStats = async (req, res) => {
             LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
             WHERE lp.user_id = $1 AND lp.completed = true
         `;
-        const result = await db.query(query, [userId]);
-        
-        // Calculate level based on total XP
-        const stats = result.rows[0];
-        const totalXP = parseInt(stats.totalxp) || 0;
-        const level = calculateLevel(totalXP);
-        const xpToNextLevel = calculateXPToNextLevel(totalXP);
-        
-        res.json({
-            totalXP,
-            exercisesCompleted: parseInt(stats.exercisescompleted) || 0,
-            level,
-            xpToNextLevel
-        });
-    } catch (err) {
-        console.error('Error fetching student stats:', err);
-        res.status(500).json({ error: 'Failed to fetch student statistics' });
-    }
+    const result = await db.query(query, [userId]);
+
+    // Calculate level based on total XP
+    const stats = result.rows[0];
+    const totalXP = parseInt(stats.totalxp) || 0;
+    const level = calculateLevel(totalXP);
+    const xpToNextLevel = calculateXPToNextLevel(totalXP);
+
+    res.json({
+      totalXP,
+      exercisesCompleted: parseInt(stats.exercisescompleted) || 0,
+      level,
+      xpToNextLevel,
+    });
+  } catch (err) {
+    console.error("Error fetching student stats:", err);
+    res.status(500).json({ error: "Failed to fetch student statistics" });
+  }
 };
 
 const getCourseStats = async (req, res) => {
-    const { courseId } = req.params;
-    const userId = req.user.user_id;
-    
-    try {
-        const query = `
+  const { courseId } = req.params;
+  const userId = req.user.user_id;
+
+  try {
+    const query = `
             WITH stats AS (
                 SELECT 
                     COALESCE(SUM(l.xp), 0) as courseXP,
@@ -267,78 +274,83 @@ const getCourseStats = async (req, res) => {
             CROSS JOIN users u
             WHERE u.user_id = $1
         `;
-        const result = await db.query(query, [userId, courseId]);
-        
-        // Handle case where no rows are returned
-        const stats = result.rows[0] || {
-            coursexp: 0,
-            exercisescompleted: 0,
-            streak: 0
-        };
-        
-        const courseXP = parseInt(stats.coursexp) || 0;
-        
-        res.json({
-            courseXP,
-            exercisesCompleted: parseInt(stats.exercisescompleted) || 0,
-            streak: parseInt(stats.streak) || 0,
-            level: calculateLevel(courseXP),
-            xpToNextLevel: calculateXPToNextLevel(courseXP)
-        });
-    } catch (err) {
-        console.error('Error fetching course stats:', err);
-        res.status(500).json({ error: 'Failed to fetch course statistics' });
-    }
+    const result = await db.query(query, [userId, courseId]);
+
+    // Handle case where no rows are returned
+    const stats = result.rows[0] || {
+      coursexp: 0,
+      exercisescompleted: 0,
+      streak: 0,
+    };
+
+    const courseXP = parseInt(stats.coursexp) || 0;
+
+    res.json({
+      courseXP,
+      exercisesCompleted: parseInt(stats.exercisescompleted) || 0,
+      streak: parseInt(stats.streak) || 0,
+      level: calculateLevel(courseXP),
+      xpToNextLevel: calculateXPToNextLevel(courseXP),
+    });
+  } catch (err) {
+    console.error("Error fetching course stats:", err);
+    res.status(500).json({ error: "Failed to fetch course statistics" });
+  }
 };
 
 const deleteStudentAccount = async (req, res) => {
   const userId = req.user.user_id;
-  console.log('Attempting to delete account for user:', userId);
-  
+  console.log("Attempting to delete account for user:", userId);
+
   try {
-    await db.query('BEGIN');
-    console.log('Transaction started');
+    await db.query("BEGIN");
+    console.log("Transaction started");
 
     // Delete data in the correct order based on foreign key dependencies
     const deleteQueries = [
       // First, delete records from tables that reference the user
-      'DELETE FROM recent_activity WHERE user_id = $1',
-      'DELETE FROM lesson_progress WHERE user_id = $1',
-      'DELETE FROM enrollment WHERE user_id = $1',
-      'DELETE FROM feedback WHERE user_id = $1',
-      'DELETE FROM admin_activity WHERE admin_id = $1',
-      'DELETE FROM payment WHERE user_id = $1',
-      'DELETE FROM user_subscription WHERE user_id = $1',
-      'DELETE FROM subscription WHERE user_id = $1',
-      'DELETE FROM support WHERE user_email = (SELECT email FROM users WHERE user_id = $1)',
-      'DELETE FROM users WHERE user_id = $1'
+      "DELETE FROM recent_activity WHERE user_id = $1",
+      "DELETE FROM lesson_progress WHERE user_id = $1",
+      "DELETE FROM enrollment WHERE user_id = $1",
+      "DELETE FROM feedback WHERE user_id = $1",
+      "DELETE FROM admin_activity WHERE admin_id = $1",
+      "DELETE FROM payment WHERE user_id = $1",
+      "DELETE FROM user_subscription WHERE user_id = $1",
+      "DELETE FROM subscription WHERE user_id = $1",
+      "DELETE FROM support WHERE user_email = (SELECT email FROM users WHERE user_id = $1)",
+      "DELETE FROM users WHERE user_id = $1",
     ];
 
     // Execute all delete queries in sequence with logging
     for (const query of deleteQueries) {
       try {
         const result = await db.query(query, [userId]);
-        console.log(`Query executed:`, query.split(' ')[2], `Rows affected:`, result.rowCount);
+        console.log(
+          `Query executed:`,
+          query.split(" ")[2],
+          `Rows affected:`,
+          result.rowCount,
+        );
       } catch (err) {
         console.error(`Error executing query: ${query}`, err);
         throw err;
       }
     }
 
-    await db.query('COMMIT');
-    console.log('Account deletion successful - all data removed');
-    
-    res.status(200).json({ 
+    await db.query("COMMIT");
+    console.log("Account deletion successful - all data removed");
+
+    res.status(200).json({
       success: true,
-      message: 'Account successfully deleted' 
+      message: "Account successfully deleted",
     });
   } catch (error) {
-    await db.query('ROLLBACK');
-    console.error('Error in deleteStudentAccount:', error);
-    res.status(500).json({ 
+    await db.query("ROLLBACK");
+    console.error("Error in deleteStudentAccount:", error);
+    res.status(500).json({
       success: false,
-      message: 'Failed to delete account',
-      error: error.message 
+      message: "Failed to delete account",
+      error: error.message,
     });
   }
 };
@@ -351,5 +363,5 @@ module.exports = {
   getProgressByUserId,
   getStudentStats,
   getCourseStats,
-  deleteStudentAccount
+  deleteStudentAccount,
 };

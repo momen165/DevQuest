@@ -1,6 +1,6 @@
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const sharp = require('sharp');
-const { v4: uuidv4 } = require('uuid');
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const sharp = require("sharp");
+const { v4: uuidv4 } = require("uuid");
 
 // Configure AWS S3
 const s3Client = new S3Client({
@@ -22,7 +22,7 @@ const uploadImageToS3 = async (file, courseName) => {
     Bucket: process.env.S3_BUCKET_NAME,
     Key: `uploads/${filename}`,
     Body: processedBuffer,
-    ContentType: 'image/png',
+    ContentType: "image/png",
   };
 
   const command = new PutObjectCommand(params);
@@ -33,4 +33,4 @@ const uploadImageToS3 = async (file, courseName) => {
 
 module.exports = {
   uploadImageToS3,
-}; 
+};

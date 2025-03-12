@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import 'styles/AuthPages.css';
-import { useAuth } from 'AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "styles/AuthPages.css";
+import { useAuth } from "AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -14,7 +14,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate("/");
     }
   }, [isAuthenticated, navigate]);
 
@@ -25,46 +25,75 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-   
+
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/login`, {
-        email: formData.email,
-        password: formData.password
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/login`,
+        {
+          email: formData.email,
+          password: formData.password,
+        },
+      );
       const { token } = response.data;
       login(token);
       setSuccess(true);
-      setTimeout(() => navigate('/'), 1500);
+      setTimeout(() => navigate("/"), 1500);
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please check your email and password.');
+      setError(
+        err.response?.data?.error ||
+          "Login failed. Please check your email and password.",
+      );
     }
   };
-  
 
   return (
     <div className="Auth_container">
       <div className="form-container">
         <h1>Log in</h1>
-        <p>Don't have an account? <a href="/RegistrationPage">Sign up</a></p>
+        <p>
+          Don't have an account? <a href="/RegistrationPage">Sign up</a>
+        </p>
         <form onSubmit={handleSubmit} className="form">
           <label>
             Email address
-            <input type="email" name="email" value={formData.email} onChange={handleChange} required className="input" />
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="input"
+            />
           </label>
           <label>
             Password
-            <input type="password" name="password" value={formData.password} onChange={handleChange} required className="input" />
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="input"
+            />
           </label>
-          
-          <button type="submit" className="button">Log in</button>
+
+          <button type="submit" className="button">
+            Log in
+          </button>
         </form>
         {error && <p className="error">{error}</p>}
         {success && <p className="success">Login successful! Redirecting...</p>}
-        <p><a href="/ForgotPasswordPage">Forgot your password?</a></p>
+        <p>
+          <a href="/ForgotPasswordPage">Forgot your password?</a>
+        </p>
       </div>
       <div className="welcome-container">
         <h2>Welcome Back!</h2>
-        <p>Log in to continue your programming journey with us. We're here to support your learning every step of the way. Let's keep coding together!</p>
+        <p>
+          Log in to continue your programming journey with us. We're here to
+          support your learning every step of the way. Let's keep coding
+          together!
+        </p>
       </div>
     </div>
   );
