@@ -1,13 +1,8 @@
-
-import Sidebar from 'pages/admin/components/Sidebar';
-import DashboardContent from 'pages/admin/DashboardContent';
-import 'pages/admin/styles/Dashboard.css';
+import Sidebar from "pages/admin/components/Sidebar";
+import DashboardContent from "pages/admin/DashboardContent";
+import "pages/admin/styles/Dashboard.css";
 
 const Dashboard = () => {
- 
-
-  
-
   return (
     <div className="dashboard-container">
       <Sidebar />

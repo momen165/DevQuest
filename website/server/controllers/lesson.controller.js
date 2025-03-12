@@ -1,34 +1,43 @@
-const logActivity = require('../utils/logger');
-const he = require('he');
-const { AppError, asyncHandler } = require('../utils/error.utils');
-const lessonQueries = require('../models/lesson.model');
-const db = require('../config/database');
+const logActivity = require("../utils/logger");
+const he = require("he");
+const { AppError, asyncHandler } = require("../utils/error.utils");
+const lessonQueries = require("../models/lesson.model");
+const db = require("../config/database");
 
 const FREE_LESSON_LIMIT = 5;
 
 // Add a new lesson
 const addLesson = asyncHandler(async (req, res) => {
   if (!req.user.admin) {
-    throw new AppError('Access denied. Admins only.', 403);
+    throw new AppError("Access denied. Admins only.", 403);
   }
 
-  const { section_id, name, content, xp, test_cases, template_code, hint, solution } = req.body;
+  const {
+    section_id,
+    name,
+    content,
+    xp,
+    test_cases,
+    template_code,
+    hint,
+    solution,
+  } = req.body;
 
   if (!section_id || !name || !content) {
-    throw new AppError('section_id, name, and content are required.', 400);
+    throw new AppError("section_id, name, and content are required.", 400);
   }
 
   const nextOrder = await lessonQueries.getNextOrder(section_id);
   const result = await lessonQueries.insertLesson(
-    section_id, 
-    name, 
-    content, 
-    xp, 
-    test_cases, 
-    nextOrder, 
-    template_code ? he.decode(template_code) : '',
+    section_id,
+    name,
+    content,
+    xp,
+    test_cases,
+    nextOrder,
+    template_code ? he.decode(template_code) : "",
     hint,
-    solution
+    solution,
   );
 
   // Get course_id from section
@@ -39,30 +48,30 @@ const addLesson = asyncHandler(async (req, res) => {
 
   // Log lesson creation
   await logActivity(
-    'lesson_created',
+    "lesson_created",
     `Admin (ID: ${req.user.user_id}) created lesson "${name}" in section "${sectionName}" (ID: ${section_id}) of course "${courseName}" (ID: ${courseId}).`,
-    parseInt(req.user.user_id)
+    parseInt(req.user.user_id),
   );
 
   // Recalculate progress for all enrolled users
   await lessonQueries.recalculateProgressForCourse(courseId);
-  
+
   res.status(201).json(result.rows[0]);
 });
 
 // Fix existing lesson orders
 const fixLessonOrders = asyncHandler(async (req, res) => {
   const sections = await lessonQueries.getAllSections();
-  
+
   for (const section of sections.rows) {
     const lessons = await lessonQueries.getLessonsBySection(section.section_id);
-    
+
     for (let i = 0; i < lessons.rows.length; i++) {
       await lessonQueries.updateLessonOrder(lessons.rows[i].lesson_id, i);
     }
   }
-  
-  res.status(200).json({ message: 'Lesson orders fixed successfully' });
+
+  res.status(200).json({ message: "Lesson orders fixed successfully" });
 });
 
 // Get all lessons for a specific section
@@ -105,14 +114,18 @@ const getLessonById = asyncHandler(async (req, res) => {
 
   try {
     const subscriptionResult = await db.query(subscriptionQuery, [userId]);
-    const completedLessons = parseInt(subscriptionResult.rows[0]?.lesson_count) || 0;
-    const hasActiveSubscription = Boolean(subscriptionResult.rows[0]?.subscription_id);
+    const completedLessons =
+      parseInt(subscriptionResult.rows[0]?.lesson_count) || 0;
+    const hasActiveSubscription = Boolean(
+      subscriptionResult.rows[0]?.subscription_id,
+    );
 
     // If user has no active subscription and has completed the free lesson limit
     if (!hasActiveSubscription && completedLessons >= FREE_LESSON_LIMIT) {
       return res.status(403).json({
-        status: 'subscription_required',
-        message: 'You have reached the free lesson limit. Please subscribe to continue learning.'
+        status: "subscription_required",
+        message:
+          "You have reached the free lesson limit. Please subscribe to continue learning.",
       });
     }
 
@@ -120,8 +133,8 @@ const getLessonById = asyncHandler(async (req, res) => {
 
     if (result.rows.length === 0) {
       return res.status(404).json({
-        status: 'not_found',
-        message: 'Lesson not found'
+        status: "not_found",
+        message: "Lesson not found",
       });
     }
 
@@ -129,46 +142,48 @@ const getLessonById = asyncHandler(async (req, res) => {
 
     try {
       lessonData.test_cases = Array.isArray(lessonData.test_cases)
-        ? lessonData.test_cases.map(testCase => ({
-            input: testCase.input || '',
-            expectedOutput: testCase.expected_output || '',
-            preserveFormat: true
+        ? lessonData.test_cases.map((testCase) => ({
+            input: testCase.input || "",
+            expectedOutput: testCase.expected_output || "",
+            preserveFormat: true,
           }))
-        : [{ input: '', expectedOutput: '', preserveFormat: true }];
+        : [{ input: "", expectedOutput: "", preserveFormat: true }];
     } catch (err) {
-      lessonData.test_cases = [{ input: '', expectedOutput: '', preserveFormat: true }];
+      lessonData.test_cases = [
+        { input: "", expectedOutput: "", preserveFormat: true },
+      ];
     }
 
     res.status(200).json(lessonData);
   } catch (err) {
     res.status(500).json({
-      status: 'error',
-      message: 'Unable to load lesson. Please try again later.'
+      status: "error",
+      message: "Unable to load lesson. Please try again later.",
     });
   }
 });
 
 const updateLesson = asyncHandler(async (req, res) => {
   const { lesson_id } = req.params;
-  const { 
-    name, 
-    content, 
-    xp, 
-    test_cases, 
-    section_id, 
-    template_code, 
-    hint, 
+  const {
+    name,
+    content,
+    xp,
+    test_cases,
+    section_id,
+    template_code,
+    hint,
     solution,
-    auto_detect
+    auto_detect,
   } = req.body;
 
-  console.log('Updating lesson with data:', {
+  console.log("Updating lesson with data:", {
     lesson_id,
     name,
     xp,
     test_cases,
     section_id,
-    auto_detect
+    auto_detect,
   });
 
   try {
@@ -178,32 +193,36 @@ const updateLesson = asyncHandler(async (req, res) => {
       name,
       content,
       xp,
-      test_cases,  // Use original test cases
+      test_cases, // Use original test cases
       section_id,
-      template_code ? he.decode(template_code) : '',
+      template_code ? he.decode(template_code) : "",
       hint,
       solution,
-      test_cases[0]?.auto_detect || false  // Use first test case's auto_detect value
+      test_cases[0]?.auto_detect || false, // Use first test case's auto_detect value
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('Lesson not found', 404);
+      throw new AppError("Lesson not found", 404);
     }
 
     // Get course and section info before logging
     const courseInfo = await lessonQueries.getCourseIdFromSection(section_id);
-    const { course_id: courseId, course_name: courseName, section_name: sectionName } = courseInfo.rows[0];
+    const {
+      course_id: courseId,
+      course_name: courseName,
+      section_name: sectionName,
+    } = courseInfo.rows[0];
 
     // Log lesson update
     await logActivity(
-      'lesson_updated',
+      "lesson_updated",
       `Admin (ID: ${req.user.user_id}) updated lesson "${name}" (ID: ${lesson_id}) in section "${sectionName}" (ID: ${section_id}) of course "${courseName}" (ID: ${courseId}). `,
-      parseInt(req.user.user_id)
+      parseInt(req.user.user_id),
     );
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error updating lesson:', error);
+    console.error("Error updating lesson:", error);
     throw new AppError(error.message, 500);
   }
 });
@@ -211,7 +230,7 @@ const updateLesson = asyncHandler(async (req, res) => {
 // Delete a lesson
 const deleteLesson = asyncHandler(async (req, res) => {
   if (!req.user.admin) {
-    throw new AppError('Access denied. Admins only.', 403);
+    throw new AppError("Access denied. Admins only.", 403);
   }
 
   const { lesson_id } = req.params;
@@ -219,7 +238,7 @@ const deleteLesson = asyncHandler(async (req, res) => {
   // Get lesson name before deletion for logging
   const lessonResult = await lessonQueries.getLessonById(lesson_id);
   if (lessonResult.rows.length === 0) {
-    throw new AppError('Lesson not found.', 404);
+    throw new AppError("Lesson not found.", 404);
   }
   const lessonName = lessonResult.rows[0].name;
 
@@ -227,21 +246,27 @@ const deleteLesson = asyncHandler(async (req, res) => {
   const result = await lessonQueries.deleteLesson(lesson_id);
 
   if (result.rows.length === 0) {
-    throw new AppError('Lesson not found.', 404);
+    throw new AppError("Lesson not found.", 404);
   }
 
   // Get course and section info before deletion logging
-  const courseInfo = await lessonQueries.getCourseIdFromSection(lessonResult.rows[0].section_id);
-  const { course_id: courseId, course_name: courseName, section_name: sectionName } = courseInfo.rows[0];
+  const courseInfo = await lessonQueries.getCourseIdFromSection(
+    lessonResult.rows[0].section_id,
+  );
+  const {
+    course_id: courseId,
+    course_name: courseName,
+    section_name: sectionName,
+  } = courseInfo.rows[0];
 
   // Log lesson deletion
   await logActivity(
-    'lesson_deleted',
+    "lesson_deleted",
     `Admin (ID: ${req.user.user_id}) deleted lesson "${lessonName}" (ID: ${lesson_id}) from section "${sectionName}" (ID: ${lessonResult.rows[0].section_id}) of course "${courseName}" (ID: ${courseId})`,
-    parseInt(req.user.user_id)
+    parseInt(req.user.user_id),
   );
 
-  res.status(200).json({ message: 'Lesson deleted successfully.' });
+  res.status(200).json({ message: "Lesson deleted successfully." });
 });
 
 // Reorder lessons
@@ -249,21 +274,24 @@ const reorderLessons = asyncHandler(async (req, res) => {
   const { lessons } = req.body;
 
   if (!Array.isArray(lessons)) {
-    throw new AppError('Invalid request format. Expected an array of lessons.', 400);
+    throw new AppError(
+      "Invalid request format. Expected an array of lessons.",
+      400,
+    );
   }
 
   const client = await db.connect();
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
     await Promise.all(
-      lessons.map(({ lesson_id, order }) => 
-        lessonQueries.updateLessonOrder(lesson_id, order, client)
-      )
+      lessons.map(({ lesson_id, order }) =>
+        lessonQueries.updateLessonOrder(lesson_id, order, client),
+      ),
     );
-    await client.query('COMMIT');
+    await client.query("COMMIT");
     res.json({ success: true });
   } catch (err) {
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     throw err;
   } finally {
     client.release();
@@ -274,48 +302,70 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
   const { user_id, lesson_id, completed, submitted_code } = req.body;
 
   if (!user_id || !lesson_id || completed === undefined) {
-    throw new AppError('Missing required fields.', 400);
+    throw new AppError("Missing required fields.", 400);
   }
 
   const courseResult = await lessonQueries.getCourseIdForLesson(lesson_id);
   if (courseResult.rows.length === 0) {
-    throw new AppError('Lesson not found or not linked to a course.', 404);
+    throw new AppError("Lesson not found or not linked to a course.", 404);
   }
 
   const courseId = courseResult.rows[0].course_id;
-  const checkResult = await lessonQueries.checkLessonProgress(user_id, lesson_id);
+  const checkResult = await lessonQueries.checkLessonProgress(
+    user_id,
+    lesson_id,
+  );
   const sanitizedCode = he.decode(submitted_code);
   const completedAt = completed ? new Date() : null;
 
   if (checkResult.rows.length > 0) {
     const updateResult = await lessonQueries.updateLessonProgress(
-      user_id, lesson_id, completed, completedAt, sanitizedCode
+      user_id,
+      lesson_id,
+      completed,
+      completedAt,
+      sanitizedCode,
     );
 
     if (updateResult.rows.length === 0) {
-      throw new AppError('Error updating progress.', 404);
+      throw new AppError("Error updating progress.", 404);
     }
   } else {
     await lessonQueries.insertLessonProgress(
-      user_id, lesson_id, completed, completedAt, courseId, sanitizedCode
+      user_id,
+      lesson_id,
+      completed,
+      completedAt,
+      courseId,
+      sanitizedCode,
     );
   }
 
   const totalLessonsResult = await lessonQueries.getTotalLessonsCount(courseId);
   const totalLessons = parseInt(totalLessonsResult.rows[0].total_lessons, 10);
 
-  const completedLessonsResult = await lessonQueries.getCompletedLessonsCount(user_id, courseId);
-  const completedLessons = parseInt(completedLessonsResult.rows[0].completed_lessons, 10);
+  const completedLessonsResult = await lessonQueries.getCompletedLessonsCount(
+    user_id,
+    courseId,
+  );
+  const completedLessons = parseInt(
+    completedLessonsResult.rows[0].completed_lessons,
+    10,
+  );
 
   const progress = (completedLessons / totalLessons) * 100;
-  const updateEnrollmentResult = await lessonQueries.updateEnrollmentProgress(progress, user_id, courseId);
+  const updateEnrollmentResult = await lessonQueries.updateEnrollmentProgress(
+    progress,
+    user_id,
+    courseId,
+  );
 
   if (updateEnrollmentResult.rows.length === 0) {
-    throw new AppError('Enrollment not found.', 404);
+    throw new AppError("Enrollment not found.", 404);
   }
 
   res.status(200).json({
-    message: 'Lesson progress and enrollment updated.',
+    message: "Lesson progress and enrollment updated.",
     data: updateEnrollmentResult.rows[0],
   });
 });
@@ -324,13 +374,15 @@ const getLessonProgress = asyncHandler(async (req, res) => {
   const { user_id, lesson_id } = req.query;
 
   if (!user_id || !lesson_id) {
-    throw new AppError('user_id and lesson_id are required.', 400);
+    throw new AppError("user_id and lesson_id are required.", 400);
   }
 
   const result = await lessonQueries.getLessonProgress(user_id, lesson_id);
 
   if (result.rows.length === 0) {
-    return res.status(200).json({ completed: false, completed_at: null, submitted_code: '' });
+    return res
+      .status(200)
+      .json({ completed: false, completed_at: null, submitted_code: "" });
   }
 
   res.status(200).json(result.rows[0]);
@@ -345,7 +397,7 @@ const getLessons = asyncHandler(async (req, res) => {
   const { section_id, course_id } = req.query;
 
   if (!section_id && !course_id) {
-    throw new AppError('Either section_id or course_id must be provided.', 400);
+    throw new AppError("Either section_id or course_id must be provided.", 400);
   }
 
   const result = await lessonQueries.getLessons(section_id, course_id);
@@ -363,5 +415,5 @@ module.exports = {
   getLessonProgress,
   getLastAccessedLesson,
   getLessons,
-  fixLessonOrders
+  fixLessonOrders,
 };

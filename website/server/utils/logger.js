@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const db = require("../config/database");
 
 const logActivity = async (actionType, actionDescription, userId = null) => {
   try {
@@ -8,7 +8,7 @@ const logActivity = async (actionType, actionDescription, userId = null) => {
     `;
     await db.query(query, [actionType, actionDescription, userId]);
   } catch (err) {
-    console.error('Error logging activity:', err.message || err);
+    console.error("Error logging activity:", err.message || err);
   }
 };
 

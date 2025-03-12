@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import {jwtDecode} from 'jwt-decode';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
 
 const AuthContext = createContext();
 
@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUserData = localStorage.getItem('user');
+    const storedUserData = localStorage.getItem("user");
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
       try {
@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
 
         // Check if the token has expired
         if (decodedToken.exp * 1000 < Date.now()) {
-         
           logout();
         } else {
           setUser({
@@ -48,19 +47,17 @@ export const AuthProvider = ({ children }) => {
       };
 
       // Store the token and user data in localStorage
-      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
     } catch (error) {
-      
-      throw new Error('Invalid token');
+      throw new Error("Invalid token");
     }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('subscriptionStatus');
-    
+    localStorage.removeItem("user");
+    localStorage.removeItem("subscriptionStatus");
   };
 
   const isAuthenticated = !!user;
@@ -70,9 +67,18 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token: user?.token, setUser, login, logout, isAuthenticated }}>
-    {children}
-</AuthContext.Provider>
+    <AuthContext.Provider
+      value={{
+        user,
+        token: user?.token,
+        setUser,
+        login,
+        logout,
+        isAuthenticated,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 };
 

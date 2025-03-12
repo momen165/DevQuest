@@ -13,4 +13,4 @@ SET rating = (
     SELECT ROUND(AVG(rating)::numeric, 2)
     FROM feedback 
     WHERE feedback.course_id = course.course_id
-); 
+);  

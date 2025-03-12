@@ -1,16 +1,38 @@
-const db = require('../config/database');
+const db = require("../config/database");
 
 const courseQueries = {
-  insertCourse: async (title, description, status, difficulty, language_id, imageUrl) => {
+  insertCourse: async (
+    title,
+    description,
+    status,
+    difficulty,
+    language_id,
+    imageUrl,
+  ) => {
     const query = `
       INSERT INTO course (name, description, status, difficulty, language_id, image)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
-    return db.query(query, [title, description, status, difficulty, language_id, imageUrl]);
+    return db.query(query, [
+      title,
+      description,
+      status,
+      difficulty,
+      language_id,
+      imageUrl,
+    ]);
   },
 
-  updateCourse: async (course_id, title, description, status, difficulty, language_id, imageUrl) => {
+  updateCourse: async (
+    course_id,
+    title,
+    description,
+    status,
+    difficulty,
+    language_id,
+    imageUrl,
+  ) => {
     const query = `
       UPDATE course
       SET name = $1,
@@ -22,7 +44,15 @@ const courseQueries = {
       WHERE course_id = $7
       RETURNING *;
     `;
-    return db.query(query, [title, description, status, difficulty, language_id, imageUrl, course_id]);
+    return db.query(query, [
+      title,
+      description,
+      status,
+      difficulty,
+      language_id,
+      imageUrl,
+      course_id,
+    ]);
   },
 
   deleteCourseData: async (course_id) => {
@@ -34,31 +64,31 @@ const courseQueries = {
                                  WHERE section_id IN (SELECT section_id
                                                     FROM section
                                                     WHERE course_id = $1));`,
-        values: [course_id]
+        values: [course_id],
       },
       {
         text: `DELETE FROM lesson
                WHERE section_id IN (SELECT section_id
                                   FROM section
                                   WHERE course_id = $1);`,
-        values: [course_id]
+        values: [course_id],
       },
       {
-        text: 'DELETE FROM section WHERE course_id = $1;',
-        values: [course_id]
+        text: "DELETE FROM section WHERE course_id = $1;",
+        values: [course_id],
       },
       {
-        text: 'DELETE FROM enrollment WHERE course_id = $1;',
-        values: [course_id]
+        text: "DELETE FROM enrollment WHERE course_id = $1;",
+        values: [course_id],
       },
       {
-        text: 'DELETE FROM feedback WHERE course_id = $1;',
-        values: [course_id]
+        text: "DELETE FROM feedback WHERE course_id = $1;",
+        values: [course_id],
       },
       {
-        text: 'DELETE FROM course WHERE course_id = $1 RETURNING name;',
-        values: [course_id]
-      }
+        text: "DELETE FROM course WHERE course_id = $1 RETURNING name;",
+        values: [course_id],
+      },
     ];
 
     for (const query of queries) {
@@ -202,7 +232,7 @@ const courseQueries = {
       FROM user_stats;
     `;
     return db.query(query, [user_id]);
-  }
+  },
 };
 
 module.exports = courseQueries;

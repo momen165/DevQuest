@@ -1,11 +1,11 @@
-const db = require('../config/database');
+const db = require("../config/database");
 
 const submitTicket = async (req, res) => {
   const { message } = req.body;
   const userId = req.user.user_id;
 
   if (!userId) {
-    return res.status(400).json({ error: 'User ID is required.' });
+    return res.status(400).json({ error: "User ID is required." });
   }
 
   try {
@@ -23,7 +23,7 @@ const submitTicket = async (req, res) => {
     if (checkResult.rows.length > 0) {
       // Update the existing open support ticket with a new message
       const existingTicketId = checkResult.rows[0].ticket_id;
-      
+
       // Update expiration time to 24 hours from now
       const updateExpirationQuery = `
         UPDATE support
@@ -40,12 +40,15 @@ const submitTicket = async (req, res) => {
         RETURNING *;
       `;
       const insertMessageValues = [existingTicketId, message];
-      const insertMessageResult = await db.query(insertMessageQuery, insertMessageValues);
-      
-      console.log('Support ticket message added:', insertMessageResult.rows[0]);
-      return res.status(200).json({ 
-        message: 'Support ticket message added successfully!', 
-        ticket: insertMessageResult.rows[0] 
+      const insertMessageResult = await db.query(
+        insertMessageQuery,
+        insertMessageValues,
+      );
+
+      console.log("Support ticket message added:", insertMessageResult.rows[0]);
+      return res.status(200).json({
+        message: "Support ticket message added successfully!",
+        ticket: insertMessageResult.rows[0],
       });
     } else {
       // Create a new support ticket with 24 hour expiration
@@ -58,7 +61,10 @@ const submitTicket = async (req, res) => {
         RETURNING *;
       `;
       const insertTicketValues = [message, userId];
-      const insertTicketResult = await db.query(insertTicketQuery, insertTicketValues);
+      const insertTicketResult = await db.query(
+        insertTicketQuery,
+        insertTicketValues,
+      );
       const newTicketId = insertTicketResult.rows[0].ticket_id;
 
       // Add the user's initial message
@@ -105,17 +111,17 @@ DevQuest Support Team`;
 
       const ticket = {
         ...ticketResult.rows[0],
-        messages: messagesResult.rows
+        messages: messagesResult.rows,
       };
 
       return res.status(201).json({
-        message: 'Support ticket submitted successfully!',
-        ticket: ticket
+        message: "Support ticket submitted successfully!",
+        ticket: ticket,
       });
     }
   } catch (err) {
-    console.error('Error submitting support ticket:', err);
-    res.status(500).json({ error: 'Failed to submit support ticket.' });
+    console.error("Error submitting support ticket:", err);
+    res.status(500).json({ error: "Failed to submit support ticket." });
   }
 };
 
@@ -137,7 +143,16 @@ const getUserTicketsByUserId = async (req, res) => {
     const result = await db.query(query, values);
 
     const tickets = result.rows.reduce((acc, row) => {
-      const { ticket_id, user_email, time_opened, expiration_time, status, message_content, sender_type, sent_at } = row;
+      const {
+        ticket_id,
+        user_email,
+        time_opened,
+        expiration_time,
+        status,
+        message_content,
+        sender_type,
+        sent_at,
+      } = row;
       if (!acc[ticket_id]) {
         acc[ticket_id] = {
           ticket_id,
@@ -154,8 +169,8 @@ const getUserTicketsByUserId = async (req, res) => {
 
     res.status(200).json(Object.values(tickets));
   } catch (err) {
-    console.error('Error fetching user support tickets:', err);
-    res.status(500).json({ error: 'Failed to fetch user support tickets.' });
+    console.error("Error fetching user support tickets:", err);
+    res.status(500).json({ error: "Failed to fetch user support tickets." });
   }
 };
 
@@ -177,11 +192,18 @@ const getTickets = async (req, res) => {
 
       const tickets = result.rows.reduce((acc, row) => {
         const {
-          ticket_id, user_email, time_opened, expiration_time, 
-          status, closed_by, closed_at, message_content, 
-          sender_type, sent_at
+          ticket_id,
+          user_email,
+          time_opened,
+          expiration_time,
+          status,
+          closed_by,
+          closed_at,
+          message_content,
+          sender_type,
+          sent_at,
         } = row;
-        
+
         if (!acc[ticket_id]) {
           acc[ticket_id] = {
             ticket_id,
@@ -195,18 +217,22 @@ const getTickets = async (req, res) => {
           };
         }
         if (message_content) {
-          acc[ticket_id].messages.push({ message_content, sender_type, sent_at });
+          acc[ticket_id].messages.push({
+            message_content,
+            sender_type,
+            sent_at,
+          });
         }
         return acc;
       }, {});
 
       res.status(200).json(Object.values(tickets));
     } else {
-      return res.status(403).json({ error: 'Access denied. Admins only.' });
+      return res.status(403).json({ error: "Access denied. Admins only." });
     }
   } catch (err) {
-    console.error('Error fetching support tickets:', err);
-    res.status(500).json({ error: 'Failed to fetch support tickets.' });
+    console.error("Error fetching support tickets:", err);
+    res.status(500).json({ error: "Failed to fetch support tickets." });
   }
 };
 
@@ -214,7 +240,7 @@ const replyToTicket = async (req, res) => {
   const { ticketId } = req.params;
   const { reply } = req.body;
   const isAdmin = req.user.admin;
-  const sender_type = isAdmin ? 'admin' : 'user';
+  const sender_type = isAdmin ? "admin" : "user";
 
   try {
     // Insert the reply
@@ -239,8 +265,8 @@ const replyToTicket = async (req, res) => {
 
     res.status(200).json(messageResult.rows[0]);
   } catch (err) {
-    console.error('Error replying to support ticket:', err);
-    res.status(500).json({ error: 'Failed to reply to support ticket.' });
+    console.error("Error replying to support ticket:", err);
+    res.status(500).json({ error: "Failed to reply to support ticket." });
   }
 };
 
@@ -257,13 +283,17 @@ const deleteTicket = async (req, res) => {
     const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Support ticket not found.' });
+      return res.status(404).json({ error: "Support ticket not found." });
     }
 
-    res.status(200).json({ message: 'Support ticket and associated messages deleted successfully.' });
+    res
+      .status(200)
+      .json({
+        message: "Support ticket and associated messages deleted successfully.",
+      });
   } catch (err) {
-    console.error('Error deleting support ticket:', err);
-    res.status(500).json({ error: 'Failed to delete support ticket.' });
+    console.error("Error deleting support ticket:", err);
+    res.status(500).json({ error: "Failed to delete support ticket." });
   }
 };
 
@@ -283,7 +313,7 @@ const closeExpiredTickets = async () => {
       console.log(`Closed ${result.rows.length} expired tickets`);
     }
   } catch (err) {
-    console.error('Error closing expired tickets:', err);
+    console.error("Error closing expired tickets:", err);
   }
 };
 
@@ -301,7 +331,9 @@ const closeTicket = async (req, res) => {
     const verifyResult = await db.query(verifyQuery, [ticketId, userId]);
 
     if (verifyResult.rows.length === 0) {
-      return res.status(403).json({ error: 'Not authorized to close this ticket' });
+      return res
+        .status(403)
+        .json({ error: "Not authorized to close this ticket" });
     }
 
     const query = `
@@ -315,13 +347,13 @@ const closeTicket = async (req, res) => {
     const result = await db.query(query, [ticketId]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Support ticket not found.' });
+      return res.status(404).json({ error: "Support ticket not found." });
     }
 
-    res.status(200).json({ message: 'Support ticket closed successfully.' });
+    res.status(200).json({ message: "Support ticket closed successfully." });
   } catch (err) {
-    console.error('Error closing support ticket:', err);
-    res.status(500).json({ error: 'Failed to close support ticket.' });
+    console.error("Error closing support ticket:", err);
+    res.status(500).json({ error: "Failed to close support ticket." });
   }
 };
 
@@ -340,11 +372,11 @@ const getRecentTickets = async (req, res) => {
       const result = await db.query(query);
       res.status(200).json(result.rows);
     } else {
-      return res.status(403).json({ error: 'Access denied. Admins only.' });
+      return res.status(403).json({ error: "Access denied. Admins only." });
     }
   } catch (err) {
-    console.error('Error fetching recent tickets:', err);
-    res.status(500).json({ error: 'Failed to fetch recent tickets.' });
+    console.error("Error fetching recent tickets:", err);
+    res.status(500).json({ error: "Failed to fetch recent tickets." });
   }
 };
 

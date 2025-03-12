@@ -1,141 +1,145 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Navbar from 'components/Navbar';
-import Sidebar from 'components/AccountSettingsSidebar';
-import { useAuth } from 'AuthContext';
-import 'styles/AccountSettings.css';
-import defaultProfilePic from '../../assets/images/default-profile-pic.png';
-import { FaCamera } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Navbar from "components/Navbar";
+import Sidebar from "components/AccountSettingsSidebar";
+import { useAuth } from "AuthContext";
+import "styles/AccountSettings.css";
+import defaultProfilePic from "../../assets/images/default-profile-pic.png";
+import { FaCamera } from "react-icons/fa";
 
 function ProfilePage() {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
-  const [name, setName] = useState('');
-  const [country, setCountry] = useState('');
-  const [bio, setBio] = useState('');
-  const [skills, setSkills] = useState('');
-  const [newSkill, setNewSkill] = useState('');
+  const [name, setName] = useState("");
+  const [country, setCountry] = useState("");
+  const [bio, setBio] = useState("");
+  const [skills, setSkills] = useState("");
+  const [newSkill, setNewSkill] = useState("");
 
   useEffect(() => {
-
     if (!user || !user.token) {
-      navigate('/');
+      navigate("/");
     } else {
       if (user.name) setName(user.name);
       if (user.country) setCountry(user.country);
       if (user.bio) setBio(user.bio);
-      if (user.skills) setSkills(user.skills.join(', '));
+      if (user.skills) setSkills(user.skills.join(", "));
     }
   }, [user, navigate]);
 
   const handleRemoveProfilePic = async () => {
-
     try {
-
-      const response = await axios.delete('/api/removeProfilePic', {
+      const response = await axios.delete("/api/removeProfilePic", {
         headers: {
-          'Authorization': `Bearer ${user.token}`,
+          Authorization: `Bearer ${user.token}`,
         },
       });
-     
-  
+
       const updatedUser = { ...user, profileimage: null };
-     
+
       setUser(updatedUser);
-     
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      alert('Profile picture removed successfully');
-     
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      alert("Profile picture removed successfully");
     } catch (error) {
-      console.error('[handleRemoveProfilePic] Error:', error);
-      console.error('[handleRemoveProfilePic] Response data:', error.response?.data);
-      console.error('[handleRemoveProfilePic] Stack:', error.stack);
-      alert(error.response?.data?.error || 'An error occurred while removing your profile picture');
+      console.error("[handleRemoveProfilePic] Error:", error);
+      console.error(
+        "[handleRemoveProfilePic] Response data:",
+        error.response?.data,
+      );
+      console.error("[handleRemoveProfilePic] Stack:", error.stack);
+      alert(
+        error.response?.data?.error ||
+          "An error occurred while removing your profile picture",
+      );
     }
   };
 
   const handleProfilePicChange = async (e) => {
-
     const file = e.target.files[0];
     if (!file) {
-      
       return;
     }
-  
-   
-  
+
     const formData = new FormData();
-    formData.append('profilePic', file);
-  
-  
+    formData.append("profilePic", file);
+
     try {
- 
-      const response = await axios.post('/api/uploadProfilePic', formData, {
+      const response = await axios.post("/api/uploadProfilePic", formData, {
         headers: {
-          'Authorization': `Bearer ${user.token}`,
-          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${user.token}`,
+          "Content-Type": "multipart/form-data",
         },
       });
-   
-  
+
       const { profileimage } = response.data;
       if (!profileimage) {
-        console.error('[handleProfilePicChange] No profile image URL in response');
-        throw new Error('No profile image URL received from server');
+        console.error(
+          "[handleProfilePicChange] No profile image URL in response",
+        );
+        throw new Error("No profile image URL received from server");
       }
-    
 
-      const updatedUser = { 
-        ...user, 
-        profileimage: `${profileimage}?t=${Date.now()}`
+      const updatedUser = {
+        ...user,
+        profileimage: `${profileimage}?t=${Date.now()}`,
       };
-    
 
       setUser(updatedUser);
 
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      alert('Profile picture updated successfully');
+      alert("Profile picture updated successfully");
     } catch (error) {
-      console.error('[handleProfilePicChange] Error:', error);
-      console.error('[handleProfilePicChange] Response data:', error.response?.data);
-      console.error('[handleProfilePicChange] Stack:', error.stack);
-      alert(error.response?.data?.error || 'An error occurred while uploading your profile picture');
+      console.error("[handleProfilePicChange] Error:", error);
+      console.error(
+        "[handleProfilePicChange] Response data:",
+        error.response?.data,
+      );
+      console.error("[handleProfilePicChange] Stack:", error.stack);
+      alert(
+        error.response?.data?.error ||
+          "An error occurred while uploading your profile picture",
+      );
     }
   };
-  
+
   const handleSaveChanges = async (e) => {
     e.preventDefault();
 
     try {
       const skillsArray = skills
-        .split(',')
-        .map(skill => skill.trim())
-        .filter(skill => skill !== '');
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter((skill) => skill !== "");
 
-      const response = await axios.put('/api/update-profile', 
-        { 
-          name, 
-          country, 
+      const response = await axios.put(
+        "/api/update-profile",
+        {
+          name,
+          country,
           bio,
-          skills: skillsArray 
+          skills: skillsArray,
         },
         {
           headers: {
-            'Authorization': `Bearer ${user.token}`,
+            Authorization: `Bearer ${user.token}`,
           },
-        }
+        },
       );
 
       const updatedUser = { ...user, name, country, bio, skills: skillsArray };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      alert('Profile updated successfully');
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      alert("Profile updated successfully");
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert(error.response?.data?.error || 'An error occurred while updating your profile');
+      console.error("Error updating profile:", error);
+      alert(
+        error.response?.data?.error ||
+          "An error occurred while updating your profile",
+      );
     }
   };
 
@@ -146,32 +150,40 @@ function ProfilePage() {
         <Sidebar activeLink="profile" />
 
         <div className="account-settings-profile-content">
-          <h2>{name ? `Welcome, ${name}!` : 'Loading...'}</h2>
+          <h2>{name ? `Welcome, ${name}!` : "Loading..."}</h2>
           <div className="account-settings-profile-header">
             <div className="account-settings-profile-avatar">
-              
               <img
-                src={`${user?.profileimage || defaultProfilePic}${user?.profileimage ? `?t=${Date.now()}` : ''}`}
+                src={`${user?.profileimage || defaultProfilePic}${user?.profileimage ? `?t=${Date.now()}` : ""}`}
                 alt="Profile"
                 onError={(e) => {
-                  console.error('[ProfilePage] Error loading profile image:', e);
+                  console.error(
+                    "[ProfilePage] Error loading profile image:",
+                    e,
+                  );
                   e.target.src = defaultProfilePic;
                 }}
               />
-              <label htmlFor="profilePicInput" className="account-settings-profile-pic-buttons">
+              <label
+                htmlFor="profilePicInput"
+                className="account-settings-profile-pic-buttons"
+              >
                 <FaCamera size={16} color="#e2e8f0" />
               </label>
               <input
                 type="file"
                 id="profilePicInput"
                 accept="image/*"
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
                 onChange={handleProfilePicChange}
               />
             </div>
           </div>
 
-          <form className="account-settings-profile-form" onSubmit={handleSaveChanges}>
+          <form
+            className="account-settings-profile-form"
+            onSubmit={handleSaveChanges}
+          >
             <label htmlFor="name">Name</label>
             <input
               type="text"
@@ -206,25 +218,26 @@ function ProfilePage() {
             <label htmlFor="skills">Skills</label>
             <div className="skills-container">
               <div className="skills-wrapper">
-                {skills.split(',').map((skill, index) => (
-                  skill.trim() && (
-                    <div key={index} className="skill-badge">
-                      {skill.trim()}
-                      <span 
-                        className="skill-remove-icon"
-                        onClick={() => {
-                          const newSkills = skills
-                            .split(',')
-                            .filter((_, i) => i !== index)
-                            .join(', ');
-                          setSkills(newSkills);
-                        }}
-                      >
-                        ×
-                      </span>
-                    </div>
-                  )
-                ))}
+                {skills.split(",").map(
+                  (skill, index) =>
+                    skill.trim() && (
+                      <div key={index} className="skill-badge">
+                        {skill.trim()}
+                        <span
+                          className="skill-remove-icon"
+                          onClick={() => {
+                            const newSkills = skills
+                              .split(",")
+                              .filter((_, i) => i !== index)
+                              .join(", ");
+                            setSkills(newSkills);
+                          }}
+                        >
+                          ×
+                        </span>
+                      </div>
+                    ),
+                )}
               </div>
               <div className="skill-input-container">
                 <input
@@ -234,18 +247,18 @@ function ProfilePage() {
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
                   onKeyPress={(e) => {
-                    if (e.key === 'Enter' && newSkill.trim()) {
+                    if (e.key === "Enter" && newSkill.trim()) {
                       setSkills(skills ? `${skills}, ${newSkill}` : newSkill);
-                      setNewSkill('');
+                      setNewSkill("");
                     }
                   }}
                 />
-                <button 
+                <button
                   className="add-skill-btn"
                   onClick={() => {
                     if (newSkill.trim()) {
                       setSkills(skills ? `${skills}, ${newSkill}` : newSkill);
-                      setNewSkill('');
+                      setNewSkill("");
                     }
                   }}
                 >
@@ -255,11 +268,13 @@ function ProfilePage() {
             </div>
 
             <div className="account-settings-form-buttons">
-              <button type="submit" className="settings-btn settings-save-btn">Save Changes</button>
+              <button type="submit" className="settings-btn settings-save-btn">
+                Save Changes
+              </button>
               <button
                 type="button"
                 className="settings-btn settings-cancel-btn"
-                onClick={() => navigate('/AccountSettings')}
+                onClick={() => navigate("/AccountSettings")}
               >
                 Cancel
               </button>

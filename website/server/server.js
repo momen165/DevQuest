@@ -1,31 +1,34 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const authenticateToken = require('./middleware/auth');
-const updateUserStreak = require('./middleware/updateUserStreak');
-const fs = require('fs');
-const path = require('path');
-const sanitizeInput = require('./middleware/sanitizeInput');
-const { handleError } = require('./utils/error.utils');
-require('dotenv').config();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const bodyParser = require('body-parser');
-const { closeExpiredTickets } = require('./controllers/support.controller');
-const { router: paymentRouter, webhookHandler } = require('./routes/payment.routes');
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const authenticateToken = require("./middleware/auth");
+const updateUserStreak = require("./middleware/updateUserStreak");
+const fs = require("fs");
+const path = require("path");
+const sanitizeInput = require("./middleware/sanitizeInput");
+const { handleError } = require("./utils/error.utils");
+require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const bodyParser = require("body-parser");
+const { closeExpiredTickets } = require("./controllers/support.controller");
+const {
+  router: paymentRouter,
+  webhookHandler,
+} = require("./routes/payment.routes");
 
 // Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Database connection
-const db = require('./config/database');
-db.query('SELECT NOW()', (err, result) => {
+const db = require("./config/database");
+db.query("SELECT NOW()", (err, result) => {
   if (err) {
-    console.error('Database connection error:', err);
+    console.error("Database connection error:", err);
     process.exit(1);
   } else {
-    console.log('Database connected:', result.rows[0]);
+    console.log("Database connected:", result.rows[0]);
   }
 });
 
@@ -52,51 +55,59 @@ db.query('SELECT NOW()', (err, result) => {
   }
 });*/
 
-
 // Enable trust proxy
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:3000'], // Allow both localhost variations
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:3000"], // Allow both localhost variations
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 // Security headers
 app.use(helmet());
-app.use(helmet.contentSecurityPolicy({
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
-    styleSrc: [
-      "'self'",
-      "'unsafe-inline'",
-      "https://fonts.googleapis.com",
-      "https://m.stripe.network",
-      "https://fonts.gstatic.com"
-    ],
-    fontSrc: [
-      "'self'",
-      "https://fonts.gstatic.com",
-      "https://fonts.googleapis.com",
-      "data:",
-      "*"
-    ],
-    imgSrc: ["'self'", "data:", "https:", "blob:"],
-    connectSrc: ["'self'", "https://api.stripe.com", "https://fonts.googleapis.com", "https://fonts.gstatic.com"],
-    frameSrc: ["'self'", "https://js.stripe.com"],
-    objectSrc: ["'none'"],
-    styleSrcElem: [
-      "'self'",
-      "'unsafe-inline'",
-      "https://fonts.googleapis.com",
-      "https://m.stripe.network"
-    ],
-    upgradeInsecureRequests: []
-  },
-}));
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com",
+        "https://m.stripe.network",
+        "https://fonts.gstatic.com",
+      ],
+      fontSrc: [
+        "'self'",
+        "https://fonts.gstatic.com",
+        "https://fonts.googleapis.com",
+        "data:",
+        "*",
+      ],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: [
+        "'self'",
+        "https://api.stripe.com",
+        "https://fonts.googleapis.com",
+        "https://fonts.gstatic.com",
+      ],
+      frameSrc: ["'self'", "https://js.stripe.com"],
+      objectSrc: ["'none'"],
+      styleSrcElem: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com",
+        "https://m.stripe.network",
+      ],
+      upgradeInsecureRequests: [],
+    },
+  }),
+);
 
 // Rate limiting to prevent brute force attacks
 const limiter = rateLimit({
@@ -106,12 +117,16 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Disable 'X-Powered-By' header
-app.disable('x-powered-by');
+app.disable("x-powered-by");
 
 // Input sanitization
 
 // IMPORTANT: Place this before any middleware that parses the body
-app.post('/api/webhook', express.raw({type: 'application/json'}), webhookHandler);
+app.post(
+  "/api/webhook",
+  express.raw({ type: "application/json" }),
+  webhookHandler,
+);
 
 // Middleware for parsing JSON and URL-encoded data
 app.use(express.json());
@@ -123,62 +138,62 @@ app.use(updateUserStreak);
 app.use(sanitizeInput);
 
 // Import routes
-const authRoutes = require('./routes/auth.routes');
-const courseRoutes = require('./routes/course.routes');
-const lessonRoutes = require('./routes/lesson.routes');
-const sectionRoutes = require('./routes/section.routes');
-const studentRoutes = require('./routes/student.routes');
-const subscriptionRoutes = require('./routes/subscription.routes');
-const feedbackRoutes = require('./routes/feedback.routes');
-const activityRoutes = require('./routes/activity.routes');
-const codeExecutionRoutes = require('./routes/codeExecution.routes');
-const uploadRoutes = require('./routes/upload.routes');
-const supportRoutes = require('./routes/support.routes');
-const adminRoutes = require('./routes/admin.routes');
+const authRoutes = require("./routes/auth.routes");
+const courseRoutes = require("./routes/course.routes");
+const lessonRoutes = require("./routes/lesson.routes");
+const sectionRoutes = require("./routes/section.routes");
+const studentRoutes = require("./routes/student.routes");
+const subscriptionRoutes = require("./routes/subscription.routes");
+const feedbackRoutes = require("./routes/feedback.routes");
+const activityRoutes = require("./routes/activity.routes");
+const codeExecutionRoutes = require("./routes/codeExecution.routes");
+const uploadRoutes = require("./routes/upload.routes");
+const supportRoutes = require("./routes/support.routes");
+const adminRoutes = require("./routes/admin.routes");
 
 // Use routes
-app.use('/api', authRoutes);
-app.use('/api', courseRoutes);
-app.use('/api', lessonRoutes);
-app.use('/api', sectionRoutes);
-app.use('/api', studentRoutes);
-app.use('/api', subscriptionRoutes);
-app.use('/api', feedbackRoutes);
-app.use('/api', activityRoutes);
-app.use('/api', codeExecutionRoutes);
-app.use('/api', uploadRoutes);
-app.use('/api', supportRoutes);
-app.use('/api', paymentRouter);
-app.use('/api/admin', adminRoutes);
+app.use("/api", authRoutes);
+app.use("/api", courseRoutes);
+app.use("/api", lessonRoutes);
+app.use("/api", sectionRoutes);
+app.use("/api", studentRoutes);
+app.use("/api", subscriptionRoutes);
+app.use("/api", feedbackRoutes);
+app.use("/api", activityRoutes);
+app.use("/api", codeExecutionRoutes);
+app.use("/api", uploadRoutes);
+app.use("/api", supportRoutes);
+app.use("/api", paymentRouter);
+app.use("/api/admin", adminRoutes);
 
 // Error handling middleware (should be after all routes)
 app.use(handleError);
 
-app.get('/api/checkout-session/:sessionId', async (req, res) => {
-  const {sessionId} = req.params;
+app.get("/api/checkout-session/:sessionId", async (req, res) => {
+  const { sessionId } = req.params;
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     res.json(session);
   } catch (error) {
-    console.error('Error retrieving checkout session:', error);
-    res.status(404).json({error: 'Session not found'});
+    console.error("Error retrieving checkout session:", error);
+    res.status(404).json({ error: "Session not found" });
   }
 });
 
 // Health check route
-app.get('/api/health', (req, res) => {
-  db.query('SELECT NOW()', (err, result) => {
+app.get("/api/health", (req, res) => {
+  db.query("SELECT NOW()", (err, result) => {
     if (err) {
-      console.error('Health check error:', err.message);
+      console.error("Health check error:", err.message);
       res.status(500).json({
-        status: 'ERROR',
-        database: 'Disconnected',
+        status: "ERROR",
+        database: "Disconnected",
         timestamp: new Date().toISOString(),
       });
     } else {
       res.status(200).json({
-        status: 'OK',
-        database: 'Connected',
+        status: "OK",
+        database: "Connected",
         timestamp: result.rows[0].now,
       });
     }
@@ -187,16 +202,16 @@ app.get('/api/health', (req, res) => {
 
 // Block cloud metadata access
 app.use((req, res, next) => {
-  if (req.path.startsWith('/latest/meta-data')) {
-    return res.status(403).send('Access Denied');
+  if (req.path.startsWith("/latest/meta-data")) {
+    return res.status(403).send("Access Denied");
   }
   next();
 });
 
 // Add additional security headers
 app.use((req, res, next) => {
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-Content-Type-Options", "nosniff");
   next();
 });
 
@@ -205,7 +220,7 @@ app.use((err, req, res, next) => {
   const statusCode = err.status || 500;
   console.error(`[${new Date().toISOString()}] Error:`, err.message);
   res.status(statusCode).json({
-    error: err.message || 'Internal Server Error',
+    error: err.message || "Internal Server Error",
   });
 });
 
@@ -220,6 +235,11 @@ app.listen(PORT, () => {
 // Log all registered routes for debugging
 app._router.stack.forEach((middleware) => {
   if (middleware.route) {
-    console.log('Route:', middleware.route.path, 'Methods:', middleware.route.methods);
+    console.log(
+      "Route:",
+      middleware.route.path,
+      "Methods:",
+      middleware.route.methods,
+    );
   }
 });

@@ -1,5 +1,5 @@
-const db = require('../config/database');
-const { AppError } = require('../utils/error.utils');
+const db = require("../config/database");
+const { AppError } = require("../utils/error.utils");
 
 const lessonQueries = {
   // Get next order value for a section
@@ -14,7 +14,17 @@ const lessonQueries = {
   },
 
   // Insert a new lesson
-  insertLesson: async (section_id, name, content, xp, test_cases, lesson_order, template_code, hint, solution) => {
+  insertLesson: async (
+    section_id,
+    name,
+    content,
+    xp,
+    test_cases,
+    lesson_order,
+    template_code,
+    hint,
+    solution,
+  ) => {
     const query = `
       INSERT INTO lesson (
         section_id, name, content, xp, test_cases, lesson_order, 
@@ -25,25 +35,25 @@ const lessonQueries = {
     `;
 
     // Process test cases to include pattern validation
-    const processedTestCases = test_cases.map(test => ({
-      input: test.input || '',
-      expected_output: test.expected_output || '',
+    const processedTestCases = test_cases.map((test) => ({
+      input: test.input || "",
+      expected_output: test.expected_output || "",
       auto_detect: test.auto_detect || false,
       use_pattern: test.use_pattern || false,
-      pattern: test.pattern || ''
+      pattern: test.pattern || "",
     }));
 
     const values = [
-      section_id, 
-      name, 
-      content, 
-      xp || 0, 
-      JSON.stringify(processedTestCases), 
+      section_id,
+      name,
+      content,
+      xp || 0,
+      JSON.stringify(processedTestCases),
       lesson_order,
-      template_code || '', 
-      hint || '', 
-      solution || '',
-      processedTestCases[0]?.auto_detect || false
+      template_code || "",
+      hint || "",
+      solution || "",
+      processedTestCases[0]?.auto_detect || false,
     ];
     return db.query(query, values);
   },
@@ -89,23 +99,23 @@ const lessonQueries = {
 
   // Update lesson
   updateLesson: async (
-    lesson_id, 
-    name, 
-    content, 
-    xp, 
-    test_cases, 
-    section_id, 
-    template_code, 
-    hint, 
-    solution
+    lesson_id,
+    name,
+    content,
+    xp,
+    test_cases,
+    section_id,
+    template_code,
+    hint,
+    solution,
   ) => {
     // Process test cases while preserving all fields
-    const processedTestCases = test_cases.map(test => ({
-      input: test.input || '',
-      expected_output: test.expected_output || '',
-      auto_detect: test.auto_detect === true,  // Force boolean
-      use_pattern: test.use_pattern === true,  // Force boolean
-      pattern: test.pattern || ''
+    const processedTestCases = test_cases.map((test) => ({
+      input: test.input || "",
+      expected_output: test.expected_output || "",
+      auto_detect: test.auto_detect === true, // Force boolean
+      use_pattern: test.use_pattern === true, // Force boolean
+      pattern: test.pattern || "",
     }));
 
     const query = `
@@ -129,10 +139,10 @@ const lessonQueries = {
       xp || 0,
       JSON.stringify(processedTestCases),
       section_id,
-      template_code || '',
-      hint || '',
-      solution || '',
-      lesson_id
+      template_code || "",
+      hint || "",
+      solution || "",
+      lesson_id,
     ];
 
     return db.query(query, values);
@@ -159,7 +169,7 @@ const lessonQueries = {
 
   // Update lesson order
   updateLessonOrder: async (lesson_id, order, client = db) => {
-    const query = 'UPDATE lesson SET lesson_order = $1 WHERE lesson_id = $2';
+    const query = "UPDATE lesson SET lesson_order = $1 WHERE lesson_id = $2";
     return client.query(query, [order, lesson_id]);
   },
 
@@ -185,24 +195,50 @@ const lessonQueries = {
   },
 
   // Update lesson progress
-  updateLessonProgress: async (user_id, lesson_id, completed, completed_at, submitted_code) => {
+  updateLessonProgress: async (
+    user_id,
+    lesson_id,
+    completed,
+    completed_at,
+    submitted_code,
+  ) => {
     const query = `
       UPDATE lesson_progress
       SET completed = $1, completed_at = $2, submitted_code = $3
       WHERE user_id = $4 AND lesson_id = $5
       RETURNING *;
     `;
-    return db.query(query, [completed, completed_at, submitted_code, user_id, lesson_id]);
+    return db.query(query, [
+      completed,
+      completed_at,
+      submitted_code,
+      user_id,
+      lesson_id,
+    ]);
   },
 
   // Insert lesson progress
-  insertLessonProgress: async (user_id, lesson_id, completed, completed_at, course_id, submitted_code) => {
+  insertLessonProgress: async (
+    user_id,
+    lesson_id,
+    completed,
+    completed_at,
+    course_id,
+    submitted_code,
+  ) => {
     const query = `
       INSERT INTO lesson_progress (user_id, lesson_id, completed, completed_at, course_id, submitted_code)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
-    return db.query(query, [user_id, lesson_id, completed, completed_at, course_id, submitted_code]);
+    return db.query(query, [
+      user_id,
+      lesson_id,
+      completed,
+      completed_at,
+      course_id,
+      submitted_code,
+    ]);
   },
 
   // Get total lessons count for course
@@ -305,7 +341,7 @@ const lessonQueries = {
 
   // Get all sections
   getAllSections: async () => {
-    return db.query('SELECT section_id FROM section');
+    return db.query("SELECT section_id FROM section");
   },
 
   // Get lessons by section for ordering
@@ -361,7 +397,7 @@ const lessonQueries = {
       AND e.course_id = $1
     `;
     return db.query(query, [course_id]);
-  }
+  },
 };
 
-module.exports = lessonQueries; 
+module.exports = lessonQueries;

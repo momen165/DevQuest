@@ -1,23 +1,23 @@
 // Billing.js
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Navbar from 'components/Navbar';
-import Sidebar from 'components/AccountSettingsSidebar';
-import { useAuth } from 'AuthContext';
-import 'styles/Billing.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Navbar from "components/Navbar";
+import Sidebar from "components/AccountSettingsSidebar";
+import { useAuth } from "AuthContext";
+import "styles/Billing.css";
 
 function Billing() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [subscriptionDetails, setSubscriptionDetails] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (!user || !user.token) {
-      navigate('/');
+      navigate("/");
     } else {
       fetchSubscriptionDetails();
     }
@@ -25,14 +25,17 @@ function Billing() {
 
   const fetchSubscriptionDetails = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/check`, {
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/check`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
         },
-      });
+      );
 
       const data = response.data;
-      console.log('Subscription data:', data);
+      console.log("Subscription data:", data);
 
       if (data.hasActiveSubscription && data.subscription) {
         setSubscriptionDetails(data.subscription);
@@ -40,8 +43,10 @@ function Billing() {
         setSubscriptionDetails(null);
       }
     } catch (err) {
-      console.error('Error:', err);
-      setError(err.response?.data?.error || 'Error fetching subscription details');
+      console.error("Error:", err);
+      setError(
+        err.response?.data?.error || "Error fetching subscription details",
+      );
     } finally {
       setLoading(false);
     }
@@ -49,16 +54,22 @@ function Billing() {
 
   const handleManageSubscription = async () => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/create-portal-session`, {}, {
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/create-portal-session`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
         },
-      });
+      );
 
       window.location.href = response.data.url;
     } catch (error) {
-      console.error('Error:', error);
-      setError(error.response?.data?.error || 'Failed to redirect to billing portal');
+      console.error("Error:", error);
+      setError(
+        error.response?.data?.error || "Failed to redirect to billing portal",
+      );
     }
   };
 
@@ -69,12 +80,16 @@ function Billing() {
         <Sidebar activeLink="billing" />
         <div className="billing-main">
           <h1 className="billing-main-title">Billing & Subscription</h1>
-          
+
           {error && <div className="billing-error-message">{error}</div>}
-          {successMessage && <div className="billing-success-message">{successMessage}</div>}
+          {successMessage && (
+            <div className="billing-success-message">{successMessage}</div>
+          )}
 
           {loading ? (
-            <div className="billing-loading-text">Loading subscription details...</div>
+            <div className="billing-loading-text">
+              Loading subscription details...
+            </div>
           ) : (
             <div className="billing-details-container">
               {subscriptionDetails ? (
@@ -84,24 +99,34 @@ function Billing() {
                     <div className="billing-subscription-info">
                       <div className="billing-info-row">
                         <span className="billing-info-label">Plan Type:</span>
-                        <span className="billing-info-value">{subscriptionDetails.subscription_type}</span>
+                        <span className="billing-info-value">
+                          {subscriptionDetails.subscription_type}
+                        </span>
                       </div>
                       <div className="billing-info-row">
                         <span className="billing-info-label">Status:</span>
-                        <span className="billing-info-value">{subscriptionDetails.status}</span>
+                        <span className="billing-info-value">
+                          {subscriptionDetails.status}
+                        </span>
                       </div>
                       <div className="billing-info-row">
-                        <span className="billing-info-label">Next Billing Date:</span>
+                        <span className="billing-info-label">
+                          Next Billing Date:
+                        </span>
                         <span className="billing-info-value">
-                          {new Date(subscriptionDetails.subscription_end_date).toLocaleDateString()}
+                          {new Date(
+                            subscriptionDetails.subscription_end_date,
+                          ).toLocaleDateString()}
                         </span>
                       </div>
                       <div className="billing-info-row">
                         <span className="billing-info-label">Amount:</span>
-                        <span className="billing-info-value">${subscriptionDetails.amount_paid}/month</span>
+                        <span className="billing-info-value">
+                          ${subscriptionDetails.amount_paid}/month
+                        </span>
                       </div>
                     </div>
-                    <button 
+                    <button
                       className="billing-button"
                       onClick={handleManageSubscription}
                     >
@@ -111,11 +136,15 @@ function Billing() {
                 </>
               ) : (
                 <div className="billing-no-subscription">
-                  <h2 className="billing-no-subscription-title">No Active Subscription</h2>
-                  <p className="billing-no-subscription-text">You currently don't have an active subscription.</p>
-                  <button 
+                  <h2 className="billing-no-subscription-title">
+                    No Active Subscription
+                  </h2>
+                  <p className="billing-no-subscription-text">
+                    You currently don't have an active subscription.
+                  </p>
+                  <button
                     className="billing-button"
-                    onClick={() => navigate('/pricing')}
+                    onClick={() => navigate("/pricing")}
                   >
                     View Available Plans
                   </button>

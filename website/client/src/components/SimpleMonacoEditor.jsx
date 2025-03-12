@@ -1,30 +1,26 @@
-import React, { useRef, useState } from 'react';
-import { Editor } from '@monaco-editor/react';
-import { FaCog } from 'react-icons/fa';
-import '../styles/SimpleMonacoEditor.css';
+import React, { useRef, useState } from "react";
+import { Editor } from "@monaco-editor/react";
+import { FaCog } from "react-icons/fa";
+import "../styles/SimpleMonacoEditor.css";
 
-const SimpleMonacoEditor = ({
-  code,
-  setCode,
-  language
-}) => {
+const SimpleMonacoEditor = ({ code, setCode, language }) => {
   const editorRef = useRef(null);
   const [showSettings, setShowSettings] = useState(false);
   const [fontSize, setFontSize] = useState(14);
-  const [theme, setTheme] = useState('vs-dark');
+  const [theme, setTheme] = useState("vs-dark");
   const [showLineNumbers, setShowLineNumbers] = useState(true);
   const [showMinimap, setShowMinimap] = useState(false);
 
   const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor;
-    
+
     // Log language information
-    console.log('SimpleMonacoEditor - Language prop:', {
+    console.log("SimpleMonacoEditor - Language prop:", {
       received: language,
       mapped: getMonacoLanguage(),
-      editor: editor.getModel().getLanguageId()
+      editor: editor.getModel().getLanguageId(),
     });
-    
+
     // Configure editor for the specific language
     if (language) {
       monaco.editor.setModelLanguage(editor.getModel(), getMonacoLanguage());
@@ -42,42 +38,42 @@ const SimpleMonacoEditor = ({
 
   // Map language to Monaco's language identifier
   const getMonacoLanguage = () => {
-    console.log('SimpleMonacoEditor - getMonacoLanguage:', {
+    console.log("SimpleMonacoEditor - getMonacoLanguage:", {
       input: language,
       inputType: typeof language,
-      lowercased: language?.toLowerCase()
+      lowercased: language?.toLowerCase(),
     });
 
     switch (language?.toLowerCase()) {
-      case 'cpp':
-        return 'cpp';
-      case 'c':
-        return 'c';
-      case 'python':
-        return 'python';
-      case 'javascript':
-        return 'javascript';
-      case 'typescript':
-        return 'typescript';
-      case 'java':
-        return 'java';
-      case 'ruby':
-        return 'ruby';
-      case 'go':
-        return 'go';
-      case 'rust':
-        return 'rust';
-      case 'php':
-        return 'php';
-      case 'csharp':
-        return 'csharp';
-      case 'swift':
-        return 'swift';
-      case 'kotlin':
-        return 'kotlin';
+      case "cpp":
+        return "cpp";
+      case "c":
+        return "c";
+      case "python":
+        return "python";
+      case "javascript":
+        return "javascript";
+      case "typescript":
+        return "typescript";
+      case "java":
+        return "java";
+      case "ruby":
+        return "ruby";
+      case "go":
+        return "go";
+      case "rust":
+        return "rust";
+      case "php":
+        return "php";
+      case "csharp":
+        return "csharp";
+      case "swift":
+        return "swift";
+      case "kotlin":
+        return "kotlin";
       default:
-        console.log('SimpleMonacoEditor - Using default language: plaintext');
-        return 'plaintext';
+        console.log("SimpleMonacoEditor - Using default language: plaintext");
+        return "plaintext";
     }
   };
 
@@ -97,7 +93,10 @@ const SimpleMonacoEditor = ({
             <div className="settings-panel">
               <div className="setting-item">
                 <label>Theme:</label>
-                <select value={theme} onChange={(e) => setTheme(e.target.value)}>
+                <select
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value)}
+                >
                   <option value="vs-dark">Dark</option>
                   <option value="light">Light</option>
                 </select>
@@ -141,49 +140,49 @@ const SimpleMonacoEditor = ({
         onMount={handleEditorDidMount}
         options={{
           fontSize: fontSize,
-          lineNumbers: showLineNumbers ? 'on' : 'off',
+          lineNumbers: showLineNumbers ? "on" : "off",
           minimap: { enabled: showMinimap },
           scrollBeyondLastLine: false,
-          wordWrap: 'on',
+          wordWrap: "on",
           automaticLayout: true,
           tabSize: 4,
           insertSpaces: true,
           formatOnPaste: true,
           formatOnType: true,
-          renderWhitespace: 'selection',
+          renderWhitespace: "selection",
           bracketPairColorization: true,
-          autoClosingBrackets: 'always',
-          autoClosingQuotes: 'always',
-          matchBrackets: 'always',
+          autoClosingBrackets: "always",
+          autoClosingQuotes: "always",
+          matchBrackets: "always",
           folding: true,
           detectIndentation: true,
           dragAndDrop: true,
           links: true,
           suggest: {
-            showKeywords: true
+            showKeywords: true,
           },
           hover: {
-            enabled: false
+            enabled: false,
           },
           quickSuggestions: {
             other: true,
             comments: false,
-            strings: false
+            strings: false,
           },
           parameterHints: {
-            enabled: false
+            enabled: false,
           },
           inlayHints: {
-            enabled: false
+            enabled: false,
           },
           suggestLineHeight: 22,
           suggestFontSize: 12,
-          'accessibility.verbosity.commandCenter': false,
-          hideCommandCenter: true
+          "accessibility.verbosity.commandCenter": false,
+          hideCommandCenter: true,
         }}
       />
     </div>
   );
 };
 
-export default SimpleMonacoEditor; 
+export default SimpleMonacoEditor;

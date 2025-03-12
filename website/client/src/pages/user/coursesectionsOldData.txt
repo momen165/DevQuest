@@ -10,7 +10,7 @@ function App() {
     <>
     <Navbar />
       <div className="Page">
-        
+         
         <div className="Section">
         <h1>Python</h1>
           <LessonList 

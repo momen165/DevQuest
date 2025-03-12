@@ -1,5 +1,5 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const db = require('../config/database'); // Adjust path to your DB connection
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const db = require("../config/database"); // Adjust path to your DB connection
 
 const createCheckoutSession = async (req, res) => {
   const { priceId } = req.body;
@@ -16,16 +16,16 @@ const createCheckoutSession = async (req, res) => {
       AND s.subscription_end_date > CURRENT_DATE;
     `;
     const { rows } = await db.query(activeSubQuery, [userId]);
-    
+
     if (rows.length > 0) {
-      return res.status(400).json({ 
-        error: 'You already have an active subscription.' 
+      return res.status(400).json({
+        error: "You already have an active subscription.",
       });
     }
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'subscription',
+      payment_method_types: ["card"],
+      mode: "subscription",
       line_items: [
         {
           price: priceId,
@@ -39,59 +39,68 @@ const createCheckoutSession = async (req, res) => {
 
     res.json({ id: session.id });
   } catch (error) {
-    console.error('Stripe checkout session creation error:', error);
-    res.status(500).json({ error: 'Failed to create checkout session.' });
+    console.error("Stripe checkout session creation error:", error);
+    res.status(500).json({ error: "Failed to create checkout session." });
   }
 };
 
 const handleWebhook = async (req, res) => {
-  const sig = req.headers['stripe-signature'];
+  const sig = req.headers["stripe-signature"];
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    console.log('Webhook event received:', event.type);
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET,
+    );
+    console.log("Webhook event received:", event.type);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
+    console.error("Webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   // Handle initial subscription creation
-  if (event.type === 'checkout.session.completed') {
+  if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    console.log('Checkout session completed:', session);
+    console.log("Checkout session completed:", session);
 
     const userId = session.client_reference_id;
     const subscriptionId = session.subscription;
     const customerId = session.customer;
 
     if (!subscriptionId) {
-      console.error('Subscription ID is null:', {session});
-      return res.status(400).json({error: 'Subscription ID is null.'});
+      console.error("Subscription ID is null:", { session });
+      return res.status(400).json({ error: "Subscription ID is null." });
     }
 
     try {
       const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-        expand: ['latest_invoice.payment_intent'],
+        expand: ["latest_invoice.payment_intent"],
       });
 
-      const amountPaid = subscription.latest_invoice.payment_intent.amount_received / 100;
-      const subscriptionType = subscription.items.data[0].price.id === process.env.STRIPE_MONTHLY_PRICE_ID ? 'Monthly' : 'Yearly';
+      const amountPaid =
+        subscription.latest_invoice.payment_intent.amount_received / 100;
+      const subscriptionType =
+        subscription.items.data[0].price.id ===
+        process.env.STRIPE_MONTHLY_PRICE_ID
+          ? "Monthly"
+          : "Yearly";
       const startDate = new Date(subscription.current_period_start * 1000);
       const endDate = new Date(subscription.current_period_end * 1000);
       const paymentId = subscription.latest_invoice.payment_intent.id;
 
-      const userQuery = 'SELECT email FROM users WHERE user_id = $1';
+      const userQuery = "SELECT email FROM users WHERE user_id = $1";
       const { rows: userRows } = await db.query(userQuery, [userId]);
       if (userRows.length === 0) {
-        console.error('User not found:', { userId });
-        return res.status(404).json({ error: 'User not found.' });
+        console.error("User not found:", { userId });
+        return res.status(404).json({ error: "User not found." });
       }
       const userEmail = userRows[0].email;
 
       const client = await db.connect();
       try {
-        await client.query('BEGIN');
+        await client.query("BEGIN");
 
         const subscriptionQuery = `
           INSERT INTO subscription (
@@ -110,19 +119,22 @@ const handleWebhook = async (req, res) => {
           VALUES ($1, $2, $3, $4, $5, 'active', $6, $7, $8, $9, $10)
           RETURNING subscription_id;
         `;
-        
-        const { rows: subscriptionRows } = await client.query(subscriptionQuery, [
-          subscriptionId,
-          startDate,
-          endDate,
-          subscriptionType,
-          amountPaid,
-          userEmail,
-          userId,
-          subscriptionId,
-          paymentId,
-          customerId
-        ]);
+
+        const { rows: subscriptionRows } = await client.query(
+          subscriptionQuery,
+          [
+            subscriptionId,
+            startDate,
+            endDate,
+            subscriptionType,
+            amountPaid,
+            userEmail,
+            userId,
+            subscriptionId,
+            paymentId,
+            customerId,
+          ],
+        );
 
         const dbSubscriptionId = subscriptionRows[0].subscription_id;
 
@@ -132,46 +144,50 @@ const handleWebhook = async (req, res) => {
         `;
         await client.query(userSubscriptionQuery, [userId, dbSubscriptionId]);
 
-        await client.query('COMMIT');
-        console.log('Subscription created successfully:', {
+        await client.query("COMMIT");
+        console.log("Subscription created successfully:", {
           userId,
           subscriptionId: dbSubscriptionId,
           customerId,
-          userEmail
+          userEmail,
         });
       } catch (error) {
-        await client.query('ROLLBACK');
-        console.error('Error creating subscription:', error);
+        await client.query("ROLLBACK");
+        console.error("Error creating subscription:", error);
       } finally {
         client.release();
       }
     } catch (error) {
-      console.error('Error processing webhook:', error);
+      console.error("Error processing webhook:", error);
     }
   }
   // Handle subscription updates
-  else if (event.type === 'customer.subscription.updated') {
+  else if (event.type === "customer.subscription.updated") {
     const subscription = event.data.object;
-    console.log('Subscription updated event:', subscription);
-    
+    console.log("Subscription updated event:", subscription);
+
     try {
       const startDate = new Date(subscription.current_period_start * 1000);
       const endDate = new Date(subscription.current_period_end * 1000);
       const amountPaid = subscription.items.data[0].price.unit_amount / 100;
       const subscriptionId = subscription.id;
-      const subscriptionType = subscription.items.data[0].price.id === process.env.STRIPE_MONTHLY_PRICE_ID ? 'Monthly' : 'Yearly';
-      
-      console.log('Update values:', {
+      const subscriptionType =
+        subscription.items.data[0].price.id ===
+        process.env.STRIPE_MONTHLY_PRICE_ID
+          ? "Monthly"
+          : "Yearly";
+
+      console.log("Update values:", {
         startDate,
         endDate,
         amountPaid,
         subscriptionId,
-        subscriptionType
+        subscriptionType,
       });
 
       const client = await db.connect();
       try {
-        await client.query('BEGIN');
+        await client.query("BEGIN");
 
         const updateQuery = `
           UPDATE subscription 
@@ -185,7 +201,7 @@ const handleWebhook = async (req, res) => {
           RETURNING *;
         `;
 
-        const status = subscription.status === 'active' ? 'active' : 'inactive';
+        const status = subscription.status === "active" ? "active" : "inactive";
 
         const { rows } = await client.query(updateQuery, [
           startDate,
@@ -193,42 +209,42 @@ const handleWebhook = async (req, res) => {
           amountPaid,
           subscriptionType,
           status,
-          subscriptionId
+          subscriptionId,
         ]);
 
-        console.log('Update query result:', rows);
+        console.log("Update query result:", rows);
 
         if (rows.length === 0) {
-          console.error('No subscription found with ID:', subscriptionId);
-          throw new Error('No subscription found to update');
+          console.error("No subscription found with ID:", subscriptionId);
+          throw new Error("No subscription found to update");
         }
 
-        await client.query('COMMIT');
-        console.log('Subscription updated successfully:', {
+        await client.query("COMMIT");
+        console.log("Subscription updated successfully:", {
           subscriptionId,
           newEndDate: endDate,
-          updatedSubscription: rows[0]
+          updatedSubscription: rows[0],
         });
       } catch (error) {
-        await client.query('ROLLBACK');
-        console.error('Database error:', error);
+        await client.query("ROLLBACK");
+        console.error("Database error:", error);
         throw error;
       } finally {
         client.release();
       }
     } catch (error) {
-      console.error('Error processing subscription update:', error);
+      console.error("Error processing subscription update:", error);
     }
   }
   // Handle subscription cancellations
-  else if (event.type === 'customer.subscription.deleted') {
+  else if (event.type === "customer.subscription.deleted") {
     const subscription = event.data.object;
     const subscriptionId = subscription.id;
 
     try {
       const client = await db.connect();
       try {
-        await client.query('BEGIN');
+        await client.query("BEGIN");
 
         const updateQuery = `
           UPDATE subscription 
@@ -241,20 +257,20 @@ const handleWebhook = async (req, res) => {
         const { rows } = await client.query(updateQuery, [subscriptionId]);
 
         if (rows.length === 0) {
-          throw new Error('No subscription found to cancel');
+          throw new Error("No subscription found to cancel");
         }
 
-        await client.query('COMMIT');
-        console.log('Subscription cancelled successfully:', subscriptionId);
+        await client.query("COMMIT");
+        console.log("Subscription cancelled successfully:", subscriptionId);
       } catch (error) {
-        await client.query('ROLLBACK');
-        console.error('Error cancelling subscription:', error);
+        await client.query("ROLLBACK");
+        console.error("Error cancelling subscription:", error);
         throw error;
       } finally {
         client.release();
       }
     } catch (error) {
-      console.error('Error processing subscription cancellation:', error);
+      console.error("Error processing subscription cancellation:", error);
     }
   }
 
@@ -280,8 +296,8 @@ const createPortalSession = async (req, res) => {
     const { rows } = await db.query(subscriptionQuery, [userId]);
 
     if (!rows.length || !rows[0].stripe_customer_id) {
-      return res.status(404).json({ 
-        error: 'No active subscription found for this user' 
+      return res.status(404).json({
+        error: "No active subscription found for this user",
       });
     }
 
@@ -293,9 +309,9 @@ const createPortalSession = async (req, res) => {
 
     res.json({ url: session.url });
   } catch (error) {
-    console.error('Error creating portal session:', error);
-    res.status(500).json({ 
-      error: 'Failed to create portal session' 
+    console.error("Error creating portal session:", error);
+    res.status(500).json({
+      error: "Failed to create portal session",
     });
   }
 };
@@ -303,5 +319,5 @@ const createPortalSession = async (req, res) => {
 module.exports = {
   createCheckoutSession,
   handleWebhook,
-  createPortalSession
+  createPortalSession,
 };

@@ -1,208 +1,205 @@
-import { resolve } from "node:path";
-import { readFileSync, existsSync } from "node:fs";
-import { defineConfig, loadEnv, createFilter, transformWithEsbuild } from "vite";
-import react from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { resolve } from 'node:path';
+import { readFileSync, existsSync } from 'node:fs';
+import { defineConfig, loadEnv, createFilter, transformWithEsbuild } from 'vite';
+import react from '@vitejs/plugin-react';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Update the path to the new location of package.json
 const packageJsonPath = resolve(__dirname, 'package.json');
 
 export default defineConfig(({ mode }) => {
-    setEnv(mode);
-    return {
-        plugins: [
-            react(),
-            tsconfigPaths(),
-            envPlugin(),
-            devServerPlugin(),
-            sourcemapPlugin(),
-            buildPathPlugin(),
-            basePlugin(),
-            importPrefixPlugin(),
-            htmlPlugin(mode),
-            svgrPlugin(),
-        ],
-        server: {
-            proxy: {
-                '/api': {
-                    target: 'http://localhost:5000',
-                    changeOrigin: true,
-                    secure: false,
-                    ws: true
-                }
-            },
-            hmr: {
-                overlay: true
-            }
-        }
-    };
+  setEnv(mode);
+  return {
+    plugins: [
+      react(),
+      tsconfigPaths(),
+      envPlugin(),
+      devServerPlugin(),
+      sourcemapPlugin(),
+      buildPathPlugin(),
+      basePlugin(),
+      importPrefixPlugin(),
+      htmlPlugin(mode),
+      svgrPlugin(),
+    ],
+    server: {
+      proxy: {
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+        },
+      },
+      hmr: {
+        overlay: true,
+      },
+    },
+  };
 });
 
 function setEnv(mode) {
-    const envPath = resolve(__dirname, '.env');
-  
-    const env1 = loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]);
-  
-    Object.assign(process.env, loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]));
-    process.env.NODE_ENV ||= mode;
-    const { homepage } = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-    process.env.PUBLIC_URL ||= homepage
-        ? `${homepage.startsWith("http") || homepage.startsWith("/")
-            ? homepage
-            : `/${homepage}`}`.replace(/\/$/, "")
-        : "";
+  const envPath = resolve(__dirname, '.env');
+
+  const env1 = loadEnv(mode, '.', ['REACT_APP_', 'NODE_ENV', 'PUBLIC_URL']);
+
+  Object.assign(process.env, loadEnv(mode, '.', ['REACT_APP_', 'NODE_ENV', 'PUBLIC_URL']));
+  process.env.NODE_ENV ||= mode;
+  const { homepage } = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+  process.env.PUBLIC_URL ||= homepage
+    ? `${
+        homepage.startsWith('http') || homepage.startsWith('/') ? homepage : `/${homepage}`
+      }`.replace(/\/$/, '')
+    : '';
 }
 
 // Expose `process.env` environment variables to your client code
 function envPlugin() {
-    return {
-        name: "env-plugin",
-      
-        config(_, { mode }) {
-            const env2 = loadEnv(mode, resolve(__dirname), ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]);
-          
-            return {
-                define: Object.fromEntries(Object.entries(env2).map(([key, value]) => [
-                    `process.env.${key}`,
-                    JSON.stringify(value),
-                ])),
-               
-            };
-          
-        },
-        
-    };
-    
+  return {
+    name: 'env-plugin',
+
+    config(_, { mode }) {
+      const env2 = loadEnv(mode, resolve(__dirname), ['REACT_APP_', 'NODE_ENV', 'PUBLIC_URL']);
+
+      return {
+        define: Object.fromEntries(
+          Object.entries(env2).map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
+        ),
+      };
+    },
+  };
 }
 
 // Setup HOST, SSL, PORT
 function devServerPlugin() {
-    return {
-        name: "dev-server-plugin",
-        config(_, { mode }) {
-            const { HOST, PORT, HTTPS, SSL_CRT_FILE, SSL_KEY_FILE } = loadEnv(mode, ".", ["HOST", "PORT", "HTTPS", "SSL_CRT_FILE", "SSL_KEY_FILE"]);
-            const https = HTTPS === "true";
-            return {
-                server: {
-                    host: true,
-                    port: parseInt(PORT || "3000", 10),
-                    open: true,
-                    ...(https &&
-                        SSL_CRT_FILE &&
-                        SSL_KEY_FILE && {
-                        https: {
-                            cert: readFileSync(resolve(SSL_CRT_FILE)),
-                            key: readFileSync(resolve(SSL_KEY_FILE)),
-                        },
-                    }),
-                },
-            };
+  return {
+    name: 'dev-server-plugin',
+    config(_, { mode }) {
+      const { HOST, PORT, HTTPS, SSL_CRT_FILE, SSL_KEY_FILE } = loadEnv(mode, '.', [
+        'HOST',
+        'PORT',
+        'HTTPS',
+        'SSL_CRT_FILE',
+        'SSL_KEY_FILE',
+      ]);
+      const https = HTTPS === 'true';
+      return {
+        server: {
+          host: true,
+          port: parseInt(PORT || '3000', 10),
+          open: true,
+          ...(https &&
+            SSL_CRT_FILE &&
+            SSL_KEY_FILE && {
+              https: {
+                cert: readFileSync(resolve(SSL_CRT_FILE)),
+                key: readFileSync(resolve(SSL_KEY_FILE)),
+              },
+            }),
         },
-    };
+      };
+    },
+  };
 }
 
 // Migration guide: Follow the guide below
 function sourcemapPlugin() {
-    return {
-        name: "sourcemap-plugin",
-        config(_, { mode }) {
-            const { GENERATE_SOURCEMAP } = loadEnv(mode, ".", [
-                "GENERATE_SOURCEMAP",
-            ]);
-            return {
-                build: {
-                    sourcemap: GENERATE_SOURCEMAP === "true",
-                },
-            };
+  return {
+    name: 'sourcemap-plugin',
+    config(_, { mode }) {
+      const { GENERATE_SOURCEMAP } = loadEnv(mode, '.', ['GENERATE_SOURCEMAP']);
+      return {
+        build: {
+          sourcemap: GENERATE_SOURCEMAP === 'true',
         },
-    };
+      };
+    },
+  };
 }
 
 // Migration guide: Follow the guide below
 function buildPathPlugin() {
-    return {
-        name: "build-path-plugin",
-        config(_, { mode }) {
-            const { BUILD_PATH } = loadEnv(mode, ".", [
-                "BUILD_PATH",
-            ]);
-            return {
-                build: {
-                    outDir: BUILD_PATH || "build",
-                },
-            };
+  return {
+    name: 'build-path-plugin',
+    config(_, { mode }) {
+      const { BUILD_PATH } = loadEnv(mode, '.', ['BUILD_PATH']);
+      return {
+        build: {
+          outDir: BUILD_PATH || 'build',
         },
-    };
+      };
+    },
+  };
 }
 
 // Migration guide: Follow the guide below and remove homepage field in package.json
 function basePlugin() {
-    return {
-        name: "base-plugin",
-        config(_, { mode }) {
-            const { PUBLIC_URL } = loadEnv(mode, ".", ["PUBLIC_URL"]);
-            return {
-                base: PUBLIC_URL || "",
-            };
-        },
-    };
+  return {
+    name: 'base-plugin',
+    config(_, { mode }) {
+      const { PUBLIC_URL } = loadEnv(mode, '.', ['PUBLIC_URL']);
+      return {
+        base: PUBLIC_URL || '',
+      };
+    },
+  };
 }
 
 // To resolve modules from node_modules, you can prefix paths with ~
 function importPrefixPlugin() {
-    return {
-        name: "import-prefix-plugin",
-        config() {
-            return {
-                resolve: {
-                    alias: [{ find: /^~([^/])/, replacement: "$1" }],
-                },
-            };
+  return {
+    name: 'import-prefix-plugin',
+    config() {
+      return {
+        resolve: {
+          alias: [{ find: /^~([^/])/, replacement: '$1' }],
         },
-    };
+      };
+    },
+  };
 }
 
 // In Create React App, SVGs can be imported directly as React components.
 function svgrPlugin() {
-    const filter = createFilter("**/*.svg");
-    const postfixRE = /[?#].*$/s;
-    return {
-        name: "svgr-plugin",
-        async transform(code, id) {
-            if (filter(id)) {
-                const { transform } = await import("@svgr/core");
-                const { default: jsx } = await import("@svgr/plugin-jsx");
-                const filePath = id.replace(postfixRE, "");
-                const svgCode = readFileSync(filePath, "utf8");
-                const componentCode = await transform(svgCode, undefined, {
-                    filePath,
-                    caller: {
-                        previousExport: code,
-                        defaultPlugins: [jsx],
-                    },
-                });
-                const res = await transformWithEsbuild(componentCode, id, {
-                    loader: "jsx",
-                });
-                return {
-                    code: res.code,
-                    map: null,
-                };
-            }
-        },
-    };
+  const filter = createFilter('**/*.svg');
+  const postfixRE = /[?#].*$/s;
+  return {
+    name: 'svgr-plugin',
+    async transform(code, id) {
+      if (filter(id)) {
+        const { transform } = await import('@svgr/core');
+        const { default: jsx } = await import('@svgr/plugin-jsx');
+        const filePath = id.replace(postfixRE, '');
+        const svgCode = readFileSync(filePath, 'utf8');
+        const componentCode = await transform(svgCode, undefined, {
+          filePath,
+          caller: {
+            previousExport: code,
+            defaultPlugins: [jsx],
+          },
+        });
+        const res = await transformWithEsbuild(componentCode, id, {
+          loader: 'jsx',
+        });
+        return {
+          code: res.code,
+          map: null,
+        };
+      }
+    },
+  };
 }
 
 // Replace %ENV_VARIABLES% in index.html
 function htmlPlugin(mode) {
-    const env = loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]);
-    return {
-        name: "html-plugin",
-        transformIndexHtml: {
-            order: "pre",
-            handler(html) {
-                return html.replace(/%(.*?)%/g, (match, p1) => env[p1] ?? match);
-            },
-        },
-    };
+  const env = loadEnv(mode, '.', ['REACT_APP_', 'NODE_ENV', 'PUBLIC_URL']);
+  return {
+    name: 'html-plugin',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html) {
+        return html.replace(/%(.*?)%/g, (match, p1) => env[p1] ?? match);
+      },
+    },
+  };
 }
