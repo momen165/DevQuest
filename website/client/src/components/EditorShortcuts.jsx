@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 
 const EditorShortcuts = () => {
   const shortcuts = [
-    { keys: 'Ctrl + Alt + I', description: 'Insert Image' },
-    { keys: 'Ctrl + Alt + J', description: 'Insert JavaScript Code Block' },
-    { keys: 'Ctrl + Alt + P', description: 'Insert Python Code Block' },
-    { keys: 'Ctrl + Alt + H', description: 'Insert HTML Code Block' },
+    { keys: "Ctrl + Alt + I", description: "Insert Image" },
+    { keys: "Ctrl + Alt + J", description: "Insert JavaScript Code Block" },
+    { keys: "Ctrl + Alt + P", description: "Insert Python Code Block" },
+    { keys: "Ctrl + Alt + H", description: "Insert HTML Code Block" },
     // Add more shortcuts as needed
   ];
 
@@ -23,4 +23,4 @@ const EditorShortcuts = () => {
   );
 };
 
-export default EditorShortcuts; 
+export default EditorShortcuts;

@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const db = require("../config/database");
 
 /**
  * Logs an activity to the database
@@ -15,7 +15,7 @@ const logActivity = async (actionType, actionDescription, userId = null) => {
     await db.query(query, [actionType, actionDescription, userId]);
     console.log(`Activity logged: ${actionType} - ${actionDescription}`);
   } catch (err) {
-    console.error('Error logging activity:', err.message || err);
+    console.error("Error logging activity:", err.message || err);
   }
 };
 
@@ -34,7 +34,7 @@ const logAdminActivity = async (adminId, actionType, actionDescription) => {
     await db.query(query, [adminId, actionType, actionDescription]);
     console.log(`Admin activity logged: ${actionType} - ${actionDescription}`);
   } catch (err) {
-    console.error('Error logging admin activity:', err.message || err);
+    console.error("Error logging admin activity:", err.message || err);
   }
 };
 
@@ -54,8 +54,8 @@ const getRecentActivities = async (limit = 30) => {
     const { rows } = await db.query(query, [limit]);
     return rows;
   } catch (err) {
-    console.error('Error fetching recent activities:', err.message || err);
-    throw new Error('Failed to fetch recent activities');
+    console.error("Error fetching recent activities:", err.message || err);
+    throw new Error("Failed to fetch recent activities");
   }
 };
 

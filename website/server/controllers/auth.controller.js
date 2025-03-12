@@ -1,26 +1,26 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const db = require('../config/database');
-const { validationResult } = require('express-validator');
-const logActivity = require('../utils/logger');
-const mailjet = require('node-mailjet');
-require('dotenv').config();
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const db = require("../config/database");
+const { validationResult } = require("express-validator");
+const logActivity = require("../utils/logger");
+const mailjet = require("node-mailjet");
+require("dotenv").config();
 
 // Configuration
 const CONFIG = {
   jwt: {
-    expiresIn: '72h',
-    verificationExpiresIn: '1h'
+    expiresIn: "72h",
+    verificationExpiresIn: "1h",
   },
   bcrypt: {
-    saltRounds: 10
-  }
+    saltRounds: 10,
+  },
 };
 
 // Initialize email client
 const mailjetClient = mailjet.apiConnect(
   process.env.MAILJET_API_KEY,
-  process.env.MAILJET_SECRET_KEY
+  process.env.MAILJET_SECRET_KEY,
 );
 
 // Helper functions
@@ -28,22 +28,18 @@ const helpers = {
   generateToken: (userId, options = {}) => {
     const payload = {
       userId,
-      ...options
+      ...options,
     };
     delete payload.expiresIn;
-    return jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: options.expiresIn || CONFIG.jwt.expiresIn }
-    );
+    return jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: options.expiresIn || CONFIG.jwt.expiresIn,
+    });
   },
 
   generateVerificationToken: (userId) => {
-    return jwt.sign(
-      { userId },
-      process.env.JWT_SECRET,
-      { expiresIn: CONFIG.jwt.verificationExpiresIn }
-    );
+    return jwt.sign({ userId }, process.env.JWT_SECRET, {
+      expiresIn: CONFIG.jwt.verificationExpiresIn,
+    });
   },
 
   getEmailTemplate: (content) => `
@@ -66,30 +62,39 @@ const helpers = {
   `,
 
   async sendEmail(recipient, subject, htmlContent, options = {}) {
-    const { senderEmail = process.env.SENDER_EMAIL, senderName = 'Devquest' } = options;
+    const { senderEmail = process.env.SENDER_EMAIL, senderName = "Devquest" } =
+      options;
 
-    if (!senderEmail || !process.env.MAILJET_API_KEY || !process.env.MAILJET_SECRET_KEY) {
-      throw new Error('Missing required email configuration');
+    if (
+      !senderEmail ||
+      !process.env.MAILJET_API_KEY ||
+      !process.env.MAILJET_SECRET_KEY
+    ) {
+      throw new Error("Missing required email configuration");
     }
 
     const response = await mailjetClient
-      .post('send', { version: 'v3.1' })
+      .post("send", { version: "v3.1" })
       .request({
-        Messages: [{
-          From: { Email: senderEmail, Name: senderName },
-          To: [{ Email: recipient, Name: recipient.split('@')[0] }],
-          Subject: subject,
-          HTMLPart: htmlContent,
-          CustomID: `${options.customId || 'email'}-${Date.now()}`
-        }]
+        Messages: [
+          {
+            From: { Email: senderEmail, Name: senderName },
+            To: [{ Email: recipient, Name: recipient.split("@")[0] }],
+            Subject: subject,
+            HTMLPart: htmlContent,
+            CustomID: `${options.customId || "email"}-${Date.now()}`,
+          },
+        ],
       });
 
     if (response.response.status !== 200) {
-      throw new Error(`Email sending failed with status: ${response.response.status}`);
+      throw new Error(
+        `Email sending failed with status: ${response.response.status}`,
+      );
     }
 
     return true;
-  }
+  },
 };
 
 // Error handler wrapper
@@ -113,15 +118,17 @@ const signup = handleAsync(async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, CONFIG.bcrypt.saltRounds);
 
   // Check if email already exists
-  const existingUser = await db.query('SELECT 1 FROM users WHERE email = $1', [email.toLowerCase()]);
+  const existingUser = await db.query("SELECT 1 FROM users WHERE email = $1", [
+    email.toLowerCase(),
+  ]);
   if (existingUser.rows.length > 0) {
-    return res.status(400).json({ error: 'Email already registered' });
+    return res.status(400).json({ error: "Email already registered" });
   }
 
   // Create new user
   const { rows } = await db.query(
-    'INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id',
-    [name, email.toLowerCase(), hashedPassword, country, false]
+    "INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id",
+    [name, email.toLowerCase(), hashedPassword, country, false],
   );
 
   // Generate verification token with only userId in payload
@@ -148,11 +155,20 @@ const signup = handleAsync(async (req, res) => {
     </div>
   `);
 
-  await helpers.sendEmail(email, 'Welcome to Devquest - Verify Your Email', emailContent);
-  await logActivity('User', `Verification email sent to: ${email}`, rows[0].user_id);
+  await helpers.sendEmail(
+    email,
+    "Welcome to Devquest - Verify Your Email",
+    emailContent,
+  );
+  await logActivity(
+    "User",
+    `Verification email sent to: ${email}`,
+    rows[0].user_id,
+  );
 
   res.status(201).json({
-    message: 'User registered successfully. Please verify your email to activate your account.'
+    message:
+      "User registered successfully. Please verify your email to activate your account.",
   });
 });
 
@@ -160,23 +176,26 @@ const login = handleAsync(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' });
+    return res.status(400).json({ error: "Email and password are required" });
   }
 
   const [userResult, adminResult] = await Promise.all([
-    db.query('SELECT * FROM users WHERE email = $1', [email]),
-    db.query('SELECT 1 FROM admins WHERE admin_id = (SELECT user_id FROM users WHERE email = $1)', [email])
+    db.query("SELECT * FROM users WHERE email = $1", [email]),
+    db.query(
+      "SELECT 1 FROM admins WHERE admin_id = (SELECT user_id FROM users WHERE email = $1)",
+      [email],
+    ),
   ]);
 
   if (userResult.rows.length === 0) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({ error: "User not found" });
   }
 
   const user = userResult.rows[0];
   const isMatch = await bcrypt.compare(password, user.password);
-  
+
   if (!isMatch) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: "Invalid credentials" });
   }
 
   const userData = {
@@ -186,13 +205,13 @@ const login = handleAsync(async (req, res) => {
     bio: user.bio,
     skills: user.skills || [],
     admin: adminResult.rowCount > 0,
-    profileimage: user.profileimage
+    profileimage: user.profileimage,
   };
 
   const token = helpers.generateToken(user.user_id, userData);
 
   res.status(200).json({
-    message: 'Login successful',
+    message: "Login successful",
     token,
     user: {
       name: user.name,
@@ -200,14 +219,14 @@ const login = handleAsync(async (req, res) => {
       bio: user.bio,
       skills: user.skills || [],
       admin: adminResult.rowCount > 0,
-      profileimage: user.profileimage
-    }
+      profileimage: user.profileimage,
+    },
   });
 });
 
 const updateProfile = handleAsync(async (req, res) => {
   const { name, country, bio, skills } = req.body;
-  
+
   try {
     const query = `
       UPDATE users 
@@ -224,7 +243,7 @@ const updateProfile = handleAsync(async (req, res) => {
     const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const updatedUser = result.rows[0];
@@ -235,52 +254,66 @@ const updateProfile = handleAsync(async (req, res) => {
       bio: updatedUser.bio,
       skills: updatedUser.skills,
       admin: req.user.admin,
-      profileimage: updatedUser.profileimage
+      profileimage: updatedUser.profileimage,
     };
 
     const token = helpers.generateToken(req.user.userId, userData);
 
     res.status(200).json({
-      message: 'Profile updated successfully',
+      message: "Profile updated successfully",
       token,
-      user: userData
+      user: userData,
     });
   } catch (err) {
-    console.error('Error updating profile:', err);
-    res.status(500).json({ error: 'Failed to update profile' });
+    console.error("Error updating profile:", err);
+    res.status(500).json({ error: "Failed to update profile" });
   }
 });
 
 const changePassword = handleAsync(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  const { rows } = await db.query('SELECT password FROM users WHERE user_id = $1', [req.user.userId]);
+  const { rows } = await db.query(
+    "SELECT password FROM users WHERE user_id = $1",
+    [req.user.userId],
+  );
 
   if (rows.length === 0) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({ error: "User not found" });
   }
 
   const isMatch = await bcrypt.compare(currentPassword, rows[0].password);
   if (!isMatch) {
-    return res.status(400).json({ error: 'Current password is incorrect' });
+    return res.status(400).json({ error: "Current password is incorrect" });
   }
 
-  const hashedPassword = await bcrypt.hash(newPassword, CONFIG.bcrypt.saltRounds);
-  await db.query('UPDATE users SET password = $1 WHERE user_id = $2', [hashedPassword, req.user.userId]);
-  
-  res.status(200).json({ message: 'Password changed successfully' });
+  const hashedPassword = await bcrypt.hash(
+    newPassword,
+    CONFIG.bcrypt.saltRounds,
+  );
+  await db.query("UPDATE users SET password = $1 WHERE user_id = $2", [
+    hashedPassword,
+    req.user.userId,
+  ]);
+
+  res.status(200).json({ message: "Password changed successfully" });
 });
 
 const sendPasswordResetEmail = handleAsync(async (req, res) => {
   const { email } = req.body;
 
   if (!email?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-    return res.status(400).json({ error: 'Valid email is required' });
+    return res.status(400).json({ error: "Valid email is required" });
   }
 
-  const { rows } = await db.query('SELECT user_id FROM users WHERE email = $1', [email.toLowerCase()]);
-  
+  const { rows } = await db.query(
+    "SELECT user_id FROM users WHERE email = $1",
+    [email.toLowerCase()],
+  );
+
   if (rows.length > 0) {
-    const resetToken = helpers.generateToken(rows[0].user_id, { expiresIn: CONFIG.jwt.verificationExpiresIn });
+    const resetToken = helpers.generateToken(rows[0].user_id, {
+      expiresIn: CONFIG.jwt.verificationExpiresIn,
+    });
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     const emailContent = helpers.getEmailTemplate(`
@@ -303,12 +336,17 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
       </div>
     `);
 
-    await helpers.sendEmail(email, 'Password Reset Request - Devquest', emailContent);
+    await helpers.sendEmail(
+      email,
+      "Password Reset Request - Devquest",
+      emailContent,
+    );
   }
 
   // Always return the same message for security
   res.status(200).json({
-    message: 'If your email exists in our system, you will receive reset instructions.'
+    message:
+      "If your email exists in our system, you will receive reset instructions.",
   });
 });
 
@@ -316,44 +354,49 @@ const resetPassword = handleAsync(async (req, res) => {
   const { token, newPassword } = req.body;
 
   if (!token || !newPassword) {
-    return res.status(400).json({ error: 'Token and new password are required' });
+    return res
+      .status(400)
+      .json({ error: "Token and new password are required" });
   }
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  const hashedPassword = await bcrypt.hash(newPassword, CONFIG.bcrypt.saltRounds);
-  
+  const hashedPassword = await bcrypt.hash(
+    newPassword,
+    CONFIG.bcrypt.saltRounds,
+  );
+
   const { rowCount } = await db.query(
-    'UPDATE users SET password = $1 WHERE user_id = $2',
-    [hashedPassword, decoded.userId]
+    "UPDATE users SET password = $1 WHERE user_id = $2",
+    [hashedPassword, decoded.userId],
   );
 
   if (rowCount === 0) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({ error: "User not found" });
   }
 
-  res.status(200).json({ message: 'Password updated successfully' });
+  res.status(200).json({ message: "Password updated successfully" });
 });
 
 const checkAuth = handleAsync(async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
+    return res.status(401).json({ message: "No token provided" });
   }
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const [userResult, adminResult] = await Promise.all([
-    db.query('SELECT 1 FROM users WHERE user_id = $1', [decoded.userId]),
-    db.query('SELECT 1 FROM admins WHERE admin_id = $1', [decoded.userId])
+    db.query("SELECT 1 FROM users WHERE user_id = $1", [decoded.userId]),
+    db.query("SELECT 1 FROM admins WHERE admin_id = $1", [decoded.userId]),
   ]);
 
   if (userResult.rows.length === 0) {
-    return res.status(404).json({ message: 'User not found' });
+    return res.status(404).json({ message: "User not found" });
   }
 
-  res.status(200).json({ 
-    isAuthenticated: true, 
-    isAdmin: adminResult.rowCount > 0 
+  res.status(200).json({
+    isAuthenticated: true,
+    isAdmin: adminResult.rowCount > 0,
   });
 });
 
@@ -361,64 +404,77 @@ const verifyEmail = handleAsync(async (req, res) => {
   const { token } = req.query;
 
   if (!token) {
-    return res.status(400).json({ error: 'Verification token is required' });
+    return res.status(400).json({ error: "Verification token is required" });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Decoded token:', decoded);
+    console.log("Decoded token:", decoded);
 
     // Handle both old and new token formats
     const userId = decoded.userId || decoded.id;
 
     if (!userId) {
-      console.error('Token payload:', decoded);
-      return res.status(400).json({ error: 'Invalid token format' });
+      console.error("Token payload:", decoded);
+      return res.status(400).json({ error: "Invalid token format" });
     }
 
     // First check if user exists and isn't verified
     const checkUser = await db.query(
-      'SELECT is_verified FROM users WHERE user_id = $1',
-      [userId]
+      "SELECT is_verified FROM users WHERE user_id = $1",
+      [userId],
     );
 
     if (checkUser.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     if (checkUser.rows[0].is_verified) {
-      return res.status(400).json({ error: 'Email already verified' });
+      return res.status(400).json({ error: "Email already verified" });
     }
 
     // Update verification status
     const { rowCount } = await db.query(
-      'UPDATE users SET is_verified = true WHERE user_id = $1',
-      [userId]
+      "UPDATE users SET is_verified = true WHERE user_id = $1",
+      [userId],
     );
 
     if (rowCount === 0) {
-      console.error('Failed to update verification status for user:', userId);
-      return res.status(500).json({ error: 'Failed to verify email' });
+      console.error("Failed to update verification status for user:", userId);
+      return res.status(500).json({ error: "Failed to verify email" });
     }
 
-    await logActivity('User', `Email verified for user ID: ${userId}`, userId);
-    res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
+    await logActivity("User", `Email verified for user ID: ${userId}`, userId);
+    res
+      .status(200)
+      .json({ message: "Email verified successfully. You can now log in." });
   } catch (error) {
-    console.error('Token verification error:', error);
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(400).json({ error: 'Invalid token' });
+    console.error("Token verification error:", error);
+    if (error.name === "JsonWebTokenError") {
+      return res.status(400).json({ error: "Invalid token" });
     }
-    if (error.name === 'TokenExpiredError') {
-      return res.status(400).json({ error: 'Token has expired. Please request a new verification email.' });
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(400)
+        .json({
+          error: "Token has expired. Please request a new verification email.",
+        });
     }
     throw error;
   }
 });
 
-const sendFeedbackReplyEmail = async ({ email, name, comment, rating, courseName, reply }) => {
+const sendFeedbackReplyEmail = async ({
+  email,
+  name,
+  comment,
+  rating,
+  courseName,
+  reply,
+}) => {
   try {
     if (!process.env.MAILJET_API_KEY || !process.env.MAILJET_SECRET_KEY) {
-      throw new Error('Missing required email configuration');
+      throw new Error("Missing required email configuration");
     }
 
     const emailContent = helpers.getEmailTemplate(`
@@ -431,10 +487,10 @@ const sendFeedbackReplyEmail = async ({ email, name, comment, rating, courseName
           <strong>Course:</strong> ${courseName}
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
-          <strong>Your rating:</strong> ${'★'.repeat(rating)}${'☆'.repeat(5-rating)}
+          <strong>Your rating:</strong> ${"★".repeat(rating)}${"☆".repeat(5 - rating)}
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
-          <strong>Your feedback:</strong> "${comment || 'No comment provided'}"
+          <strong>Your feedback:</strong> "${comment || "No comment provided"}"
         </p>
       </div>
       <div style="background-color: #EEF2FF; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
@@ -449,40 +505,51 @@ const sendFeedbackReplyEmail = async ({ email, name, comment, rating, courseName
     `);
 
     const response = await mailjetClient
-      .post('send', { version: 'v3.1' })
+      .post("send", { version: "v3.1" })
       .request({
-        Messages: [{
-          From: {
-            Email: process.env.SENDER_EMAIL_SUPPORT,
-            Name: 'Devquest Support'
+        Messages: [
+          {
+            From: {
+              Email: process.env.SENDER_EMAIL_SUPPORT,
+              Name: "Devquest Support",
+            },
+            To: [
+              {
+                Email: email,
+                Name: name,
+              },
+            ],
+            Subject: "We've Responded to Your Feedback",
+            HTMLPart: emailContent,
           },
-          To: [{
-            Email: email,
-            Name: name
-          }],
-          Subject: "We've Responded to Your Feedback",
-          HTMLPart: emailContent
-        }]
+        ],
       });
 
     if (response.response.status !== 200) {
-      throw new Error(`Email sending failed with status: ${response.response.status}`);
+      throw new Error(
+        `Email sending failed with status: ${response.response.status}`,
+      );
     }
 
     return true;
   } catch (error) {
-    console.error('Error sending feedback reply email:', error);
-    throw new Error('Failed to send feedback reply email');
+    console.error("Error sending feedback reply email:", error);
+    throw new Error("Failed to send feedback reply email");
   }
 };
 
 const checkAdminStatus = handleAsync(async (req, res, next) => {
-  const { rowCount } = await db.query('SELECT 1 FROM admins WHERE admin_id = $1', [req.user.userId]);
-  
+  const { rowCount } = await db.query(
+    "SELECT 1 FROM admins WHERE admin_id = $1",
+    [req.user.userId],
+  );
+
   if (rowCount === 0) {
-    return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+    return res
+      .status(403)
+      .json({ error: "Access denied. Admin privileges required." });
   }
-  
+
   next();
 });
 
@@ -492,30 +559,35 @@ const requestEmailChange = handleAsync(async (req, res) => {
 
   // Validate new email
   if (!newEmail?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-    return res.status(400).json({ error: 'Valid email is required' });
+    return res.status(400).json({ error: "Valid email is required" });
   }
 
   // Check if new email is already in use
-  const existingUser = await db.query('SELECT 1 FROM users WHERE email = $1', [newEmail.toLowerCase()]);
+  const existingUser = await db.query("SELECT 1 FROM users WHERE email = $1", [
+    newEmail.toLowerCase(),
+  ]);
   if (existingUser.rows.length > 0) {
-    return res.status(400).json({ error: 'Email is already in use' });
+    return res.status(400).json({ error: "Email is already in use" });
   }
 
   // Get current user's email
-  const { rows } = await db.query('SELECT email, name FROM users WHERE user_id = $1', [userId]);
+  const { rows } = await db.query(
+    "SELECT email, name FROM users WHERE user_id = $1",
+    [userId],
+  );
   if (rows.length === 0) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({ error: "User not found" });
   }
 
   const currentEmail = rows[0].email;
   const userName = rows[0].name;
 
   // Generate verification token
-  const token = helpers.generateToken(userId, { 
+  const token = helpers.generateToken(userId, {
     newEmail,
     currentEmail,
-    purpose: 'email_change',
-    expiresIn: CONFIG.jwt.verificationExpiresIn 
+    purpose: "email_change",
+    expiresIn: CONFIG.jwt.verificationExpiresIn,
   });
 
   const verificationLink = `${process.env.FRONTEND_URL}/confirm-email-change?token=${token}`;
@@ -541,10 +613,14 @@ const requestEmailChange = handleAsync(async (req, res) => {
     </div>
   `);
 
-  await helpers.sendEmail(currentEmail, 'Confirm Your Email Change Request - Devquest', emailContent);
-  
-  res.status(200).json({ 
-    message: 'Email change verification sent to your current email address' 
+  await helpers.sendEmail(
+    currentEmail,
+    "Confirm Your Email Change Request - Devquest",
+    emailContent,
+  );
+
+  res.status(200).json({
+    message: "Email change verification sent to your current email address",
   });
 });
 
@@ -552,46 +628,60 @@ const confirmEmailChange = handleAsync(async (req, res) => {
   const { token } = req.body;
 
   if (!token) {
-    return res.status(400).json({ error: 'Verification token is required' });
+    return res.status(400).json({ error: "Verification token is required" });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (decoded.purpose !== 'email_change') {
-      return res.status(400).json({ error: 'Invalid token purpose' });
+    if (decoded.purpose !== "email_change") {
+      return res.status(400).json({ error: "Invalid token purpose" });
     }
 
     const { userId, newEmail, currentEmail } = decoded;
 
     // Double check if new email is still available
-    const existingUser = await db.query('SELECT 1 FROM users WHERE email = $1 AND user_id != $2', [newEmail.toLowerCase(), userId]);
+    const existingUser = await db.query(
+      "SELECT 1 FROM users WHERE email = $1 AND user_id != $2",
+      [newEmail.toLowerCase(), userId],
+    );
     if (existingUser.rows.length > 0) {
-      return res.status(400).json({ error: 'Email is no longer available' });
+      return res.status(400).json({ error: "Email is no longer available" });
     }
 
     // Update email
     const { rowCount } = await db.query(
-      'UPDATE users SET email = $1 WHERE user_id = $2 AND email = $3',
-      [newEmail.toLowerCase(), userId, currentEmail]
+      "UPDATE users SET email = $1 WHERE user_id = $2 AND email = $3",
+      [newEmail.toLowerCase(), userId, currentEmail],
     );
 
     if (rowCount === 0) {
-      return res.status(400).json({ error: 'Failed to update email. Please try again.' });
+      return res
+        .status(400)
+        .json({ error: "Failed to update email. Please try again." });
     }
 
-    await logActivity('User', `Email changed from ${currentEmail} to ${newEmail}`, userId);
-    
-    res.status(200).json({ 
-      message: 'Email changed successfully. Please log in with your new email address.' 
+    await logActivity(
+      "User",
+      `Email changed from ${currentEmail} to ${newEmail}`,
+      userId,
+    );
+
+    res.status(200).json({
+      message:
+        "Email changed successfully. Please log in with your new email address.",
     });
   } catch (error) {
-    console.error('Token verification error:', error);
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(400).json({ error: 'Invalid token' });
+    console.error("Token verification error:", error);
+    if (error.name === "JsonWebTokenError") {
+      return res.status(400).json({ error: "Invalid token" });
     }
-    if (error.name === 'TokenExpiredError') {
-      return res.status(400).json({ error: 'Token has expired. Please request a new email change.' });
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(400)
+        .json({
+          error: "Token has expired. Please request a new email change.",
+        });
     }
     throw error;
   }
@@ -609,5 +699,5 @@ module.exports = {
   sendFeedbackReplyEmail,
   checkAdminStatus,
   requestEmailChange,
-  confirmEmailChange
+  confirmEmailChange,
 };

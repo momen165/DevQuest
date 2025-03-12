@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from 'pages/admin/components/Sidebar';
-import StudentDetailTable from 'pages/admin/components/StudentDetailTable';
-import axios from 'axios';
-import 'pages/admin/styles/Students.css';
+import React, { useState, useEffect } from "react";
+import Sidebar from "pages/admin/components/Sidebar";
+import StudentDetailTable from "pages/admin/components/StudentDetailTable";
+import axios from "axios";
+import "pages/admin/styles/Students.css";
 
 const deduplicateStudents = (students) => {
   const seen = new Set();
@@ -16,7 +16,7 @@ const deduplicateStudents = (students) => {
 };
 
 const StudentSubscriptionTable = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [students, setStudents] = useState([]); // Ensure it's always an array
   const [error, setError] = useState(null);
@@ -25,22 +25,27 @@ const StudentSubscriptionTable = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const userData = JSON.parse(localStorage.getItem('user'));
+        const userData = JSON.parse(localStorage.getItem("user"));
         const token = userData ? userData.token : null;
 
         if (!token) {
-          throw new Error('No token found. Please log in again.');
+          throw new Error("No token found. Please log in again.");
         }
 
         const headers = { Authorization: `Bearer ${token}` };
-        const response = await axios.get('/api/students', { headers });
+        const response = await axios.get("/api/students", { headers });
 
-        console.log('Fetched Students:', response.data); // Debug fetched students
-        const uniqueStudents = deduplicateStudents(response.data.students || []);
+        console.log("Fetched Students:", response.data); // Debug fetched students
+        const uniqueStudents = deduplicateStudents(
+          response.data.students || [],
+        );
         setStudents(uniqueStudents); // Set deduplicated data
       } catch (err) {
-        console.error('Error fetching students:', err.response?.data || err.message);
-        setError(err.response?.data?.error || 'Failed to fetch students.');
+        console.error(
+          "Error fetching students:",
+          err.response?.data || err.message,
+        );
+        setError(err.response?.data?.error || "Failed to fetch students.");
         setStudents([]); // Fallback to empty array
       }
     };
@@ -53,14 +58,14 @@ const StudentSubscriptionTable = () => {
   };
 
   const filteredStudents = deduplicateStudents(
-      Array.isArray(students)
-          ? students.filter((student) => {
-            const name = student.name ? student.name.toLowerCase() : '';
-            const email = student.email ? student.email.toLowerCase() : '';
-            const search = searchTerm.toLowerCase();
-            return name.includes(search) || email.includes(search);
-          })
-          : []
+    Array.isArray(students)
+      ? students.filter((student) => {
+          const name = student.name ? student.name.toLowerCase() : "";
+          const email = student.email ? student.email.toLowerCase() : "";
+          const search = searchTerm.toLowerCase();
+          return name.includes(search) || email.includes(search);
+        })
+      : [],
   );
 
   const handleRowClick = (student) => {
@@ -109,15 +114,21 @@ const StudentSubscriptionTable = () => {
                 <tr
                   key={student.user_id}
                   onClick={() => handleRowClick(student)}
-                  className={selectedStudent?.user_id === student.user_id ? 'selected' : ''}
+                  className={
+                    selectedStudent?.user_id === student.user_id
+                      ? "selected"
+                      : ""
+                  }
                 >
                   <td>{student.user_id}</td>
-                  <td>{student.name || 'Unknown'}</td>
-                  <td>{student.email || 'Unknown'}</td>
-                  <td>{student.subscription_type || 'N/A'}</td>
+                  <td>{student.name || "Unknown"}</td>
+                  <td>{student.email || "Unknown"}</td>
+                  <td>{student.subscription_type || "N/A"}</td>
                   <td>
-                    <span className={`status-badge ${student.is_verified ? 'active' : 'inactive'}`}>
-                      {student.is_verified ? 'Verified' : 'Unverified'}
+                    <span
+                      className={`status-badge ${student.is_verified ? "active" : "inactive"}`}
+                    >
+                      {student.is_verified ? "Verified" : "Unverified"}
                     </span>
                   </td>
                 </tr>
@@ -126,13 +137,15 @@ const StudentSubscriptionTable = () => {
           </table>
         ) : (
           <div className="no-results">
-            {searchTerm ? 'No students found matching your search.' : 'No students available.'}
+            {searchTerm
+              ? "No students found matching your search."
+              : "No students available."}
           </div>
         )}
 
         {isModalOpen && selectedStudent && (
-          <StudentDetailTable 
-            studentId={selectedStudent.user_id} 
+          <StudentDetailTable
+            studentId={selectedStudent.user_id}
             onClose={handleCloseModal}
           />
         )}
