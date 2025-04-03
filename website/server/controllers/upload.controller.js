@@ -3,7 +3,10 @@ const {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  ListBucketsCommand,
+  GetObjectCommand,
 } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const db = require("../config/database"); // Adjust as per your project
@@ -23,12 +26,13 @@ const upload = multer({
   },
 });
 
-// Configure AWS S3
+// Configure Cloudflare R2 (S3 Compatible)
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT_URL,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
 });
 
@@ -39,7 +43,7 @@ const testRoute = async (req, res) => {
     const response = await s3Client.send(command);
     res.send(
       "S3 is connected! Buckets: " +
-        response.Buckets.map((b) => b.Name).join(", "),
+        response.Buckets.map((b) => b.Name).join(", ")
     );
   } catch (error) {
     res.status(500).send("S3 connection failed: " + error.message);
@@ -66,19 +70,26 @@ const uploadFile = [
 
       // Prepare S3 upload parameters
       const params = {
-        Bucket: process.env.S3_BUCKET_NAME,
+        Bucket: process.env.R2_BUCKET_NAME,
         Key: fileKey,
         Body: processedBuffer,
         ContentType: "image/png", // Ensure correct content type
       };
 
       try {
-        // Upload to S3
+        // Upload to R2
         const command = new PutObjectCommand(params);
         await s3Client.send(command);
 
-        // Generate file URL
-        const fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
+        // Generate pre-signed URL for the uploaded object
+        const getObjectCommand = new GetObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: fileKey,
+        });
+
+        const fileUrl = await getSignedUrl(s3Client, getObjectCommand, {
+          expiresIn: 604800,
+        }); // 7 days
 
         // Send success response
         res.status(200).json({
@@ -86,18 +97,16 @@ const uploadFile = [
           fileUrl,
         });
       } catch (s3Error) {
-        console.error("S3 Upload Error:", s3Error);
+        console.error("R2 Upload Error:", s3Error);
         res
           .status(500)
-          .json({ error: `Failed to upload file to S3: ${s3Error.message}` });
+          .json({ error: `Failed to upload file to R2: ${s3Error.message}` });
       }
     } catch (error) {
       console.error("Unexpected Upload Error:", error);
-      res
-        .status(500)
-        .json({
-          error: "An unexpected error occurred during the upload process.",
-        });
+      res.status(500).json({
+        error: "An unexpected error occurred during the upload process.",
+      });
     }
   },
 ];
@@ -130,24 +139,29 @@ const uploadProfilePic = [
         .toFormat("png", { quality: 90 })
         .toBuffer();
 
-      // Define S3 upload parameters
+      // Define R2 upload parameters
       const params = {
-        Bucket: process.env.S3_BUCKET_NAME,
+        Bucket: process.env.R2_BUCKET_NAME,
         Key: fullKey,
         Body: processedBuffer,
         ContentType: "image/*",
       };
 
-      // Upload to S3
-
+      // Upload to R2
       const command = new PutObjectCommand(params);
       await s3Client.send(command);
 
-      // Generate the public S3 URL
-      const profileimage = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fullKey}`;
+      // Generate pre-signed URL for the uploaded profile picture
+      const getObjectCommand = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: fullKey,
+      });
+
+      const profileimage = await getSignedUrl(s3Client, getObjectCommand, {
+        expiresIn: 604800,
+      }); // 7 days
 
       // Save the URL in the database
-
       const query = "UPDATE users SET profileimage = $1 WHERE user_id = $2";
       await db.query(query, [profileimage, userId]);
 
@@ -175,7 +189,6 @@ const removeProfilePic = async (req, res) => {
     const userId = req.user.user_id;
 
     // Fetch the current profile picture URL
-
     const querySelect = "SELECT profileimage FROM users WHERE user_id = $1";
     const { rows } = await db.query(querySelect, [userId]);
 
@@ -187,26 +200,25 @@ const removeProfilePic = async (req, res) => {
     const profileimage = rows[0].profileimage;
 
     if (profileimage) {
-      // Extract the S3 key
-      const keyPrefix = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
-      const key = profileimage.replace(keyPrefix, "");
+      // Extract the object key from the presigned URL
+      // This is a bit tricky with presigned URLs, so we'll use a fixed key based on user ID
+      const key = `user_images/profile_${userId}.png`;
 
       try {
         const command = new DeleteObjectCommand({
-          Bucket: process.env.S3_BUCKET_NAME,
+          Bucket: process.env.R2_BUCKET_NAME,
           Key: key,
         });
         await s3Client.send(command);
       } catch (s3Error) {
-        console.error("[removeProfilePic] S3 deletion error:", s3Error);
-        console.error("[removeProfilePic] S3 error stack:", s3Error.stack);
+        console.error("[removeProfilePic] R2 deletion error:", s3Error);
+        console.error("[removeProfilePic] R2 error stack:", s3Error.stack);
         return res
           .status(500)
-          .json({ error: "Failed to delete profile picture from S3" });
+          .json({ error: "Failed to delete profile picture from R2" });
       }
 
       // Update database
-
       const queryUpdate =
         "UPDATE users SET profileimage = NULL WHERE user_id = $1";
       await db.query(queryUpdate, [userId]);
@@ -251,18 +263,25 @@ const uploadEditorImage = [
       }
 
       const params = {
-        Bucket: process.env.S3_BUCKET_NAME,
+        Bucket: process.env.R2_BUCKET_NAME,
         Key: fileKey,
         Body: processedBuffer,
         ContentType: file.mimetype,
-        ACL: "public-read",
       };
 
       try {
         const command = new PutObjectCommand(params);
         await s3Client.send(command);
 
-        const fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
+        // Generate pre-signed URL for the uploaded editor image
+        const getObjectCommand = new GetObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: fileKey,
+        });
+
+        const fileUrl = await getSignedUrl(s3Client, getObjectCommand, {
+          expiresIn: 604800,
+        }); // 7 days
 
         res.status(200).json({
           uploaded: 1,
@@ -270,10 +289,10 @@ const uploadEditorImage = [
           fileUrl: fileUrl, // Keep both for compatibility
         });
       } catch (s3Error) {
-        console.error("S3 Upload Error:", s3Error);
+        console.error("R2 Upload Error:", s3Error);
         res.status(500).json({
           uploaded: 0,
-          error: `Failed to upload file to S3: ${s3Error.message}`,
+          error: `Failed to upload file to R2: ${s3Error.message}`,
         });
       }
     } catch (error) {

@@ -4,7 +4,7 @@ import {
   Routes,
   Route,
 } from 'react-router-dom';
-import MaintenanceCheck from 'pages/admin/components/MaintenanceCheck';
+import MaintenanceCheck from './pages/admin/components/MaintenanceCheck';
 import ProtectedRoute from './ProtectedRoute';
 import './App.css';
 

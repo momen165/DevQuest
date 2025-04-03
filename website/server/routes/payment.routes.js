@@ -4,12 +4,22 @@ const {
   handleWebhook,
   createPortalSession,
 } = require("../controllers/payment.controller");
-const authMiddleware = require("../middleware/auth");
+const { authenticateToken, requireAuth } = require("../middleware/auth");
 const router = express.Router();
 
-// Regular routes with JSON parsing
-router.post("/create-checkout-session", authMiddleware, createCheckoutSession);
-router.post("/create-portal-session", authMiddleware, createPortalSession);
+// Regular routes with JSON parsing and authentication
+router.post(
+  "/create-checkout-session",
+  authenticateToken,
+  requireAuth,
+  createCheckoutSession
+);
+router.post(
+  "/create-portal-session",
+  authenticateToken,
+  requireAuth,
+  createPortalSession
+);
 
 // Export webhook handler separately to be used directly in server.js
 module.exports = {

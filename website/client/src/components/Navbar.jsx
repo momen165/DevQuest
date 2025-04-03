@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import defaultProfilePic from "../assets/images/default-profile-pic.png";
@@ -9,15 +9,9 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [imageKey, setImageKey] = useState(Date.now());
   const location = useLocation();
-
-  // Update imageKey when user profile image changes
-  useEffect(() => {
-    if (user?.profileimage) {
-      setImageKey(Date.now());
-    }
-  }, [user?.profileimage]);
+  const profileDropdownRef = useRef(null);
+  const profileBtnRef = useRef(null);
 
   // Close menus when route changes
   useEffect(() => {
@@ -37,29 +31,67 @@ const Navbar = () => {
     };
   }, [isMobileMenuOpen]);
 
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target) &&
+        !profileBtnRef.current.contains(event.target)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleLogout = () => {
     logout();
     setIsProfileMenuOpen(false);
     setIsMobileMenuOpen(false);
   };
 
+  // Check if a link is active
+  const isActive = (path) => {
+    if (path === "/") {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
-    <nav className="navbar">
+    <nav className="navbar" aria-label="Main navigation">
       <div className="navbar-container">
         {/* Logo */}
-        <Link to="/" className="navbar-logo">
+        <Link to="/" className="navbar-logo" aria-label="DevQuest Home">
           <img src={Logo} alt="DevQuest Logo" />
         </Link>
 
         {/* Desktop Navigation */}
         <div className="navbar-nav">
-          <Link to="/" className="nav-link">
+          <Link
+            to="/"
+            className={`nav-link ${isActive("/") ? "active" : ""}`}
+            aria-current={isActive("/") ? "page" : undefined}
+          >
             Home
           </Link>
-          <Link to="/CoursesPage" className="nav-link">
+          <Link
+            to="/CoursesPage"
+            className={`nav-link ${isActive("/CoursesPage") ? "active" : ""}`}
+            aria-current={isActive("/CoursesPage") ? "page" : undefined}
+          >
             Courses
           </Link>
-          <Link to="/pricing" className="nav-link">
+          <Link
+            to="/pricing"
+            className={`nav-link ${isActive("/pricing") ? "active" : ""}`}
+            aria-current={isActive("/pricing") ? "page" : undefined}
+          >
             Pricing
           </Link>
         </div>
@@ -70,11 +102,22 @@ const Navbar = () => {
             <div
               className="profile-button"
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              ref={profileBtnRef}
+              aria-expanded={isProfileMenuOpen}
+              aria-haspopup="true"
+              tabIndex="0"
+              role="button"
+              aria-label="User menu"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  setIsProfileMenuOpen(!isProfileMenuOpen);
+                  e.preventDefault();
+                }
+              }}
             >
               <img
-                key={imageKey}
-                src={`${user.profileimage || defaultProfilePic}${user.profileimage ? `?t=${imageKey}` : ""}`}
-                alt="Profile"
+                src={user.profileimage || defaultProfilePic}
+                alt={`${user.name || 'User'}'s profile`}
                 className="profile-avatar"
                 onError={(e) => {
                   console.error("[Navbar] Error loading profile image:", e);
@@ -83,6 +126,7 @@ const Navbar = () => {
               />
               <div
                 className={`profile-dropdown ${isProfileMenuOpen ? "active" : ""}`}
+                ref={profileDropdownRef}
               >
                 <Link
                   to="/ProfilePage"
@@ -128,6 +172,9 @@ const Navbar = () => {
         <button
           className="mobile-menu-button"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-menu"
+          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
         >
           <span className="sr-only">Open main menu</span>
           <div className={`hamburger ${isMobileMenuOpen ? "active" : ""}`}>
@@ -139,14 +186,17 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu */}
-      <div className={`mobile-menu ${isMobileMenuOpen ? "active" : ""}`}>
+      <div
+        className={`mobile-menu ${isMobileMenuOpen ? "active" : ""}`}
+        id="mobile-menu"
+        aria-hidden={!isMobileMenuOpen}
+      >
         <div className="mobile-menu-content">
           {user && (
             <div className="mobile-user-info">
               <img
-                key={imageKey}
-                src={`${user.profileimage || defaultProfilePic}${user.profileimage ? `?t=${imageKey}` : ""}`}
-                alt="Profile"
+                src={user.profileimage || defaultProfilePic}
+                alt={`${user.name || 'User'}'s profile`}
                 className="profile-avatar"
                 onError={(e) => {
                   console.error("[Navbar] Error loading profile image:", e);
@@ -162,22 +212,25 @@ const Navbar = () => {
 
           <Link
             to="/"
-            className="mobile-nav-link"
+            className={`mobile-nav-link ${isActive("/") ? "active" : ""}`}
             onClick={() => setIsMobileMenuOpen(false)}
+            aria-current={isActive("/") ? "page" : undefined}
           >
             Home
           </Link>
           <Link
             to="/CoursesPage"
-            className="mobile-nav-link"
+            className={`mobile-nav-link ${isActive("/CoursesPage") ? "active" : ""}`}
             onClick={() => setIsMobileMenuOpen(false)}
+            aria-current={isActive("/CoursesPage") ? "page" : undefined}
           >
             Courses
           </Link>
           <Link
             to="/pricing"
-            className="mobile-nav-link"
+            className={`mobile-nav-link ${isActive("/pricing") ? "active" : ""}`}
             onClick={() => setIsMobileMenuOpen(false)}
+            aria-current={isActive("/pricing") ? "page" : undefined}
           >
             Pricing
           </Link>

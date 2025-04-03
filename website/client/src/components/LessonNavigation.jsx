@@ -246,8 +246,6 @@ const LessonNavigation = ({
   }, [currentSectionId, openSectionId, menuSections]);
 
   const toggleSection = (sectionId) => {
-    console.log("Toggling section:", sectionId);
-    console.log("Current openSectionId:", openSectionId);
     setOpenSectionId((prevId) => (sectionId === prevId ? null : sectionId));
   };
 
@@ -272,13 +270,7 @@ const LessonNavigation = ({
             <div
               className="lesson-nav-section-title"
               onClick={() => toggleSection(section.section_id)}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "10px",
-              }}
+
             >
               <span>{section.name}</span>
               <span
@@ -289,11 +281,6 @@ const LessonNavigation = ({
             </div>
             <div
               className={`lesson-nav-section-content ${openSectionId === section.section_id ? "open" : ""}`}
-              style={{
-                maxHeight: openSectionId === section.section_id ? "500px" : "0",
-                overflow: "hidden",
-                transition: "max-height 0.3s ease-in-out",
-              }}
             >
               {section.lessons?.map((lesson) => (
                 <div
@@ -318,7 +305,7 @@ const LessonNavigation = ({
 
       <div className="lesson-navigation">
         <button
-          className="lesson-menu-toggle"
+          className={`lesson-menu-toggle ${isMenuOpen ? "active" : ""}`}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           <FaBars />
@@ -340,14 +327,14 @@ const LessonNavigation = ({
           </button>
           {(lessonIndexInSection < currentSectionLessons.length - 1 ||
             currentSectionIndex < organizedSections?.length - 1) && (
-            <button
-              className="nav-button next-button"
-              onClick={goToNextLesson}
-              disabled={!isCompleted}
-            >
-              Next
-            </button>
-          )}
+              <button
+                className="nav-button next-button"
+                onClick={goToNextLesson}
+                disabled={!isCompleted}
+              >
+                Next
+              </button>
+            )}
         </div>
       </div>
     </>

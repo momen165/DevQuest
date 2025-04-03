@@ -55,7 +55,7 @@ const getSystemMetrics = async (req, res) => {
       Object.entries(queries).map(async ([key, query]) => {
         const { rows } = await db.query(query);
         return { [key]: parseInt(rows[0].count) };
-      }),
+      })
     );
 
     res.status(200).json(Object.assign({}, ...results));
@@ -112,14 +112,14 @@ const addAdmin = async (req, res) => {
     // Check if user is already an admin
     const adminCheck = await db.query(
       "SELECT 1 FROM admins WHERE admin_id = $1",
-      [userId],
+      [userId]
     );
     if (adminCheck.rowCount > 0) {
       // Log the attempt
       await logAdminActivity(
         req.user.userId,
         "Admin",
-        `Attempted to add user ${userId} as admin but they are already an admin`,
+        `Attempted to add user ${userId} as admin but they are already an admin`
       );
       return res.status(400).json({ error: "User is already an admin" });
     }
@@ -131,7 +131,7 @@ const addAdmin = async (req, res) => {
     await logAdminActivity(
       req.user.userId,
       "Admin",
-      `Added user ${userId} as admin`,
+      `Added user ${userId} as admin`
     );
 
     res.status(200).json({ message: "Admin added successfully" });
@@ -158,7 +158,7 @@ const removeAdmin = async (req, res) => {
     // Check if user exists and is an admin
     const adminCheck = await db.query(
       "SELECT 1 FROM admins WHERE admin_id = $1",
-      [userId],
+      [userId]
     );
     if (adminCheck.rowCount === 0) {
       return res.status(404).json({ error: "User is not an admin" });
@@ -171,7 +171,7 @@ const removeAdmin = async (req, res) => {
     await logAdminActivity(
       req.user.userId,
       "Admin",
-      `Removed user ${userId} from admin role`,
+      `Removed user ${userId} from admin role`
     );
 
     res.status(200).json({ message: "Admin removed successfully" });
@@ -205,7 +205,7 @@ const toggleMaintenanceMode = async (req, res) => {
     await logAdminActivity(
       req.user.userId,
       "System",
-      `Maintenance mode ${enabled ? "enabled" : "disabled"}`,
+      `Maintenance mode ${enabled ? "enabled" : "disabled"}`
     );
 
     res.status(200).json({
@@ -258,12 +258,16 @@ const checkAdminStatus = async (req, res) => {
 
 const getMaintenanceStatus = async (req, res) => {
   try {
+    // This is a public endpoint, so we don't need to check for admin access
     const query = `
       SELECT maintenance_mode, updated_at, updated_by 
       FROM system_settings 
       WHERE setting_id = 1`;
 
     const { rows } = await db.query(query);
+
+    // Add Cache-Control headers to prevent browsers from caching the response
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
 
     res.status(200).json({
       maintenanceMode: rows[0]?.maintenance_mode || false,

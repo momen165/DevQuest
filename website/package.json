@@ -15,6 +15,15 @@
     "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
     "install:client": "cd client && npm install",
     "install:server": "cd server && npm install",
-    "install:all": "npm install && npm run install:client && npm run install:server"
-  } 
+    "install:all": "npm install && npm run install:client && npm run install:server",
+    "lint": "eslint \"**/*.{js,jsx}\"",
+    "lint:fix": "eslint \"**/*.{js,jsx}\" --fix",
+    "lint:server": "cd server && npx eslint .",
+    "lint:client": "cd client && npx eslint src"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1",
+    "eslint": "^8.41.0",
+    "eslint-plugin-react": "^7.32.2"
+  }
 }

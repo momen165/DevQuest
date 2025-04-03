@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from 'AuthContext';
+import { useAuth } from '../../../AuthContext';
 import '../styles/MaintenanceCheck.css';
 
 const MaintenanceCheck = ({ children }) => {
@@ -12,10 +12,17 @@ const MaintenanceCheck = ({ children }) => {
 
   // Cache the axios instance with configuration
   const axiosInstance = useMemo(() => {
+    // Determine the base URL based on window.location to account for different ports
+    const baseURL = window.location.port === "3000" ?
+      "http://localhost:3000" :
+      process.env.REACT_APP_API_URL || "http://localhost:5000";
+
     return axios.create({
-      timeout: 3000, // Shorter timeout
+      baseURL,
+      timeout: 8000, // Increase timeout for slower connections
       headers: {
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache',
+        'Content-Type': 'application/json'
       }
     });
   }, []);
@@ -25,14 +32,25 @@ const MaintenanceCheck = ({ children }) => {
 
     const checkMaintenanceStatus = async () => {
       try {
-        const response = await axiosInstance.get('/api/admin/system-settings');
+        console.log('Checking maintenance status...');
+        // Try multiple endpoint variations to be more resilient
+        let response;
+        try {
+          response = await axiosInstance.get('/api/admin/system-settings');
+        } catch (firstError) {
+          console.log('First attempt failed, trying alternative endpoint...');
+          response = await axiosInstance.get('/api/admin/maintenance-status');
+        }
+
         if (isMounted) {
-          setIsInMaintenance(response.data.maintenanceMode);
+          console.log('Maintenance status response received:', response.data);
+          setIsInMaintenance(!!response.data.maintenanceMode);
         }
       } catch (err) {
         console.error('Error checking maintenance status:', err);
         if (isMounted) {
-          setIsInMaintenance(false); // Fail open
+          // In case of error, assume system is not in maintenance mode
+          setIsInMaintenance(false);
         }
       } finally {
         if (isMounted) {
@@ -44,7 +62,7 @@ const MaintenanceCheck = ({ children }) => {
     // Initial check
     checkMaintenanceStatus();
 
-    // Poll every 5 minutes instead of every minute
+    // Poll every 5 minutes
     const pollInterval = setInterval(checkMaintenanceStatus, 300000);
 
     return () => {
@@ -53,34 +71,33 @@ const MaintenanceCheck = ({ children }) => {
     };
   }, [axiosInstance]);
 
-  // Handle user session during maintenance mode
+  // Only handle user session during maintenance mode for authenticated users
   useEffect(() => {
     if (isInMaintenance && user && !user.admin) {
+      // Save the current path for redirect after login
       sessionStorage.setItem('redirectPath', window.location.pathname);
       logout();
     }
   }, [isInMaintenance, user, logout]);
 
-  const handleAdminLogin = async (e) => {
+  const handleAdminLogin = (e) => {
     e.preventDefault();
-    if (user) {
-      await logout();
-    }
+    // Save the current path for redirect after login
     sessionStorage.setItem('redirectPath', window.location.pathname);
     navigate('/LoginPage');
   };
 
-  // Don't show any loading state, just render children while checking
+  // Always render children while we're doing the initial check
   if (isInitialCheck) {
     return children;
   }
 
   // Allow access if not in maintenance or if user is admin
-  if (!isInMaintenance || user?.admin) {
+  if (!isInMaintenance || (user && user.admin)) {
     return children;
   }
 
-  // Maintenance mode page
+  // Show maintenance page
   return (
     <div className="maintenance-page">
       <div className="maintenance-content">
@@ -93,7 +110,7 @@ const MaintenanceCheck = ({ children }) => {
         <div className="admin-login-section">
           <p>
             Administrators can{' '}
-            <button 
+            <button
               onClick={handleAdminLogin}
               className="login-link"
               aria-label="Administrator login"

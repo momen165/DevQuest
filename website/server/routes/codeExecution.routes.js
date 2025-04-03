@@ -5,10 +5,10 @@ const {
   executionLimiter,
   getCacheStats,
 } = require("../controllers/codeExecution.controller");
-const authenticateToken = require("../middleware/auth");
+const { authenticateToken, requireAuth } = require("../middleware/auth");
 
 // Cache statistics endpoint - protected with authentication
-router.get("/cache-stats", authenticateToken, getCacheStats);
+router.get("/cache-stats", authenticateToken, requireAuth, getCacheStats);
 
 // Code execution endpoint
 router.post("/run", executionLimiter, authenticateToken, runCode);

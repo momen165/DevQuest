@@ -6,13 +6,28 @@ const {
   getSubscriptionStatusForUser,
   listSubscriptions,
 } = require("../controllers/subscription.controller");
-const authenticateToken = require("../middleware/auth");
+const { authenticateToken, requireAuth } = require("../middleware/auth");
 const router = express.Router();
 
 // Database-only routes
-router.get("/status", authenticateToken, checkSubscriptionStatusFromDb); // DB check
-router.get("/check", authenticateToken, checkActiveSubscription); // Stripe check
-router.get("/list-subscriptions", authenticateToken, listSubscriptions);
-router.get("/user/:userId", authenticateToken, getSubscriptionStatusForUser); // Admin route
+router.get(
+  "/status",
+  authenticateToken,
+  requireAuth,
+  checkSubscriptionStatusFromDb
+); // DB check
+router.get("/check", authenticateToken, requireAuth, checkActiveSubscription); // Stripe check
+router.get(
+  "/list-subscriptions",
+  authenticateToken,
+  requireAuth,
+  listSubscriptions
+);
+router.get(
+  "/user/:userId",
+  authenticateToken,
+  requireAuth,
+  getSubscriptionStatusForUser
+); // Admin route
 
 module.exports = router;
