@@ -52,7 +52,7 @@ function ProfilePage() {
       console.error("[handleRemoveProfilePic] Stack:", error.stack);
       alert(
         error.response?.data?.error ||
-          "An error occurred while removing your profile picture",
+        "An error occurred while removing your profile picture",
       );
     }
   };
@@ -84,7 +84,7 @@ function ProfilePage() {
 
       const updatedUser = {
         ...user,
-        profileimage: `${profileimage}?t=${Date.now()}`,
+        profileimage: profileimage,
       };
 
       setUser(updatedUser);
@@ -101,7 +101,7 @@ function ProfilePage() {
       console.error("[handleProfilePicChange] Stack:", error.stack);
       alert(
         error.response?.data?.error ||
-          "An error occurred while uploading your profile picture",
+        "An error occurred while uploading your profile picture",
       );
     }
   };
@@ -138,7 +138,7 @@ function ProfilePage() {
       console.error("Error updating profile:", error);
       alert(
         error.response?.data?.error ||
-          "An error occurred while updating your profile",
+        "An error occurred while updating your profile",
       );
     }
   };
@@ -154,7 +154,7 @@ function ProfilePage() {
           <div className="account-settings-profile-header">
             <div className="account-settings-profile-avatar">
               <img
-                src={`${user?.profileimage || defaultProfilePic}${user?.profileimage ? `?t=${Date.now()}` : ""}`}
+                src={user?.profileimage || defaultProfilePic}
                 alt="Profile"
                 onError={(e) => {
                   console.error(

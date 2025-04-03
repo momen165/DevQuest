@@ -1,49 +1,62 @@
 const express = require("express");
 const router = express.Router();
-const authenticateToken = require("../middleware/auth");
+const { authenticateToken, requireAuth } = require("../middleware/auth");
 const lessonController = require("../controllers/lesson.controller");
 
 // CRUD Operations
-router.post("/lesson", authenticateToken, lessonController.addLesson); // Add a lesson
+router.post(
+  "/lesson",
+  authenticateToken,
+  requireAuth,
+  lessonController.addLesson
+); // Add a lesson
 router.get("/lesson", lessonController.getLessons); // This route will handle both section_id and course_id queries
 router.get(
   "/lesson/:lessonId",
   authenticateToken,
-  lessonController.getLessonById,
+  lessonController.getLessonById
 ); // Get a lesson by ID
 router.put(
   "/lesson/:lesson_id",
   authenticateToken,
-  lessonController.editLesson,
+  requireAuth,
+  lessonController.editLesson
 ); // Update a lesson
 router.delete(
   "/lesson/:lesson_id",
   authenticateToken,
-  lessonController.deleteLesson,
+  requireAuth,
+  lessonController.deleteLesson
 ); // Delete a lesson
 
 // Reordering Lessons
 router.post(
   "/lesson/reorder",
   authenticateToken,
-  lessonController.reorderLessons,
+  requireAuth,
+  lessonController.reorderLessons
 ); // Reorder lessons
 
 // Update progress
-router.put("/update-lesson-progress", lessonController.updateLessonProgress); // Ensure this route is correct
+router.put(
+  "/update-lesson-progress",
+  authenticateToken,
+  lessonController.updateLessonProgress
+); // User-specific progress update
 router.get("/lesson-progress", lessonController.getLessonProgress);
 
 // Add this new route
 router.post(
   "/lesson/fix-orders",
   authenticateToken,
-  lessonController.fixLessonOrders,
+  requireAuth,
+  lessonController.fixLessonOrders
 );
 
 router.get(
   "/lessons/section/:sectionId/progress",
   authenticateToken,
-  lessonController.getLessonsBySection,
+  lessonController.getLessonsBySection
 );
 
 module.exports = router;
