@@ -4,12 +4,14 @@ const db = require("../config/database");
 const { validationResult } = require("express-validator");
 const logActivity = require("../utils/logger");
 const mailjet = require("node-mailjet");
+const crypto = require("crypto");
 require("dotenv").config();
 
 // Configuration
 const CONFIG = {
   jwt: {
-    expiresIn: "72h",
+    accessTokenExpiresIn: "2h",
+    refreshTokenExpiresIn: "7d",
     verificationExpiresIn: "1h",
   },
   bcrypt: {
@@ -20,7 +22,7 @@ const CONFIG = {
 // Initialize email client
 const mailjetClient = mailjet.apiConnect(
   process.env.MAILJET_API_KEY,
-  process.env.MAILJET_SECRET_KEY,
+  process.env.MAILJET_SECRET_KEY
 );
 
 // Helper functions
@@ -32,8 +34,35 @@ const helpers = {
     };
     delete payload.expiresIn;
     return jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: options.expiresIn || CONFIG.jwt.expiresIn,
+      expiresIn: options.expiresIn || CONFIG.jwt.accessTokenExpiresIn,
     });
+  },
+
+  generateAccessToken: (userId, userData = {}) => {
+    return jwt.sign(
+      {
+        userId,
+        admin: userData.admin || false,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: CONFIG.jwt.accessTokenExpiresIn }
+    );
+  },
+
+  generateRefreshToken: async (userId) => {
+    const refreshToken = crypto.randomBytes(40).toString("hex");
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await db.query(
+      `INSERT INTO refresh_tokens (user_id, token, expires_at) 
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id) 
+       DO UPDATE SET token = $2, expires_at = $3, created_at = CURRENT_TIMESTAMP`,
+      [userId, refreshToken, expiresAt]
+    );
+
+    return refreshToken;
   },
 
   generateVerificationToken: (userId) => {
@@ -52,9 +81,15 @@ const helpers = {
       </div>
       <div style="background-color: #F9FAFB; padding: 30px 20px; text-align: center;">
         <div style="margin-bottom: 20px;">
-          <a href="${process.env.FRONTEND_URL}/about" style="color: #6B7280; text-decoration: none; margin: 0 10px;">About</a>
-          <a href="${process.env.FRONTEND_URL}/contact" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Contact</a>
-          <a href="${process.env.FRONTEND_URL}/privacy" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+          <a href="${
+            process.env.FRONTEND_URL
+          }/about" style="color: #6B7280; text-decoration: none; margin: 0 10px;">About</a>
+          <a href="${
+            process.env.FRONTEND_URL
+          }/contact" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Contact</a>
+          <a href="${
+            process.env.FRONTEND_URL
+          }/privacy" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
         </div>
         <p style="color: #9CA3AF; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} Devquest. All rights reserved.</p>
       </div>
@@ -89,7 +124,7 @@ const helpers = {
 
     if (response.response.status !== 200) {
       throw new Error(
-        `Email sending failed with status: ${response.response.status}`,
+        `Email sending failed with status: ${response.response.status}`
       );
     }
 
@@ -117,7 +152,6 @@ const signup = handleAsync(async (req, res) => {
   const { name, email, password, country } = req.body;
   const hashedPassword = await bcrypt.hash(password, CONFIG.bcrypt.saltRounds);
 
-  // Check if email already exists
   const existingUser = await db.query("SELECT 1 FROM users WHERE email = $1", [
     email.toLowerCase(),
   ]);
@@ -125,13 +159,11 @@ const signup = handleAsync(async (req, res) => {
     return res.status(400).json({ error: "Email already registered" });
   }
 
-  // Create new user
   const { rows } = await db.query(
     "INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id",
-    [name, email.toLowerCase(), hashedPassword, country, false],
+    [name, email.toLowerCase(), hashedPassword, country, false]
   );
 
-  // Generate verification token with only userId in payload
   const verificationToken = helpers.generateVerificationToken(rows[0].user_id);
   const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
@@ -158,12 +190,12 @@ const signup = handleAsync(async (req, res) => {
   await helpers.sendEmail(
     email,
     "Welcome to Devquest - Verify Your Email",
-    emailContent,
+    emailContent
   );
   await logActivity(
     "User",
     `Verification email sent to: ${email}`,
-    rows[0].user_id,
+    rows[0].user_id
   );
 
   res.status(201).json({
@@ -180,15 +212,15 @@ const login = handleAsync(async (req, res) => {
   }
 
   const [userResult, adminResult] = await Promise.all([
-    db.query("SELECT * FROM users WHERE email = $1", [email]),
+    db.query("SELECT * FROM users WHERE email = $1", [email.toLowerCase()]),
     db.query(
       "SELECT 1 FROM admins WHERE admin_id = (SELECT user_id FROM users WHERE email = $1)",
-      [email],
+      [email.toLowerCase()]
     ),
   ]);
 
   if (userResult.rows.length === 0) {
-    return res.status(404).json({ error: "User not found" });
+    return res.status(401).json({ error: "Invalid credentials" });
   }
 
   const user = userResult.rows[0];
@@ -196,6 +228,14 @@ const login = handleAsync(async (req, res) => {
 
   if (!isMatch) {
     return res.status(401).json({ error: "Invalid credentials" });
+  }
+
+  if (!user.is_verified) {
+    return res.status(403).json({
+      error: "Please verify your email before logging in",
+      needsVerification: true,
+      email: user.email,
+    });
   }
 
   const userData = {
@@ -208,11 +248,18 @@ const login = handleAsync(async (req, res) => {
     profileimage: user.profileimage,
   };
 
-  const token = helpers.generateToken(user.user_id, userData);
+  const accessToken = helpers.generateAccessToken(user.user_id, {
+    admin: adminResult.rowCount > 0,
+  });
+
+  const refreshToken = await helpers.generateRefreshToken(user.user_id);
+
+  await logActivity("User", `User logged in: ${user.email}`, user.user_id);
 
   res.status(200).json({
     message: "Login successful",
-    token,
+    token: accessToken,
+    refreshToken: refreshToken,
     user: {
       name: user.name,
       country: user.country,
@@ -222,6 +269,73 @@ const login = handleAsync(async (req, res) => {
       profileimage: user.profileimage,
     },
   });
+});
+
+const refreshAccessToken = handleAsync(async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(400).json({ error: "Refresh token is required" });
+  }
+
+  const tokenResult = await db.query(
+    "SELECT user_id, expires_at FROM refresh_tokens WHERE token = $1",
+    [refreshToken]
+  );
+
+  if (tokenResult.rows.length === 0) {
+    return res.status(401).json({ error: "Invalid refresh token" });
+  }
+
+  const { user_id, expires_at } = tokenResult.rows[0];
+
+  if (new Date() > new Date(expires_at)) {
+    await db.query("DELETE FROM refresh_tokens WHERE token = $1", [
+      refreshToken,
+    ]);
+    return res.status(401).json({ error: "Refresh token expired" });
+  }
+
+  const [userResult, adminResult] = await Promise.all([
+    db.query(
+      "SELECT name, country, bio, skills, profileimage FROM users WHERE user_id = $1",
+      [user_id]
+    ),
+    db.query("SELECT 1 FROM admins WHERE admin_id = $1", [user_id]),
+  ]);
+
+  if (userResult.rows.length === 0) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const user = userResult.rows[0];
+  const isAdmin = adminResult.rowCount > 0;
+
+  const accessToken = helpers.generateAccessToken(user_id, { admin: isAdmin });
+
+  res.status(200).json({
+    token: accessToken,
+    user: {
+      name: user.name,
+      country: user.country,
+      bio: user.bio,
+      skills: user.skills || [],
+      admin: isAdmin,
+      profileimage: user.profileimage,
+    },
+  });
+});
+
+const logout = handleAsync(async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (refreshToken) {
+    await db.query("DELETE FROM refresh_tokens WHERE token = $1", [
+      refreshToken,
+    ]);
+  }
+
+  res.status(200).json({ message: "Logged out successfully" });
 });
 
 const updateProfile = handleAsync(async (req, res) => {
@@ -247,22 +361,29 @@ const updateProfile = handleAsync(async (req, res) => {
     }
 
     const updatedUser = result.rows[0];
-    const userData = {
-      userId: req.user.userId,
-      name: updatedUser.name,
-      country: updatedUser.country,
-      bio: updatedUser.bio,
-      skills: updatedUser.skills,
-      admin: req.user.admin,
-      profileimage: updatedUser.profileimage,
-    };
 
-    const token = helpers.generateToken(req.user.userId, userData);
+    const adminResult = await db.query(
+      "SELECT 1 FROM admins WHERE admin_id = $1",
+      [req.user.userId]
+    );
+
+    const isAdmin = adminResult.rowCount > 0;
+
+    const accessToken = helpers.generateAccessToken(req.user.userId, {
+      admin: isAdmin,
+    });
 
     res.status(200).json({
       message: "Profile updated successfully",
-      token,
-      user: userData,
+      token: accessToken,
+      user: {
+        name: updatedUser.name,
+        country: updatedUser.country,
+        bio: updatedUser.bio,
+        skills: updatedUser.skills,
+        admin: isAdmin,
+        profileimage: updatedUser.profileimage,
+      },
     });
   } catch (err) {
     console.error("Error updating profile:", err);
@@ -274,7 +395,7 @@ const changePassword = handleAsync(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const { rows } = await db.query(
     "SELECT password FROM users WHERE user_id = $1",
-    [req.user.userId],
+    [req.user.userId]
   );
 
   if (rows.length === 0) {
@@ -288,7 +409,7 @@ const changePassword = handleAsync(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds,
+    CONFIG.bcrypt.saltRounds
   );
   await db.query("UPDATE users SET password = $1 WHERE user_id = $2", [
     hashedPassword,
@@ -307,7 +428,7 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
 
   const { rows } = await db.query(
     "SELECT user_id FROM users WHERE email = $1",
-    [email.toLowerCase()],
+    [email.toLowerCase()]
   );
 
   if (rows.length > 0) {
@@ -339,11 +460,10 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
     await helpers.sendEmail(
       email,
       "Password Reset Request - Devquest",
-      emailContent,
+      emailContent
     );
   }
 
-  // Always return the same message for security
   res.status(200).json({
     message:
       "If your email exists in our system, you will receive reset instructions.",
@@ -362,12 +482,12 @@ const resetPassword = handleAsync(async (req, res) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds,
+    CONFIG.bcrypt.saltRounds
   );
 
   const { rowCount } = await db.query(
     "UPDATE users SET password = $1 WHERE user_id = $2",
-    [hashedPassword, decoded.userId],
+    [hashedPassword, decoded.userId]
   );
 
   if (rowCount === 0) {
@@ -411,7 +531,6 @@ const verifyEmail = handleAsync(async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log("Decoded token:", decoded);
 
-    // Handle both old and new token formats
     const userId = decoded.userId || decoded.id;
 
     if (!userId) {
@@ -419,10 +538,9 @@ const verifyEmail = handleAsync(async (req, res) => {
       return res.status(400).json({ error: "Invalid token format" });
     }
 
-    // First check if user exists and isn't verified
     const checkUser = await db.query(
       "SELECT is_verified FROM users WHERE user_id = $1",
-      [userId],
+      [userId]
     );
 
     if (checkUser.rows.length === 0) {
@@ -433,10 +551,9 @@ const verifyEmail = handleAsync(async (req, res) => {
       return res.status(400).json({ error: "Email already verified" });
     }
 
-    // Update verification status
     const { rowCount } = await db.query(
       "UPDATE users SET is_verified = true WHERE user_id = $1",
-      [userId],
+      [userId]
     );
 
     if (rowCount === 0) {
@@ -454,14 +571,82 @@ const verifyEmail = handleAsync(async (req, res) => {
       return res.status(400).json({ error: "Invalid token" });
     }
     if (error.name === "TokenExpiredError") {
-      return res
-        .status(400)
-        .json({
-          error: "Token has expired. Please request a new verification email.",
-        });
+      return res.status(400).json({
+        error: "Token has expired. Please request a new verification email.",
+      });
     }
     throw error;
   }
+});
+
+const resendVerificationEmail = handleAsync(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    return res.status(400).json({ error: "Valid email is required" });
+  }
+
+  // Check if user exists and needs verification
+  const userQuery = await db.query(
+    "SELECT user_id, name, is_verified FROM users WHERE email = $1",
+    [email.toLowerCase()]
+  );
+
+  if (userQuery.rows.length === 0) {
+    // Don't reveal that the email doesn't exist
+    return res.status(200).json({
+      message:
+        "If your email exists and requires verification, you will receive a verification email.",
+    });
+  }
+
+  const user = userQuery.rows[0];
+
+  // If already verified, no need to send again
+  if (user.is_verified) {
+    return res.status(200).json({
+      message: "Your email is already verified. You can log in now.",
+    });
+  }
+
+  // Generate a new verification token and send email
+  const verificationToken = helpers.generateVerificationToken(user.user_id);
+  const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+  const emailContent = helpers.getEmailTemplate(`
+    <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">Verify Your Email Address</h1>
+    <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
+      Hello ${
+        user.name || "there"
+      }, you requested a new verification email. Please click the button below to verify your email address.
+    </p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${verificationLink}" 
+         style="display: inline-block; background-color: #4F46E5; color: white; 
+                padding: 14px 32px; text-decoration: none; border-radius: 8px;
+                font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
+        Verify Email Address
+      </a>
+    </div>
+    <div style="background-color: #F3F4F6; border-radius: 8px; padding: 16px; margin-top: 32px;">
+      <p style="color: #6B7280; font-size: 14px; margin: 0;">
+        If you didn't request this verification email, you can safely ignore it.
+        This link will expire in 1 hour for security purposes.
+      </p>
+    </div>
+  `);
+
+  await helpers.sendEmail(email, "Verify Your Email - Devquest", emailContent);
+
+  await logActivity(
+    "User",
+    `Verification email resent to: ${email}`,
+    user.user_id
+  );
+
+  res.status(200).json({
+    message: "Verification email sent. Please check your inbox.",
+  });
 });
 
 const sendFeedbackReplyEmail = async ({
@@ -487,7 +672,9 @@ const sendFeedbackReplyEmail = async ({
           <strong>Course:</strong> ${courseName}
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
-          <strong>Your rating:</strong> ${"★".repeat(rating)}${"☆".repeat(5 - rating)}
+          <strong>Your rating:</strong> ${"★".repeat(rating)}${"☆".repeat(
+      5 - rating
+    )}
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
           <strong>Your feedback:</strong> "${comment || "No comment provided"}"
@@ -527,7 +714,7 @@ const sendFeedbackReplyEmail = async ({
 
     if (response.response.status !== 200) {
       throw new Error(
-        `Email sending failed with status: ${response.response.status}`,
+        `Email sending failed with status: ${response.response.status}`
       );
     }
 
@@ -541,7 +728,7 @@ const sendFeedbackReplyEmail = async ({
 const checkAdminStatus = handleAsync(async (req, res, next) => {
   const { rowCount } = await db.query(
     "SELECT 1 FROM admins WHERE admin_id = $1",
-    [req.user.userId],
+    [req.user.userId]
   );
 
   if (rowCount === 0) {
@@ -557,12 +744,10 @@ const requestEmailChange = handleAsync(async (req, res) => {
   const { newEmail } = req.body;
   const userId = req.user.userId;
 
-  // Validate new email
   if (!newEmail?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
     return res.status(400).json({ error: "Valid email is required" });
   }
 
-  // Check if new email is already in use
   const existingUser = await db.query("SELECT 1 FROM users WHERE email = $1", [
     newEmail.toLowerCase(),
   ]);
@@ -570,10 +755,9 @@ const requestEmailChange = handleAsync(async (req, res) => {
     return res.status(400).json({ error: "Email is already in use" });
   }
 
-  // Get current user's email
   const { rows } = await db.query(
     "SELECT email, name FROM users WHERE user_id = $1",
-    [userId],
+    [userId]
   );
   if (rows.length === 0) {
     return res.status(404).json({ error: "User not found" });
@@ -582,7 +766,6 @@ const requestEmailChange = handleAsync(async (req, res) => {
   const currentEmail = rows[0].email;
   const userName = rows[0].name;
 
-  // Generate verification token
   const token = helpers.generateToken(userId, {
     newEmail,
     currentEmail,
@@ -616,7 +799,7 @@ const requestEmailChange = handleAsync(async (req, res) => {
   await helpers.sendEmail(
     currentEmail,
     "Confirm Your Email Change Request - Devquest",
-    emailContent,
+    emailContent
   );
 
   res.status(200).json({
@@ -640,19 +823,17 @@ const confirmEmailChange = handleAsync(async (req, res) => {
 
     const { userId, newEmail, currentEmail } = decoded;
 
-    // Double check if new email is still available
     const existingUser = await db.query(
       "SELECT 1 FROM users WHERE email = $1 AND user_id != $2",
-      [newEmail.toLowerCase(), userId],
+      [newEmail.toLowerCase(), userId]
     );
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ error: "Email is no longer available" });
     }
 
-    // Update email
     const { rowCount } = await db.query(
       "UPDATE users SET email = $1 WHERE user_id = $2 AND email = $3",
-      [newEmail.toLowerCase(), userId, currentEmail],
+      [newEmail.toLowerCase(), userId, currentEmail]
     );
 
     if (rowCount === 0) {
@@ -664,7 +845,7 @@ const confirmEmailChange = handleAsync(async (req, res) => {
     await logActivity(
       "User",
       `Email changed from ${currentEmail} to ${newEmail}`,
-      userId,
+      userId
     );
 
     res.status(200).json({
@@ -677,11 +858,9 @@ const confirmEmailChange = handleAsync(async (req, res) => {
       return res.status(400).json({ error: "Invalid token" });
     }
     if (error.name === "TokenExpiredError") {
-      return res
-        .status(400)
-        .json({
-          error: "Token has expired. Please request a new email change.",
-        });
+      return res.status(400).json({
+        error: "Token has expired. Please request a new email change.",
+      });
     }
     throw error;
   }
@@ -690,8 +869,11 @@ const confirmEmailChange = handleAsync(async (req, res) => {
 module.exports = {
   signup,
   login,
+  refreshAccessToken,
+  logout,
   updateProfile,
   verifyEmail,
+  resendVerificationEmail,
   changePassword,
   sendPasswordResetEmail,
   resetPassword,

@@ -13,31 +13,45 @@ const {
 } = require("../controllers/student.controller");
 
 // Middleware
-const authenticateToken = require("../middleware/auth");
+const { authenticateToken, requireAuth } = require("../middleware/auth");
 
 // Routes
-router.get("/students", authenticateToken, getAllStudents);
-router.get("/students/:studentId", authenticateToken, getStudentById);
+router.get("/students", authenticateToken, requireAuth, getAllStudents);
+router.get(
+  "/students/:studentId",
+  authenticateToken,
+  requireAuth,
+  getStudentById
+);
 router.get(
   "/students/:studentId/courses",
   authenticateToken,
-  getCoursesByStudentId,
+  requireAuth,
+  getCoursesByStudentId
 );
 router.get(
   "/students/:userId/enrollments",
   authenticateToken,
-  getEnrollmentsByUserId,
+  requireAuth,
+  getEnrollmentsByUserId
 );
-router.get("/student/stats/:userId", authenticateToken, getStudentStats);
+router.get(
+  "/student/stats/:userId",
+  authenticateToken,
+  requireAuth,
+  getStudentStats
+);
 router.get(
   "/student/courses/:courseId/stats",
   authenticateToken,
-  getCourseStats,
+  requireAuth,
+  getCourseStats
 );
 router.delete(
   "/student/delete-account",
   authenticateToken,
-  deleteStudentAccount,
+  requireAuth,
+  deleteStudentAccount
 );
 
 // Export router

@@ -1,29 +1,38 @@
 const express = require("express");
 const router = express.Router();
 const sectionController = require("../controllers/section.controller");
-const authenticateToken = require("../middleware/auth");
+const { authenticateToken, requireAuth } = require("../middleware/auth");
 
 // Admin routes
-router.post("/sections", authenticateToken, sectionController.addSection);
+router.post(
+  "/sections",
+  authenticateToken,
+  requireAuth,
+  sectionController.addSection
+);
 router.get(
   "/admin/sections",
   authenticateToken,
-  sectionController.getAdminSections,
+  requireAuth,
+  sectionController.getAdminSections
 );
 router.put(
   "/sections/:section_id",
   authenticateToken,
-  sectionController.editSection,
+  requireAuth,
+  sectionController.editSection
 );
 router.delete(
   "/sections/:section_id",
   authenticateToken,
-  sectionController.deleteSection,
+  requireAuth,
+  sectionController.deleteSection
 );
 router.post(
   "/sections/reorder",
   authenticateToken,
-  sectionController.reorderSections,
+  requireAuth,
+  sectionController.reorderSections
 );
 
 // User routes
@@ -31,12 +40,12 @@ router.get("/sections", authenticateToken, sectionController.getAdminSections);
 router.get(
   "/sections/course/:courseId",
   authenticateToken,
-  sectionController.getUserSections,
+  sectionController.getUserSections
 );
 router.get(
   "/sections/:section_id",
   authenticateToken,
-  sectionController.getSectionById,
+  sectionController.getSectionById
 );
 
 module.exports = router;
