@@ -45,10 +45,6 @@ const getAllStudents = async (req, res) => {
 };
 
 // Fetch details of a specific student
-// In website/server/controllers/student.controller.js
-// In website/server/controllers/student.controller.js
-// In website/server/controllers/student.controller.js
-
 const getStudentById = async (req, res) => {
   const { studentId } = req.params;
 

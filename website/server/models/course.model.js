@@ -14,14 +14,21 @@ const courseQueries = {
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
-    return db.query(query, [
-      title,
-      description,
-      status,
-      difficulty,
-      language_id,
-      imageUrl,
-    ]);
+    try {
+      const result = await db.query(query, [
+        title,
+        description,
+        status,
+        difficulty,
+        language_id,
+        imageUrl,
+      ]);
+      console.log(`Course inserted: ${title}`);
+      return result;
+    } catch (error) {
+      console.error("Error inserting course:", error);
+      throw error;
+    }
   },
 
   updateCourse: async (
@@ -44,15 +51,22 @@ const courseQueries = {
       WHERE course_id = $7
       RETURNING *;
     `;
-    return db.query(query, [
-      title,
-      description,
-      status,
-      difficulty,
-      language_id,
-      imageUrl,
-      course_id,
-    ]);
+    try {
+      const result = await db.query(query, [
+        title,
+        description,
+        status,
+        difficulty,
+        language_id,
+        imageUrl,
+        course_id,
+      ]);
+      console.log(`Course updated: ${title}`);
+      return result;
+    } catch (error) {
+      console.error("Error updating course:", error);
+      throw error;
+    }
   },
 
   deleteCourseData: async (course_id) => {
@@ -91,8 +105,14 @@ const courseQueries = {
       },
     ];
 
-    for (const query of queries) {
-      await db.query(query.text, query.values);
+    try {
+      for (const query of queries) {
+        await db.query(query.text, query.values);
+      }
+      console.log(`Course data deleted for course ID: ${course_id}`);
+    } catch (error) {
+      console.error("Error deleting course data:", error);
+      throw error;
     }
   },
 
@@ -117,7 +137,14 @@ const courseQueries = {
         course.difficulty,
         course.rating;
     `;
-    return db.query(query);
+    try {
+      const result = await db.query(query);
+      console.log("Fetched all courses");
+      return result;
+    } catch (error) {
+      console.error("Error fetching all courses:", error);
+      throw error;
+    }
   },
 
   getCourseById: async (course_id) => {
@@ -145,7 +172,14 @@ const courseQueries = {
         course.image,
         course.rating;
     `;
-    return db.query(query, [course_id]);
+    try {
+      const result = await db.query(query, [course_id]);
+      console.log(`Fetched course by ID: ${course_id}`);
+      return result;
+    } catch (error) {
+      console.error("Error fetching course by ID:", error);
+      throw error;
+    }
   },
 
   getUserCourseStats: async (user_id, course_id) => {
@@ -175,7 +209,14 @@ const courseQueries = {
       FROM users u
       WHERE u.user_id = $1;
     `;
-    return db.query(query, [user_id, course_id]);
+    try {
+      const result = await db.query(query, [user_id, course_id]);
+      console.log(`Fetched user course stats for user ID: ${user_id}, course ID: ${course_id}`);
+      return result;
+    } catch (error) {
+      console.error("Error fetching user course stats:", error);
+      throw error;
+    }
   },
 
   enrollUser: async (user_id, course_id) => {
@@ -184,7 +225,14 @@ const courseQueries = {
       VALUES ($1, $2, NOW())
       RETURNING *;
     `;
-    return db.query(query, [user_id, course_id]);
+    try {
+      const result = await db.query(query, [user_id, course_id]);
+      console.log(`User enrolled: user ID ${user_id}, course ID ${course_id}`);
+      return result;
+    } catch (error) {
+      console.error("Error enrolling user:", error);
+      throw error;
+    }
   },
 
   checkEnrollment: async (user_id, course_id) => {
@@ -192,7 +240,14 @@ const courseQueries = {
       SELECT * FROM enrollment
       WHERE user_id = $1 AND course_id = $2
     `;
-    return db.query(query, [user_id, course_id]);
+    try {
+      const result = await db.query(query, [user_id, course_id]);
+      console.log(`Checked enrollment: user ID ${user_id}, course ID ${course_id}`);
+      return result;
+    } catch (error) {
+      console.error("Error checking enrollment:", error);
+      throw error;
+    }
   },
 
   getUserOverallStats: async (user_id) => {
@@ -231,7 +286,14 @@ const courseQueries = {
         FLOOR(total_xp / 100) as level
       FROM user_stats;
     `;
-    return db.query(query, [user_id]);
+    try {
+      const result = await db.query(query, [user_id]);
+      console.log(`Fetched user overall stats for user ID: ${user_id}`);
+      return result;
+    } catch (error) {
+      console.error("Error fetching user overall stats:", error);
+      throw error;
+    }
   },
 };
 
