@@ -1,6 +1,7 @@
-// website/server/middleware/auth.js
-
 const jwt = require("jsonwebtoken");
+const rateLimit = require("express-rate-limit");
+const sanitize = require("sanitize")();
+const cors = require("cors");
 require("dotenv").config();
 
 // List of routes that should be publicly accessible without authentication
@@ -104,8 +105,43 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+// Rate limiting middleware for authentication routes
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 requests per windowMs
+  message: {
+    error: "Too many requests, please try again later.",
+    code: "RATE_LIMIT_EXCEEDED",
+  },
+});
+
+// Input sanitization middleware
+const sanitizeInput = (req, res, next) => {
+  if (req.body) {
+    req.body = sanitize(req.body);
+  }
+  if (req.query) {
+    req.query = sanitize(req.query);
+  }
+  if (req.params) {
+    req.params = sanitize(req.params);
+  }
+  next();
+};
+
+// Stricter CORS policies
+const corsOptions = {
+  origin: process.env.FRONTEND_URL,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
 module.exports = {
   authenticateToken,
   requireAuth,
   requireAdmin,
+  authRateLimiter,
+  sanitizeInput,
+  corsOptions,
 };

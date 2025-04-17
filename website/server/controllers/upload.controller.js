@@ -46,6 +46,7 @@ const testRoute = async (req, res) => {
         response.Buckets.map((b) => b.Name).join(", ")
     );
   } catch (error) {
+    console.error("Error in testRoute:", error);
     res.status(500).send("S3 connection failed: " + error.message);
   }
 };
@@ -57,6 +58,7 @@ const uploadFile = [
     try {
       // Validate file existence
       if (!req.file) {
+        console.error("No file uploaded.");
         return res.status(400).json({ error: "No file uploaded." });
       }
 
@@ -240,6 +242,7 @@ const uploadEditorImage = [
   async (req, res) => {
     try {
       if (!req.file) {
+        console.error("No file uploaded.");
         return res.status(400).json({
           error: "No file uploaded.",
           uploaded: 0,

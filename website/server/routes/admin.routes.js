@@ -1,5 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const rateLimit = require("express-rate-limit");
+const sanitizeInput = require("../middleware/sanitizeInput");
+const cors = require("cors");
 const {
   getAdminActivities,
   getSystemMetrics,
@@ -17,9 +20,24 @@ const {
   requireAdmin,
 } = require("../middleware/auth");
 
+// Rate limiting for admin routes
+const adminRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: "Too many requests, please try again later.",
+    code: "RATE_LIMIT_EXCEEDED",
+  },
+});
+
 // Public route - no authentication required
 router.get("/system-settings", getMaintenanceStatus);
 router.get("/maintenance-status", getMaintenanceStatus); // Add an alias for consistency
+
+// Apply rate limiting, input sanitization, and CORS policies to all admin routes
+router.use(adminRateLimiter);
+router.use(sanitizeInput);
+router.use(cors());
 
 // Protected admin routes - these should use requireAdmin middleware
 router.use(authenticateToken);
