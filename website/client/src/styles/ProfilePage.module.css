@@ -6,7 +6,7 @@
   padding: 90px 20px 20px 20px;
   margin: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom, #0A1128, #091236, #1A2A6C);
+  background: linear-gradient(to bottom, #0a1128, #091236, #1a2a6c);
   color: white;
   min-height: 100vh;
 }
@@ -48,7 +48,6 @@
 }
 .skillsSection .sectionTitle {
   margin-top: 5px;
-
 }
 
 .skillsList {
@@ -94,7 +93,15 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
 }
-
+@media screen and (max-width: 768px) {
+  .profileHeader {
+    padding: 10px;
+    width: 94%;
+  }
+  .profileHeader h1 {
+    font-size: 1.5em;
+  }
+}
 .profileAvatar {
   width: 120px;
   height: 120px;
@@ -195,7 +202,7 @@
 
 .levelCard .statusNumber {
   font-size: 3em;
-  background: linear-gradient(45deg, #64B5F6, #2196F3);
+  background: linear-gradient(45deg, #64b5f6, #2196f3);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -292,14 +299,14 @@
   font-size: 2em;
   font-weight: 700;
   margin-bottom: 8px;
-  background: linear-gradient(45deg, #4CAF50, #76ff03);
+  background: linear-gradient(45deg, #4caf50, #76ff03);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .statusCard.xpCard .statusNumber {
-  background: linear-gradient(45deg, #FFD700, #FFA500);
+  background: linear-gradient(45deg, #ffd700, #ffa500);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -370,7 +377,7 @@
 
 .xpProgressFill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #76ff03);
+  background: linear-gradient(90deg, #4caf50, #76ff03);
   border-radius: 6px;
   transition: width 0.5s ease;
   position: relative;
@@ -396,8 +403,12 @@
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .courseCardprofile {
@@ -427,7 +438,7 @@
 }
 
 .courseProgcardtext {
-  color: #64B5F6; /* Brighter blue for better contrast */
+  color: #64b5f6; /* Brighter blue for better contrast */
   font-size: 1rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -437,7 +448,7 @@
 }
 
 .courseProgCardTitle {
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -447,7 +458,7 @@
 }
 
 .courseProgCardTitle {
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -458,7 +469,7 @@
 .ViewProgCardLessons {
   display: flex;
   align-items: center;
-  color: #90CAF9; /* Light blue that's easy to read */
+  color: #90caf9; /* Light blue that's easy to read */
   font-size: 1rem;
   font-weight: 500;
   gap: 0.75rem;
@@ -468,7 +479,7 @@
 }
 
 .ViewProgCardLessons:hover {
-  color: #FFD700;
+  color: #ffd700;
   transform: translateX(5px);
 }
 
@@ -482,7 +493,7 @@
 }
 
 .sectionNameProgCard {
-  color: #E3F2FD; /* Very light blue for good contrast */
+  color: #e3f2fd; /* Very light blue for good contrast */
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
@@ -504,14 +515,14 @@
 
 .progressbarfill {
   height: 100%;
-  background: linear-gradient(90deg, #64B5F6 0%, #2196F3 50%, #1976D2 100%);
+  background: linear-gradient(90deg, #64b5f6 0%, #2196f3 50%, #1976d2 100%);
   border-radius: 6px;
   transition: width 0.5s ease;
   box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
 }
 
 .lessontitleProgCard {
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 1.5rem;
   font-weight: 600;
   margin: 1.5rem 0;
@@ -522,7 +533,7 @@
 .continuebuttonProgCard {
   position: absolute;
   right: 2rem;
-  background: linear-gradient(135deg, #2196F3, #1976D2);
+  background: linear-gradient(135deg, #2196f3, #1976d2);
   color: white;
   padding: 1rem 2rem;
   border-radius: 8px;
@@ -537,7 +548,7 @@
 }
 
 .continuebuttonProgCard:hover {
-  background: linear-gradient(135deg, #1E88E5, #1565C0);
+  background: linear-gradient(135deg, #1e88e5, #1565c0);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
 }
@@ -553,17 +564,17 @@
 /* In website/client/src/styles/ProfilePage.module.css */
 
 .progressbarfill.completed {
-  background: linear-gradient(90deg, #4CAF50, #45A049);
+  background: linear-gradient(90deg, #4caf50, #45a049);
   box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
 }
 
 .reviewButton {
-  background: linear-gradient(135deg, #4CAF50, #45A049) !important;
+  background: linear-gradient(135deg, #4caf50, #45a049) !important;
   box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4) !important;
 }
 
 .reviewButton:hover {
-  background: linear-gradient(135deg, #45A049, #388E3C) !important;
+  background: linear-gradient(135deg, #45a049, #388e3c) !important;
   box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6) !important;
 }
 
@@ -572,14 +583,14 @@
   position: relative;
 }
 
-.courseCardprofile[data-completed="true"]::before {
-  content: "✓";
+.courseCardprofile[data-completed='true']::before {
+  content: '✓';
   position: absolute;
   top: -10px;
   right: -10px;
   width: 40px;
   height: 40px;
-  background: #4CAF50;
+  background: #4caf50;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -588,36 +599,36 @@
   font-weight: bold;
   font-size: 1.2rem;
   border: 3px solid white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Style adjustments for completed courses */
-.courseCardprofile[data-completed="true"] .courseProgcardtext {
-  color: #4CAF50;
+.courseCardprofile[data-completed='true'] .courseProgcardtext {
+  color: #4caf50;
 }
 
-.courseCardprofile[data-completed="true"] .sectionNameProgCard {
-  color: #A5D6A7;
+.courseCardprofile[data-completed='true'] .sectionNameProgCard {
+  color: #a5d6a7;
 }
 
 /* Add a completion banner */
-.courseCardprofile[data-completed="true"] {
+.courseCardprofile[data-completed='true'] {
   overflow: hidden;
 }
 
-.courseCardprofile[data-completed="true"]::after {
-  content: "COMPLETED";
+.courseCardprofile[data-completed='true']::after {
+  content: 'COMPLETED';
   position: absolute;
   top: 20px;
   right: -35px;
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
   padding: 5px 40px;
   transform: rotate(45deg);
   font-size: 0.8rem;
   font-weight: bold;
   letter-spacing: 1px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive styles */

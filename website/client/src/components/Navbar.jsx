@@ -13,6 +13,13 @@ const Navbar = () => {
   const profileDropdownRef = useRef(null);
   const profileBtnRef = useRef(null);
 
+  // fallback to default image on error
+  const handleImgError = (e) => {
+    // stop further error events (avoids loop/spam)
+    e.target.onerror = null;
+    e.target.src = defaultProfilePic;
+  };
+
   // Close menus when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -119,10 +126,7 @@ const Navbar = () => {
                 src={user.profileimage || defaultProfilePic}
                 alt={`${user.name || 'User'}'s profile`}
                 className="profile-avatar"
-                onError={(e) => {
-                  console.error("[Navbar] Error loading profile image:", e);
-                  e.target.src = defaultProfilePic;
-                }}
+                onError={handleImgError}
               />
               <div
                 className={`profile-dropdown ${isProfileMenuOpen ? "active" : ""}`}
@@ -198,10 +202,7 @@ const Navbar = () => {
                 src={user.profileimage || defaultProfilePic}
                 alt={`${user.name || 'User'}'s profile`}
                 className="profile-avatar"
-                onError={(e) => {
-                  console.error("[Navbar] Error loading profile image:", e);
-                  e.target.src = defaultProfilePic;
-                }}
+                onError={handleImgError}
               />
               <div className="user-details">
                 <div className="user-name">{user.name || "User"}</div>
