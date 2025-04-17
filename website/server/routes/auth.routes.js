@@ -1,6 +1,6 @@
 const express = require("express");
 const authController = require("../controllers/auth.controller");
-const { authenticateToken, requireAuth } = require("../middleware/auth");
+const { authenticateToken, requireAuth, authRateLimiter, sanitizeInput, corsOptions } = require("../middleware/auth");
 const { body } = require("express-validator");
 
 // Create router instance
@@ -30,6 +30,11 @@ const validatePasswordChange = [
       "New password must be at least 8 characters and contain uppercase, lowercase, number, and special character"
     ),
 ];
+
+// Apply rate limiting, input sanitization, and CORS policies to all auth routes
+router.use(authRateLimiter);
+router.use(sanitizeInput);
+router.use(cors(corsOptions));
 
 // Public auth routes
 router.post("/signup", validateSignup, authController.signup);

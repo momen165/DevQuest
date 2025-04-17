@@ -1,4 +1,4 @@
-﻿const db = require("../config/database");
+const db = require("../config/database");
 
 const updateUserStreak = async (req, res, next) => {
   if (!req.user) {
@@ -10,13 +10,13 @@ const updateUserStreak = async (req, res, next) => {
   try {
     // First, check if we already updated the streak today
     const checkQuery = `
-            SELECT last_streak_update::date = CURRENT_DATE as updated_today,
-                   last_streak_update,
-                   last_visit,
-                   streak
-            FROM users 
-            WHERE user_id = $1;
-        `;
+      SELECT last_streak_update::date = CURRENT_DATE as updated_today,
+             last_streak_update,
+             last_visit,
+             streak
+      FROM users 
+      WHERE user_id = $1;
+    `;
     const checkResult = await db.query(checkQuery, [userId]);
     const userData = checkResult.rows[0];
 
@@ -39,11 +39,11 @@ const updateUserStreak = async (req, res, next) => {
 
     // Get user data
     const query = `
-            SELECT last_visit::date, streak,
-                   last_visit::date = CURRENT_DATE - INTERVAL '1 day' as visited_yesterday
-            FROM users
-            WHERE user_id = $1;
-        `;
+      SELECT last_visit::date, streak,
+             last_visit::date = CURRENT_DATE - INTERVAL '1 day' as visited_yesterday
+      FROM users
+      WHERE user_id = $1;
+    `;
     const { rows } = await db.query(query, [userId]);
 
     if (rows.length > 0) {
@@ -68,13 +68,13 @@ const updateUserStreak = async (req, res, next) => {
 
       // Update user data
       const updateQuery = `
-                UPDATE users
-                SET last_visit = CURRENT_DATE,
-                    streak = $1,
-                    last_streak_update = CURRENT_DATE
-                WHERE user_id = $2
-                RETURNING streak, last_visit, last_streak_update;
-            `;
+        UPDATE users
+        SET last_visit = CURRENT_DATE,
+            streak = $1,
+            last_streak_update = CURRENT_DATE
+        WHERE user_id = $2
+        RETURNING streak, last_visit, last_streak_update;
+      `;
       const updateResult = await db.query(updateQuery, [newStreak, userId]);
 
       console.log(`[Streak Debug] Update completed for user ${userId}:`, {
