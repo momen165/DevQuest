@@ -29,6 +29,7 @@ const HomePage = () => {
   const handleBrowseCourses = () => navigate("/CoursesPage");
   const handleCreateAccount = () => navigate("/RegistrationPage");
   const handleContinueLearning = () => navigate("/ProfilePage");
+  console.log("🔍 API URL in prod:", import.meta.env.VITE_API_URL);
 
   return (
     <>
