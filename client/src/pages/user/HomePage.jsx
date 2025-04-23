@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "components/Navbar";
 import FAQSection from "components/FAQSection";
 
-import CoursesSlider from "components/Slider";
+import CoursesSlider from "components/slider";
 import SupportForm from "components/SupportForm";
 import Footer from "components/Footer";
 import FeedbackCardScroll from "components/FeedbackCardScroll";
