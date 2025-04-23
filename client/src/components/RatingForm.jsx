@@ -31,7 +31,7 @@ const RatingForm = ({ courseId }) => {
         });
 
         const response = await axios.get(
-          `/api/feedback/eligibility/${courseId}`,
+          `${import.meta.env.VITE_API_URL}/feedback/eligibility/${courseId}`,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
@@ -98,7 +98,7 @@ const RatingForm = ({ courseId }) => {
         },
       };
 
-      await axios.post("/api/feedback", feedbackData, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/feedback`, feedbackData, config);
 
       setMessage("Feedback submitted successfully!");
       setRating(0);
@@ -107,7 +107,7 @@ const RatingForm = ({ courseId }) => {
     } catch (error) {
       setMessage(
         error.response?.data?.error ||
-          "Error submitting feedback. Please try again.",
+        "Error submitting feedback. Please try again.",
       );
       console.error("Error submitting feedback:", error);
     }

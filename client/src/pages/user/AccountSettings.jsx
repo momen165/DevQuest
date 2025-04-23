@@ -31,7 +31,7 @@ function ProfilePage() {
 
   const handleRemoveProfilePic = async () => {
     try {
-      const response = await axios.delete("/api/removeProfilePic", {
+      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/removeProfilePic`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -67,7 +67,7 @@ function ProfilePage() {
     formData.append("profilePic", file);
 
     try {
-      const response = await axios.post("/api/uploadProfilePic", formData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/uploadProfilePic`, formData, {
         headers: {
           Authorization: `Bearer ${user.token}`,
           "Content-Type": "multipart/form-data",
@@ -116,7 +116,7 @@ function ProfilePage() {
         .filter((skill) => skill !== "");
 
       const response = await axios.put(
-        "/api/update-profile",
+        `${import.meta.env.VITE_API_URL}/update-profile`,
         {
           name,
           country,

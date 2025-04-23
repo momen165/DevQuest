@@ -17,7 +17,7 @@ const Support = () => {
     const fetchTickets = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/api/support-tickets`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/support-tickets`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
             "Content-Type": "application/json",
@@ -50,7 +50,7 @@ const Support = () => {
   const handleReply = async (ticketId) => {
     try {
       await axios.post(
-        `/api/support-tickets/${ticketId}/reply`,
+        `${import.meta.env.VITE_API_URL}/support-tickets/${ticketId}/reply`,
         { reply: reply[ticketId] },
         {
           headers: {
@@ -86,7 +86,7 @@ const Support = () => {
 
   const handleDelete = async (ticketId) => {
     try {
-      await axios.delete(`/api/support-tickets/${ticketId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/support-tickets/${ticketId}`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       setTickets(tickets.filter((ticket) => ticket.ticket_id !== ticketId));

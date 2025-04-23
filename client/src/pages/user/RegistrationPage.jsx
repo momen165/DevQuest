@@ -51,7 +51,7 @@ const SignupPage = () => {
     e.preventDefault();
     if (!validateForm()) return;
     try {
-      const response = await axios.post("/api/signup", formData);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/signup`, formData);
       alert("Signup successful! Check your email for verification.");
       console.log("Signup successful:", response.data);
 

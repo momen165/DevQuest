@@ -28,7 +28,7 @@ const LoginPage = () => {
 
     try {
       setLoading(true);
-      await axios.post(`/api/resend-verification`, { email: formData.email });
+      await axios.post(`${import.meta.env.VITE_API_URL}/resend-verification`, { email: formData.email });
       toast.success("Verification email sent! Please check your inbox.");
     } catch (err) {
       toast.error(
@@ -47,7 +47,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        `/api/login`,
+        `${import.meta.env.VITE_API_URL}/login`,
         {
           email: formData.email,
           password: formData.password,

@@ -33,7 +33,7 @@ const StudentSubscriptionTable = () => {
         }
 
         const headers = { Authorization: `Bearer ${token}` };
-        const response = await axios.get("/api/students", { headers });
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/students`, { headers });
 
         console.log("Fetched Students:", response.data); // Debug fetched students
         const uniqueStudents = deduplicateStudents(

@@ -24,27 +24,27 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       if (!user?.token) {
         throw new Error('Authentication token is missing. Please log in again.');
       }
-  
-      const response = await axios.get(`/api/lesson?section_id=${section.section_id}`, {
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/lesson?section_id=${section.section_id}`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       });
-      
+
       const lessonsWithFormattedContent = response.data.map(lesson => ({
         ...lesson,
         content: lesson.content || '',
         template_code: lesson.template_code || '' // Ensure template_code is loaded as is
       }));
-      
+
       // Debug log
       console.log('Loaded lessons:', lessonsWithFormattedContent.map(lesson => ({
         ...lesson,
         template_code_preview: lesson.template_code?.substring(0, 100) // Log first 100 chars of template code
       })));
-      
+
       setLessons(lessonsWithFormattedContent || []);
     } catch (err) {
       setError(err.message || 'Failed to fetch lessons');
@@ -58,7 +58,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
     if (section?.section_id) fetchLessons();
   }, [section]);
 
-  
+
   const handleSaveLesson = async (lessonData) => {
     try {
       setLoading(true);
@@ -101,16 +101,16 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       if (!user?.token) {
         throw new Error('Authentication token is missing. Please log in again.');
       }
-  
-      await axios.delete(`/api/lesson/${lessonId}`, {
+
+      await axios.delete(`${import.meta.env.VITE_API_URL}/lesson/${lessonId}`, {
         headers: {
           Authorization: `Bearer ${user.token}`
         }
       });
-  
+
       // Refresh lessons list after successful delete
       await fetchLessons();
-  
+
     } catch (err) {
       if (err.response?.status === 401) {
         setError('Unauthorized. Please log in again.');
@@ -124,25 +124,26 @@ const ViewLessonsComponent = ({ section, onClose }) => {
 
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
-  
+
     const reorderedLessons = Array.from(lessons);
     const [movedLesson] = reorderedLessons.splice(result.source.index, 1);
     reorderedLessons.splice(result.destination.index, 0, movedLesson);
-  
+
     setLessons(reorderedLessons);
-  
+
     // Map the lessons array to only include lesson_id and order
     const payload = reorderedLessons.map((lesson, index) => ({
       lesson_id: lesson.lesson_id,
       order: index,
     }));
-  
+
     try {
-      await axios.post('/api/lesson/reorder', {
-        lessons: payload },
-          {
+      await axios.post(`${import.meta.env.VITE_API_URL}/lesson/reorder`, {
+        lessons: payload
+      },
+        {
           headers: { Authorization: `Bearer ${user.token}` }
-          }
+        }
 
       );
       console.log('Reorder successful');
@@ -150,7 +151,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       console.error('Error updating lesson order:', err);
     }
   };
-  
+
 
   return (
     <div className="view-lessons-container">
@@ -161,11 +162,11 @@ const ViewLessonsComponent = ({ section, onClose }) => {
       </button>
 
       {loading ? (
-          <div className="centered-loader">
-              <CircularProgress/>
-          </div>
+        <div className="centered-loader">
+          <CircularProgress />
+        </div>
       ) : error ? (
-          <p className="error">{error}</p>
+        <p className="error">{error}</p>
       ) : isAddingLesson || editingLesson ? (
         <LessonEditAddComponent
           section={section}

@@ -80,14 +80,14 @@ const EditCourseForm = ({
       }
 
       if (course && course.course_id) {
-        await axios.put(`/api/courses/${course.course_id}`, formData, {
+        await axios.put(`${import.meta.env.VITE_API_URL}/courses/${course.course_id}`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
           },
         });
       } else {
-        await axios.post('/api/courses', formData, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/courses`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',

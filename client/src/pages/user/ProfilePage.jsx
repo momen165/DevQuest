@@ -23,7 +23,7 @@ function ProfilePage() {
     const fetchProfileData = async () => {
       try {
         const profileResponse = await axios.get(
-          `/api/students/${user.user_id}`,
+          `${import.meta.env.VITE_API_URL}/students/${user.user_id}`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
           },

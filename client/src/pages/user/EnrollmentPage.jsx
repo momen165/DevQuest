@@ -57,7 +57,7 @@ const EnrollmentPage = () => {
     if (!isEnrolled) {
       axios
         .post(
-          "/api/courses/enroll",
+          `${import.meta.env.VITE_API_URL}/courses/enroll`,
           {
             user_id: user.user_id,
             course_id: courseId,
