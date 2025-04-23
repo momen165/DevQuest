@@ -34,7 +34,7 @@ const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
       block.textContent = rawContent;
       hljs.highlightElement(block);
     });
-  }, [content, hint, solution]);
+  }, [content, hint, solution]); 
 
   const copyCodeToClipboard = (code, event) => {
     const button = event.currentTarget;

@@ -339,6 +339,7 @@ body.menu-open {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  overflow-x: hidden;
 }
 
 .mobile-user-info {
@@ -376,8 +377,8 @@ body.menu-open {
 
 .mobile-nav-link {
   display: block;
-  width: 100%;
-  padding: 1rem 1.25rem;
+  width: 97%;
+  padding: 1rem 0.25rem;
   color: white;
   text-decoration: none;
   font-size: 1rem;
