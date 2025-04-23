@@ -66,7 +66,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
 
       // Send lesson data as is, without encoding template_code
       const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/lesson/${lessonData.lesson_id}`,
+        `${import.meta.env.VITE_API_URL}/lesson/${lessonData.lesson_id}`,
         lessonData,
         {
           headers: {

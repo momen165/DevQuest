@@ -148,14 +148,14 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
 
       try {
         const sectionResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/sections/${section.section_id}`,
+          `${import.meta.env.VITE_API_URL}/sections/${section.section_id}`,
           { headers: { Authorization: `Bearer ${user.token}` }}
         );
 
         if (!sectionResponse.data?.course_id) return;
 
         const courseResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/courses/${sectionResponse.data.course_id}`,
+          `${import.meta.env.VITE_API_URL}/courses/${sectionResponse.data.course_id}`,
           { headers: { Authorization: `Bearer ${user.token}` }}
         );
         
@@ -267,7 +267,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
       if (lesson) {
         // Update existing lesson
         const response = await axios.put(
-          `${process.env.REACT_APP_API_URL}/lesson/${lesson.lesson_id}`,
+          `${import.meta.env.VITE_API_URL}/lesson/${lesson.lesson_id}`,
           lessonData,
           {
             headers: {
@@ -285,7 +285,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
       } else {
         // Create new lesson
         const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/lesson`,
+          `${import.meta.env.VITE_API_URL}/lesson`,
           lessonData,
           {
             headers: {
@@ -313,7 +313,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     if (!lesson?.lesson_id) return;
     if (!window.confirm('Are you sure you want to delete this lesson?')) return;
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/lesson/${lesson.lesson_id}`,{
+      await axios.delete(`${import.meta.env.VITE_API_URL}/lesson/${lesson.lesson_id}`,{
         headers: { Authorization: `Bearer ${user.token}` },
       });
       onDelete(lesson.lesson_id);

@@ -28,7 +28,7 @@ const FeedbackPage = () => {
         }
 
         const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/feedback`,
+          `${import.meta.env.VITE_API_URL}/feedback`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
           },
@@ -62,7 +62,7 @@ const FeedbackPage = () => {
 
     try {
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/feedback/reply`,
+        `${import.meta.env.VITE_API_URL}/feedback/reply`,
         {
           feedback_id: selectedFeedback.feedback_id,
           reply,
@@ -97,7 +97,7 @@ const FeedbackPage = () => {
   const handleReopen = async (feedbackId) => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/feedback/reopen`,
+        `${import.meta.env.VITE_API_URL}/feedback/reopen`,
         { feedback_id: feedbackId },
         { headers: { Authorization: `Bearer ${user.token}` } },
       );

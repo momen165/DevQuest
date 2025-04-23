@@ -18,7 +18,7 @@ const PaymentSuccessPage = () => {
 
     if (sessionId) {
       axios
-        .get(`${process.env.REACT_APP_API_URL}/checkout-session/${sessionId}`)
+        .get(`${import.meta.env.VITE_API_URL}/checkout-session/${sessionId}`)
         .then((response) => {
           setMessage("Payment successful! Thank you for your purchase.");
           setIsSuccess(true);

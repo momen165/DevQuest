@@ -132,7 +132,7 @@ const MonacoEditorComponent = ({
       console.log("Sending request to run code with payload:", payload);
 
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/run?base64_encoded=true`,
+        `${import.meta.env.VITE_API_URL}/run?base64_encoded=true`,
         payload,
         {
           headers: {

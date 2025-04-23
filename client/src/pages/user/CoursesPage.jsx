@@ -9,7 +9,7 @@ import Footer from "components/Footer";
 import SupportForm from "components/SupportForm";
 import axios from "axios";
 import AnimatedLogo from "components/AnimatedLogo";
-const api_url = process.env.REACT_APP_API_URL;
+const api_url = import.meta.env.VITE_API_URL;
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -193,7 +193,7 @@ const CoursesPage = () => {
             progress={
               Array.isArray(progress)
                 ? progress.find((p) => p.course_id === course.course_id)
-                    ?.progress || 0
+                  ?.progress || 0
                 : 0
             }
           />
