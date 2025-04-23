@@ -35,7 +35,7 @@ const AdminSettingsPage = () => {
 
   const fetchAdminActivities = async () => {
     try {
-      const response = await axios.get("/api/admin/activities");
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/activities`);
       if (Array.isArray(response.data)) {
         const formattedActivities = response.data.map(formatActivity);
         setAdminActivity(formattedActivities);
@@ -56,7 +56,7 @@ const AdminSettingsPage = () => {
       if (!user?.userId) return;
 
       try {
-        const statusResponse = await axios.get("/api/admin/status");
+        const statusResponse = await axios.get(`${import.meta.env.VITE_API_URL}/admin/status`);
         if (!statusResponse.data.isAdmin) {
           setError("Access denied. Admin privileges required.");
           return;
@@ -84,7 +84,7 @@ const AdminSettingsPage = () => {
   useEffect(() => {
     const fetchMaintenanceStatus = async () => {
       try {
-        const response = await axios.get("/api/admin/system-settings");
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/system-settings`);
         console.log("Current maintenance status:", response.data);
         setMaintenanceMode(!!response.data.maintenanceMode); // Convert to boolean
       } catch (err) {
@@ -127,7 +127,7 @@ const AdminSettingsPage = () => {
     }
 
     try {
-      const response = await axios.post(`/api/admin/${action}-admin`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/admin/${action}-admin`, {
         userId: parseInt(newAdminId, 10),
       });
       showNotification("success", "Success", response.data.message);
@@ -145,7 +145,7 @@ const AdminSettingsPage = () => {
     try {
       const newState = !maintenanceMode;
 
-      const response = await axios.post("/api/admin/maintenance-mode", {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/admin/maintenance-mode`, {
         enabled: newState,
       });
 
@@ -157,7 +157,7 @@ const AdminSettingsPage = () => {
           `Maintenance mode ${newState ? "enabled" : "disabled"} successfully`,
         );
 
-        const currentState = await axios.get("/api/admin/system-settings");
+        const currentState = await axios.get(`${import.meta.env.VITE_API_URL}/admin/system-settings`);
         setMaintenanceMode(!!currentState.data.maintenanceMode);
       }
     } catch (err) {
@@ -167,14 +167,14 @@ const AdminSettingsPage = () => {
         err.response?.data?.error || "Error toggling maintenance mode",
       );
 
-      const currentState = await axios.get("/api/admin/system-settings");
+      const currentState = await axios.get(`${import.meta.env.VITE_API_URL}/admin/system-settings`);
       setMaintenanceMode(!!currentState.data.maintenanceMode);
     }
   };
 
   const fetchSystemSettings = async () => {
     try {
-      const response = await axios.get("/api/admin/system-settings");
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/system-settings`);
       console.log("Fetched maintenance mode:", response.data.maintenanceMode);
       setMaintenanceMode(response.data.maintenanceMode);
     } catch (err) {

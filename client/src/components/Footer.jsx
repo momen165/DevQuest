@@ -16,9 +16,9 @@ const Footer = () => {
     const fetchCoursesAndEnrollments = async () => {
       try {
         const [coursesRes, enrollmentsRes] = await Promise.all([
-          axios.get("/api/getCoursesWithRatings"),
+          axios.get(`${import.meta.env.VITE_API_URL}/getCoursesWithRatings`),
           user?.user_id
-            ? axios.get(`/api/students/${user.user_id}/enrollments`)
+            ? axios.get(`${import.meta.env.VITE_API_URL}/students/${user.user_id}/enrollments`)
             : Promise.resolve({}),
         ]);
 

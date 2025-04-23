@@ -34,7 +34,7 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
         order: index,
       }));
       await axios.post(
-        '/api/sections/reorder',
+        `${import.meta.env.VITE_API_URL}/sections/reorder`,
         { sections: payload },
         {
           headers: { Authorization: `Bearer ${token}` }, // Use token from context
@@ -67,7 +67,7 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
       if (sectionData.section_id) {
         // Update existing section
         const response = await axios.put(
-          `/api/sections/${sectionData.section_id}`,
+          `${import.meta.env.VITE_API_URL}/sections/${sectionData.section_id}`,
           sectionData,
           config
         );
@@ -79,7 +79,7 @@ const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSec
       } else {
         // Add new section
         const response = await axios.post(
-          `/api/sections`,
+          `${import.meta.env.VITE_API_URL}/sections`,
           sectionData,
           config
         );

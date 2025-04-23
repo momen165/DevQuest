@@ -63,7 +63,7 @@ function ChangePassword() {
 
     try {
       await axios.post(
-        "/api/auth/changePassword",
+        `${import.meta.env.VITE_API_URL}/auth/changePassword`,
         { currentPassword, newPassword },
         {
           headers: {
@@ -121,7 +121,7 @@ function ChangePassword() {
 
     try {
       const response = await axios.post(
-        "/api/requestEmailChange",
+        `${import.meta.env.VITE_API_URL}/requestEmailChange`,
         { newEmail },
         {
           headers: {

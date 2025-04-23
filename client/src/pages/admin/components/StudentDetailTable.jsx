@@ -30,12 +30,12 @@ const StudentDetailTable = ({ studentId, onClose }) => {
 
         // Fetch student data and courses
         const [studentResponse, coursesResponse] = await Promise.all([
-          axios.get(`/api/students/${studentId}`, { headers }),
-          axios.get(`/api/students/${studentId}/courses`, { headers })
+          axios.get(`${import.meta.env.VITE_API_URL}/students/${studentId}`, { headers }),
+          axios.get(`${import.meta.env.VITE_API_URL}/students/${studentId}/courses`, { headers })
         ]);
  
         // Fetch subscription status using new endpoint
-        const subscriptionResponse = await axios.get(`/api/user/${studentId}`, { headers });
+        const subscriptionResponse = await axios.get(`${import.meta.env.VITE_API_URL}/user/${studentId}`, { headers });
 
         setStudent(studentResponse.data);
         setCourses(coursesResponse.data);

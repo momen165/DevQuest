@@ -30,7 +30,7 @@ const FeedbackCardScroll = () => {
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        const { data } = await axios.get("/api/feedback/public");
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/feedback/public`);
 
         // Transform the API data to match the card format
         const transformedData = data.map((item) => ({

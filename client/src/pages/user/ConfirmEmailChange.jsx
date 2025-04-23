@@ -21,7 +21,7 @@ function ConfirmEmailChange() {
       }
 
       try {
-        const response = await axios.post("/api/confirmEmailChange", { token });
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/confirmEmailChange`, { token });
         setStatus("success");
         toast.success(response.data.message);
 

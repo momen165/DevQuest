@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children, adminRequired = false }) => {
   useEffect(() => {
     const checkServerAuth = async () => {
       try {
-        const response = await axios.get('/api/check-auth', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/check-auth`, {
           headers: {
             'Authorization': `Bearer ${user?.token}`,
           },

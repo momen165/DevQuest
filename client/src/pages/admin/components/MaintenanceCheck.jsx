@@ -12,16 +12,14 @@ const MaintenanceCheck = ({ children }) => {
 
   // Cache the axios instance with configuration
   const axiosInstance = useMemo(() => {
-    // Determine the base URL based on window.location to account for different ports
-    const baseURL = window.location.port === "3000" ?
-      "http://localhost:3000" :
-      import.meta.env.VITE_API_URL || "http://localhost:5000"; // Ensure proper fallback
-
+    const baseURL = import.meta.env.VITE_API_URL;
+    if (!baseURL) {
+      console.error('VITE_API_URL is not defined. Please check your environment variables.');
+    }
     return axios.create({
       baseURL,
       timeout: 8000, // Increase timeout for slower connections
       headers: {
-        'Cache-Control': 'no-cache',
         'Content-Type': 'application/json'
       }
     });
@@ -33,13 +31,13 @@ const MaintenanceCheck = ({ children }) => {
     const checkMaintenanceStatus = async () => {
       try {
         console.log('Checking maintenance status...');
-        // Try multiple endpoint variations to be more resilient
         let response;
         try {
-          response = await axiosInstance.get('/api/admin/system-settings');
+          // Use relative path, not full URL
+          response = await axiosInstance.get('/admin/system-settings');
         } catch (firstError) {
           console.log('First attempt failed, trying alternative endpoint...');
-          response = await axiosInstance.get('/api/admin/maintenance-status');
+          response = await axiosInstance.get('/admin/maintenance-status');
         }
 
         if (isMounted) {

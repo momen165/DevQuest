@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error("No refresh token available");
       }
 
-      const response = await axios.post("/api/refresh-token", {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/refresh-token`, {
         refreshToken: storedRefreshToken
       });
 
@@ -53,9 +53,9 @@ export const AuthProvider = ({ children }) => {
       async (config) => {
         // Don't intercept auth requests to prevent infinite loops
         if (
-          config.url === "/api/refresh-token" ||
-          config.url === "/api/login" ||
-          config.url === "/api/logout"
+          config.url === `${import.meta.env.VITE_API_URL}/refresh-token` ||
+          config.url === `${import.meta.env.VITE_API_URL}/login` ||
+          config.url === `${import.meta.env.VITE_API_URL}/logout`
         ) {
           return config;
         }
@@ -145,7 +145,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
       if (refreshToken) {
-        await axios.post("/api/logout", { refreshToken });
+        await axios.post(`${import.meta.env.VITE_API_URL}/logout`, { refreshToken });
       }
     } catch (error) {
       console.error("Error during logout:", error);

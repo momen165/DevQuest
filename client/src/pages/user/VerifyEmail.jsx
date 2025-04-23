@@ -26,7 +26,7 @@ const VerifyEmail = () => {
       }
 
       try {
-        const response = await axios.get(`/api/verify-email`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/verify-email`, {
           params: { token },
         });
         setStatus("success");

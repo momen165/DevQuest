@@ -37,7 +37,7 @@ const AdminCourses = () => {
     if (token) {
       setLoading(true);
       try {
-        const response = await axios.get("/api/courses", {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/courses`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCourses(response.data);
@@ -77,7 +77,7 @@ const AdminCourses = () => {
       const formData = new FormData();
       formData.append("file", file); // Key must match the backend upload API
 
-      const response = await axios.post("/api/upload", formData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/upload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -93,7 +93,7 @@ const AdminCourses = () => {
 
   const deleteSection = async (sectionId) => {
     try {
-      await axios.delete(`/api/sections/${sectionId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/sections/${sectionId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSections((prev) =>
@@ -120,7 +120,7 @@ const AdminCourses = () => {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      await axios.delete(`/api/courses/${courseId}`, { headers });
+      await axios.delete(`${import.meta.env.VITE_API_URL}/courses/${courseId}`, { headers });
       setCourses((prev) =>
         prev.filter((course) => course.course_id !== courseId),
       );

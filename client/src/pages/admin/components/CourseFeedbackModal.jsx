@@ -12,7 +12,7 @@ const CourseFeedbackModal = ({ course, onClose }) => {
   useEffect(() => {
     const fetchFeedbacks = async () => {
       try {
-        const response = await axios.get(`/api/feedback`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/feedback`, {
           headers: { Authorization: `Bearer ${user.token}` },
           params: { course_id: course.course_id }
         });

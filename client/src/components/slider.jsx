@@ -81,7 +81,7 @@ const CoursesSlider = () => {
   const [startX, setStartX] = useState(null);
   const [scrollLeft, setScrollLeft] = useState(null);
   const [courses, setCourses] = useState([]);
-  const [ratings, setRatings] = useState({});
+
   const [userscount, setUserscount] = useState({});
   const [loading, setLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
@@ -89,7 +89,7 @@ const CoursesSlider = () => {
   useEffect(() => {
     const fetchCoursesData = async () => {
       try {
-        const response = await axios.get("/api/getCoursesWithRatings");
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/getCoursesWithRatings`);
         const { courses, userscount } = response.data;
 
         const topCourses = [...courses]
@@ -166,12 +166,7 @@ const CoursesSlider = () => {
     navigate(`/enroll/${courseId}`);
   };
 
-  const truncateText = (text, maxLength = 100) => {
-    if (text?.length > maxLength) {
-      return text.substring(0, maxLength) + "...";
-    }
-    return text;
-  };
+
 
   return (
     <div className="home-slider__section">

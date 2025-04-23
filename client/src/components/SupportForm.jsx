@@ -31,7 +31,7 @@ const SupportForm = () => {
 
   const fetchUserTickets = async () => {
     try {
-      const response = await axios.get("/api/user-support-tickets", {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/user-support-tickets`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       setTickets(response.data);
@@ -72,7 +72,7 @@ const SupportForm = () => {
           },
         };
 
-        const response = await axios.post("/api/support", { message }, config);
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/support`, { message }, config);
         console.log("Response from server:", response.data);
         setMessage("");
 
@@ -102,7 +102,7 @@ const SupportForm = () => {
   const handleCloseTicket = async (ticketId) => {
     try {
       await axios.post(
-        `/api/support-tickets/${ticketId}/close`,
+        `${import.meta.env.VITE_API_URL}/support-tickets/${ticketId}/close`,
         {},
         {
           headers: { Authorization: `Bearer ${user.token}` },

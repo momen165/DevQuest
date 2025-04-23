@@ -33,7 +33,7 @@ const DashboardContent = () => {
           Authorization: `Bearer ${token}`,
         };
 
-        const studentsResponse = await axios.get("/api/students", { headers });
+        const studentsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/students`, { headers });
         const { students = [], count = 0 } = studentsResponse.data || {};
 
         if (!Array.isArray(students)) {
@@ -55,21 +55,21 @@ const DashboardContent = () => {
         setNewStudentsCount(newStudents.length);
         setNewStudentsList(newStudents);
 
-        const coursesResponse = await axios.get("/api/courses", { headers });
+        const coursesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/courses`, { headers });
         setCoursesCount(coursesResponse.data.length);
 
-        const activityResponse = await axios.get("/api/activities/recent", {
+        const activityResponse = await axios.get(`${import.meta.env.VITE_API_URL}/activities/recent`, {
           headers,
         });
         setAllActivities(activityResponse.data);
         setRecentActivity(activityResponse.data.slice(0, 5));
 
-        const feedbackResponse = await axios.get("/api/feedback/recent", {
+        const feedbackResponse = await axios.get(`${import.meta.env.VITE_API_URL}/feedback/recent`, {
           headers,
         });
         setRecentFeedback(feedbackResponse.data);
 
-        const ticketsResponse = await axios.get("/api/support-tickets/recent", {
+        const ticketsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/support-tickets/recent`, {
           headers: { Authorization: `Bearer ${user.token}` },
         });
         setRecentTickets(ticketsResponse.data);

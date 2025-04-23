@@ -32,7 +32,7 @@ const ForgotPasswordPage = () => {
 
     try {
       const response = await axios.post(
-        "/api/password-reset",
+        `${import.meta.env.VITE_API_URL}/password-reset`,
         { email },
         {
           withCredentials: true,
