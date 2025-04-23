@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: 'http://localhost:5000',
+          target: 'https://devquest-production.up.railway.app',
           changeOrigin: true,
           secure: false,
           ws: true,
