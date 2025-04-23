@@ -10,6 +10,21 @@ const FeedbackCardScroll = () => {
   const cardsRef = useRef([]);
   const [feedbackData, setFeedbackData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
+  }, []);
 
   // Fetch feedback data
   useEffect(() => {
@@ -42,7 +57,7 @@ const FeedbackCardScroll = () => {
 
   // Animation setup
   useEffect(() => {
-    if (isLoading || !feedbackData.length) return;
+    if (isLoading || !feedbackData.length || isMobile) return;
 
     gsap.registerPlugin(ScrollTrigger);
 
@@ -95,7 +110,7 @@ const FeedbackCardScroll = () => {
         card,
         {
           opacity: 1,
-          x: `${(i - 2) * 70}%`,
+          x: `${(i - Math.floor(cardsRef.current.length / 2)) * 70}%`,
           y: isCenter ? -20 : 0,
           rotateY: 0,
           scale: isCenter ? 1.05 : 0.92,
@@ -111,12 +126,12 @@ const FeedbackCardScroll = () => {
       // Clean up hover events
       cardsRef.current.forEach((card) => {
         if (card) {
-          card.removeEventListener("mouseenter", () => {});
-          card.removeEventListener("mouseleave", () => {});
+          card.removeEventListener("mouseenter", () => { });
+          card.removeEventListener("mouseleave", () => { });
         }
       });
     };
-  }, [isLoading, feedbackData]);
+  }, [isLoading, feedbackData, isMobile]);
 
   if (isLoading) {
     return <div className="scroll-section">Loading feedback...</div>;
@@ -153,9 +168,7 @@ const FeedbackCardScroll = () => {
                       </span>
                     )}
                   </div>
-                  <div className="feedback-scroll-rating">
-                    {feedback.rating}
-                  </div>
+                  <div className="feedback-scroll-rating">{feedback.rating}</div>
                   {feedback.courseName && (
                     <div className="feedback-scroll-course">
                       {feedback.courseName}

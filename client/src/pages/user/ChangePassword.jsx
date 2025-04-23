@@ -221,9 +221,10 @@ function ChangePassword() {
                 className="change-password-input-field"
                 type="password"
                 id="current-password"
+                required
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                required
+                autoComplete="current-password"
               />
 
               <label
@@ -236,11 +237,12 @@ function ChangePassword() {
                 className="change-password-input-field"
                 type="password"
                 id="new-password"
+                required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                required
+                autoComplete="new-password"
               />
-              <p className="hint">
+              <p className="change-password-hint">
                 Password must be at least 8 characters long and contain at least
                 one uppercase letter, one lowercase letter, one number, and one
                 special character (@$!%*?&)
@@ -256,9 +258,10 @@ function ChangePassword() {
                 className="change-password-input-field"
                 type="password"
                 id="confirm-password"
+                required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required
+                autoComplete="new-password"
               />
 
               <div className="change-password-button-container">

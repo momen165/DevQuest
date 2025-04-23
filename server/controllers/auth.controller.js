@@ -91,7 +91,7 @@ const helpers = {
             process.env.FRONTEND_URL
           }/privacy" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
         </div>
-        <p style="color: #9CA3AF; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} Devquest. All rights reserved.</p>
+        <p style="color: #9CA3AF; font-size: 12px; margin: 0;">${new Date().getFullYear()} Devquest. All rights reserved.</p>
       </div>
     </div>
   `,
@@ -342,6 +342,16 @@ const updateProfile = handleAsync(async (req, res) => {
   const { name, country, bio, skills } = req.body;
 
   try {
+    // Ensure skills is always a valid array for JSON column
+    let skillsToSave = skills;
+    if (skills && !Array.isArray(skills)) {
+      try {
+        skillsToSave = JSON.parse(skills);
+      } catch {
+        skillsToSave = [skills];
+      }
+    }
+
     const query = `
       UPDATE users 
       SET 
@@ -353,7 +363,7 @@ const updateProfile = handleAsync(async (req, res) => {
       RETURNING name, country, bio, skills, profileimage
     `;
 
-    const values = [name, country, bio, skills, req.user.userId];
+    const values = [name, country, bio, JSON.stringify(skillsToSave), req.user.userId];
     const result = await db.query(query, values);
 
     if (result.rows.length === 0) {

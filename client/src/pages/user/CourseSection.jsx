@@ -18,9 +18,6 @@ const api = axios.create({
   timeout: 10000,
 });
 
-console.log("Test var:", process.env.REACT_APP_TEST);
-console.log("API URL:", process.env.REACT_APP_API_URL);
-console.log("All env:", process.env);
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
@@ -121,7 +118,7 @@ const CourseSection = () => {
           if (err.response?.status === 404 || err.response?.status === 403) {
             setError(
               err.response?.data?.error ||
-                "Course not available. Redirecting to home page...",
+              "Course not available. Redirecting to home page...",
             );
             setTimeout(() => {
               navigate("/");
