@@ -221,7 +221,7 @@ const LessonNavigation = ({
         showNotification(
           "success",
           <div className="success-message">
-            <div>🎉 Great job! You've mastered this lesson!</div>
+            <div>🎉 Great job! You&#39;ve mastered this lesson!</div>
             <div className="xp-gained">+{lessonXp} XP</div>
           </div>,
         );
