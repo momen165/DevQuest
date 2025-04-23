@@ -5,7 +5,7 @@ import "styles/EnrollmentPage.css";
 import { useAuth } from "AuthContext";
 import CircularProgress from "@mui/material/CircularProgress";
 
-const api_url = process.env.REACT_APP_API_URL;
+const api_url = import.meta.env.VITE_API_URL;
 
 const EnrollmentPage = () => {
   const { courseId } = useParams();

@@ -20,7 +20,7 @@ const PaymentDetails = () => {
         }
 
         const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/list-subscriptions`,
+          `${import.meta.env.REACT_APP_API_URL}/api/list-subscriptions`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -64,7 +64,7 @@ const PaymentDetails = () => {
             </tr>
           </thead>
           <tbody>
-            {subscriptions.map((subscription) => (
+            {Array.isArray(subscriptions) && subscriptions.map((subscription) => (
               <tr key={subscription.subscription_id}>
                 <td>{subscription.subscription_id}</td>
                 <td>{subscription.subscription_type}</td>

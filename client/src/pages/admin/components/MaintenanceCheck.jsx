@@ -15,7 +15,7 @@ const MaintenanceCheck = ({ children }) => {
     // Determine the base URL based on window.location to account for different ports
     const baseURL = window.location.port === "3000" ?
       "http://localhost:3000" :
-      process.env.REACT_APP_API_URL || "http://localhost:5000";
+      import.meta.env.VITE_API_URL || "http://localhost:5000"; // Ensure proper fallback
 
     return axios.create({
       baseURL,

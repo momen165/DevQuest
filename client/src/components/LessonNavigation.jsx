@@ -38,7 +38,7 @@ const LessonNavigation = ({
         }
 
         const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/lesson-progress?user_id=${user.user_id}&lesson_id=${currentLessonId}`,
+          `${import.meta.env.VITE_API_URL}/lesson-progress?user_id=${user.user_id}&lesson_id=${currentLessonId}`,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
@@ -66,7 +66,7 @@ const LessonNavigation = ({
       try {
         // First get the course ID from the current section
         const sectionResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/sections/${currentSectionId}`,
+          `${import.meta.env.VITE_API_URL}/sections/${currentSectionId}`,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
@@ -80,7 +80,7 @@ const LessonNavigation = ({
 
           // Get course details for the name
           const courseResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/courses/${courseId}`,
+            `${import.meta.env.VITE_API_URL}/courses/${courseId}`,
             {
               headers: {
                 Authorization: `Bearer ${user.token}`,
@@ -94,7 +94,7 @@ const LessonNavigation = ({
 
           // Then get all sections for this course with their lessons
           const sectionsResponse = await axios.get(
-            `${process.env.REACT_APP_API_URL}/sections/course/${courseId}`,
+            `${import.meta.env.VITE_API_URL}/sections/course/${courseId}`,
             {
               headers: {
                 Authorization: `Bearer ${user.token}`,
@@ -203,7 +203,7 @@ const LessonNavigation = ({
       }
 
       const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/update-lesson-progress`,
+        `${import.meta.env.VITE_API_URL}/update-lesson-progress`,
         {
           user_id: user.user_id,
           lesson_id: currentLessonId,

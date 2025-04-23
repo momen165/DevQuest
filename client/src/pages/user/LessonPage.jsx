@@ -63,7 +63,7 @@ const CopyNotification = styled.div`
 
 // Create axios instance with default config - move outside component
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   timeout: 10000,
   // Silence Axios errors in console
   validateStatus: (status) => true,

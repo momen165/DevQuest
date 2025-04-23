@@ -26,7 +26,7 @@ function Billing() {
   const fetchSubscriptionDetails = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/check`,
+        `${import.meta.env.VITE_API_URL}/check`,
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -55,7 +55,7 @@ function Billing() {
   const handleManageSubscription = async () => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/create-portal-session`,
+        `${import.meta.env.VITE_API_URL}/create-portal-session`,
         {},
         {
           headers: {
