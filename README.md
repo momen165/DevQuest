@@ -3,7 +3,7 @@
 ## 🎯 Overview
 DevQuest is an interactive coding education platform that combines hands-on learning with gamification elements. Built with React and Node.js, it offers a modern learning experience for aspiring developers.
 
-## ✨ Key Features
+##📌 This project is public for portfolio/review purposes only. Please do not copy, reuse, or distribute the code.
 
 ### 👨‍💻 Learning Experience
 - Interactive code editor with real-time execution
@@ -151,5 +151,6 @@ npm run dev
 
 
 ## 📝 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+📌 This project is public for portfolio/review purposes only. Please do not copy, reuse, or distribute the code.
+
 
