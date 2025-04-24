@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
-import "styles/PaymentSuccessPage.css";
+import "../../styles/PaymentSuccessPage.css";
 
 const PaymentSuccessPage = () => {
   const location = useLocation();

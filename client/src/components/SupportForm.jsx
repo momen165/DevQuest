@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { FaComments, FaPaperPlane, FaUser, FaHeadset } from "react-icons/fa";
-import { useAuth } from "AuthContext";
-import "styles/SupportForm.css";
+import { useAuth } from "../AuthContext";
+import "../styles/SupportForm.css";
 
 const SupportForm = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -186,11 +186,10 @@ const SupportForm = () => {
                     {ticket.messages.map((msg, index) => (
                       <div
                         key={`${ticket.id}-${index}`}
-                        className={`sf-message-container ${
-                          msg.sender_type === "admin"
-                            ? "sf-message-admin"
-                            : "sf-message-user"
-                        }`}
+                        className={`sf-message-container ${msg.sender_type === "admin"
+                          ? "sf-message-admin"
+                          : "sf-message-user"
+                          }`}
                       >
                         <div className="sf-message-avatar">
                           {msg.sender_type === "admin" ? (
@@ -252,9 +251,8 @@ const SupportForm = () => {
             </div>
             {responseMessage && (
               <div
-                className={`sf-response-text ${
-                  responseMessage.includes("Failed") ? "sf-error" : "sf-success"
-                }`}
+                className={`sf-response-text ${responseMessage.includes("Failed") ? "sf-error" : "sf-success"
+                  }`}
               >
                 {responseMessage}
               </div>

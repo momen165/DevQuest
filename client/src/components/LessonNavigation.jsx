@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaCheck, FaBars } from "react-icons/fa";
-import "styles/LessonNavigation.css";
+import "../styles/LessonNavigation.css";
 import axios from "axios";
-import { useAuth } from "AuthContext";
+import { useAuth } from "../AuthContext";
 
 // Create axios instance with default config
 

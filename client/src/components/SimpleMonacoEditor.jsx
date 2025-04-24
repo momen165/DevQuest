@@ -15,11 +15,7 @@ const SimpleMonacoEditor = ({ code, setCode, language }) => {
     editorRef.current = editor;
 
     // Log language information
-    console.log("SimpleMonacoEditor - Language prop:", {
-      received: language,
-      mapped: getMonacoLanguage(),
-      editor: editor.getModel().getLanguageId(),
-    });
+    
 
     // Configure editor for the specific language
     if (language) {
@@ -38,11 +34,7 @@ const SimpleMonacoEditor = ({ code, setCode, language }) => {
 
   // Map language to Monaco's language identifier
   const getMonacoLanguage = () => {
-    console.log("SimpleMonacoEditor - getMonacoLanguage:", {
-      input: language,
-      inputType: typeof language,
-      lowercased: language?.toLowerCase(),
-    });
+   
 
     switch (language?.toLowerCase()) {
       case "cpp":
@@ -72,7 +64,7 @@ const SimpleMonacoEditor = ({ code, setCode, language }) => {
       case "kotlin":
         return "kotlin";
       default:
-        console.log("SimpleMonacoEditor - Using default language: plaintext");
+      
         return "plaintext";
     }
   };

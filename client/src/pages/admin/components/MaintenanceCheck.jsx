@@ -30,18 +30,18 @@ const MaintenanceCheck = ({ children }) => {
 
     const checkMaintenanceStatus = async () => {
       try {
-        console.log('Checking maintenance status...');
+        
         let response;
         try {
           // Use relative path, not full URL
           response = await axiosInstance.get('/admin/system-settings');
         } catch (firstError) {
-          console.log('First attempt failed, trying alternative endpoint...');
+          
           response = await axiosInstance.get('/admin/maintenance-status');
         }
 
         if (isMounted) {
-          console.log('Maintenance status response received:', response.data);
+         
           setIsInMaintenance(!!response.data.maintenanceMode);
         }
       } catch (err) {

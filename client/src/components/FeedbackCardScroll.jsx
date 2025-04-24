@@ -3,7 +3,7 @@ import axios from "axios";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import defaultProfilePic from "../assets/images/default-profile-pic.png";
-import "styles/FeedbackCardScroll.css";
+import "../styles/FeedbackCardScroll.css"; // Ensure you have the correct path to your CSS file
 
 const FeedbackCardScroll = () => {
   const sectionRef = useRef(null);

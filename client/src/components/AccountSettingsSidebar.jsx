@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "styles/AccountSettingsSidebar.css";
+import "../styles/AccountSettingsSidebar.css";
 import { FaCreditCard } from "react-icons/fa";
 import { FaRightToBracket, FaUser } from "react-icons/fa6";
 

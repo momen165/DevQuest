@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "styles/PricingPage.css";
-import Navbar from "components/Navbar";
-import { useAuth } from "AuthContext";
-import { loadStripe } from "@stripe/stripe-js";
-import SupportForm from "components/SupportForm";
-import Footer from "components/Footer";
+import "../../styles/PricingPage.css";
+import Navbar from "../../components/Navbar";
+import { useAuth } from "../../AuthContext";
+
+import SupportForm from "../../components/SupportForm";
+import Footer from "../../components/Footer";
 import { useNavigate } from "react-router-dom";
 
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+
 const api_url = import.meta.env.VITE_API_URL;
 const PricingPage = () => {
+
   const [isMonthly, setIsMonthly] = useState(true);
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);

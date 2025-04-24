@@ -1,8 +1,8 @@
 // /src/pages/FAQPage.js
 import React, { useState } from "react";
-import "styles/FAQPage.css";
-import Navbar from "components/Navbar";
-import faqImage from "assets/images/faq-illustration.png";
+import "../../styles/FAQPage.css";
+import Navbar from "../../components/Navbar";
+import faqImage from "../../assets/images/faq-illustration.png";
 
 const FAQPage = () => {
   const [activeIndex, setActiveIndex] = useState(null);

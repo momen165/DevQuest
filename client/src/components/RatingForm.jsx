@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useAuth } from "AuthContext";
-import "styles/RatingForm.css";
+import { useAuth } from "../AuthContext";
+import "../styles/RatingForm.css";
 
 const RatingForm = ({ courseId }) => {
   const [rating, setRating] = useState(0);
@@ -24,11 +24,7 @@ const RatingForm = ({ courseId }) => {
       }
 
       try {
-        console.log("Checking eligibility for:", {
-          courseId,
-          user_id: user.user_id,
-          token: user.token,
-        });
+        
 
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/feedback/eligibility/${courseId}`,
@@ -42,8 +38,7 @@ const RatingForm = ({ courseId }) => {
           },
         );
 
-        console.log("Eligibility response:", response.data);
-
+        
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -64,15 +59,7 @@ const RatingForm = ({ courseId }) => {
     checkEligibility();
   }, [user, courseId]);
 
-  // Add debug output
-  console.log("Current state:", {
-    courseProgress,
-    hasExistingFeedback,
-    user_id: user?.user_id,
-    courseId,
-    userObject: user,
-  });
-
+ 
   // Handle rating selection
   const handleRating = (star) => setRating(star);
 

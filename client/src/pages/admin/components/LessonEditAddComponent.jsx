@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaTrash, FaQuestionCircle } from 'react-icons/fa';
 import axios from 'axios';
-import 'pages/admin/styles/LessonEditAddComponent.css';
+import '../../../pages/admin/styles/LessonEditAddComponent.css';
 import CustomEditor from '../../../components/CustomEditor';
 import SimpleMonacoEditor from '../../../components/SimpleMonacoEditor';
 import ErrorAlert from './ErrorAlert';
-import { useAuth } from 'AuthContext'; // Import useAuth for context
+import { useAuth } from '../../../AuthContext'; // Import useAuth for context
 import he from 'he'; // Import the he library for HTML entity decoding
 
 const languageMappings = {
@@ -137,10 +137,6 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     return [getDefaultTestCase()];
   });
 
-  useEffect(() => {
-    console.log('Lesson data:', lesson);
-    console.log('Parsed test cases:', test_cases);
-  }, [lesson, test_cases]);
 
   useEffect(() => {
     const fetchCourseLanguage = async () => {

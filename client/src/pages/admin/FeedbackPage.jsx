@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Sidebar from "pages/admin/components/Sidebar";
-import "pages/admin/styles/FeedbackPage.css";
-import { useAuth } from "AuthContext";
+import Sidebar from "../../pages/admin/components/Sidebar";
+import "../../pages/admin/styles/FeedbackPage.css";
+import { useAuth } from "../../AuthContext";
 import CircularProgress from "@mui/material/CircularProgress";
 
 const FeedbackPage = () => {
@@ -19,7 +19,7 @@ const FeedbackPage = () => {
     const fetchFeedbacks = async () => {
       try {
         setLoading(true);
-        console.log(user.token);
+        
 
         if (!user.token) {
           setError("No token found. Please log in again.");

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "pages/admin/components/Sidebar";
-import StudentDetailTable from "pages/admin/components/StudentDetailTable";
+import Sidebar from "../admin/components/Sidebar";
+import StudentDetailTable from "../admin/components/StudentDetailTable";
 import axios from "axios";
-import "pages/admin/styles/Students.css";
+import "../admin/styles/Students.css";
 
 const deduplicateStudents = (students) => {
   const seen = new Set();
@@ -35,7 +35,7 @@ const StudentSubscriptionTable = () => {
         const headers = { Authorization: `Bearer ${token}` };
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/students`, { headers });
 
-        console.log("Fetched Students:", response.data); // Debug fetched students
+        
         const uniqueStudents = deduplicateStudents(
           response.data.students || [],
         );
