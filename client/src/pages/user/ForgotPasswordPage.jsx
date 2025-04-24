@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "styles/AuthPages.css";
+import "../../styles/AuthPages.css";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -44,7 +44,7 @@ const ForgotPasswordPage = () => {
 
       setMessage(
         response.data.message ||
-          "Password reset instructions sent to your email",
+        "Password reset instructions sent to your email",
       );
       setEmail("");
     } catch (err) {
@@ -59,7 +59,7 @@ const ForgotPasswordPage = () => {
         } else {
           setError(
             err.response.data.error ||
-              "Failed to send reset instructions. Please try again.",
+            "Failed to send reset instructions. Please try again.",
           );
         }
       } else {

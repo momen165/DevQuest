@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import "styles/LessonSection.css";
-import "styles/CourseSections.css";
+import "../styles/LessonSection.css";
+import "../styles/CourseSections.css";
 import axios from "axios";
-import { useAuth } from "AuthContext";
+import { useAuth } from "../AuthContext";
 import { CircularProgressbar } from "react-circular-progressbar";
 
 // Create axios instance with default config
@@ -90,14 +90,7 @@ const LessonList = ({
     const totalCount = lessons.length;
     const percentage = Math.round((completedCount / totalCount) * 100) || 0;
 
-    console.log(
-      "Completed:",
-      completedCount,
-      "Total:",
-      totalCount,
-      "Percentage:",
-      percentage,
-    );
+   
 
     return (
       <div style={{ width: "100%", height: "100%" }}>

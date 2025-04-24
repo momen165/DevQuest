@@ -2,7 +2,7 @@
 import { Editor } from "@monaco-editor/react";
 import axios from "axios";
 import { FaPlay, FaCopy, FaCog } from "react-icons/fa";
-import "styles/LessonPage.css";
+import "../styles/LessonPage.css";
 import CircularProgress from "@mui/material/CircularProgress";
 import "../styles/MonacoEditor.css";
 

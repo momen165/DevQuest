@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import "styles/AnimatedLogo.css";
-import AnimatedLogoMain from "assets/icons/animatedLogo.svg";
-import AnimatedLogoSecond from "assets/icons/animatedLogoSecond.svg";
+import "../styles/AnimatedLogo.css";
+import AnimatedLogoMain from "../assets/icons/animatedLogo.svg";
+import AnimatedLogoSecond from "../assets/icons/animatedLogoSecond.svg";
 
 const AnimatedLogo = () => {
   const [animate, setAnimate] = useState(false);

@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "AuthContext";
-import Navbar from "components/Navbar";
-import LessonNavigation from "components/LessonNavigation";
-import LessonContent from "components/LessonContent";
-import MonacoEditorComponent from "components/MonacoEditorComponent";
-import "styles/LessonPage.css";
+import { useAuth } from "../../AuthContext";
+import Navbar from "../../components/Navbar";
+import LessonNavigation from "../../components/LessonNavigation";
+import LessonContent from "../../components/LessonContent";
+import MonacoEditorComponent from "../../components/MonacoEditorComponent";
+import "../../styles/LessonPage.css";
 import LoadingSpinner from "./CircularProgress";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";

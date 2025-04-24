@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "pages/admin/components/Sidebar";
+import Sidebar from "../../pages/admin/components/Sidebar";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import "pages/admin/styles/AdminCourses.css";
-import EditCourseForm from "pages/admin/components/AddEditCourseComponent";
-import SectionEditComponent from "pages/admin/components/SectionEditComponent";
-import CourseFeedbackModal from "pages/admin/components/CourseFeedbackModal";
+import "../../pages/admin/styles/AdminCourses.css";
+import EditCourseForm from "../admin/components/AddEditCourseComponent";
+import SectionEditComponent from "../../pages/admin/components/SectionEditComponent";
+import CourseFeedbackModal from "../../pages/admin/components/CourseFeedbackModal";
 import axios from "axios";
-import { useAuth } from "AuthContext";
+import { useAuth } from "../../AuthContext";
 import CircularProgress from "@mui/material/CircularProgress";
 
 // Create axios instance with default config
