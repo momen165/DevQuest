@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Navbar from "components/Navbar";
-import Sidebar from "components/AccountSettingsSidebar";
-import { useAuth } from "AuthContext";
-import "styles/Billing.css";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/AccountSettingsSidebar";
+import { useAuth } from "../../AuthContext";
+import "../../styles/Billing.css";
 
 function Billing() {
   const { user } = useAuth();
@@ -35,7 +35,7 @@ function Billing() {
       );
 
       const data = response.data;
-      console.log("Subscription data:", data);
+     
 
       if (data.hasActiveSubscription && data.subscription) {
         setSubscriptionDetails(data.subscription);

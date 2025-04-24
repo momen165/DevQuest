@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "styles/FilterTabs.css";
+import "../styles/FilterTabs.css";
 
 const FilterTabs = ({ onFilterChange }) => {
   const [activeTab, setActiveTab] = useState("All Courses");

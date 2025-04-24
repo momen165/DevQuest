@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import "styles/EnrollmentPage.css";
-import { useAuth } from "AuthContext";
+import "../../styles/EnrollmentPage.css";
+import { useAuth } from "../../AuthContext";
 import CircularProgress from "@mui/material/CircularProgress";
 
 const api_url = import.meta.env.VITE_API_URL;

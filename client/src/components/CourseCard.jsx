@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "styles/CourseCard.css";
+import "../styles/CourseCard.css";
 
 const languageBackgrounds = {
   71: "rgba(48, 105, 152, 0.5)", // Python - Brighter blue

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import "styles/CoursesPage.css";
-import CourseCard from "components/CourseCard";
-import FilterTabs from "components/FilterTabs";
-import Navbar from "components/Navbar";
-import { useAuth } from "AuthContext";
+import "../../styles/CoursesPage.css";
+import CourseCard from "../../components/CourseCard";
+import FilterTabs from "../../components/FilterTabs";
+import Navbar from "../../components/Navbar";
+import { useAuth } from "../../AuthContext";
 import CircularProgress from "@mui/material/CircularProgress";
-import Footer from "components/Footer";
-import SupportForm from "components/SupportForm";
+import Footer from "../../components/Footer";
+import SupportForm from "../../components/SupportForm";
 import axios from "axios";
-import AnimatedLogo from "components/AnimatedLogo";
+import AnimatedLogo from "../../components/AnimatedLogo";
 const api_url = import.meta.env.VITE_API_URL;
 
 const CoursesPage = () => {

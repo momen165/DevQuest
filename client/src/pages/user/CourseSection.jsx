@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Navbar from "components/Navbar";
-import LessonList from "components/LessonSection";
-import RatingForm from "components/RatingForm";
+import Navbar from "../../components/Navbar";
+import LessonList from "../../components/LessonSection";
+import RatingForm from "../../components/RatingForm";
 import axios from "axios";
-import "styles/CourseSections.css";
-import { useAuth } from "AuthContext";
-import SupportForm from "components/SupportForm";
+import "../../styles/CourseSections.css";
+import { useAuth } from "../../AuthContext";
+import SupportForm from "../../components/SupportForm";
 import {
   calculateLevel,
   calculateLevelProgress,

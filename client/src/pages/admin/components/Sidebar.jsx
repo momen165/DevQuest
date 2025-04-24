@@ -1,8 +1,8 @@
 import React , { useState } from 'react';
 import {FaMoneyCheckAlt, FaChalkboardTeacher, FaHome, FaUser, FaComment, FaCog, FaSignOutAlt, FaArrowLeft} from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom';
-import 'pages/admin/styles/Sidebar.css';
-import { useAuth } from 'AuthContext';
+import '../../../pages/admin/styles/Sidebar.css';
+import { useAuth } from '../../../AuthContext';
 
 const Sidebar = ({ children }) => {
   const location = useLocation();

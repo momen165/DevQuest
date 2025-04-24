@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import 'pages/admin/styles/SectionEditComponent.css';
+import '../../../pages/admin/styles/SectionEditComponent.css';
 import ErrorAlert from './ErrorAlert';
 
 const AddEditSectionComponent = ({ section, courseId, onSave, onCancel }) => {

@@ -7,28 +7,29 @@ import {
 import MaintenanceCheck from './pages/admin/components/MaintenanceCheck';
 import ProtectedRoute from './ProtectedRoute';
 import './App.css';
+import { CircularProgress } from '@mui/material';
 
 // Lazy load components
 const HomePage = React.lazy(
-  () => import('pages/user/HomePage')
+  () => import('./pages/user/HomePage')
 );
 const AccountSettings = React.lazy(
   () =>
-    import('pages/user/AccountSettings')
+    import('./pages/user/AccountSettings')
 );
 const LoginPage = React.lazy(
-  () => import('pages/user/LoginPage')
+  () => import('./pages/user/LoginPage')
 );
 const RegistrationPage = React.lazy(
   () =>
     import(
-      'pages/user/RegistrationPage'
+      './pages/user/RegistrationPage'
     )
 );
 const ForgotPasswordPage = React.lazy(
   () =>
     import(
-      'pages/user/ForgotPasswordPage'
+      './pages/user/ForgotPasswordPage'
     )
 );
 const ResetPasswordPage = React.lazy(
@@ -49,79 +50,79 @@ const ConfirmEmailChange = React.lazy(
 );
 const Unauthorized = React.lazy(
   () =>
-    import('pages/user/Unauthorized')
+    import('./pages/user/Unauthorized')
 );
 const NotFoundPage = React.lazy(
-  () => import('pages/NotFoundPage')
+  () => import('./pages/NotFoundPage')
 );
 const CoursesPage = React.lazy(
-  () => import('pages/user/CoursesPage')
+  () => import('./pages/user/CoursesPage')
 );
 const EnrollmentPage = React.lazy(
   () =>
-    import('pages/user/EnrollmentPage')
+    import('./pages/user/EnrollmentPage')
 );
 const FAQPage = React.lazy(
-  () => import('pages/user/FAQPage')
+  () => import('./pages/user/FAQPage')
 );
 const PricingPage = React.lazy(
-  () => import('pages/user/PricingPage')
+  () => import('./pages/user/PricingPage')
 );
 const PaymentSuccessPage = React.lazy(
   () =>
     import(
-      'pages/user/PaymentSuccessPage'
+      './pages/user/PaymentSuccessPage'
     )
 );
 const Dashboard = React.lazy(
-  () => import('pages/admin/Dashboard')
+  () => import('./pages/admin/Dashboard')
 );
 const Students = React.lazy(
-  () => import('pages/admin/Students')
+  () => import('./pages/admin/Students')
 );
 const AdminCourses = React.lazy(
   () =>
-    import('pages/admin/AdminCourses')
+    import('./pages/admin/AdminCourses')
 );
 const PaymentInfo = React.lazy(
   () =>
-    import('pages/admin/PaymentInfo')
+    import('./pages/admin/PaymentInfo')
 );
 const Feedback = React.lazy(
   () =>
-    import('pages/admin/FeedbackPage')
+    import('./pages/admin/FeedbackPage')
 );
 const AdminSettingsPage = React.lazy(
   () =>
     import(
-      'pages/admin/AdminSettingsPage'
+      './pages/admin/AdminSettingsPage'
     )
 );
 const Support = React.lazy(
-  () => import('pages/admin/Support')
+  () => import('./pages/admin/Support')
 );
 const ChangePassword = React.lazy(
   () =>
-    import('pages/user/ChangePassword')
+    import('./pages/user/ChangePassword')
 );
 const Billing = React.lazy(
-  () => import('pages/user/Billing')
+  () => import('./pages/user/Billing')
 );
 const ProfilePage = React.lazy(
-  () => import('pages/user/ProfilePage')
+  () => import('./pages/user/ProfilePage')
 );
 const CourseSection = React.lazy(
   () =>
-    import('pages/user/CourseSection')
+    import('./pages/user/CourseSection')
 );
 const LessonPage = React.lazy(
-  () => import('pages/user/LessonPage')
+  () => import('./pages/user/LessonPage')
 );
 
 // Loading component for Suspense fallback
 const Loading = () => (
-  <div className="loading">
-    Loading...
+  <div >
+    <CircularProgress />
   </div>
 );
 

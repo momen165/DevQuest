@@ -1,6 +1,6 @@
 // /src/components/FAQSection.js
 import React from "react";
-import "styles/FAQSection.css";
+import "../styles/FAQSection.css";
 import { useNavigate } from "react-router-dom";
 
 const FAQSection = () => {

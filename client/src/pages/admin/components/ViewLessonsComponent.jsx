@@ -3,11 +3,11 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FaEdit, FaTrash, FaPlusCircle } from 'react-icons/fa';
 import axios from 'axios';
 import LessonEditAddComponent from './LessonEditAddComponent';
-import 'pages/admin/styles/ViewLessonsComponent.css';
+import '../../../pages/admin/styles/ViewLessonsComponent.css';
 import ErrorAlert from './ErrorAlert';
 import he from 'he'; // Import he library for HTML encoding
 
-import { useAuth } from 'AuthContext';
+import { useAuth } from '../../../AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
 
 const ViewLessonsComponent = ({ section, onClose }) => {
@@ -39,11 +39,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
         template_code: lesson.template_code || '' // Ensure template_code is loaded as is
       }));
 
-      // Debug log
-      console.log('Loaded lessons:', lessonsWithFormattedContent.map(lesson => ({
-        ...lesson,
-        template_code_preview: lesson.template_code?.substring(0, 100) // Log first 100 chars of template code
-      })));
+     
 
       setLessons(lessonsWithFormattedContent || []);
     } catch (err) {
@@ -146,7 +142,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
         }
 
       );
-      console.log('Reorder successful');
+      
     } catch (err) {
       console.error('Error updating lesson order:', err);
     }
