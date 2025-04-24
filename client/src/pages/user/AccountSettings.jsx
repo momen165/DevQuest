@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Navbar from "components/Navbar";
-import Sidebar from "components/AccountSettingsSidebar";
-import { useAuth } from "AuthContext";
-import "styles/AccountSettings.css";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/AccountSettingsSidebar";
+import { useAuth } from "../../AuthContext";
+import "../../styles/AccountSettings.css";
 import defaultProfilePic from "../../assets/images/default-profile-pic.png";
 import { FaCamera } from "react-icons/fa";
 

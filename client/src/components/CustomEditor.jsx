@@ -60,7 +60,7 @@ import {
 
 import "ckeditor5/ckeditor5.css";
 
-import "styles/CustomEditor.css";
+import "../styles/CustomEditor.css";
 
 import { getFontClass } from "../utils/editorUtils";
 import { useAuth } from "../AuthContext";
@@ -530,7 +530,7 @@ const CustomEditor = ({
 
   const handleChange = (event, editor) => {
     const data = editor.getData();
-    console.log("Editor data:", data);
+   
     if (onChange) {
       onChange(data);
     }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Sidebar from "pages/admin/components/Sidebar";
-import "pages/admin/styles/PaymentInfo.css";
-import { useAuth } from "AuthContext";
+import Sidebar from "../../pages/admin/components/Sidebar";
+import "../../pages/admin/styles/PaymentInfo.css";
+import { useAuth } from "../../AuthContext";
 
 const PaymentDetails = () => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -28,7 +28,7 @@ const PaymentDetails = () => {
           },
         );
 
-        console.log("Fetched subscriptions:", response.data); // Log the fetched data
+        
         setSubscriptions(response.data); // With axios, we can directly use response.data
       } catch (err) {
         console.error("Error fetching subscriptions:", err); // Log the error

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Sidebar from "pages/admin/components/Sidebar";
-import "pages/admin/styles/Support.css";
-import { useAuth } from "AuthContext";
+import Sidebar from "../admin/components/Sidebar";
+import "../admin/styles/Support.css";
+import { useAuth } from "../../AuthContext";
 import CircularProgress from "@mui/material/CircularProgress";
 
 const Support = () => {

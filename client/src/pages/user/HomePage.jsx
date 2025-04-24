@@ -2,19 +2,18 @@ import React, { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Component Imports
-import Navbar from "components/Navbar";
-import FAQSection from "components/FAQSection";
-
-import CoursesSlider from "components/slider";
-import SupportForm from "components/SupportForm";
-import Footer from "components/Footer";
-import FeedbackCardScroll from "components/FeedbackCardScroll";
+import Navbar from "../../components/Navbar";
+import FAQSection from "../../components/FAQSection";
+import CoursesSlider from "../../components/slider";
+import SupportForm from "../../components/SupportForm";
+import Footer from "../../components/Footer";
+import FeedbackCardScroll from "../../components/FeedbackCardScroll";
 
 // Asset Imports
-import heroimg from "assets/images/logo-noText.svg";
+import heroimg from "../../assets/images/logo-noText.svg";
 
 // Style Imports
-import "styles/HomePage.css";
+import "../../styles/HomePage.css";
 
 const HomePage = () => {
   // Hooks
@@ -29,7 +28,7 @@ const HomePage = () => {
   const handleBrowseCourses = () => navigate("/CoursesPage");
   const handleCreateAccount = () => navigate("/RegistrationPage");
   const handleContinueLearning = () => navigate("/ProfilePage");
-  console.log("🔍 API URL in prod:", import.meta.env.VITE_API_URL);
+
 
   return (
     <>

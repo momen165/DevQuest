@@ -4,7 +4,7 @@ import parse from "html-react-parser";
 import hljs from "highlight.js";
 import { FaRegCopy, FaCheck } from "react-icons/fa";
 import "highlight.js/styles/srcery.css";
-import "styles/LessonContent.css";
+import "../styles/LessonContent.css";
 
 import { getFontClass } from "../utils/editorUtils";
 
@@ -34,7 +34,7 @@ const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
       block.textContent = rawContent;
       hljs.highlightElement(block);
     });
-  }, [content, hint, solution]); 
+  }, [content, hint, solution]);
 
   const copyCodeToClipboard = (code, event) => {
     const button = event.currentTarget;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "pages/admin/components/Sidebar";
+import Sidebar from "../admin/components/Sidebar";
 import axios from "axios";
-import { useAuth } from "AuthContext";
+import { useAuth } from "../../AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 import "./styles/AdminSettingsPage.css";
 
@@ -19,7 +19,7 @@ const AdminSettingsPage = () => {
     if (userObj?.token) {
       axios.defaults.headers.common["Authorization"] =
         `Bearer ${userObj.token}`;
-      axios.defaults.baseURL = "http://localhost:5000";
+      axios.defaults.baseURL = `${import.meta.env.VITE_API_URL}`;
     }
   }, []);
 
@@ -85,7 +85,7 @@ const AdminSettingsPage = () => {
     const fetchMaintenanceStatus = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/system-settings`);
-        console.log("Current maintenance status:", response.data);
+
         setMaintenanceMode(!!response.data.maintenanceMode); // Convert to boolean
       } catch (err) {
         console.error("Error fetching maintenance status:", err);

@@ -4,9 +4,9 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FaEye, FaTrash, FaPlusCircle, FaEdit } from 'react-icons/fa';
 import ViewLessonsComponent from './ViewLessonsComponent';
 import AddEditSectionComponent from './AddEditSectionComponent';
-import 'pages/admin/styles/SectionEditComponent.css';
+import '../../../pages/admin/styles/SectionEditComponent.css';
 import ErrorAlert from './ErrorAlert';
-import { useAuth } from 'AuthContext'; // Import useAuth for context
+import { useAuth } from '../../../AuthContext'; // Import useAuth for context
 
 const SectionEditComponent = ({ sections, courseId, onSectionUpdate, onDeleteSection, onClose }) => {
   const [editingSection, setEditingSection] = useState(null);
