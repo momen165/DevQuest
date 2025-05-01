@@ -1,9 +1,4 @@
-const {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-} = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
 
@@ -36,16 +31,9 @@ const uploadImageToS3 = async (file, courseName) => {
   const command = new PutObjectCommand(params);
   await s3Client.send(command);
 
-  // Generate a pre-signed URL for the uploaded object (valid for 7 days)
-  const getObjectCommand = new GetObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME,
-    Key: key,
-  });
+  // 👇 This is now correct
+  const url = `https://cdn.dev-quest.tech/${key}`;
 
-  // Make sure we're using a maximum expiration of 7 days (604800 seconds)
-  const url = await getSignedUrl(s3Client, getObjectCommand, {
-    expiresIn: 604800,
-  });
   return url;
 };
 

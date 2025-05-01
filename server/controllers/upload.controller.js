@@ -6,7 +6,6 @@ const {
   ListBucketsCommand,
   GetObjectCommand,
 } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const db = require("../config/database"); // Adjust as per your project
@@ -68,7 +67,7 @@ const uploadFile = [
         .toFormat("png", { quality: 90 }) // Convert to PNG and preserve transparency
         .toBuffer();
 
-      // Prepare S3 upload parameters
+      // Prepare R2 upload parameters
       const params = {
         Bucket: process.env.R2_BUCKET_NAME,
         Key: fileKey,
@@ -81,15 +80,8 @@ const uploadFile = [
         const command = new PutObjectCommand(params);
         await s3Client.send(command);
 
-        // Generate pre-signed URL for the uploaded object
-        const getObjectCommand = new GetObjectCommand({
-          Bucket: process.env.R2_BUCKET_NAME,
-          Key: fileKey,
-        });
-
-        const fileUrl = await getSignedUrl(s3Client, getObjectCommand, {
-          expiresIn: 604800,
-        }); // 7 days
+        // Use the CDN URL directly
+        const fileUrl = `https://cdn.dev-quest.tech/${fileKey}`;
 
         // Send success response
         res.status(200).json({
@@ -111,6 +103,7 @@ const uploadFile = [
   },
 ];
 
+// Profile Pic Upload Route
 const uploadProfilePic = [
   upload.single("profilePic"),
   async (req, res) => {
@@ -151,15 +144,8 @@ const uploadProfilePic = [
       const command = new PutObjectCommand(params);
       await s3Client.send(command);
 
-      // Generate pre-signed URL for the uploaded profile picture
-      const getObjectCommand = new GetObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: fullKey,
-      });
-
-      const profileimage = await getSignedUrl(s3Client, getObjectCommand, {
-        expiresIn: 604800,
-      }); // 7 days
+      // Direct CDN URL
+      const profileimage = `https://cdn.dev-quest.tech/${fullKey}`;
 
       // Save the URL in the database
       const query = "UPDATE users SET profileimage = $1 WHERE user_id = $2";
@@ -177,6 +163,7 @@ const uploadProfilePic = [
   },
 ];
 
+// Remove Profile Pic Route
 const removeProfilePic = async (req, res) => {
   try {
     if (!req.user || !req.user.user_id) {
@@ -200,8 +187,7 @@ const removeProfilePic = async (req, res) => {
     const profileimage = rows[0].profileimage;
 
     if (profileimage) {
-      // Extract the object key from the presigned URL
-      // This is a bit tricky with presigned URLs, so we'll use a fixed key based on user ID
+      // Extract the object key from the URL
       const key = `user_images/profile_${userId}.png`;
 
       try {
@@ -273,15 +259,8 @@ const uploadEditorImage = [
         const command = new PutObjectCommand(params);
         await s3Client.send(command);
 
-        // Generate pre-signed URL for the uploaded editor image
-        const getObjectCommand = new GetObjectCommand({
-          Bucket: process.env.R2_BUCKET_NAME,
-          Key: fileKey,
-        });
-
-        const fileUrl = await getSignedUrl(s3Client, getObjectCommand, {
-          expiresIn: 604800,
-        }); // 7 days
+        // Use the CDN URL directly
+        const fileUrl = `https://cdn.dev-quest.tech/${fileKey}`;
 
         res.status(200).json({
           uploaded: 1,
