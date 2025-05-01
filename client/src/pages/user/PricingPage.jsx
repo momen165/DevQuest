@@ -3,11 +3,14 @@ import axios from "axios";
 import "../../styles/PricingPage.css";
 import Navbar from "../../components/Navbar";
 import { useAuth } from "../../AuthContext";
+import { loadStripe } from "@stripe/stripe-js"; // Import loadStripe
 
 import SupportForm from "../../components/SupportForm";
 import Footer from "../../components/Footer";
 import { useNavigate } from "react-router-dom";
 
+// Initialize Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY); // Initialize stripePromise
 
 const api_url = import.meta.env.VITE_API_URL;
 const PricingPage = () => {
@@ -69,7 +72,7 @@ const PricingPage = () => {
 
     setLoading(true);
     try {
-      const stripe = await stripePromise;
+      const stripe = await stripePromise; // Now stripePromise is defined
       const { data } = await axios.post(
         `${api_url}/create-checkout-session`,
         {
