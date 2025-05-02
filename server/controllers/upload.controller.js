@@ -1,14 +1,13 @@
 const multer = require("multer");
 const {
-  S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
   ListBucketsCommand,
-  GetObjectCommand,
-} = require("@aws-sdk/client-s3");
+} = require("@aws-sdk/client-s3"); // Removed unused S3Client and GetObjectCommand imports
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const db = require("../config/database"); // Adjust as per your project
+const { s3Client } = require("../utils/s3.utils"); // Import the shared S3 client
 
 // Set up Multer with file validation
 const upload = multer({
@@ -22,16 +21,6 @@ const upload = multer({
     } else {
       cb(new Error("Invalid file type. Only images are allowed."));
     }
-  },
-});
-
-// Configure Cloudflare R2 (S3 Compatible)
-const s3Client = new S3Client({
-  region: "auto",
-  endpoint: process.env.R2_ENDPOINT_URL,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
 });
 
@@ -125,7 +114,7 @@ const uploadProfilePic = [
       // Set the folder path and filename
       const folderPath = `user_images/`;
       const filename = `profile_${userId}.png`;
-      const fullKey = `${folderPath}${filename}`;
+      const fullKey = `${folderPath}${filename}`; // Reverted: Removed base path prepend
 
       const processedBuffer = await sharp(req.file.buffer)
         .resize(400, 400)
@@ -137,7 +126,7 @@ const uploadProfilePic = [
         Bucket: process.env.R2_BUCKET_NAME,
         Key: fullKey,
         Body: processedBuffer,
-        ContentType: "image/*",
+        ContentType: "image/png", // Explicitly set ContentType to PNG
       };
 
       // Upload to R2
@@ -187,7 +176,7 @@ const removeProfilePic = async (req, res) => {
     const profileimage = rows[0].profileimage;
 
     if (profileimage) {
-      // Extract the object key from the URL
+      // Extract the object key from the URL (Reverted: Removed base path prepend)
       const key = `user_images/profile_${userId}.png`;
 
       try {
@@ -244,7 +233,8 @@ const uploadEditorImage = [
             fit: "inside",
           })
           .toBuffer();
-      } catch (sharpError) {
+      } catch {
+        // Removed unused variable
         processedBuffer = file.buffer;
       }
 
