@@ -233,8 +233,8 @@ const uploadEditorImage = [
             fit: "inside",
           })
           .toBuffer();
-      } catch {
-        // Removed unused variable
+      } catch (sharpError) {
+        console.error("Image processing error with sharp:", sharpError);
         processedBuffer = file.buffer;
       }
 
