@@ -10,16 +10,17 @@ const s3Client = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
+  forcePathStyle: true, // Added to potentially support custom domain endpoint
 });
 
-const uploadImageToS3 = async (file, courseName) => {
+const uploadImageToS3 = async (file) => { // Removed unused courseName parameter
   const filename = `course_${uuidv4()}.png`;
   const processedBuffer = await sharp(file.buffer)
     .resize(800)
     .png({ quality: 80 })
     .toBuffer();
 
-  const key = `uploads/${filename}`;
+  const key = `uploads/${filename}`; // Reverted: Removed base path prepend
 
   const params = {
     Bucket: process.env.R2_BUCKET_NAME,

@@ -62,7 +62,7 @@ import "ckeditor5/ckeditor5.css";
 
 import "../styles/CustomEditor.css";
 
-import { getFontClass } from "../utils/editorUtils";
+// Removed unused import: import { getFontClass } from "../utils/editorUtils";
 import { useAuth } from "../AuthContext";
 import { FaQuestionCircle } from "react-icons/fa";
 
@@ -530,7 +530,7 @@ const CustomEditor = ({
 
   const handleChange = (event, editor) => {
     const data = editor.getData();
-   
+
     if (onChange) {
       onChange(data);
     }
@@ -640,7 +640,7 @@ class ImageUploadAdapter {
         throw new Error("Authentication token not found");
       }
 
-      const response = await fetch(`api/upload`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/editor`, { // Corrected URL
         method: "POST",
         headers: {
           Authorization: `Bearer ${this.token}`,
