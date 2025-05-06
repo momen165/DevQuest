@@ -10,24 +10,53 @@ const courseQueries = require("../models/course.model");
 const { AppError, asyncHandler } = require("../utils/error.utils");
 const { clearCoursesCache } = require("./feedback.controller");
 
+/**
+ * Creates a new course in the system
+ *
+ * This function validates admin permissions, processes course data,
+ * handles image uploads if provided, and saves the course to the database.
+ * After successful creation, it clears the courses cache and logs the activity.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - The course data
+ * @param {string} req.body.title - Course title
+ * @param {string} req.body.description - Course description
+ * @param {string} req.body.status - Course status (Draft/Published)
+ * @param {string} req.body.difficulty - Course difficulty level
+ * @param {number} req.body.language_id - ID of the programming language
+ * @param {Object} req.file - Optional image file
+ * @param {Object} req.user - Authenticated user information
+ *
+ * @param {Object} res - Express response object
+ *
+ * @returns {Object} JSON response with the newly created course data
+ * @throws {AppError} If validation fails or course insertion fails
+ */
 const addCourse = asyncHandler(async (req, res) => {
+  // Validate user permissions and request data
   validateAdmin(req.user);
   validateCourseFields(req.body);
 
   const { title, description, status, difficulty, language_id } = req.body;
   let imageUrl = null;
 
-  if (req.file) {
-    imageUrl = await uploadImageToS3(req.file);
+  // Handle image upload if provided
+  try {
+    if (req.file) {
+      imageUrl = await uploadImageToS3(req.file, title); // Pass title for consistent naming
+    }
+  } catch (error) {
+    throw new AppError(`Image upload failed: ${error.message}`, 400);
   }
 
+  // Insert course into database
   const result = await courseQueries.insertCourse(
     title,
     description,
     status,
     difficulty,
     language_id,
-    imageUrl,
+    imageUrl
   );
 
   if (result.rowCount === 0) {
@@ -37,11 +66,13 @@ const addCourse = asyncHandler(async (req, res) => {
   // Clear courses cache after adding new course
   clearCoursesCache();
 
+  // Log activity
   await logActivity(
     "Course",
     `New course added: ${title} by user ID ${req.user.userId}`,
-    req.user.userId,
+    req.user.userId
   );
+
   res.status(201).json(result.rows[0]);
 });
 
@@ -65,7 +96,7 @@ const editCourse = asyncHandler(async (req, res) => {
     status,
     difficulty,
     language_id,
-    imageUrl,
+    imageUrl
   );
 
   if (result.rowCount === 0) {
@@ -78,7 +109,7 @@ const editCourse = asyncHandler(async (req, res) => {
   await logActivity(
     "Course",
     `Course updated: ${title} by user ID ${req.user.userId}`,
-    req.user.userId,
+    req.user.userId
   );
   res.status(200).json(result.rows[0]);
 });
@@ -96,7 +127,7 @@ const deleteCourse = asyncHandler(async (req, res) => {
   await logActivity(
     "Course",
     `Course deleted by user ID ${req.user.userId}`,
-    req.user.userId,
+    req.user.userId
   );
   res
     .status(200)
@@ -117,7 +148,7 @@ const getCourseById = asyncHandler(async (req, res) => {
   if (result.rows.length === 0) {
     throw new AppError(
       "The course you are looking for does not exist or has been removed",
-      404,
+      404
     );
   }
 
