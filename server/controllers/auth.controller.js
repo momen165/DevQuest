@@ -25,6 +25,18 @@ const mailjetClient = mailjet.apiConnect(
   process.env.MAILJET_SECRET_KEY
 );
 
+// Define styles for reusability
+const emailStyles = {
+  container: `font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;`,
+  header: `background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); padding: 40px 20px; text-align: center;`,
+  logo: `max-width: 200px; height: auto; margin-bottom: 20px;`,
+  contentArea: `padding: 40px 30px; background-color: #ffffff;`,
+  footer: `background-color: #F9FAFB; padding: 30px 20px; text-align: center; border-top: 1px solid #e5e7eb;`,
+  footerLinksContainer: `margin-bottom: 20px;`,
+  footerLink: `color: #6B7280; text-decoration: none; margin: 0 15px; font-size: 14px;`,
+  footerCopyright: `color: #9CA3AF; font-size: 12px; margin: 0;`,
+};
+
 // Helper functions
 const helpers = {
   generateToken: (userId, options = {}) => {
@@ -72,26 +84,30 @@ const helpers = {
   },
 
   getEmailTemplate: (content) => `
-    <div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
-      <div style="background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); padding: 40px 20px; text-align: center;">
-        <img src="https://devquest2.s3.eu-central-1.amazonaws.com/assets/logo.svg" alt="Devquest Logo" style="max-width: 180px; height: auto; margin-bottom: 20px;">
+    <div style="${emailStyles.container}" lang="en">
+      <div style="${emailStyles.header}">
+        <img src="https://cdn.dev-quest.tech/logo/logoWithOutText.png" alt="Devquest Logo" style="${
+          emailStyles.logo
+        }">
       </div>
-      <div style="padding: 40px 30px; background-color: #ffffff;">
+      <div style="${emailStyles.contentArea}">
         ${content}
       </div>
-      <div style="background-color: #F9FAFB; padding: 30px 20px; text-align: center;">
-        <div style="margin-bottom: 20px;">
-          <a href="${
-            process.env.FRONTEND_URL
-          }/about" style="color: #6B7280; text-decoration: none; margin: 0 10px;">About</a>
-          <a href="${
-            process.env.FRONTEND_URL
-          }/contact" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Contact</a>
-          <a href="${
-            process.env.FRONTEND_URL
-          }/privacy" style="color: #6B7280; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+      <div style="${emailStyles.footer}">
+        <div style="${emailStyles.footerLinksContainer}">
+          <a href="${process.env.FRONTEND_URL}/about" style="${
+    emailStyles.footerLink
+  }">About</a>
+          <a href="${process.env.FRONTEND_URL}/contact" style="${
+    emailStyles.footerLink
+  }">Contact</a>
+          <a href="${process.env.FRONTEND_URL}/privacy" style="${
+    emailStyles.footerLink
+  }">Privacy Policy</a>
         </div>
-        <p style="color: #9CA3AF; font-size: 12px; margin: 0;">${new Date().getFullYear()} Devquest. All rights reserved.</p>
+        <p style="${
+          emailStyles.footerCopyright
+        }">${new Date().getFullYear()} Devquest. All rights reserved.</p>
       </div>
     </div>
   `,
@@ -168,22 +184,30 @@ const signup = handleAsync(async (req, res) => {
   const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
   const emailContent = helpers.getEmailTemplate(`
-    <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">Welcome to Devquest!</h1>
-    <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
-      We're excited to have you join our community of developers! To get started, please verify your email address.
-    </p>
-    <div style="text-align: center; margin: 32px 0;">
-      <a href="${verificationLink}" 
-         style="display: inline-block; background-color: #4F46E5; color: white; 
-                padding: 14px 32px; text-decoration: none; border-radius: 8px;
-                font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
-        Verify Email Address
-      </a>
-    </div>
-    <div style="background-color: #F3F4F6; border-radius: 8px; padding: 16px; margin-top: 32px;">
-      <p style="color: #6B7280; font-size: 14px; margin: 0;">
-        If you didn't create an account with Devquest, you can safely ignore this email.
+    <div style="font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+      <h1 style="color: #1F2937; font-size: 28px; font-weight: 700; margin-bottom: 32px; text-align: center; 
+                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">
+        Welcome to Devquest!
+      </h1>
+      <p style="color: #374151; font-size: 16px; line-height: 1.8; margin-bottom: 32px; text-align: center;">
+        We're excited to have you join our community of developers! To get started, please verify your email address.
       </p>
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="${verificationLink}" 
+           style="display: inline-block; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); 
+                  color: white; padding: 16px 40px; text-decoration: none; border-radius: 12px;
+                  font-weight: 600; font-size: 16px; letter-spacing: 0.5px;
+                  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                  transition: all 0.3s ease;">
+          Verify Email Address
+        </a>
+      </div>
+      <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; 
+                  padding: 20px; margin-top: 40px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);">
+        <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 0; text-align: center;">
+          If you didn't create an account with Devquest, you can safely ignore this email.
+        </p>
+      </div>
     </div>
   `);
 
@@ -237,16 +261,6 @@ const login = handleAsync(async (req, res) => {
       email: user.email,
     });
   }
-
-  const userData = {
-    userId: user.user_id,
-    name: user.name,
-    country: user.country,
-    bio: user.bio,
-    skills: user.skills || [],
-    admin: adminResult.rowCount > 0,
-    profileimage: user.profileimage,
-  };
 
   const accessToken = helpers.generateAccessToken(user.user_id, {
     admin: adminResult.rowCount > 0,
@@ -363,7 +377,13 @@ const updateProfile = handleAsync(async (req, res) => {
       RETURNING name, country, bio, skills, profileimage
     `;
 
-    const values = [name, country, bio, JSON.stringify(skillsToSave), req.user.userId];
+    const values = [
+      name,
+      country,
+      bio,
+      JSON.stringify(skillsToSave),
+      req.user.userId,
+    ];
     const result = await db.query(query, values);
 
     if (result.rows.length === 0) {

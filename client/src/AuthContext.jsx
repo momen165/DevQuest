@@ -144,11 +144,21 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
-      if (refreshToken) {
+      // Track logout attempts in session storage to prevent rapid retries
+      const lastLogoutAttempt = sessionStorage.getItem('lastLogoutAttempt');
+      const currentTime = Date.now();
+
+      if (refreshToken &&
+        (!lastLogoutAttempt || (currentTime - parseInt(lastLogoutAttempt)) > 10000)) { // 10 second cooldown
+        sessionStorage.setItem('lastLogoutAttempt', currentTime.toString());
         await axios.post(`${import.meta.env.VITE_API_URL}/logout`, { refreshToken });
       }
     } catch (error) {
       console.error("Error during logout:", error);
+      // Don't retry if we get a rate limit error
+      if (error.response && error.response.status === 429) {
+        console.log("Rate limited on logout, proceeding with local cleanup only");
+      }
     } finally {
       setUser(null);
       localStorage.removeItem("user");
