@@ -11,12 +11,13 @@ router.get(
   async (req, res) => {
     try {
       const activities = await getRecentActivities(10); // Fetch 10 recent activities
+
       res.status(200).json(activities);
     } catch (err) {
       console.error("Error fetching recent activities:", err);
       res.status(500).json({ error: "Failed to fetch recent activities." });
     }
-  }
+  },
 );
 
 module.exports = router;

@@ -39,7 +39,7 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 // Security headers
@@ -79,7 +79,7 @@ app.use(
       ],
       upgradeInsecureRequests: [],
     },
-  })
+  }),
 );
 
 // Define stricter rate limits for auth routes
@@ -109,7 +109,7 @@ app.disable("x-powered-by");
 app.post(
   "/api/webhook",
   express.raw({ type: "application/json" }),
-  webhookHandler
+  webhookHandler,
 );
 
 // Middleware for parsing JSON and URL-encoded data
@@ -223,12 +223,12 @@ app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader(
     "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains"
+    "max-age=31536000; includeSubDomains",
   );
   res.setHeader("Referrer-Policy", "same-origin");
   res.setHeader(
     "Permissions-Policy",
-    "geolocation=(), microphone=(), camera=()"
+    "geolocation=(), microphone=(), camera=()",
   );
   next();
 });
@@ -250,20 +250,3 @@ setInterval(closeExpiredTickets, 5 * 60 * 1000);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-// Log all registered routes for debugging
-if (process.env.NODE_ENV !== "production") {
-  setTimeout(() => {
-    console.log("\nRegistered Routes:");
-    app._router.stack
-      .filter((r) => r.route)
-      .forEach((r) => {
-        const methods = Object.keys(r.route.methods)
-          .filter((m) => r.route.methods[m])
-          .join(", ")
-          .toUpperCase();
-        console.log(`${methods} ${r.route.path}`);
-      });
-    console.log("\n");
-  }, 1000);
-}

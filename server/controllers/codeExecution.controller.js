@@ -443,13 +443,13 @@ const executeCode = handleAsync(async (req, res) => {
       output.push(args.join(' '));
       originalConsoleLog.apply(console, args);
     };
-    
+
     try {
       ${code}
     } catch (error) {
       console.error(error.message);
     }
-    
+
     console.log = originalConsoleLog;
     output.join('\\n');
   `;

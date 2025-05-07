@@ -18,6 +18,7 @@ const pool = new Pool({
       ca: fs.readFileSync(path.join(__dirname, "../certs/ca.pem")).toString(),
     }),
   },
+
   connectionTimeoutMillis: 10000,
   statement_timeout: 10000,
   query_timeout: 10000,
