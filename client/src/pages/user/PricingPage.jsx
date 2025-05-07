@@ -70,15 +70,25 @@ const PricingPage = () => {
       return;
     }
 
+    if (!user.token) {
+      setErrorMessage("Authentication token is missing. Please log in again.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const stripe = await stripePromise; // Now stripePromise is defined
+      const stripe = await stripePromise;
+      if (!stripe) {
+        setErrorMessage("Failed to initialize payment processor.");
+        return;
+      }
+
       const { data } = await axios.post(
         `${api_url}/create-checkout-session`,
         {
           priceId: isMonthly
             ? "price_1QV9vuHxgK7P1VPXGB14mjGT"
-            : "price_1QVBWXHxgK7P1VPX5pSXWJbG", // Use actual price IDs
+            : "price_1QVBWXHxgK7P1VPX5pSXWJbG",
         },
         {
           headers: {
@@ -86,6 +96,11 @@ const PricingPage = () => {
           },
         },
       );
+
+      if (!data || !data.id) {
+        setErrorMessage("Invalid response from payment processor.");
+        return;
+      }
 
       const { error } = await stripe.redirectToCheckout({ sessionId: data.id });
       if (error) {
