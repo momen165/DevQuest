@@ -22,7 +22,7 @@ const CONFIG = {
 // Initialize email client
 const mailjetClient = mailjet.apiConnect(
   process.env.MAILJET_API_KEY,
-  process.env.MAILJET_SECRET_KEY
+  process.env.MAILJET_SECRET_KEY,
 );
 
 // Define styles for reusability
@@ -57,7 +57,7 @@ const helpers = {
         admin: userData.admin || false,
       },
       process.env.JWT_SECRET,
-      { expiresIn: CONFIG.jwt.accessTokenExpiresIn }
+      { expiresIn: CONFIG.jwt.accessTokenExpiresIn },
     );
   },
 
@@ -67,11 +67,11 @@ const helpers = {
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     await db.query(
-      `INSERT INTO refresh_tokens (user_id, token, expires_at) 
+      `INSERT INTO refresh_tokens (user_id, token, expires_at)
        VALUES ($1, $2, $3)
-       ON CONFLICT (user_id) 
+       ON CONFLICT (user_id)
        DO UPDATE SET token = $2, expires_at = $3, created_at = CURRENT_TIMESTAMP`,
-      [userId, refreshToken, expiresAt]
+      [userId, refreshToken, expiresAt],
     );
 
     return refreshToken;
@@ -96,14 +96,14 @@ const helpers = {
       <div style="${emailStyles.footer}">
         <div style="${emailStyles.footerLinksContainer}">
           <a href="${process.env.FRONTEND_URL}/about" style="${
-    emailStyles.footerLink
-  }">About</a>
+            emailStyles.footerLink
+          }">About</a>
           <a href="${process.env.FRONTEND_URL}/contact" style="${
-    emailStyles.footerLink
-  }">Contact</a>
+            emailStyles.footerLink
+          }">Contact</a>
           <a href="${process.env.FRONTEND_URL}/privacy" style="${
-    emailStyles.footerLink
-  }">Privacy Policy</a>
+            emailStyles.footerLink
+          }">Privacy Policy</a>
         </div>
         <p style="${
           emailStyles.footerCopyright
@@ -140,7 +140,7 @@ const helpers = {
 
     if (response.response.status !== 200) {
       throw new Error(
-        `Email sending failed with status: ${response.response.status}`
+        `Email sending failed with status: ${response.response.status}`,
       );
     }
 
@@ -177,7 +177,7 @@ const signup = handleAsync(async (req, res) => {
 
   const { rows } = await db.query(
     "INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id",
-    [name, email.toLowerCase(), hashedPassword, country, false]
+    [name, email.toLowerCase(), hashedPassword, country, false],
   );
 
   const verificationToken = helpers.generateVerificationToken(rows[0].user_id);
@@ -185,7 +185,7 @@ const signup = handleAsync(async (req, res) => {
 
   const emailContent = helpers.getEmailTemplate(`
     <div style="font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-      <h1 style="color: #1F2937; font-size: 28px; font-weight: 700; margin-bottom: 32px; text-align: center; 
+      <h1 style="color: #1F2937; font-size: 28px; font-weight: 700; margin-bottom: 32px; text-align: center;
                  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">
         Welcome to Devquest!
       </h1>
@@ -193,8 +193,8 @@ const signup = handleAsync(async (req, res) => {
         We're excited to have you join our community of developers! To get started, please verify your email address.
       </p>
       <div style="text-align: center; margin: 40px 0;">
-        <a href="${verificationLink}" 
-           style="display: inline-block; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); 
+        <a href="${verificationLink}"
+           style="display: inline-block; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
                   color: white; padding: 16px 40px; text-decoration: none; border-radius: 12px;
                   font-weight: 600; font-size: 16px; letter-spacing: 0.5px;
                   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -202,7 +202,7 @@ const signup = handleAsync(async (req, res) => {
           Verify Email Address
         </a>
       </div>
-      <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; 
+      <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px;
                   padding: 20px; margin-top: 40px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);">
         <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 0; text-align: center;">
           If you didn't create an account with Devquest, you can safely ignore this email.
@@ -214,12 +214,12 @@ const signup = handleAsync(async (req, res) => {
   await helpers.sendEmail(
     email,
     "Welcome to Devquest - Verify Your Email",
-    emailContent
+    emailContent,
   );
   await logActivity(
     "User",
     `Verification email sent to: ${email}`,
-    rows[0].user_id
+    rows[0].user_id,
   );
 
   res.status(201).json({
@@ -239,7 +239,7 @@ const login = handleAsync(async (req, res) => {
     db.query("SELECT * FROM users WHERE email = $1", [email.toLowerCase()]),
     db.query(
       "SELECT 1 FROM admins WHERE admin_id = (SELECT user_id FROM users WHERE email = $1)",
-      [email.toLowerCase()]
+      [email.toLowerCase()],
     ),
   ]);
 
@@ -268,8 +268,6 @@ const login = handleAsync(async (req, res) => {
 
   const refreshToken = await helpers.generateRefreshToken(user.user_id);
 
-  await logActivity("User", `User logged in: ${user.email}`, user.user_id);
-
   res.status(200).json({
     message: "Login successful",
     token: accessToken,
@@ -294,7 +292,7 @@ const refreshAccessToken = handleAsync(async (req, res) => {
 
   const tokenResult = await db.query(
     "SELECT user_id, expires_at FROM refresh_tokens WHERE token = $1",
-    [refreshToken]
+    [refreshToken],
   );
 
   if (tokenResult.rows.length === 0) {
@@ -313,7 +311,7 @@ const refreshAccessToken = handleAsync(async (req, res) => {
   const [userResult, adminResult] = await Promise.all([
     db.query(
       "SELECT name, country, bio, skills, profileimage FROM users WHERE user_id = $1",
-      [user_id]
+      [user_id],
     ),
     db.query("SELECT 1 FROM admins WHERE admin_id = $1", [user_id]),
   ]);
@@ -367,8 +365,8 @@ const updateProfile = handleAsync(async (req, res) => {
     }
 
     const query = `
-      UPDATE users 
-      SET 
+      UPDATE users
+      SET
         name = COALESCE($1, name),
         country = COALESCE($2, country),
         bio = COALESCE($3, bio),
@@ -394,7 +392,7 @@ const updateProfile = handleAsync(async (req, res) => {
 
     const adminResult = await db.query(
       "SELECT 1 FROM admins WHERE admin_id = $1",
-      [req.user.userId]
+      [req.user.userId],
     );
 
     const isAdmin = adminResult.rowCount > 0;
@@ -425,7 +423,7 @@ const changePassword = handleAsync(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const { rows } = await db.query(
     "SELECT password FROM users WHERE user_id = $1",
-    [req.user.userId]
+    [req.user.userId],
   );
 
   if (rows.length === 0) {
@@ -439,7 +437,7 @@ const changePassword = handleAsync(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds
+    CONFIG.bcrypt.saltRounds,
   );
   await db.query("UPDATE users SET password = $1 WHERE user_id = $2", [
     hashedPassword,
@@ -458,7 +456,7 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
 
   const { rows } = await db.query(
     "SELECT user_id FROM users WHERE email = $1",
-    [email.toLowerCase()]
+    [email.toLowerCase()],
   );
 
   if (rows.length > 0) {
@@ -473,8 +471,8 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
         We received a request to reset your password. Use the button below to set up a new password for your account.
       </p>
       <div style="text-align: center; margin: 32px 0;">
-        <a href="${resetLink}" 
-           style="display: inline-block; background-color: #4F46E5; color: white; 
+        <a href="${resetLink}"
+           style="display: inline-block; background-color: #4F46E5; color: white;
                   padding: 14px 32px; text-decoration: none; border-radius: 8px;
                   font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
           Reset Password
@@ -490,7 +488,7 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
     await helpers.sendEmail(
       email,
       "Password Reset Request - Devquest",
-      emailContent
+      emailContent,
     );
   }
 
@@ -512,12 +510,12 @@ const resetPassword = handleAsync(async (req, res) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds
+    CONFIG.bcrypt.saltRounds,
   );
 
   const { rowCount } = await db.query(
     "UPDATE users SET password = $1 WHERE user_id = $2",
-    [hashedPassword, decoded.userId]
+    [hashedPassword, decoded.userId],
   );
 
   if (rowCount === 0) {
@@ -570,7 +568,7 @@ const verifyEmail = handleAsync(async (req, res) => {
 
     const checkUser = await db.query(
       "SELECT is_verified FROM users WHERE user_id = $1",
-      [userId]
+      [userId],
     );
 
     if (checkUser.rows.length === 0) {
@@ -583,7 +581,7 @@ const verifyEmail = handleAsync(async (req, res) => {
 
     const { rowCount } = await db.query(
       "UPDATE users SET is_verified = true WHERE user_id = $1",
-      [userId]
+      [userId],
     );
 
     if (rowCount === 0) {
@@ -619,7 +617,7 @@ const resendVerificationEmail = handleAsync(async (req, res) => {
   // Check if user exists and needs verification
   const userQuery = await db.query(
     "SELECT user_id, name, is_verified FROM users WHERE email = $1",
-    [email.toLowerCase()]
+    [email.toLowerCase()],
   );
 
   if (userQuery.rows.length === 0) {
@@ -651,8 +649,8 @@ const resendVerificationEmail = handleAsync(async (req, res) => {
       }, you requested a new verification email. Please click the button below to verify your email address.
     </p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${verificationLink}" 
-         style="display: inline-block; background-color: #4F46E5; color: white; 
+      <a href="${verificationLink}"
+         style="display: inline-block; background-color: #4F46E5; color: white;
                 padding: 14px 32px; text-decoration: none; border-radius: 8px;
                 font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
         Verify Email Address
@@ -667,12 +665,6 @@ const resendVerificationEmail = handleAsync(async (req, res) => {
   `);
 
   await helpers.sendEmail(email, "Verify Your Email - Devquest", emailContent);
-
-  await logActivity(
-    "User",
-    `Verification email resent to: ${email}`,
-    user.user_id
-  );
 
   res.status(200).json({
     message: "Verification email sent. Please check your inbox.",
@@ -703,8 +695,8 @@ const sendFeedbackReplyEmail = async ({
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
           <strong>Your rating:</strong> ${"★".repeat(rating)}${"☆".repeat(
-      5 - rating
-    )}
+            5 - rating,
+          )}
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
           <strong>Your feedback:</strong> "${comment || "No comment provided"}"
@@ -744,7 +736,7 @@ const sendFeedbackReplyEmail = async ({
 
     if (response.response.status !== 200) {
       throw new Error(
-        `Email sending failed with status: ${response.response.status}`
+        `Email sending failed with status: ${response.response.status}`,
       );
     }
 
@@ -758,7 +750,7 @@ const sendFeedbackReplyEmail = async ({
 const checkAdminStatus = handleAsync(async (req, res, next) => {
   const { rowCount } = await db.query(
     "SELECT 1 FROM admins WHERE admin_id = $1",
-    [req.user.userId]
+    [req.user.userId],
   );
 
   if (rowCount === 0) {
@@ -787,7 +779,7 @@ const requestEmailChange = handleAsync(async (req, res) => {
 
   const { rows } = await db.query(
     "SELECT email, name FROM users WHERE user_id = $1",
-    [userId]
+    [userId],
   );
   if (rows.length === 0) {
     return res.status(404).json({ error: "User not found" });
@@ -811,8 +803,8 @@ const requestEmailChange = handleAsync(async (req, res) => {
       Hello ${userName}, we received a request to change your email address from ${currentEmail} to ${newEmail}.
     </p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${verificationLink}" 
-         style="display: inline-block; background-color: #4F46E5; color: white; 
+      <a href="${verificationLink}"
+         style="display: inline-block; background-color: #4F46E5; color: white;
                 padding: 14px 32px; text-decoration: none; border-radius: 8px;
                 font-weight: 500; font-size: 16px; transition: background-color 0.2s ease;">
         Confirm Email Change
@@ -829,7 +821,7 @@ const requestEmailChange = handleAsync(async (req, res) => {
   await helpers.sendEmail(
     currentEmail,
     "Confirm Your Email Change Request - Devquest",
-    emailContent
+    emailContent,
   );
 
   res.status(200).json({
@@ -855,7 +847,7 @@ const confirmEmailChange = handleAsync(async (req, res) => {
 
     const existingUser = await db.query(
       "SELECT 1 FROM users WHERE email = $1 AND user_id != $2",
-      [newEmail.toLowerCase(), userId]
+      [newEmail.toLowerCase(), userId],
     );
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ error: "Email is no longer available" });
@@ -863,7 +855,7 @@ const confirmEmailChange = handleAsync(async (req, res) => {
 
     const { rowCount } = await db.query(
       "UPDATE users SET email = $1 WHERE user_id = $2 AND email = $3",
-      [newEmail.toLowerCase(), userId, currentEmail]
+      [newEmail.toLowerCase(), userId, currentEmail],
     );
 
     if (rowCount === 0) {
@@ -875,7 +867,7 @@ const confirmEmailChange = handleAsync(async (req, res) => {
     await logActivity(
       "User",
       `Email changed from ${currentEmail} to ${newEmail}`,
-      userId
+      userId,
     );
 
     res.status(200).json({

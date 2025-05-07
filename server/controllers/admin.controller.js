@@ -115,11 +115,20 @@ const addAdmin = async (req, res) => {
       [userId]
     );
     if (adminCheck.rowCount > 0) {
-      // Log the attempt
+      // Get names for both admins
+      const [requesterInfo, targetInfo] = await Promise.all([
+        db.query("SELECT name FROM users WHERE user_id = $1", [req.user.userId]),
+        db.query("SELECT name FROM users WHERE user_id = $1", [userId])
+      ]);
+      
+      const requesterName = requesterInfo.rows[0]?.name || "Unknown";
+      const targetName = targetInfo.rows[0]?.name || "Unknown";
+      
+      // Log the attempt with detailed information
       await logAdminActivity(
         req.user.userId,
         "Admin",
-        `Attempted to add user ${userId} as admin but they are already an admin`
+        `Admin ${requesterName} (ID: ${req.user.userId}) attempted to add user ${targetName} (ID: ${userId}) as admin but they are already an admin`
       );
       return res.status(400).json({ error: "User is already an admin" });
     }
@@ -127,11 +136,20 @@ const addAdmin = async (req, res) => {
     // Add user as admin
     await db.query("INSERT INTO admins (admin_id) VALUES ($1)", [userId]);
 
+    // Get names for both users involved
+    const [requesterInfo, targetInfo] = await Promise.all([
+      db.query("SELECT name FROM users WHERE user_id = $1", [req.user.userId]),
+      db.query("SELECT name FROM users WHERE user_id = $1", [userId])
+    ]);
+    
+    const requesterName = requesterInfo.rows[0]?.name || "Unknown";
+    const targetName = targetInfo.rows[0]?.name || "Unknown";
+
     // Log successful addition
     await logAdminActivity(
       req.user.userId,
       "Admin",
-      `Added user ${userId} as admin`
+      `Admin ${requesterName} (ID: ${req.user.userId}) added user ${targetName} (ID: ${userId}) as admin`
     );
 
     res.status(200).json({ message: "Admin added successfully" });
@@ -167,11 +185,20 @@ const removeAdmin = async (req, res) => {
     // Remove admin
     await db.query("DELETE FROM admins WHERE admin_id = $1", [userId]);
 
+    // Get names for both users involved
+    const [requesterInfo, targetInfo] = await Promise.all([
+      db.query("SELECT name FROM users WHERE user_id = $1", [req.user.userId]),
+      db.query("SELECT name FROM users WHERE user_id = $1", [userId])
+    ]);
+    
+    const requesterName = requesterInfo.rows[0]?.name || "Unknown";
+    const targetName = targetInfo.rows[0]?.name || "Unknown";
+
     // Log activity
     await logAdminActivity(
       req.user.userId,
       "Admin",
-      `Removed user ${userId} from admin role`
+      `Admin ${requesterName} (ID: ${req.user.userId}) removed user ${targetName} (ID: ${userId}) from admin role`
     );
 
     res.status(200).json({ message: "Admin removed successfully" });
