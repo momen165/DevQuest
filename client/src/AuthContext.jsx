@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { CircularProgress } from '@mui/material';
@@ -9,12 +9,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [refreshingToken, setRefreshingToken] = useState(false);
 
+  // Create a ref to hold the logout function
+  const logoutRef = useRef();
+
   // Function to refresh token
   const refreshToken = useCallback(async () => {
     try {
       // Prevent multiple refresh attempts
       if (refreshingToken) return null;
 
+      // Add refresh cooldown check
+      const lastRefreshAttempt = sessionStorage.getItem('lastRefreshAttempt');
+      const currentTime = Date.now();
+      if (lastRefreshAttempt && (currentTime - parseInt(lastRefreshAttempt)) < 10000) {
+        // Don't retry within 10 seconds
+        return null;
+      }
+
+      sessionStorage.setItem('lastRefreshAttempt', currentTime.toString());
       setRefreshingToken(true);
 
       const storedRefreshToken = localStorage.getItem("refreshToken");
@@ -39,8 +51,8 @@ export const AuthProvider = ({ children }) => {
       return token;
     } catch (error) {
       console.error("Failed to refresh token:", error);
-      // If refresh fails, log the user out
-      logout();
+      // Use the ref to call logout, avoiding the circular dependency
+      logoutRef.current?.();
       return null;
     } finally {
       setRefreshingToken(false);
@@ -166,6 +178,11 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("subscriptionStatus");
     }
   }, []);
+
+  // Update the ref whenever logout changes
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
 
   const isAuthenticated = !!user;
 
