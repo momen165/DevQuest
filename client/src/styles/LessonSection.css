@@ -70,7 +70,7 @@
   -webkit-transition: ease all 0.6s;
 }
 
-.checkbox-wrapper-31 input[type=checkbox] {
+.checkbox-wrapper-31 input[type='checkbox'] {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -82,20 +82,20 @@
   -webkit-appearance: none;
 }
 
-.checkbox-wrapper-31 input[type=checkbox]:hover {
+.checkbox-wrapper-31 input[type='checkbox']:hover {
   cursor: pointer;
 }
 
-.checkbox-wrapper-31 input[type=checkbox]:checked + svg .background {
-  fill: #4CAF50;
+.checkbox-wrapper-31 input[type='checkbox']:checked + svg .background {
+  fill: #4caf50;
   animation: checkmark 0.3s ease-in-out;
 }
 
-.checkbox-wrapper-31 input[type=checkbox]:checked + svg .stroke {
+.checkbox-wrapper-31 input[type='checkbox']:checked + svg .stroke {
   stroke-dashoffset: 0;
 }
 
-.checkbox-wrapper-31 input[type=checkbox]:checked + svg .check {
+.checkbox-wrapper-31 input[type='checkbox']:checked + svg .check {
   stroke-dashoffset: 0;
 }
 
@@ -147,7 +147,7 @@
 }
 
 .lesson-item.completed {
-  border-left: 4px solid #2E7D32;
+  border-left: 4px solid #2e7d32;
   background: rgba(46, 125, 50, 0.07);
 }
 
@@ -294,11 +294,11 @@
 
 /* Add completion badge (tick) */
 .section-completed::before {
-  content: "✓";
+  content: '✓';
   position: absolute;
   width: 30px;
   height: 30px;
-  background: #4CAF50;
+  background: #4caf50;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -307,7 +307,7 @@
   font-weight: bold;
   font-size: 1rem;
   border: 2px solid white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   z-index: 2;
   transition: all 0.3s ease;
   opacity: 0;
@@ -327,20 +327,20 @@
 
 /* Add completion banner with transition */
 .section-completed::after {
-  content: "COMPLETED";
+  content: 'COMPLETED';
   position: absolute;
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
   font-size: 0.8rem;
   font-weight: bold;
   letter-spacing: 1px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 1;
   transition: all 0.3s ease;
   /* Improve text readability */
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   /* Add gradient for more depth */
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, #4caf50, #45a049);
 }
 
 /* Banner position when section is closed */
@@ -376,9 +376,15 @@
 
 /* Animations */
 @keyframes checkmark {
-  0% { transform: scale(0.8); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Add new animation */
@@ -395,15 +401,61 @@
 
 /* Add these styles for the section description */
 .section-header-content {
-    flex: 1;
-    padding-right: 20px;
+  flex: 1;
+  padding-right: 20px;
 }
 
 .section-description {
-    font-size: 0.9em;
-    color: rgba(255, 255, 255, 0.7);
-    margin: 5px 0 0 0;
-    font-weight: normal;
-    line-height: 1.4;
-    max-width: 80%;
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 5px 0 0 0;
+  font-weight: normal;
+  line-height: 1.4;
+  max-width: 80%;
+}
+
+.lesson-item.locked {
+  cursor: not-allowed;
+  position: relative;
+  background: rgba(30, 30, 30, 0.7);
+}
+
+.lesson-item.locked:hover {
+  background: rgba(40, 40, 40, 0.8);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.lesson-lock-icon {
+  color: #6c7293;
+  margin-right: 8px;
+  font-size: 0.85rem;
+}
+
+.lesson-item-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lesson-error-message {
+  background-color: rgba(231, 76, 60, 0.85);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin: 15px auto;
+  text-align: center;
+  max-width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

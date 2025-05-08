@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import "../styles/LessonSection.css";
@@ -7,6 +7,7 @@ import "../styles/CourseSections.css";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import { CircularProgressbar } from "react-circular-progressbar";
+import { FaLock } from "react-icons/fa"; // Import lock icon
 
 // Create axios instance with default config
 const api = axios.create({
@@ -26,9 +27,9 @@ const LessonList = ({
   const [isOpen, setIsOpen] = useState(true);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const [error, setError] = useState(""); const { user } = useAuth();
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -54,6 +55,10 @@ const LessonList = ({
             }))
             .sort((a, b) => (a.lesson_order || 0) - (b.lesson_order || 0));
 
+          // Debug information
+          console.log(`Section ${sectionId} - First few lessons:`, sortedLessons.slice(0, 2));
+          console.log(`Section ${sectionId} - section_order:`, sortedLessons[0]?.section_order);
+
           setLessons(sortedLessons);
         }
       } catch (err) {
@@ -76,12 +81,47 @@ const LessonList = ({
   const toggleSection = () => {
     setIsOpen(!isOpen);
   };
+  // Check if a lesson is accessible based on previous lessons completion
+  const isLessonAccessible = (index) => {
+    // FIXED VERSION: Make all first lessons in any section accessible
+    // This matches server-side behavior where the first lesson in a section is always allowed
+    if (index === 0) {
+      return true; // All first lessons in any section should be accessible
+    }
 
+    // For other lessons, check if previous lesson is completed
+    const prevLesson = lessons[index - 1];
+    return prevLesson && prevLesson.completed;
+  };
+
+  // Show error message for locked lessons
+  const showNotification = (message) => {
+    setErrorMessage(message);
+    setShowErrorMessage(true);
+
+    // Hide the message after 3 seconds
+    setTimeout(() => {
+      setShowErrorMessage(false);
+    }, 3000);
+  };
+
+  // Handle lesson click with access check
+  const handleLessonClick = (e, lesson, index) => {
+    // Check for subscription limit
+    if (!hasActiveSubscription &&
+      (profileData?.exercisesCompleted || 0) >= FREE_LESSON_LIMIT) {
+      return; // Let the class "disabled" handle the styling
+    }
+
+    // Check if lesson is accessible
+    if (!isLessonAccessible(index)) {
+      e.preventDefault(); // Prevent navigation
+      showNotification("Complete previous lessons first to unlock this lesson.");
+    }
+  };
   // Calculate section completion stats
   const completedLessons = lessons.filter((lesson) => lesson.completed).length;
   const totalLessons = lessons.length;
-  const completionPercentage =
-    totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
   const isSectionCompleted =
     totalLessons > 0 && completedLessons === totalLessons;
 
@@ -90,7 +130,7 @@ const LessonList = ({
     const totalCount = lessons.length;
     const percentage = Math.round((completedCount / totalCount) * 100) || 0;
 
-   
+
 
     return (
       <div style={{ width: "100%", height: "100%" }}>
@@ -181,51 +221,66 @@ const LessonList = ({
         <div className="lesson-list">
           {lessons
             .filter((lesson) => lesson && lesson.lesson_id)
-            .map((lesson, index) => (
-              <Link
-                to={`/lesson/${lesson.lesson_id}`}
-                key={lesson.lesson_id}
-                className={`lesson-item ${lesson.completed ? "completed" : ""} ${
-                  !hasActiveSubscription &&
-                  (profileData?.exercisesCompleted || 0) >= FREE_LESSON_LIMIT
-                    ? "disabled"
-                    : ""
-                }`}
-              >
-                <span>
-                  <span className="lesson-number">Lesson {index + 1}</span>
-                  <span className="lesson-title">{lesson.name}</span>
-                </span>
-                <div className="checkbox-wrapper-31">
-                  <input type="checkbox" checked={lesson.completed} readOnly />
-                  <svg viewBox="0 0 35.6 35.6">
-                    <circle
-                      className="background"
-                      cx="17.8"
-                      cy="17.8"
-                      r="17.8"
-                    ></circle>
-                    <circle
-                      className="stroke"
-                      cx="17.8"
-                      cy="17.8"
-                      r="14.37"
-                    ></circle>
-                    <polyline
-                      className="check"
-                      points="11.78 18.12 15.55 22.23 25.17 12.87"
-                    ></polyline>
-                  </svg>
-                </div>
-              </Link>
-            ))}
+            .map((lesson, index) => {
+              const isAccessible = isLessonAccessible(index);
+              return (
+                <Link
+                  to={`/lesson/${lesson.lesson_id}`}
+                  key={lesson.lesson_id}
+                  className={`lesson-item 
+                    ${lesson.completed ? "completed" : ""} 
+                    ${!isAccessible ? "locked" : ""} 
+                    ${!hasActiveSubscription &&
+                      (profileData?.exercisesCompleted || 0) >= FREE_LESSON_LIMIT
+                      ? "disabled"
+                      : ""
+                    }`}
+                  onClick={(e) => handleLessonClick(e, lesson, index)}
+                >
+                  <span>
+                    <span className="lesson-number">Lesson {index + 1}</span>
+                    <span className="lesson-title">{lesson.name}</span>
+                  </span>
+                  <div className="lesson-item-right">
+                    {!isAccessible && <FaLock className="lesson-lock-icon" />}
+                    <div className="checkbox-wrapper-31">
+                      <input type="checkbox" checked={lesson.completed} readOnly />
+                      <svg viewBox="0 0 35.6 35.6">
+                        <circle
+                          className="background"
+                          cx="17.8"
+                          cy="17.8"
+                          r="17.8"
+                        ></circle>
+                        <circle
+                          className="stroke"
+                          cx="17.8"
+                          cy="17.8"
+                          r="14.37"
+                        ></circle>
+                        <polyline
+                          className="check"
+                          points="11.78 18.12 15.55 22.23 25.17 12.87"
+                        ></polyline>
+                      </svg>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
         </div>
+        {/* Error Message */}
+        {showErrorMessage && (
+          <div className="lesson-error-message">
+            {errorMessage}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-const LessonSection = ({ lessons }) => {
+const LessonSection = () => {
   return (
     <div style={{ position: "relative", width: "200px", height: "200px" }}>
       <svg
@@ -238,19 +293,7 @@ const LessonSection = ({ lessons }) => {
         }}
       >
         <g transform="translate(18, 18)">
-          return (
-          <path
-            key={index}
-            d={d}
-            fill={lesson.completed ? "#4CAF50" : "#666"}
-            stroke="#fff"
-            strokeWidth="0.5"
-            style={{
-              transition: "fill 0.3s ease",
-              filter: "drop-shadow(0px 1px 1px rgba(0,0,0,0.2))",
-            }}
-          />
-          );
+          {/* SVG content here */}
         </g>
       </svg>
     </div>

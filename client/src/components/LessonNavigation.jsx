@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaCheck, FaBars } from 'react-icons/fa';
+import { FaCheck, FaBars, FaLock } from 'react-icons/fa';
 import '../styles/LessonNavigation.css'; // Assuming this file exists and contains necessary styles
 import axios from 'axios';
 import { useAuth } from '../AuthContext'; // Assuming this context provides user and token
@@ -132,6 +132,62 @@ const LessonNavigation = ({
 
     fetchMenuData();
   }, [currentSectionId, user]); // Rerun if currentSectionId or user changes
+
+  // Effect to check if the current lesson is accessible
+  useEffect(() => {
+    if (!menuSections.length || loadingMenu) return;
+
+    // Find the current section and lesson in menuSections
+    const sectionIndex = menuSections.findIndex(section =>
+      section.lessons.some(lesson => lesson.lesson_id === currentLessonId)
+    );
+
+    if (sectionIndex === -1) return; // Section not found
+
+    const section = menuSections[sectionIndex];
+    const lessonIndex = section.lessons.findIndex(lesson => lesson.lesson_id === currentLessonId);
+
+    if (lessonIndex === -1) return; // Lesson not found
+
+    // Check if this lesson is accessible
+    const accessible = isLessonAccessible(sectionIndex, lessonIndex);
+
+    // If not accessible and not the first lesson of first section, redirect
+    if (!accessible && !(sectionIndex === 0 && lessonIndex === 0)) {
+      // Find the last completed lesson or the first lesson
+      let redirectSectionIndex = 0;
+      let redirectLessonIndex = 0;
+
+      // Try to find the last completed lesson
+      for (let i = 0; i < menuSections.length; i++) {
+        const sectionLessons = menuSections[i].lessons;
+        for (let j = 0; j < sectionLessons.length; j++) {
+          if (sectionLessons[j].completed) {
+            redirectSectionIndex = i;
+            redirectLessonIndex = j;
+          }
+        }
+      }
+
+      // Get the next lesson after the last completed one
+      const redirectSection = menuSections[redirectSectionIndex];
+      let redirectLessonId;
+
+      if (redirectLessonIndex + 1 < redirectSection.lessons.length) {
+        // Next lesson in the same section
+        redirectLessonId = redirectSection.lessons[redirectLessonIndex + 1].lesson_id;
+      } else if (redirectSectionIndex + 1 < menuSections.length) {
+        // First lesson in the next section
+        redirectLessonId = menuSections[redirectSectionIndex + 1].lessons[0].lesson_id;
+      } else {
+        // Fallback to the first lesson of the first section
+        redirectLessonId = menuSections[0].lessons[0].lesson_id;
+      }
+
+      showNotification('error', 'You need to complete previous lessons first.');
+      navigate(`/lesson/${redirectLessonId}`);
+    }
+  }, [menuSections, currentLessonId, loadingMenu]);
 
   // Memoized organization of lessons by section, used for "Prev" and "Next" button logic
   const organizedSections = React.useMemo(() => {
@@ -300,6 +356,17 @@ const LessonNavigation = ({
     setOpenSectionId((prevId) => (sectionId === prevId ? null : sectionId));
   };
 
+  // Function to check if a lesson is accessible
+  const isLessonAccessible = (sectionIndex, lessonIndex) => {
+    // First lesson of any section is always accessible
+    if (lessonIndex === 0) return true;
+
+    const section = menuSections[sectionIndex];
+
+    // For other lessons in a section, check if the previous lesson in the same section is completed
+    return section.lessons[lessonIndex - 1].completed;
+  };
+
   // Effect to remove the general notification animation style if it was added by this component previously.
   // SuccessNotification now handles its own styles.
   useEffect(() => {
@@ -324,7 +391,7 @@ const LessonNavigation = ({
         )}
 
         {!loadingMenu &&
-          menuSections.map((section) => (
+          menuSections.map((section, sectionIndex) => (
             <div key={section.section_id} className="lesson-nav-section">
               <div
                 className="lesson-nav-section-title"
@@ -338,19 +405,30 @@ const LessonNavigation = ({
               <div
                 className={`lesson-nav-section-content ${openSectionId === section.section_id ? 'open' : ''}`}
               >
-                {section.lessons?.map((lesson) => (
-                  <div
-                    key={lesson.lesson_id}
-                    className={`lesson-nav-item ${lesson.lesson_id === currentLessonId ? 'active' : ''} ${lesson.completed ? 'completed' : ''}`}
-                    onClick={() => {
-                      navigate(`/lesson/${lesson.lesson_id}`);
-                      setIsMenuOpen(false); // Close menu on navigation
-                    }}
-                  >
-                    {lesson.name}
-                    {lesson.completed && <FaCheck className="completion-icon" />}
-                  </div>
-                ))}
+                {section.lessons?.map((lesson, lessonIndex) => {
+                  const accessible = isLessonAccessible(sectionIndex, lessonIndex);
+                  return (
+                    <div
+                      key={lesson.lesson_id}
+                      className={`lesson-nav-item 
+                        ${lesson.lesson_id === currentLessonId ? 'active' : ''} 
+                        ${lesson.completed ? 'completed' : ''} 
+                        ${!accessible ? 'locked' : ''}`}
+                      onClick={() => {
+                        if (accessible) {
+                          navigate(`/lesson/${lesson.lesson_id}`);
+                          setIsMenuOpen(false); // Close menu on navigation
+                        } else {
+                          showNotification('error', 'Complete previous lessons first to unlock this lesson.');
+                        }
+                      }}
+                    >
+                      {lesson.name}
+                      {lesson.completed && <FaCheck className="completion-icon" />}
+                      {!accessible && <FaLock className="lock-icon" />}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -416,14 +494,14 @@ const LessonNavigation = ({
             lessonIndexInSection >= currentSectionLessonsForNav.length - 1 &&
             currentSectionIndex >= organizedSections.length - 1
           ) && (
-            <button
-              className="nav-button next-button"
-              onClick={goToNextLesson}
-              disabled={!isCompleted} // Enable only if current lesson is completed
-            >
-              Next
-            </button>
-          )}
+              <button
+                className="nav-button next-button"
+                onClick={goToNextLesson}
+                disabled={!isCompleted} // Enable only if current lesson is completed
+              >
+                Next
+              </button>
+            )}
         </div>
       </div>
     </>

@@ -155,13 +155,33 @@ const LessonPage = () => {
         });
 
         if (lessonResponse.status === 403) {
-          navigate('/pricing', {
-            state: {
-              message:
-                'You have reached the free lesson limit. Please subscribe to continue learning.',
-            },
-          });
-          return;
+          // Check if the error is due to subscription limit or lesson being locked
+          if (lessonResponse.data?.status === "subscription_required") {
+            navigate('/pricing', {
+              state: {
+                message: 'You have reached the free lesson limit. Please subscribe to continue learning.',
+              },
+            });
+            return;
+          } else if (lessonResponse.data?.status === "locked") {
+            // This is a locked lesson - redirect to course page with error message
+            const sectionResponse = await api.get(`/sections/${lessonResponse.data?.section_id || 0}`, {
+              headers: {
+                Authorization: `Bearer ${user.token}`,
+              },
+            });
+
+            if (sectionResponse.status === 200 && sectionResponse.data?.course_id) {
+              navigate(`/course/${sectionResponse.data.course_id}`, {
+                state: {
+                  errorMessage: lessonResponse.data?.message || "You need to complete previous lessons first."
+                }
+              });
+            } else {
+              navigate('/');
+            }
+            return;
+          }
         }
 
         if (lessonResponse.status !== 200) {

@@ -23,7 +23,7 @@ const lessonQueries = {
     lesson_order,
     template_code,
     hint,
-    solution,
+    solution
   ) => {
     const query = `
       INSERT INTO lesson (
@@ -107,7 +107,7 @@ const lessonQueries = {
     section_id,
     template_code,
     hint,
-    solution,
+    solution
   ) => {
     // Process test cases while preserving all fields
     const processedTestCases = test_cases.map((test) => ({
@@ -200,7 +200,7 @@ const lessonQueries = {
     lesson_id,
     completed,
     completed_at,
-    submitted_code,
+    submitted_code
   ) => {
     const query = `
       UPDATE lesson_progress
@@ -224,7 +224,7 @@ const lessonQueries = {
     completed,
     completed_at,
     course_id,
-    submitted_code,
+    submitted_code
   ) => {
     const query = `
       INSERT INTO lesson_progress (user_id, lesson_id, completed, completed_at, course_id, submitted_code)
@@ -343,9 +343,8 @@ const lessonQueries = {
   getAllSections: async () => {
     return db.query("SELECT section_id FROM section");
   },
-
   // Get lessons by section for ordering
-  getLessonsBySection: async (section_id) => {
+  getLessonsBySectionForOrdering: async (section_id) => {
     const query = `
       SELECT lesson_id 
       FROM lesson 
