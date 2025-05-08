@@ -292,6 +292,32 @@
   font-size: 0.85rem;
 }
 
+.lesson-nav-item.locked {
+  cursor: not-allowed;
+  color: #6c7293;
+  opacity: 0.7;
+}
+
+.lesson-nav-item.locked:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: #6c7293;
+}
+
+.lesson-nav-item .lock-icon {
+  margin-left: auto;
+  color: #6c7293;
+  font-size: 0.85rem;
+}
+
+.lesson-nav-item.completed .lock-icon {
+  display: none;
+}
+
+/* Add space when both completion and lock icons exist */
+.lesson-nav-item .completion-icon + .lock-icon {
+  margin-left: 8px;
+}
+
 .arrow {
   transition: transform 0.3s ease;
   font-size: 0.8rem;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import LessonList from "../../components/LessonSection";
 import RatingForm from "../../components/RatingForm";
@@ -17,7 +17,6 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   timeout: 10000,
 });
-
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
@@ -41,9 +40,12 @@ const CourseSection = () => {
   const { courseId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [stats, setStats] = useState({
     courseXP: 0,
     exercisesCompleted: 0,
@@ -95,6 +97,21 @@ const CourseSection = () => {
   }, [user]);
 
   useEffect(() => {
+    // Check for error message in location state (from redirects)
+    if (location.state?.errorMessage) {
+      setErrorMessage(location.state.errorMessage);
+      setShowErrorMessage(true);
+
+      // Clear the error message after 5 seconds
+      const timer = setTimeout(() => {
+        setShowErrorMessage(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
+
+  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError("");
@@ -143,7 +160,6 @@ const CourseSection = () => {
             ...section,
             lessons: Array.isArray(section.lessons) ? section.lessons : [],
           }));
-
           setSections(formattedSections);
         }
 
@@ -175,6 +191,13 @@ const CourseSection = () => {
     }
   }, [courseId, user, navigate]);
 
+  useEffect(() => {
+    if (location.state && location.state.errorMessage) {
+      setErrorMessage(location.state.errorMessage);
+      setShowErrorMessage(true);
+    }
+  }, [location.state]);
+
   return (
     <>
       <Navbar />
@@ -187,44 +210,56 @@ const CourseSection = () => {
               <span className="separator">/</span>
               <span className="current">{courseName}</span>
             </div>
-          </div>
 
-          {profileData && !hasActiveSubscription && (
-            <div className="subscription-notice">
-              <p>
-                Free trial: {profileData.exercisesCompleted || 0}/
-                {FREE_LESSON_LIMIT} lessons completed
-              </p>
-              {(profileData.exercisesCompleted || 0) >= FREE_LESSON_LIMIT && (
-                <p className="upgrade-message">
-                  Subscribe now to unlock all lessons!
+            {/* Error message for locked lessons */}
+            {showErrorMessage && (
+              <div className="course-error-message">
+                <span>{errorMessage}</span>
+                <button onClick={() => setShowErrorMessage(false)}>×</button>
+              </div>
+            )}
+
+            {profileData && !hasActiveSubscription && (
+              <div className="subscription-notice">
+                <p>
+                  Free trial: {profileData.exercisesCompleted || 0}/
+                  {FREE_LESSON_LIMIT} lessons completed
                 </p>
-              )}
-            </div>
-          )}
+                {(profileData.exercisesCompleted || 0) >= FREE_LESSON_LIMIT && (
+                  <p className="upgrade-message">
+                    Subscribe now to unlock all lessons!
+                  </p>
+                )}
+              </div>
+            )}
 
-          {loading ? (
-            <p>Loading sections...</p>
-          ) : error ? (
-            <p className="error">{error}</p>
-          ) : sections.length === 0 ? (
-            <p>No sections found for this course.</p>
-          ) : (
-            sections.map((section) => {
-              return (
-                <LessonList
-                  key={section.section_id}
-                  sectionName={section.name}
-                  sectionId={section.section_id}
-                  lessons={section.lessons}
-                  profileData={profileData}
-                  hasActiveSubscription={hasActiveSubscription}
-                />
-              );
-            })
-          )}
-        </div>
-        <div className="rating">
+            {loading ? (
+              <p>Loading sections...</p>
+            ) : error ? (
+              <p className="error">{error}</p>
+            ) : sections.length === 0 ? (
+              <p>No sections found for this course.</p>
+            ) : (
+              sections.map((section) => {
+                return (
+                  <LessonList
+                    key={section.section_id}
+                    sectionName={section.name}
+                    sectionId={section.section_id}
+                    lessons={section.lessons}
+                    profileData={profileData}
+                    hasActiveSubscription={hasActiveSubscription}
+                  />
+                );
+              })
+            )}
+          </div>
+          {/* The "rating" div is now outside and after the "course-header" div, but still within "Section" as per new.txt initial structure.
+              To match old.txt, "rating" div should be a sibling to "Section" div.
+              The following change moves the "rating" div to be a sibling of "Section" */}
+        </div> {/* End of "Section" div */}
+
+        <div className="rating"> {/* "rating" div is now a sibling to "Section" */}
           <div className="user-sidebar">
             <p className="status-title">My Status</p>
             <div className="user-info">
@@ -277,8 +312,15 @@ const CourseSection = () => {
           </div>
           <RatingForm courseId={courseId} />
         </div>
+
+        <SupportForm />
+        {showErrorMessage && (
+          <div className="error-message">
+            <p>{errorMessage}</p>
+            <button onClick={() => setShowErrorMessage(false)}>Close</button>
+          </div>
+        )}
       </div>
-      <SupportForm />
     </>
   );
 };

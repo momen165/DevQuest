@@ -37,7 +37,7 @@ const addLesson = asyncHandler(async (req, res) => {
     nextOrder,
     template_code ? he.decode(template_code) : "",
     hint,
-    solution,
+    solution
   );
 
   // Get course_id from section
@@ -50,7 +50,7 @@ const addLesson = asyncHandler(async (req, res) => {
   await logActivity(
     "lesson_created",
     `Admin (ID: ${req.user.user_id}) created lesson "${name}" in section "${sectionName}" (ID: ${section_id}) of course "${courseName}" (ID: ${courseId}).`,
-    parseInt(req.user.user_id),
+    parseInt(req.user.user_id)
   );
 
   // Recalculate progress for all enrolled users
@@ -64,7 +64,9 @@ const fixLessonOrders = asyncHandler(async (req, res) => {
   const sections = await lessonQueries.getAllSections();
 
   for (const section of sections.rows) {
-    const lessons = await lessonQueries.getLessonsBySection(section.section_id);
+    const lessons = await lessonQueries.getLessonsBySectionForOrdering(
+      section.section_id
+    );
 
     for (let i = 0; i < lessons.rows.length; i++) {
       await lessonQueries.updateLessonOrder(lessons.rows[i].lesson_id, i);
@@ -117,7 +119,7 @@ const getLessonById = asyncHandler(async (req, res) => {
     const completedLessons =
       parseInt(subscriptionResult.rows[0]?.lesson_count) || 0;
     const hasActiveSubscription = Boolean(
-      subscriptionResult.rows[0]?.subscription_id,
+      subscriptionResult.rows[0]?.subscription_id
     );
 
     // If user has no active subscription and has completed the free lesson limit
@@ -138,28 +140,117 @@ const getLessonById = asyncHandler(async (req, res) => {
       });
     }
 
-    const lessonData = result.rows[0];
+    const lessonData = result.rows[0]; // Check if this is the first lesson in the section
+    const sectionLessonsQuery = `
+      SELECT l.lesson_id, l.lesson_order, lp.completed
+      FROM lesson l
+      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
+      WHERE l.section_id = $2
+      ORDER BY l.lesson_order ASC
+    `;
 
-    try {
-      lessonData.test_cases = Array.isArray(lessonData.test_cases)
-        ? lessonData.test_cases.map((testCase) => ({
-            input: testCase.input || "",
-            expectedOutput: testCase.expected_output || "",
-            preserveFormat: true,
-          }))
-        : [{ input: "", expectedOutput: "", preserveFormat: true }];
-    } catch (err) {
-      lessonData.test_cases = [
-        { input: "", expectedOutput: "", preserveFormat: true },
-      ];
+    const sectionLessons = await db.query(sectionLessonsQuery, [
+      userId,
+      lessonData.section_id,
+    ]);
+
+    // First lesson is always accessible
+    if (
+      sectionLessons.rows.length > 0 &&
+      sectionLessons.rows[0].lesson_id === parseInt(lessonId)
+    ) {
+      // This is the first lesson in the section - always allowed
+    } else {
+      // Not the first lesson, check if previous lesson is completed
+      let currentLessonIndex = -1;
+      let previousLessonCompleted = false;
+
+      for (let i = 0; i < sectionLessons.rows.length; i++) {
+        if (sectionLessons.rows[i].lesson_id === parseInt(lessonId)) {
+          currentLessonIndex = i;
+          break;
+        }
+      }
+
+      if (currentLessonIndex > 0) {
+        previousLessonCompleted = Boolean(
+          sectionLessons.rows[currentLessonIndex - 1].completed
+        );
+
+        // If the previous lesson is not completed, check if this is the first section
+        if (!previousLessonCompleted) {
+          const sectionsQuery = `
+            SELECT s.section_id, s.section_order 
+            FROM section s
+            WHERE s.course_id = (
+              SELECT course_id FROM section WHERE section_id = $1
+            )
+            ORDER BY s.section_order ASC
+          `;
+
+          const sectionsResult = await db.query(sectionsQuery, [
+            lessonData.section_id,
+          ]);
+
+          // If not the first section, check if all lessons in the previous section are completed
+          if (
+            sectionsResult.rows.length > 0 &&
+            sectionsResult.rows[0].section_id !== lessonData.section_id
+          ) {
+            // Get all lessons from previous section
+            let prevSectionIndex = -1;
+            for (let i = 0; i < sectionsResult.rows.length; i++) {
+              if (sectionsResult.rows[i].section_id === lessonData.section_id) {
+                prevSectionIndex = i - 1;
+                break;
+              }
+            }
+
+            if (prevSectionIndex >= 0) {
+              const prevSectionId =
+                sectionsResult.rows[prevSectionIndex].section_id;
+
+              // Check if all lessons in the previous section are completed
+              const prevSectionLessonsQuery = `
+                SELECT COUNT(*) as total,
+                       SUM(CASE WHEN lp.completed = true THEN 1 ELSE 0 END) as completed
+                FROM lesson l
+                LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
+                WHERE l.section_id = $2
+              `;
+
+              const prevSectionResult = await db.query(
+                prevSectionLessonsQuery,
+                [userId, prevSectionId]
+              );
+
+              const totalLessons = parseInt(prevSectionResult.rows[0].total);
+              const completedLessons = parseInt(
+                prevSectionResult.rows[0].completed || 0
+              );
+
+              if (totalLessons > 0 && completedLessons < totalLessons) {
+                return res.status(403).json({
+                  status: "locked",
+                  message:
+                    "You need to complete all lessons in the previous section first.",
+                });
+              }
+            }
+          }
+
+          // If the previous lesson in this section is not completed
+          return res.status(403).json({
+            status: "locked",
+            message: "You need to complete the previous lesson first.",
+          });
+        }
+      }
     }
 
-    res.status(200).json(lessonData);
+    res.json(lessonData);
   } catch (err) {
-    res.status(500).json({
-      status: "error",
-      message: "Unable to load lesson. Please try again later.",
-    });
+    throw new AppError(err.message, 500);
   }
 });
 
@@ -198,7 +289,7 @@ const updateLesson = asyncHandler(async (req, res) => {
       template_code ? he.decode(template_code) : "",
       hint,
       solution,
-      test_cases[0]?.auto_detect || false, // Use first test case's auto_detect value
+      test_cases[0]?.auto_detect || false // Use first test case's auto_detect value
     );
 
     if (result.rows.length === 0) {
@@ -217,7 +308,7 @@ const updateLesson = asyncHandler(async (req, res) => {
     await logActivity(
       "lesson_updated",
       `Admin (ID: ${req.user.user_id}) updated lesson "${name}" (ID: ${lesson_id}) in section "${sectionName}" (ID: ${section_id}) of course "${courseName}" (ID: ${courseId}). `,
-      parseInt(req.user.user_id),
+      parseInt(req.user.user_id)
     );
 
     res.json(result.rows[0]);
@@ -251,7 +342,7 @@ const deleteLesson = asyncHandler(async (req, res) => {
 
   // Get course and section info before deletion logging
   const courseInfo = await lessonQueries.getCourseIdFromSection(
-    lessonResult.rows[0].section_id,
+    lessonResult.rows[0].section_id
   );
   const {
     course_id: courseId,
@@ -263,7 +354,7 @@ const deleteLesson = asyncHandler(async (req, res) => {
   await logActivity(
     "lesson_deleted",
     `Admin (ID: ${req.user.user_id}) deleted lesson "${lessonName}" (ID: ${lesson_id}) from section "${sectionName}" (ID: ${lessonResult.rows[0].section_id}) of course "${courseName}" (ID: ${courseId})`,
-    parseInt(req.user.user_id),
+    parseInt(req.user.user_id)
   );
 
   res.status(200).json({ message: "Lesson deleted successfully." });
@@ -276,7 +367,7 @@ const reorderLessons = asyncHandler(async (req, res) => {
   if (!Array.isArray(lessons)) {
     throw new AppError(
       "Invalid request format. Expected an array of lessons.",
-      400,
+      400
     );
   }
 
@@ -285,8 +376,8 @@ const reorderLessons = asyncHandler(async (req, res) => {
     await client.query("BEGIN");
     await Promise.all(
       lessons.map(({ lesson_id, order }) =>
-        lessonQueries.updateLessonOrder(lesson_id, order, client),
-      ),
+        lessonQueries.updateLessonOrder(lesson_id, order, client)
+      )
     );
     await client.query("COMMIT");
     res.json({ success: true });
@@ -313,7 +404,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
   const courseId = courseResult.rows[0].course_id;
   const checkResult = await lessonQueries.checkLessonProgress(
     user_id,
-    lesson_id,
+    lesson_id
   );
   const sanitizedCode = he.decode(submitted_code);
   const completedAt = completed ? new Date() : null;
@@ -324,7 +415,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
       lesson_id,
       completed,
       completedAt,
-      sanitizedCode,
+      sanitizedCode
     );
 
     if (updateResult.rows.length === 0) {
@@ -337,7 +428,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
       completed,
       completedAt,
       courseId,
-      sanitizedCode,
+      sanitizedCode
     );
   }
 
@@ -346,18 +437,18 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
 
   const completedLessonsResult = await lessonQueries.getCompletedLessonsCount(
     user_id,
-    courseId,
+    courseId
   );
   const completedLessons = parseInt(
     completedLessonsResult.rows[0].completed_lessons,
-    10,
+    10
   );
 
   const progress = (completedLessons / totalLessons) * 100;
   const updateEnrollmentResult = await lessonQueries.updateEnrollmentProgress(
     progress,
     user_id,
-    courseId,
+    courseId
   );
 
   if (updateEnrollmentResult.rows.length === 0) {

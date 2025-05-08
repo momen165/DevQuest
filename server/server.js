@@ -39,7 +39,7 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
-  }),
+  })
 );
 
 // Security headers
@@ -79,7 +79,7 @@ app.use(
       ],
       upgradeInsecureRequests: [],
     },
-  }),
+  })
 );
 
 // Define stricter rate limits for auth routes
@@ -109,7 +109,7 @@ app.disable("x-powered-by");
 app.post(
   "/api/webhook",
   express.raw({ type: "application/json" }),
-  webhookHandler,
+  webhookHandler
 );
 
 // Middleware for parsing JSON and URL-encoded data
@@ -223,23 +223,24 @@ app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader(
     "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains",
+    "max-age=31536000; includeSubDomains"
   );
   res.setHeader("Referrer-Policy", "same-origin");
   res.setHeader(
     "Permissions-Policy",
-    "geolocation=(), microphone=(), camera=()",
+    "geolocation=(), microphone=(), camera=()"
   );
   next();
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  const statusCode = err.status || 500;
+  const statusCode = err.statusCode || err.status || 500; // Handle both statusCode and legacy status
   console.error(`[${new Date().toISOString()}] Error:`, err.message);
   res.status(statusCode).json({
     error: err.message || "Internal Server Error",
     code: err.code || "INTERNAL_ERROR",
+    status: err.status || "error", // Include status as a field in the response if needed
   });
 });
 

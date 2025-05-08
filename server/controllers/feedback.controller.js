@@ -89,17 +89,17 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
   const [courses, userscount] = await Promise.all([
     db.query("SELECT * FROM course WHERE status = 'Published'"),
     db.query(
-      "SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id",
+      "SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id"
     ),
   ]);
 
   console.log(
     "DEBUG - Course statuses:",
-    courses.rows.map((c) => ({ id: c.course_id, status: c.status })),
+    courses.rows.map((c) => ({ id: c.course_id, status: c.status }))
   );
 
   const userscountMap = Object.fromEntries(
-    userscount.rows.map((u) => [u.course_id, u.userscount]),
+    userscount.rows.map((u) => [u.course_id, u.userscount])
   );
 
   const responseData = {
@@ -148,7 +148,7 @@ const submitFeedback = handleAsync(async (req, res) => {
 
   const eligibility = await checkFeedbackEligibility(
     req.user.userId,
-    course_id,
+    course_id
   );
 
   if (!eligibility.canSubmitFeedback) {
@@ -169,7 +169,7 @@ const submitFeedback = handleAsync(async (req, res) => {
 
   const courseExists = await db.query(
     "SELECT 1 FROM course WHERE course_id = $1",
-    [course_id],
+    [course_id]
   );
   if (!courseExists.rowCount) {
     return res.status(404).json({ error: "Course not found." });
@@ -180,7 +180,7 @@ const submitFeedback = handleAsync(async (req, res) => {
     // Insert the feedback
     const { rows } = await db.query(
       "INSERT INTO feedback (user_id, course_id, rating, comment) VALUES ($1, $2, $3, $4) RETURNING *",
-      [req.user.userId, course_id, rating, comment || null],
+      [req.user.userId, course_id, rating, comment || null]
     );
 
     // Update course rating
@@ -192,7 +192,7 @@ const submitFeedback = handleAsync(async (req, res) => {
          WHERE course_id = $1
        )
        WHERE course_id = $1`,
-      [course_id],
+      [course_id]
     );
 
     await db.query("COMMIT");
@@ -225,7 +225,7 @@ const replyToFeedback = handleAsync(async (req, res) => {
        JOIN users u ON f.user_id = u.user_id 
        JOIN course c ON f.course_id = c.course_id
        WHERE f.feedback_id = $1`,
-      [feedback_id],
+      [feedback_id]
     );
 
     if (!userDetails.rows.length) {
@@ -236,7 +236,7 @@ const replyToFeedback = handleAsync(async (req, res) => {
     // Update the feedback status to 'closed'
     const updateResult = await db.query(
       "UPDATE feedback SET status = $1, reply = $2 WHERE feedback_id = $3 RETURNING *",
-      ["closed", reply, feedback_id],
+      ["closed", reply, feedback_id]
     );
 
     const { email, name, comment, rating, course_name } = userDetails.rows[0];
@@ -293,7 +293,7 @@ const reopenFeedback = handleAsync(async (req, res) => {
 
   const updateResult = await db.query(
     "UPDATE feedback SET status = $1 WHERE feedback_id = $2 RETURNING *",
-    ["open", feedback_id],
+    ["open", feedback_id]
   );
 
   if (!updateResult.rows.length) {
