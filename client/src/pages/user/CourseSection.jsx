@@ -7,7 +7,7 @@ import axios from 'axios';
 import '../../styles/CourseSections.css';
 import { useAuth } from '../../AuthContext';
 import SupportForm from '../../components/SupportForm';
-import { calculateLevel, calculateLevelProgress } from '../../utils/xpCalculator';
+import { calculateLevel, calculateLevelProgress, getXPForLevel } from '../../utils/xpCalculator';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -156,18 +156,30 @@ const CourseSection = () => {
         }
 
         if (courseStatsResponse.data && overallStatsResponse.data) {
+          const totalXP = overallStatsResponse.data.totalXP || 0;
+          const userLevel = calculateLevel(totalXP);
+          const progress = calculateLevelProgress(totalXP);
+
+          // Add debug logging to help understand the XP calculation
+          console.log('XP Debug:', {
+            totalXP,
+            level: userLevel,
+            progress,
+            prevLevelXP: getXPForLevel(userLevel),
+            nextLevelXP: getXPForLevel(userLevel + 1),
+          });
+
           setStats({
             courseXP: courseStatsResponse.data.courseXP || 0,
             exercisesCompleted: courseStatsResponse.data.exercisesCompleted || 0,
             streak: courseStatsResponse.data.streak || 0,
             name: user.name,
             profileImage: user.profileimage,
-            totalXP: overallStatsResponse.data.totalXP || 0,
-            level: overallStatsResponse.data.level || 0,
+            totalXP: totalXP,
+            level: userLevel,
             xpToNextLevel: Math.round(overallStatsResponse.data.xpToNextLevel || 0),
           });
         }
-        console.log(overallStatsResponse.data.totalXP);
       } catch (err) {
         console.error('Error details:', err.response?.data || err.message);
         setError('Failed to fetch course data. Please try again.');
@@ -270,7 +282,11 @@ const CourseSection = () => {
                     <div
                       className="xp-progress-fill"
                       style={{
-                        width: `${calculateLevelProgress(stats.totalXP)}%`,
+                        width: `${
+                          stats.totalXP && stats.totalXP > 0
+                            ? calculateLevelProgress(stats.totalXP)
+                            : 0
+                        }%`,
                       }}
                     />
                   </div>
@@ -286,7 +302,7 @@ const CourseSection = () => {
               </div>
               <div className="progress-box">
                 <p className="progress-value">{stats.exercisesCompleted}</p>
-                <p className="progress-label">Exercises Completed</p>
+                <p className="progress-label">Lessons Completed</p>
               </div>
               <div className="progress-box">
                 <p className="progress-value">{stats.streak}</p>
