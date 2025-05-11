@@ -6,6 +6,7 @@ const { authenticateToken } = require("./middleware/auth");
 const updateUserStreak = require("./middleware/updateUserStreak");
 const sanitizeInput = require("./middleware/sanitizeInput");
 const { handleError } = require("./utils/error.utils");
+const trackVisit = require("./middleware/trackVisits");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { closeExpiredTickets } = require("./controllers/support.controller");
@@ -119,6 +120,9 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // Apply sanitization to all routes
 app.use(sanitizeInput);
 
+// Remove global trackVisit middleware. It is now applied only after authentication in protected routes.
+// app.use(trackVisit);
+
 // Import routes
 const authRoutes = require("./routes/auth.routes");
 const courseRoutes = require("./routes/course.routes");
@@ -132,6 +136,7 @@ const codeExecutionRoutes = require("./routes/codeExecution.routes");
 const uploadRoutes = require("./routes/upload.routes");
 const supportRoutes = require("./routes/support.routes");
 const adminRoutes = require("./routes/admin.routes");
+const pageviewRoutes = require("./routes/pageview.routes");
 
 // Import controllers for public endpoints
 const {
@@ -177,8 +182,34 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// --- SESSION TRACKER: Ping endpoint for real page loads ---
+// --- SESSION TRACKER: Ping endpoint for real page loads ---
+const sessionTracker = require("./middleware/sessionTracker");
+app.post("/api/ping-session", express.json(), async (req, res) => {
+  console.log("[Session] Received ping from client");
+  try {
+    if (req.headers.authorization) {
+      // Extract token and add it to req.user for sessionTracker
+      const token = req.headers.authorization.split(" ")[1];
+      const decoded = require("jsonwebtoken").verify(
+        token,
+        process.env.JWT_SECRET
+      );
+      req.user = { user_id: decoded.userId };
+      await sessionTracker(req, res, () => {
+        res.status(200).json({ ok: true });
+      });
+    } else {
+      res.status(200).json({ ok: false, reason: "No auth token" });
+    }
+  } catch (err) {
+    console.error("[Session Ping] Error:", err);
+    res.status(200).json({ ok: false, reason: "Error" });
+  }
+});
 // Mount routes - auth routes need special handling
 app.use("/api", authRoutes);
+app.use("/api", pageviewRoutes);
 
 // Each route file now handles its own authentication requirements internally
 app.use("/api", courseRoutes);

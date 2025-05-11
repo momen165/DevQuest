@@ -22,7 +22,7 @@ const CONFIG = {
 // Initialize email client
 const mailjetClient = mailjet.apiConnect(
   process.env.MAILJET_API_KEY,
-  process.env.MAILJET_SECRET_KEY,
+  process.env.MAILJET_SECRET_KEY
 );
 
 // Define styles for reusability
@@ -57,7 +57,7 @@ const helpers = {
         admin: userData.admin || false,
       },
       process.env.JWT_SECRET,
-      { expiresIn: CONFIG.jwt.accessTokenExpiresIn },
+      { expiresIn: CONFIG.jwt.accessTokenExpiresIn }
     );
   },
 
@@ -71,7 +71,7 @@ const helpers = {
        VALUES ($1, $2, $3)
        ON CONFLICT (user_id)
        DO UPDATE SET token = $2, expires_at = $3, created_at = CURRENT_TIMESTAMP`,
-      [userId, refreshToken, expiresAt],
+      [userId, refreshToken, expiresAt]
     );
 
     return refreshToken;
@@ -96,14 +96,14 @@ const helpers = {
       <div style="${emailStyles.footer}">
         <div style="${emailStyles.footerLinksContainer}">
           <a href="${process.env.FRONTEND_URL}/about" style="${
-            emailStyles.footerLink
-          }">About</a>
+    emailStyles.footerLink
+  }">About</a>
           <a href="${process.env.FRONTEND_URL}/contact" style="${
-            emailStyles.footerLink
-          }">Contact</a>
+    emailStyles.footerLink
+  }">Contact</a>
           <a href="${process.env.FRONTEND_URL}/privacy" style="${
-            emailStyles.footerLink
-          }">Privacy Policy</a>
+    emailStyles.footerLink
+  }">Privacy Policy</a>
         </div>
         <p style="${
           emailStyles.footerCopyright
@@ -140,7 +140,7 @@ const helpers = {
 
     if (response.response.status !== 200) {
       throw new Error(
-        `Email sending failed with status: ${response.response.status}`,
+        `Email sending failed with status: ${response.response.status}`
       );
     }
 
@@ -177,7 +177,7 @@ const signup = handleAsync(async (req, res) => {
 
   const { rows } = await db.query(
     "INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id",
-    [name, email.toLowerCase(), hashedPassword, country, false],
+    [name, email.toLowerCase(), hashedPassword, country, false]
   );
 
   const verificationToken = helpers.generateVerificationToken(rows[0].user_id);
@@ -214,12 +214,12 @@ const signup = handleAsync(async (req, res) => {
   await helpers.sendEmail(
     email,
     "Welcome to Devquest - Verify Your Email",
-    emailContent,
+    emailContent
   );
   await logActivity(
     "User",
     `Verification email sent to: ${email}`,
-    rows[0].user_id,
+    rows[0].user_id
   );
 
   res.status(201).json({
@@ -239,7 +239,7 @@ const login = handleAsync(async (req, res) => {
     db.query("SELECT * FROM users WHERE email = $1", [email.toLowerCase()]),
     db.query(
       "SELECT 1 FROM admins WHERE admin_id = (SELECT user_id FROM users WHERE email = $1)",
-      [email.toLowerCase()],
+      [email.toLowerCase()]
     ),
   ]);
 
@@ -292,7 +292,7 @@ const refreshAccessToken = handleAsync(async (req, res) => {
 
   const tokenResult = await db.query(
     "SELECT user_id, expires_at FROM refresh_tokens WHERE token = $1",
-    [refreshToken],
+    [refreshToken]
   );
 
   if (tokenResult.rows.length === 0) {
@@ -311,7 +311,7 @@ const refreshAccessToken = handleAsync(async (req, res) => {
   const [userResult, adminResult] = await Promise.all([
     db.query(
       "SELECT name, country, bio, skills, profileimage FROM users WHERE user_id = $1",
-      [user_id],
+      [user_id]
     ),
     db.query("SELECT 1 FROM admins WHERE admin_id = $1", [user_id]),
   ]);
@@ -392,7 +392,7 @@ const updateProfile = handleAsync(async (req, res) => {
 
     const adminResult = await db.query(
       "SELECT 1 FROM admins WHERE admin_id = $1",
-      [req.user.userId],
+      [req.user.userId]
     );
 
     const isAdmin = adminResult.rowCount > 0;
@@ -423,7 +423,7 @@ const changePassword = handleAsync(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const { rows } = await db.query(
     "SELECT password FROM users WHERE user_id = $1",
-    [req.user.userId],
+    [req.user.userId]
   );
 
   if (rows.length === 0) {
@@ -437,7 +437,7 @@ const changePassword = handleAsync(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds,
+    CONFIG.bcrypt.saltRounds
   );
   await db.query("UPDATE users SET password = $1 WHERE user_id = $2", [
     hashedPassword,
@@ -456,7 +456,7 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
 
   const { rows } = await db.query(
     "SELECT user_id FROM users WHERE email = $1",
-    [email.toLowerCase()],
+    [email.toLowerCase()]
   );
 
   if (rows.length > 0) {
@@ -488,7 +488,7 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
     await helpers.sendEmail(
       email,
       "Password Reset Request - Devquest",
-      emailContent,
+      emailContent
     );
   }
 
@@ -510,12 +510,12 @@ const resetPassword = handleAsync(async (req, res) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds,
+    CONFIG.bcrypt.saltRounds
   );
 
   const { rowCount } = await db.query(
     "UPDATE users SET password = $1 WHERE user_id = $2",
-    [hashedPassword, decoded.userId],
+    [hashedPassword, decoded.userId]
   );
 
   if (rowCount === 0) {
@@ -568,7 +568,7 @@ const verifyEmail = handleAsync(async (req, res) => {
 
     const checkUser = await db.query(
       "SELECT is_verified FROM users WHERE user_id = $1",
-      [userId],
+      [userId]
     );
 
     if (checkUser.rows.length === 0) {
@@ -581,7 +581,7 @@ const verifyEmail = handleAsync(async (req, res) => {
 
     const { rowCount } = await db.query(
       "UPDATE users SET is_verified = true WHERE user_id = $1",
-      [userId],
+      [userId]
     );
 
     if (rowCount === 0) {
@@ -617,7 +617,7 @@ const resendVerificationEmail = handleAsync(async (req, res) => {
   // Check if user exists and needs verification
   const userQuery = await db.query(
     "SELECT user_id, name, is_verified FROM users WHERE email = $1",
-    [email.toLowerCase()],
+    [email.toLowerCase()]
   );
 
   if (userQuery.rows.length === 0) {
@@ -695,8 +695,8 @@ const sendFeedbackReplyEmail = async ({
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
           <strong>Your rating:</strong> ${"★".repeat(rating)}${"☆".repeat(
-            5 - rating,
-          )}
+      5 - rating
+    )}
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
           <strong>Your feedback:</strong> "${comment || "No comment provided"}"
@@ -736,7 +736,7 @@ const sendFeedbackReplyEmail = async ({
 
     if (response.response.status !== 200) {
       throw new Error(
-        `Email sending failed with status: ${response.response.status}`,
+        `Email sending failed with status: ${response.response.status}`
       );
     }
 
@@ -750,7 +750,7 @@ const sendFeedbackReplyEmail = async ({
 const checkAdminStatus = handleAsync(async (req, res, next) => {
   const { rowCount } = await db.query(
     "SELECT 1 FROM admins WHERE admin_id = $1",
-    [req.user.userId],
+    [req.user.userId]
   );
 
   if (rowCount === 0) {
@@ -779,7 +779,7 @@ const requestEmailChange = handleAsync(async (req, res) => {
 
   const { rows } = await db.query(
     "SELECT email, name FROM users WHERE user_id = $1",
-    [userId],
+    [userId]
   );
   if (rows.length === 0) {
     return res.status(404).json({ error: "User not found" });
@@ -821,7 +821,7 @@ const requestEmailChange = handleAsync(async (req, res) => {
   await helpers.sendEmail(
     currentEmail,
     "Confirm Your Email Change Request - Devquest",
-    emailContent,
+    emailContent
   );
 
   res.status(200).json({
@@ -847,7 +847,7 @@ const confirmEmailChange = handleAsync(async (req, res) => {
 
     const existingUser = await db.query(
       "SELECT 1 FROM users WHERE email = $1 AND user_id != $2",
-      [newEmail.toLowerCase(), userId],
+      [newEmail.toLowerCase(), userId]
     );
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ error: "Email is no longer available" });
@@ -855,7 +855,7 @@ const confirmEmailChange = handleAsync(async (req, res) => {
 
     const { rowCount } = await db.query(
       "UPDATE users SET email = $1 WHERE user_id = $2 AND email = $3",
-      [newEmail.toLowerCase(), userId, currentEmail],
+      [newEmail.toLowerCase(), userId, currentEmail]
     );
 
     if (rowCount === 0) {
@@ -867,7 +867,7 @@ const confirmEmailChange = handleAsync(async (req, res) => {
     await logActivity(
       "User",
       `Email changed from ${currentEmail} to ${newEmail}`,
-      userId,
+      userId
     );
 
     res.status(200).json({

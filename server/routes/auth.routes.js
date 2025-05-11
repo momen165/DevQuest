@@ -42,9 +42,16 @@ router.post("/password-reset", authController.sendPasswordResetEmail);
 router.post("/reset-password", authController.resetPassword);
 router.get("/check-auth", authenticateToken, authController.checkAuth); // Only needs token, no force requirement
 
+
 // Protected routes - require valid authentication
 router.use(authenticateToken);
 router.use(requireAuth);
+
+// Track visits and sessions for all authenticated actions
+const trackVisit = require("../middleware/trackVisits");
+const sessionTracker = require("../middleware/sessionTracker");
+router.use(trackVisit);
+router.use(sessionTracker);
 
 router.put("/update-profile", authController.updateProfile);
 router.post(

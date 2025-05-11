@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
 import axios from 'axios';
 import '../../../pages/admin/styles/AddEditCourseComponent.css';
 import { FaUpload } from 'react-icons/fa';
@@ -29,6 +30,54 @@ const EditCourseForm = ({
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('Published');
   const [difficulty, setDifficulty] = useState('Beginner');
+  // Options for react-select
+  const statusOptions = [
+    { value: 'Published', label: 'Published' },
+    { value: 'Draft', label: 'Draft' },
+  ];
+  const difficultyOptions = [
+    { value: 'Beginner', label: 'Beginner' },
+    { value: 'Intermediate', label: 'Intermediate' },
+    { value: 'Advanced', label: 'Advanced' },
+  ];
+  const languageSelectOptions = languageOptions.map(lang => ({ value: lang.id, label: lang.name }));
+
+  // Custom styles for react-select
+  const customSelectStyles = {
+    control: (provided) => ({
+      ...provided,
+      backgroundColor: '#3e4c5d',
+      color: 'white',
+      borderColor: '#3e4c5d',
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: 'white',
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: '#3e4c5d',
+      color: 'white',
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isFocused ? '#2c3746' : '#3e4c5d',
+      color: 'white',
+      cursor: 'pointer',
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: 'white',
+    }),
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      color: 'white',
+    }),
+    indicatorSeparator: (provided) => ({
+      ...provided,
+      backgroundColor: 'white',
+    }),
+  };
   const [image, setImage] = useState(null);
   const [languageId, setLanguageId] = useState(languageOptions[0]?.id || '100');
   const [error, setError] = useState('');
@@ -131,30 +180,35 @@ const EditCourseForm = ({
 
       <div>
         <label>Status</label>
-        <select value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="Published">Published</option>
-          <option value="Draft">Draft</option>
-        </select>
+        <Select
+          value={statusOptions.find(opt => opt.value === status)}
+          onChange={opt => setStatus(opt.value)}
+          options={statusOptions}
+          styles={customSelectStyles}
+          isSearchable={false}
+        />
       </div>
-
+    
       <div>
         <label>Difficulty</label>
-        <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-          <option value="Beginner">Beginner</option>
-          <option value="Intermediate">Intermediate</option>
-          <option value="Advanced">Advanced</option>
-        </select>
+        <Select
+          value={difficultyOptions.find(opt => opt.value === difficulty)}
+          onChange={opt => setDifficulty(opt.value)}
+          options={difficultyOptions}
+          styles={customSelectStyles}
+          isSearchable={false}
+        />
       </div>
 
       <div>
         <label>Programming Language</label>
-        <select value={languageId} onChange={(e) => setLanguageId(e.target.value)}>
-          {languageOptions.map((lang) => (
-            <option key={lang.id} value={lang.id}>
-              {lang.name}
-            </option>
-          ))}
-        </select>
+        <Select
+          value={languageSelectOptions.find(opt => opt.value === languageId)}
+          onChange={opt => setLanguageId(opt.value)}
+          options={languageSelectOptions}
+          styles={customSelectStyles}
+          isSearchable={false}
+        />
       </div>
 
       <div className="file-upload-container-isolated">

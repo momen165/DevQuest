@@ -1,36 +1,35 @@
-// Level calculation constants
-const BASE_XP = 100;  // Base XP required for level 1
-const SCALING_FACTOR = 1.5;  // How much more XP each level requires
+const BASE_XP = 100;
+const SCALING_FACTOR = 1.5;
+
+// Calculate the minimum XP required for a given level
+export const getXPForLevel = (level) => {
+  if (level === 1) return 0;
+  return BASE_XP * Math.pow(SCALING_FACTOR, level - 2);
+};
 
 // Calculate level based on XP
 export const calculateLevel = (xp) => {
-    if (!xp || xp < BASE_XP) return 1;
-    
-    // Formula: level = floor(log(xp/BASE_XP)/log(SCALING_FACTOR)) + 1
-    const level = Math.floor(
-        Math.log(xp / BASE_XP) / Math.log(SCALING_FACTOR)
-    ) + 1;
-    
-    return Math.max(1, level); // Ensure minimum level is 1
+  if (!xp || xp < BASE_XP) return 1;
+  return Math.floor(Math.log(xp / BASE_XP) / Math.log(SCALING_FACTOR)) + 1;
 };
 
-// Calculate XP progress towards next level
+// Calculate progress within the current level
 export const calculateLevelProgress = (xp) => {
-    const currentLevel = calculateLevel(xp);
-    const currentLevelXP = BASE_XP * Math.pow(SCALING_FACTOR, currentLevel - 1);
-    const nextLevelXP = BASE_XP * Math.pow(SCALING_FACTOR, currentLevel);
-    const progress = ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
-    return Math.min(100, Math.max(0, progress)); // Ensure progress is between 0 and 100
+  const level = calculateLevel(xp);
+  const prevLevelXP = getXPForLevel(level);
+  const nextLevelXP = getXPForLevel(level + 1);
+  const progress = ((xp - prevLevelXP) / (nextLevelXP - prevLevelXP)) * 100;
+  return Math.min(100, Math.max(0, progress));
 };
 
 // Calculate XP needed for next level
 export const calculateXPToNextLevel = (xp) => {
-    const currentLevel = calculateLevel(xp);
-    const nextLevelXP = BASE_XP * Math.pow(SCALING_FACTOR, currentLevel);
-    return Math.max(0, nextLevelXP - xp);
+  const level = calculateLevel(xp);
+  const nextLevelXP = getXPForLevel(level + 1);
+  return Math.max(0, Math.round(nextLevelXP - xp));
 };
 
 export const XP_CONSTANTS = {
-    BASE_XP,
-    SCALING_FACTOR
-}; 
+  BASE_XP,
+  SCALING_FACTOR,
+};

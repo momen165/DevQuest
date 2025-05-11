@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import Navbar from "../../components/Navbar";
-import LessonList from "../../components/LessonSection";
-import RatingForm from "../../components/RatingForm";
-import axios from "axios";
-import "../../styles/CourseSections.css";
-import { useAuth } from "../../AuthContext";
-import SupportForm from "../../components/SupportForm";
-import {
-  calculateLevel,
-  calculateLevelProgress,
-} from "../../utils/xpCalculator";
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import Navbar from '../../components/Navbar';
+import LessonList from '../../components/LessonSection';
+import RatingForm from '../../components/RatingForm';
+import axios from 'axios';
+import '../../styles/CourseSections.css';
+import { useAuth } from '../../AuthContext';
+import SupportForm from '../../components/SupportForm';
+import { calculateLevel, calculateLevelProgress } from '../../utils/xpCalculator';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   timeout: 10000,
 });
 
@@ -43,28 +40,28 @@ const CourseSection = () => {
   const location = useLocation();
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [stats, setStats] = useState({
     courseXP: 0,
     exercisesCompleted: 0,
     streak: 0,
-    name: "",
-    profileImage: "",
+    name: '',
+    profileImage: '',
     totalXP: 0,
     level: 0,
     xpToNextLevel: 0,
   });
-  const [courseName, setCourseName] = useState("");
+  const [courseName, setCourseName] = useState('');
   const [profileData, setProfileData] = useState(null);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const FREE_LESSON_LIMIT = 5;
-
+  console.log(stats);
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       try {
-        const response = await api.get("/check", {
+        const response = await api.get('/check', {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -72,7 +69,7 @@ const CourseSection = () => {
 
         setHasActiveSubscription(response.data.hasActiveSubscription);
       } catch (err) {
-        console.error("Error checking subscription:", err);
+        console.error('Error checking subscription:', err);
       }
     };
 
@@ -86,7 +83,7 @@ const CourseSection = () => {
 
         setProfileData(response.data);
       } catch (err) {
-        console.error("Error checking subscription status:", err);
+        console.error('Error checking subscription status:', err);
       }
     };
 
@@ -114,7 +111,7 @@ const CourseSection = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      setError("");
+      setError('');
       try {
         const config = {
           headers: {
@@ -124,21 +121,17 @@ const CourseSection = () => {
 
         // First check if course exists
         try {
-          const courseResponse = await fetchWithRetry(
-            `/courses/${courseId}`,
-            config,
-          );
+          const courseResponse = await fetchWithRetry(`/courses/${courseId}`, config);
           if (courseResponse.data) {
             setCourseName(courseResponse.data.title);
           }
         } catch (err) {
           if (err.response?.status === 404 || err.response?.status === 403) {
             setError(
-              err.response?.data?.error ||
-              "Course not available. Redirecting to home page...",
+              err.response?.data?.error || 'Course not available. Redirecting to home page...'
             );
             setTimeout(() => {
-              navigate("/");
+              navigate('/');
             }, 2000);
             setLoading(false);
             return; // Stop further API calls if course doesn't exist
@@ -147,12 +140,11 @@ const CourseSection = () => {
         }
 
         // If course exists, fetch other data
-        const [sectionsResponse, courseStatsResponse, overallStatsResponse] =
-          await Promise.all([
-            fetchWithRetry(`/sections/course/${courseId}`, config),
-            fetchWithRetry(`/student/courses/${courseId}/stats`, config),
-            fetchWithRetry(`/student/stats/${user.user_id}`, config),
-          ]);
+        const [sectionsResponse, courseStatsResponse, overallStatsResponse] = await Promise.all([
+          fetchWithRetry(`/sections/course/${courseId}`, config),
+          fetchWithRetry(`/student/courses/${courseId}/stats`, config),
+          fetchWithRetry(`/student/stats/${user.user_id}`, config),
+        ]);
 
         if (sectionsResponse.data) {
           // Ensure lessons array exists and is properly formatted
@@ -166,21 +158,19 @@ const CourseSection = () => {
         if (courseStatsResponse.data && overallStatsResponse.data) {
           setStats({
             courseXP: courseStatsResponse.data.courseXP || 0,
-            exercisesCompleted:
-              courseStatsResponse.data.exercisesCompleted || 0,
+            exercisesCompleted: courseStatsResponse.data.exercisesCompleted || 0,
             streak: courseStatsResponse.data.streak || 0,
             name: user.name,
             profileImage: user.profileimage,
             totalXP: overallStatsResponse.data.totalXP || 0,
             level: overallStatsResponse.data.level || 0,
-            xpToNextLevel: Math.round(
-              overallStatsResponse.data.xpToNextLevel || 0,
-            ),
+            xpToNextLevel: Math.round(overallStatsResponse.data.xpToNextLevel || 0),
           });
         }
+        console.log(overallStatsResponse.data.totalXP);
       } catch (err) {
-        console.error("Error details:", err.response?.data || err.message);
-        setError("Failed to fetch course data. Please try again.");
+        console.error('Error details:', err.response?.data || err.message);
+        setError('Failed to fetch course data. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -222,13 +212,11 @@ const CourseSection = () => {
             {profileData && !hasActiveSubscription && (
               <div className="subscription-notice">
                 <p>
-                  Free trial: {profileData.exercisesCompleted || 0}/
-                  {FREE_LESSON_LIMIT} lessons completed
+                  Free trial: {profileData.exercisesCompleted || 0}/{FREE_LESSON_LIMIT} lessons
+                  completed
                 </p>
                 {(profileData.exercisesCompleted || 0) >= FREE_LESSON_LIMIT && (
-                  <p className="upgrade-message">
-                    Subscribe now to unlock all lessons!
-                  </p>
+                  <p className="upgrade-message">Subscribe now to unlock all lessons!</p>
                 )}
               </div>
             )}
@@ -257,22 +245,20 @@ const CourseSection = () => {
           {/* The "rating" div is now outside and after the "course-header" div, but still within "Section" as per new.txt initial structure.
               To match old.txt, "rating" div should be a sibling to "Section" div.
               The following change moves the "rating" div to be a sibling of "Section" */}
-        </div> {/* End of "Section" div */}
-
-        <div className="rating"> {/* "rating" div is now a sibling to "Section" */}
+        </div>{' '}
+        {/* End of "Section" div */}
+        <div className="rating">
+          {' '}
+          {/* "rating" div is now a sibling to "Section" */}
           <div className="user-sidebar">
             <p className="status-title">My Status</p>
             <div className="user-info">
               <div className="user-icon">
                 {stats.profileImage ? (
-                  <img
-                    src={user.profileimage}
-                    alt="Profile"
-                    className="profile-image"
-                  />
+                  <img src={user.profileimage} alt="Profile" className="profile-image" />
                 ) : (
                   <div className="default-avatar">
-                    {stats.name ? stats.name[0].toUpperCase() : "?"}
+                    {stats.name ? stats.name[0].toUpperCase() : '?'}
                   </div>
                 )}
               </div>
@@ -288,9 +274,7 @@ const CourseSection = () => {
                       }}
                     />
                   </div>
-                  <p className="xp-progress-text">
-                    {stats.xpToNextLevel} XP to next level
-                  </p>
+                  <p className="xp-progress-text">{stats.xpToNextLevel} XP to next level</p>
                 </div>
               </div>
             </div>
@@ -312,7 +296,6 @@ const CourseSection = () => {
           </div>
           <RatingForm courseId={courseId} />
         </div>
-
         <SupportForm />
         {showErrorMessage && (
           <div className="error-message">

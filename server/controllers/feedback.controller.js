@@ -11,7 +11,6 @@ const COURSES_CACHE_KEY = "courses_with_ratings";
 
 // Function to clear courses cache
 const clearCoursesCache = () => {
-  console.log("🧹 Cache CLEAR: Removing courses data from cache");
   cache.del(COURSES_CACHE_KEY);
 };
 
@@ -81,22 +80,15 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
   // Check cache first
   const cachedData = cache.get(COURSES_CACHE_KEY);
   if (cachedData) {
-    console.log("🎯 Cache HIT: Returning cached courses data");
     return res.status(200).json(cachedData);
   }
 
-  console.log("🔍 Cache MISS: Fetching courses data from database");
   const [courses, userscount] = await Promise.all([
     db.query("SELECT * FROM course WHERE status = 'Published'"),
     db.query(
       "SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id"
     ),
   ]);
-
-  console.log(
-    "DEBUG - Course statuses:",
-    courses.rows.map((c) => ({ id: c.course_id, status: c.status }))
-  );
 
   const userscountMap = Object.fromEntries(
     userscount.rows.map((u) => [u.course_id, u.userscount])
@@ -109,7 +101,6 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
 
   // Store in cache
   cache.set(COURSES_CACHE_KEY, responseData);
-  console.log("💾 Cache SET: Stored fresh courses data in cache");
 
   res.status(200).json(responseData);
 });

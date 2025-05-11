@@ -10,12 +10,13 @@ const {
   reopenFeedback,
 } = require("../controllers/feedback.controller");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
+const sessionTracker = require("../middleware/sessionTracker");
 
 const router = express.Router();
 
-router.get("/feedback", authenticateToken, requireAuth, getFeedback);
-router.post("/feedback", authenticateToken, requireAuth, submitFeedback);
-router.post("/feedback/reply", authenticateToken, requireAuth, replyToFeedback);
+router.get("/feedback", authenticateToken, requireAuth, sessionTracker, getFeedback);
+router.post("/feedback", authenticateToken, requireAuth, sessionTracker, submitFeedback);
+router.post("/feedback/reply", authenticateToken, requireAuth, sessionTracker, replyToFeedback);
 
 router.get("/getCoursesWithRatings", getCoursesWithRatings);
 router.get("/feedback/public", getPublicFeedback);
@@ -24,6 +25,7 @@ router.get(
   "/feedback/eligibility/:courseId",
   authenticateToken,
   requireAuth,
+  sessionTracker,
   async (req, res) => {
     try {
       const eligibility = await checkFeedbackEligibility(
@@ -42,9 +44,10 @@ router.get(
   "/feedback/recent",
   authenticateToken,
   requireAuth,
+  sessionTracker,
   getRecentFeedback
 );
 
-router.post("/feedback/reopen", authenticateToken, requireAuth, reopenFeedback);
+router.post("/feedback/reopen", authenticateToken, requireAuth, sessionTracker, reopenFeedback);
 
 module.exports = router;

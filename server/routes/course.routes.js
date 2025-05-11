@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const courseController = require("../controllers/course.controller");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
+const sessionTracker = require("../middleware/sessionTracker");
 const upload = require("../config/multer");
 
 // Add a course
@@ -9,6 +10,7 @@ router.post(
   "/courses",
   authenticateToken,
   requireAuth,
+  sessionTracker,
   upload.single("image"),
   courseController.addCourse
 );
@@ -18,6 +20,7 @@ router.put(
   "/courses/:course_id",
   authenticateToken,
   requireAuth,
+  sessionTracker,
   upload.single("image"),
   courseController.editCourse
 );
@@ -42,6 +45,7 @@ router.delete(
   "/courses/:course_id",
   authenticateToken,
   requireAuth,
+  sessionTracker,
   courseController.deleteCourse
 );
 
@@ -49,6 +53,7 @@ router.post(
   "/courses/enroll",
   authenticateToken,
   requireAuth,
+  sessionTracker,
   courseController.enrollCourse
 );
 
