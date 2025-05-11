@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Select from 'react-select';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
@@ -194,18 +195,63 @@ function ProfilePage() {
             />
 
             <label htmlFor="country">Country</label>
-            <select
-              id="country"
-              className="account-settings-select"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-            >
-              <option value="Other">Other</option>
-              <option value="Palestine">Palestine</option>
-              <option value="Jordan">Jordan</option>
-              <option value="USA">USA</option>
-              <option value="UK">UK</option>
-            </select>
+            <div style={{ marginBottom: '1rem' }}>
+              <Select
+                id="country"
+                classNamePrefix="account-settings-select"
+                value={[
+                  { value: 'Other', label: 'Other' },
+                  { value: 'Palestine', label: 'Palestine' },
+                  { value: 'Jordan', label: 'Jordan' },
+                  { value: 'USA', label: 'USA' },
+                  { value: 'UK', label: 'UK' }
+                ].find(opt => opt.value === country)}
+                onChange={opt => setCountry(opt.value)}
+                options={[
+                  { value: 'Other', label: 'Other' },
+                  { value: 'Palestine', label: 'Palestine' },
+                  { value: 'Jordan', label: 'Jordan' },
+                  { value: 'USA', label: 'USA' },
+                  { value: 'UK', label: 'UK' }
+                ]}
+                isSearchable={false}
+                styles={{
+                  control: (provided) => ({
+                    ...provided,
+                    backgroundColor: '#282f40',
+                    color: 'white',
+                    borderColor: '#282f40',
+                  }),
+                  singleValue: (provided) => ({
+                    ...provided,
+                    color: 'white',
+                  }),
+                  menu: (provided) => ({
+                    ...provided,
+                    backgroundColor: '#282f40',
+                    color: 'white',
+                  }),
+                  option: (provided, state) => ({
+                    ...provided,
+                    backgroundColor: state.isFocused ? '#1a1f2b' : '#282f40',
+                    color: 'white',
+                    cursor: 'pointer',
+                  }),
+                  input: (provided) => ({
+                    ...provided,
+                    color: 'white',
+                  }),
+                  dropdownIndicator: (provided) => ({
+                    ...provided,
+                    color: 'white',
+                  }),
+                  indicatorSeparator: (provided) => ({
+                    ...provided,
+                    backgroundColor: 'white',
+                  }),
+                }}
+              />
+            </div>
 
             <label htmlFor="bio">Bio</label>
             <textarea

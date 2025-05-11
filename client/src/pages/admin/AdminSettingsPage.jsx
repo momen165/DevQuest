@@ -5,6 +5,57 @@ import { useAuth } from '../../AuthContext';
 import toast, { Toaster } from 'react-hot-toast';
 import './styles/AdminSettingsPage.css';
 
+// GrantFreeSubscriptionForm component
+function GrantFreeSubscriptionForm() {
+  const [userId, setUserId] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleGrant = async (e) => {
+    e.preventDefault();
+    if (!userId || isNaN(userId)) {
+      toast.error('Please enter a valid user ID');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/admin/grant-free-subscription`,
+        {
+          userId: parseInt(userId, 10),
+        }
+      );
+      toast.success(response.data.message || 'Free subscription granted');
+      setUserId('');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to grant free subscription');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form className="admin-settings-form" onSubmit={handleGrant} style={{ marginTop: 8 }}>
+      <input
+        className="admin-settings-input"
+        type="number"
+        value={userId}
+        onChange={(e) => setUserId(e.target.value)}
+        placeholder="Enter user ID"
+        min="1"
+        disabled={loading}
+      />
+      <button
+        className="admin-settings-submit-btn"
+        type="submit"
+        disabled={loading}
+        style={{ marginLeft: 8 }}
+      >
+        {loading ? 'Granting...' : 'Grant Free Subscription'}
+      </button>
+    </form>
+  );
+}
+
 const AdminSettingsPage = () => {
   const [newAdminId, setNewAdminId] = useState('');
   const [isAddingAdmin, setIsAddingAdmin] = useState(true); // New state to track mode
@@ -56,7 +107,7 @@ const AdminSettingsPage = () => {
 
   useEffect(() => {
     if (!user?.userId) return;
-    
+
     const checkAdminStatus = async () => {
       try {
         const statusResponse = await axios.get(`${import.meta.env.VITE_API_URL}/admin/status`);
@@ -82,7 +133,7 @@ const AdminSettingsPage = () => {
         }
       }
     };
-    
+
     loadData();
   }, [user?.userId]);
 
@@ -264,13 +315,21 @@ const AdminSettingsPage = () => {
                 </button>
               </div>
               <button
-                className={`admin-settings-submit-btn ${!isAddingAdmin ? 'admin-settings-remove-btn' : ''}`}
+                className={`admin-settings-submit-btn ${
+                  !isAddingAdmin ? 'admin-settings-remove-btn' : ''
+                }`}
                 type="submit"
               >
                 {isAddingAdmin ? 'Add Admin' : 'Remove Admin'}
               </button>
             </div>
           </form>
+        </section>
+
+        {/* Grant Free Subscription Section */}
+        <section className="admin-settings-section">
+          <h3 className="admin-settings-section-title">Grant Free Subscription</h3>
+          <GrantFreeSubscriptionForm />
         </section>
 
         {/* Maintenance Mode Section - Second */}
@@ -300,11 +359,7 @@ const AdminSettingsPage = () => {
         <section className="settings-section">
           <div className="settings-section-header">
             <h3 className="admin-settings-section-title">Admin Activities</h3>
-            <button 
-              className="refresh-button" 
-              onClick={fetchAdminActivities}
-              disabled={isLoading}
-            >
+            <button className="refresh-button" onClick={fetchAdminActivities} disabled={isLoading}>
               {isLoading ? 'Loading...' : 'Refresh'}
             </button>
           </div>

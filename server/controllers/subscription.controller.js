@@ -129,7 +129,7 @@ const handleStripeWebhook = async (req, res) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET,
+      process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
     console.error("Webhook signature verification failed:", err.message);
@@ -197,7 +197,7 @@ const handleStripeWebhook = async (req, res) => {
             amountPaid,
             userId,
             userEmail,
-          ],
+          ]
         );
         const dbSubscriptionId = subscriptionRows[0].subscription_id;
 
@@ -322,10 +322,6 @@ const checkActiveSubscription = async (req, res) => {
     const cachedData = subscriptionCache.get(cacheKey);
 
     if (cachedData) {
-      console.log(
-        "\x1b[32m%s\x1b[0m",
-        `🎯 Cache HIT for subscription check - User ID: ${userId}`,
-      );
       return res.json(cachedData);
     }
 
@@ -357,10 +353,6 @@ const checkActiveSubscription = async (req, res) => {
 
     // Store in cache
     subscriptionCache.set(cacheKey, response);
-    console.log(
-      "\x1b[33m%s\x1b[0m",
-      `💾 Cache MISS - Storing subscription data for User ID: ${userId}`,
-    );
 
     res.json(response);
   } catch (error) {

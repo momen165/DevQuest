@@ -1,5 +1,15 @@
 import React , { useState } from 'react';
-import {FaMoneyCheckAlt, FaChalkboardTeacher, FaHome, FaUser, FaComment, FaCog, FaSignOutAlt, FaArrowLeft} from 'react-icons/fa';
+import {
+  FaMoneyCheckAlt, 
+  FaChalkboardTeacher, 
+  FaHome, 
+  FaUser, 
+  FaComment, 
+  FaCog, 
+  FaSignOutAlt, 
+  FaArrowLeft,
+  FaChartLine // Add chart icon
+} from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom';
 import '../../../pages/admin/styles/Sidebar.css';
 import { useAuth } from '../../../AuthContext';
@@ -45,7 +55,12 @@ const Sidebar = ({ children }) => {
             </li>
           </Link>
 
-          
+          {/* Add Analytics link */}
+          <Link to="/Analytics" className="link">
+            <li className={`sidebar-item ${location.pathname === '/Analytics' ? 'active' : ''}`}>
+              <FaChartLine /> <span>Analytics</span>
+            </li>
+          </Link>
 
           <Link to="/PaymentInfo" className="link">
             <li className={`sidebar-item ${location.pathname === '/PaymentInfo' ? 'active' : ''}`}>
