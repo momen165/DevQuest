@@ -1,3 +1,43 @@
+/* Improved Custom gutter for manual split */
+.custom-gutter {
+  flex: none;
+  background-color: #23263a;
+  transition: background-color 0.2s;
+  z-index: 20; /* Increased z-index to ensure it's always clickable */
+  position: relative;
+}
+.custom-gutter:hover {
+  background-color: #2d4677;
+}
+.custom-gutter:active,
+.custom-gutter.dragging {
+  background-color: #377ef0;
+}
+
+/* Reset minimum heights for proper flexbox behavior */
+.lesson-split {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.lesson-instructions {
+  overflow: auto;
+  background-color: #1a1b26;
+}
+
+.lesson-code-area {
+  overflow: hidden;
+  background-color: #0d1117;
+}
+
+/* Fix editor container sizing */
+.code-editor {
+  position: relative;
+  min-height: 100px;
+}
 /* lessonpage.css */
 
 /* Add these font imports at the top of the file */
@@ -5,8 +45,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 /* Base layout */
+
+/* Remove duplicate .lesson-split styles */
+.lesson-split.gutter {
+  display: none;
+}
 .lesson-page {
-  display: flex;
   position: fixed;
   top: 100px; /* Adjusted to account for navbar height */
   left: 0;
@@ -17,20 +61,20 @@
   overflow: hidden;
   box-sizing: border-box;
   z-index: 100;
+  width: 100vw;
+  height: calc(100vh - 100px - 64px);
+  min-width: 0;
+  min-height: 0;
 }
+
+/* Old split styles removed */
 
 /* Left section - Instructions */
 .lesson-instructions {
   font-family: 'Lato', sans-serif;
-  flex: 1;
-  background: #1a1b26;
-  overflow-y: auto;
-  height: 100%;
-  width: 100%;
-  max-width: 50vw;
   color: white;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0 10px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .lesson-instructions h1 {
@@ -42,14 +86,10 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+
+
 /* Right section - Code area */
-.lesson-code-area {
-  flex: 1.2;
-  display: flex;
-  flex-direction: column;
-  background-color: #0d1117;
-  height: 100%;
-}
+/* Code area is styled inline in component now */
 
 /* Code editor */
 .code-editor {
@@ -190,29 +230,27 @@
 /* Tablet View */
 @media (max-width: 1024px) {
   .lesson-page {
-    flex-direction: column;
     top: 60px;
+    height: calc(100vh - 60px - 64px);
   }
-
+  
+  .custom-gutter {
+    cursor: row-resize !important;
+    height: 8px !important;
+    width: 100% !important;
+  }
+  
   .lesson-instructions {
-    flex: none;
-    height: 42%;
-    max-width: 100%;
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
-
-  .lesson-code-area {
-    flex: none;
-    height: 58%;
-  }
-
+  
   .lesson-instructions h1 {
     font-size: 1.4rem;
     padding: 10px;
     margin-bottom: 0.5rem;
   }
-
+  
   .console h3 {
     font-size: 0.9rem;
   }

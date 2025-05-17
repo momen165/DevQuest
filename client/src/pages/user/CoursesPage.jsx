@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from "react";
-import "../../styles/CoursesPage.css";
-import CourseCard from "../../components/CourseCard";
-import FilterTabs from "../../components/FilterTabs";
-import Navbar from "../../components/Navbar";
-import { useAuth } from "../../AuthContext";
-import CircularProgress from "@mui/material/CircularProgress";
-import Footer from "../../components/Footer";
-import SupportForm from "../../components/SupportForm";
-import axios from "axios";
-import AnimatedLogo from "../../components/AnimatedLogo";
+import React, { useState, useEffect } from 'react';
+import '../../styles/CoursesPage.css';
+import CourseCard from '../../components/CourseCard';
+import FilterTabs from '../../components/FilterTabs';
+import Navbar from '../../components/Navbar';
+import { useAuth } from '../../AuthContext';
+import CircularProgress from '@mui/material/CircularProgress';
+import Footer from '../../components/Footer';
+import SupportForm from '../../components/SupportForm';
+import axios from 'axios';
 const api_url = import.meta.env.VITE_API_URL;
 
 const CoursesPage = () => {
@@ -20,7 +19,7 @@ const CoursesPage = () => {
   const [userscount, setUserscount] = useState({});
   const [enrollments, setEnrollments] = useState({});
   const [progress, setProgress] = useState({});
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchCoursesAndRatings = async () => {
@@ -40,8 +39,8 @@ const CoursesPage = () => {
         setUserscount(userscount || {});
         setEnrollments(enrollmentsResponse.data || {});
       } catch (err) {
-        console.error("Error:", err);
-        setError("Failed to load data");
+        console.error('Error:', err);
+        setError('Failed to load data');
       } finally {
         setLoading(false);
       }
@@ -58,8 +57,8 @@ const CoursesPage = () => {
         const response = await axios.get(`${api_url}/students/${user.user_id}`);
         setProgress(response.data.courses);
       } catch (err) {
-        console.error("Error:", err);
-        setError("Failed to load progress data");
+        console.error('Error:', err);
+        setError('Failed to load progress data');
       }
     };
 
@@ -68,15 +67,11 @@ const CoursesPage = () => {
 
   const handleFilter = (filter) => {
     switch (filter.toLowerCase()) {
-      case "all":
-        setFilteredCourses(
-          [...courses].sort((a, b) =>
-            (a.name || "").localeCompare(b.name || ""),
-          ),
-        );
+      case 'all':
+        setFilteredCourses([...courses].sort((a, b) => (a.name || '').localeCompare(b.name || '')));
         break;
 
-      case "difficulty":
+      case 'difficulty':
         setFilteredCourses(
           [...courses].sort((a, b) => {
             const levels = { beginner: 1, intermediate: 2, advanced: 3 };
@@ -84,70 +79,62 @@ const CoursesPage = () => {
               (levels[a.difficulty?.toLowerCase()] || 0) -
               (levels[b.difficulty?.toLowerCase()] || 0)
             );
-          }),
+          })
         );
         break;
 
-      case "beginner":
+      case 'beginner':
         setFilteredCourses(
-          courses.filter(
-            (course) => course.difficulty?.toLowerCase() === "beginner",
-          ),
+          courses.filter((course) => course.difficulty?.toLowerCase() === 'beginner')
         );
         break;
 
-      case "intermediate":
+      case 'intermediate':
         setFilteredCourses(
-          courses.filter(
-            (course) => course.difficulty?.toLowerCase() === "intermediate",
-          ),
+          courses.filter((course) => course.difficulty?.toLowerCase() === 'intermediate')
         );
         break;
 
-      case "advanced":
+      case 'advanced':
         setFilteredCourses(
-          courses.filter(
-            (course) => course.difficulty?.toLowerCase() === "advanced",
-          ),
+          courses.filter((course) => course.difficulty?.toLowerCase() === 'advanced')
         );
         break;
 
-      case "popular":
+      case 'popular':
         setFilteredCourses(
           [...courses].sort(
-            (a, b) =>
-              (userscount[b.course_id] || 0) - (userscount[a.course_id] || 0),
-          ),
+            (a, b) => (userscount[b.course_id] || 0) - (userscount[a.course_id] || 0)
+          )
         );
         break;
 
-      case "rating":
-        setFilteredCourses(
-          [...courses].sort((a, b) => (b.rating || 0) - (a.rating || 0)),
-        );
+      case 'rating':
+        setFilteredCourses([...courses].sort((a, b) => (b.rating || 0) - (a.rating || 0)));
         break;
 
       default:
         setFilteredCourses([...courses]);
     }
   };
+  const handleSearch = (term) => {
+    // FilterTabs is now passing the value directly as a string
+    const searchTerm = typeof term === 'string' ? term.toLowerCase() : '';
 
-  const handleSearch = (event) => {
-    const term = event.target.value.toLowerCase();
-    setSearchTerm(term);
+    setSearchTerm(searchTerm);
 
-    if (term === "") {
+    if (searchTerm === '') {
       setFilteredCourses(courses);
     } else {
       const searchResults = courses.filter((course) => {
-        const name = (course.name || "").toLowerCase();
-        const description = (course.description || "").toLowerCase();
-        const difficulty = (course.difficulty || "").toLowerCase();
+        const name = (course.name || '').toLowerCase();
+        const description = (course.description || '').toLowerCase();
+        const difficulty = (course.difficulty || '').toLowerCase();
 
         return (
-          name.includes(term) ||
-          description.includes(term) ||
-          difficulty.includes(term)
+          name.includes(searchTerm) ||
+          description.includes(searchTerm) ||
+          difficulty.includes(searchTerm)
         );
       });
       setFilteredCourses(searchResults);
@@ -158,24 +145,7 @@ const CoursesPage = () => {
     <div className="courses-page">
       <Navbar />
       <header className="courses-header">
-        <AnimatedLogo />
-        <p className="hero-head">All Courses</p>
-        <p className="hero-para">
-          A large number of courses on different topics are waiting for you.
-          <br />
-          You can find there everything from self-developing to sciences, for
-          any knowledge levels.
-        </p>
-        <div className="search-container">
-          <input
-            type="text"
-            className="course-search-input"
-            placeholder="Search for courses..."
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-        </div>
-        <FilterTabs onFilterChange={handleFilter} />
+        <FilterTabs onFilterChange={handleFilter} onSearch={handleSearch} searchTerm={searchTerm} />
       </header>
       <section className="courses-grid">
         {filteredCourses.map((course) => (
@@ -183,8 +153,8 @@ const CoursesPage = () => {
             key={course.course_id}
             courseId={course.course_id}
             title={course.name}
-            level={course.difficulty || "Unknown"}
-            rating={course.rating || "N/A"}
+            level={course.difficulty || 'Unknown'}
+            rating={course.rating || 'N/A'}
             students={userscount[course.course_id] || 0}
             description={course.description}
             image={course.image}
@@ -192,8 +162,7 @@ const CoursesPage = () => {
             isEnrolled={!!enrollments[course.course_id]}
             progress={
               Array.isArray(progress)
-                ? progress.find((p) => p.course_id === course.course_id)
-                  ?.progress || 0
+                ? progress.find((p) => p.course_id === course.course_id)?.progress || 0
                 : 0
             }
           />
