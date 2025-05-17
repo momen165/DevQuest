@@ -57,7 +57,7 @@ const CourseSection = () => {
   const [profileData, setProfileData] = useState(null);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const FREE_LESSON_LIMIT = 5;
-  console.log(stats);
+
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       try {
@@ -159,15 +159,6 @@ const CourseSection = () => {
           const totalXP = overallStatsResponse.data.totalXP || 0;
           const userLevel = calculateLevel(totalXP);
           const progress = calculateLevelProgress(totalXP);
-
-          // Add debug logging to help understand the XP calculation
-          console.log('XP Debug:', {
-            totalXP,
-            level: userLevel,
-            progress,
-            prevLevelXP: getXPForLevel(userLevel),
-            nextLevelXP: getXPForLevel(userLevel + 1),
-          });
 
           setStats({
             courseXP: courseStatsResponse.data.courseXP || 0,
