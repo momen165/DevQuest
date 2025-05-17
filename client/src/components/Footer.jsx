@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useAuth } from "../AuthContext";
-import "../styles/Footer.css";
-import footerLogo from "../assets/icons/layer1.svg";
-import { FaLinkedin, FaGithub, FaTwitter, FaEnvelope } from "react-icons/fa";
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../AuthContext';
+import '../styles/Footer.css';
+import footerLogo from '../assets/icons/layer1.svg';
+import { FaLinkedin, FaGithub, FaTwitter, FaEnvelope } from 'react-icons/fa';
 
 const Footer = () => {
   const [courses, setCourses] = useState([]);
@@ -26,7 +26,7 @@ const Footer = () => {
         setCourses(coursesRes.data.courses.slice(0, 5));
         setEnrollments(enrollmentsRes.data || {});
       } catch (err) {
-        console.error("Error fetching footer data:", err);
+        console.error('Error fetching footer data:', err);
       }
     };
 
@@ -46,9 +46,7 @@ const Footer = () => {
       <div className="footer__container">
         <div className="footer__brand">
           <img src={footerLogo} alt="DevQuest" className="footer__logo" />
-          <p className="footer__tagline">
-            Empowering developers through interactive learning
-          </p>
+          <p className="footer__tagline">Empowering developers through interactive learning</p>
         </div>
 
         <div className="footer__content">
@@ -110,30 +108,18 @@ const Footer = () => {
 
       <div className="footer__bottom">
         <div className="footer__social">
-          <a
-            href="https://linkedin.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
             <FaLinkedin />
           </a>
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://github.com" target="_blank" rel="noopener noreferrer">
             <FaGithub />
           </a>
-          <a
-            href="https://twitter.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
             <FaTwitter />
           </a>
         </div>
         <p className="footer__copyright">
-          &copy; 2024 DevQuest. All rights reserved.
+          &copy; {new Date().getFullYear()} DevQuest. All rights reserved.
         </p>
       </div>
     </footer>
