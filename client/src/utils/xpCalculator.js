@@ -19,16 +19,6 @@ export const calculateLevelProgress = (xp) => {
   const prevLevelXP = getXPForLevel(level);
   const nextLevelXP = getXPForLevel(level + 1);
 
-  // Add debugging
-  console.log('Progress Calculation:', {
-    xp,
-    level,
-    prevLevelXP,
-    nextLevelXP,
-    difference: nextLevelXP - prevLevelXP,
-    progress: Math.round(((xp - prevLevelXP) / (nextLevelXP - prevLevelXP)) * 100),
-  });
-
   const progress = ((xp - prevLevelXP) / (nextLevelXP - prevLevelXP)) * 100;
   return Math.min(100, Math.max(0, progress));
 };
