@@ -8,6 +8,7 @@ import LessonNavigation from '../../components/LessonNavigation';
 import LessonContent from '../../components/LessonContent';
 import MonacoEditorComponent from '../../components/MonacoEditorComponent';
 import '../../styles/LessonPage.css';
+// import SplitPane from 'react-split-pane';
 import LoadingSpinner from './CircularProgress';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -90,6 +91,85 @@ const LessonPage = () => {
   const [completedLessonsCount, setCompletedLessonsCount] = useState(0);
   const [failedAttempts, setFailedAttempts] = useState(0);
 
+  // Improve split view with proper responsive handling
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [divider, setDivider] = useState(() => {
+    if (window.innerWidth <= 1024) return 42;
+    return 50;
+  });
+
+  // Listen for window resize to update layout
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Mouse/touch event handlers for resizing
+  const handleDragStart = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  const handleDragEnd = () => setIsDragging(false);
+  const handleDrag = (e) => {
+    if (!isDragging) return;
+
+    // Get correct client coordinates for both mouse and touch events
+    let clientX, clientY;
+    if (e.touches) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    // Get lesson page element for accurate calculations
+    const lessonPage = document.querySelector('.lesson-page');
+    if (!lessonPage) return;
+
+    const rect = lessonPage.getBoundingClientRect();
+
+    if (windowWidth > 1024) {
+      // Calculate percentage for vertical split based on container width
+      const relativeX = clientX - rect.left;
+      const percent = (relativeX / rect.width) * 100;
+      // Enforce stricter min/max bounds for better usability
+      if (percent > 25 && percent < 75) {
+        setDivider(percent);
+      }
+    } else {
+      // Calculate percentage for horizontal split based on container height
+      const relativeY = clientY - rect.top;
+      const percent = (relativeY / rect.height) * 100;
+      // Enforce min/max bounds
+      if (percent > 20 && percent < 80) {
+        setDivider(percent);
+      }
+    }
+  };
+  // Set up the drag event listeners with proper passive option for mobile
+  useEffect(() => {
+    if (!isDragging) return;
+
+    // Add mouse events (these don't need passive: false)
+    window.addEventListener('mousemove', handleDrag);
+    window.addEventListener('mouseup', handleDragEnd);
+
+    // Add touch events with passive: false to allow preventDefault()
+    window.addEventListener('touchmove', handleDrag, { passive: false });
+    window.addEventListener('touchend', handleDragEnd, { passive: false });
+
+    return () => {
+      // Clean up all event listeners
+      window.removeEventListener('mousemove', handleDrag);
+      window.removeEventListener('mouseup', handleDragEnd);
+      window.removeEventListener('touchmove', handleDrag, { passive: false });
+      window.removeEventListener('touchend', handleDragEnd, { passive: false });
+    };
+  }, [isDragging]);
+
   const resetState = () => {
     setCode('');
     setConsoleOutput('Output will appear here...');
@@ -156,26 +236,31 @@ const LessonPage = () => {
 
         if (lessonResponse.status === 403) {
           // Check if the error is due to subscription limit or lesson being locked
-          if (lessonResponse.data?.status === "subscription_required") {
+          if (lessonResponse.data?.status === 'subscription_required') {
             navigate('/pricing', {
               state: {
-                message: 'You have reached the free lesson limit. Please subscribe to continue learning.',
+                message:
+                  'You have reached the free lesson limit. Please subscribe to continue learning.',
               },
             });
             return;
-          } else if (lessonResponse.data?.status === "locked") {
+          } else if (lessonResponse.data?.status === 'locked') {
             // This is a locked lesson - redirect to course page with error message
-            const sectionResponse = await api.get(`/sections/${lessonResponse.data?.section_id || 0}`, {
-              headers: {
-                Authorization: `Bearer ${user.token}`,
-              },
-            });
+            const sectionResponse = await api.get(
+              `/sections/${lessonResponse.data?.section_id || 0}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${user.token}`,
+                },
+              }
+            );
 
             if (sectionResponse.status === 200 && sectionResponse.data?.course_id) {
               navigate(`/course/${sectionResponse.data.course_id}`, {
                 state: {
-                  errorMessage: lessonResponse.data?.message || "You need to complete previous lessons first."
-                }
+                  errorMessage:
+                    lessonResponse.data?.message || 'You need to complete previous lessons first.',
+                },
               });
             } else {
               navigate('/');
@@ -285,8 +370,22 @@ const LessonPage = () => {
   return (
     <>
       <Navbar />
-      <div className="lesson-page">
-        <div className="lesson-instructions">
+      <div
+        className="lesson-page lesson-split"
+        style={{ flexDirection: windowWidth > 1024 ? 'row' : 'column', display: 'flex' }}
+      >
+        <div
+          className="lesson-instructions"
+          style={{
+            ...(windowWidth > 1024
+              ? { width: `${divider}%`, flex: 'none' }
+              : { height: `${divider}%`, flex: 'none' }),
+            minWidth: 0,
+            minHeight: 0,
+            transition: isDragging ? 'none' : windowWidth > 1024 ? 'width 0.2s' : 'height 0.2s',
+            overflow: 'auto',
+          }}
+        >
           <h1>{lesson.name}</h1>
           <LessonContent
             content={lesson.content}
@@ -296,7 +395,51 @@ const LessonPage = () => {
           />
         </div>
 
-        <div className="lesson-code-area">
+        {/* Draggable Gutter/Divider */}
+        <div
+          className="custom-gutter"
+          style={{
+            ...(windowWidth > 1024
+              ? { cursor: 'col-resize', width: 8, minWidth: 8 }
+              : { cursor: 'row-resize', height: 8, minHeight: 8 }),
+            background: isDragging ? '#377ef0' : '#23263a',
+            zIndex: 10,
+            flex: 'none',
+          }}
+          onMouseDown={handleDragStart}
+          ref={(el) => {
+            // Add non-passive touch event listener to the gutter element
+            if (el) {
+              // Remove any existing listener first to prevent duplicates
+              el.removeEventListener('touchstart', handleDragStart, { passive: false });
+              // Add the non-passive listener
+              el.addEventListener('touchstart', handleDragStart, { passive: false });
+            }
+          }}
+        />
+
+        <div
+          className="lesson-code-area"
+          style={{
+            ...(windowWidth > 1024
+              ? {
+                  width: `${100 - divider - 1}%`,
+                  flex: 'none',
+                  height: '100%',
+                }
+              : {
+                  height: `${100 - divider - 1}%`,
+                  flex: 'none',
+                  width: '100%',
+                }),
+            minWidth: 200,
+            minHeight: 150,
+            transition: isDragging ? 'none' : windowWidth > 1024 ? 'width 0.2s' : 'height 0.2s',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        >
           <div className="code-editor">
             <MonacoEditorComponent
               language={languageMappings[languageId] || 'plaintext'}
@@ -311,7 +454,6 @@ const LessonPage = () => {
               templateCode={lesson?.template_code}
             />
           </div>
-
           <div className="console">
             <div className="console-header">
               <h3>Console</h3>

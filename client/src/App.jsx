@@ -120,7 +120,7 @@ function AppContent() {
     const key = `pageview_${normalizedPath}`;
     if (!sessionStorage.getItem(key)) {
       sessionStorage.setItem(key, '1');
-      console.log('Tracking pageview:', normalizedPath);
+
       axios
         .post(
           `${apiUrl}/track-pageview`,

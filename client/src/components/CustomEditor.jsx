@@ -526,7 +526,7 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
     const data = editor.getData();
 
     // Debug: Log when handler is called
-    console.log('EDITOR - handleChange called');
+    //console.log('EDITOR - handleChange called');
 
     if (onChange) {
       // Clean up empty paragraphs before sending data back
@@ -540,7 +540,7 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
     if (!html) return html;
 
     // Debug: Show original HTML
-    console.log('EDITOR - Original HTML:', html);
+    //console.log('EDITOR - Original HTML:', html);
 
     // Clean <p>&nbsp;</p> and variants of empty paragraphs
     const cleaned = html
@@ -554,8 +554,8 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
       (html.match(/<p><span>(\s|&nbsp;)*<\/span><\/p>/g) || []).length +
       (html.match(/<p[^>]*>\s*<\/p>/g) || []).length;
 
-    console.log('EDITOR - Cleaned HTML:', cleaned);
-    console.log('EDITOR - Empty paragraphs removed:', emptyParagraphsRemoved);
+    // console.log('EDITOR - Cleaned HTML:', cleaned);
+    // console.log('EDITOR - Empty paragraphs removed:', emptyParagraphsRemoved);
 
     return cleaned;
   };
@@ -564,7 +564,7 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
     editorRef.current = editor;
 
     // Debug: Log when editor is ready
-    console.log('EDITOR - CKEditor instance ready');
+    // console.log('EDITOR - CKEditor instance ready');
 
     // Set up custom keystroke handlers with preventDefault
     const customConfig = mergedConfig.customConfig || {};
@@ -587,7 +587,7 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
       const data = editor.getData();
 
       // Debug: Log when content changes
-      console.log('EDITOR - Content changed');
+      // console.log('EDITOR - Content changed');
 
       if (onChange) {
         // Clean up empty paragraphs before sending data back
