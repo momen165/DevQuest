@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 /* Improved Custom gutter for manual split */
 .custom-gutter {
   flex: none;
@@ -41,8 +43,7 @@
 /* lessonpage.css */
 
 /* Add these font imports at the top of the file */
-@import url('https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
 
 /* Base layout */
 
@@ -224,7 +225,15 @@
   .lesson-instructions h1 {
     font-size: 1.5rem;
     padding: 12px 10px;
+    margin-top: 50px;
   }
+  .console h3 {
+    font-size: 1rem;
+    padding: 10px 0;
+  }
+ 
+
+  
 }
 
 /* Tablet View */
@@ -341,14 +350,14 @@
 @media (max-height: 600px) and (orientation: landscape) {
   .lesson-page {
     flex-direction: row;
-    top: 48px;
+ 
     bottom: 48px;
   }
 
   .lesson-instructions {
     flex: 0.8;
     height: 100%;
-    max-width: 45%;
+    
     border-right: 1px solid rgba(255, 255, 255, 0.1);
     border-bottom: none;
   }

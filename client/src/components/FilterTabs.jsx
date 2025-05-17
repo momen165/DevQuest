@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/FilterTabs.css';
 
-import AnimatedLogoMain from '../assets/icons/dev.svg';
-import AnimatedLogoSecond from '../assets/icons/quest.svg';
+import AnimatedLogoMain from '../assets/icons/Dev.svg';
+import AnimatedLogoSecond from '../assets/icons/Quest.svg';
 
 const FilterTabs = ({ onFilterChange, onSearch, searchTerm }) => {
   const [activeTab, setActiveTab] = useState('All Courses');
