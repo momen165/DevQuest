@@ -25,6 +25,7 @@
         "@sentry/react": "^9.22.0",
         "@sentry/vite-plugin": "^3.5.0",
         "@stripe/stripe-js": "^5.4.0",
+        "@vercel/speed-insights": "^1.2.0",
         "axios": "^1.7.9",
         "chart.js": "^4.4.9",
         "ckeditor5": "^44.1.0",

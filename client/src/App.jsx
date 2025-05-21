@@ -12,7 +12,7 @@ import './App.css';
 import { CircularProgress } from '@mui/material';
 
 import Analytics from './pages/admin/EnhancedAnalytics';
-
+import { SpeedInsights } from '@vercel/speed-insights/react';
 // Lazy load components
 
 const HomePage = React.lazy(() => import('./pages/user/HomePage'));
@@ -81,15 +81,18 @@ function App() {
   // Component to wrap routes that need maintenance check
 
   return (
-    <Router
-      future={{
-        v7_startTransition: true,
+    <>
+      <SpeedInsights />
+      <Router
+        future={{
+          v7_startTransition: true,
 
-        v7_relativeSplatPath: true,
-      }}
-    >
-      <AppContent />
-    </Router>
+          v7_relativeSplatPath: true,
+        }}
+      >
+        <AppContent />
+      </Router>
+    </>
   );
 }
 
@@ -395,7 +398,5 @@ function AppContent() {
     </Suspense>
   );
 }
-
-
 
 export default App;
