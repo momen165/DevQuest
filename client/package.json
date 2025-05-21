@@ -22,6 +22,8 @@
         "@monaco-editor/react": "^4.6.0",
         "@mui/icons-material": "^6.3.0",
         "@mui/material": "^6.3.0",
+        "@sentry/react": "^9.22.0",
+        "@sentry/vite-plugin": "^3.5.0",
         "@stripe/stripe-js": "^5.4.0",
         "axios": "^1.7.9",
         "chart.js": "^4.4.9",
