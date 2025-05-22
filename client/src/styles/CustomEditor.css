@@ -7,19 +7,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap');
 
 @media print {
-	body {
-		margin: 0 !important;
-	}
+  body {
+    margin: 0 !important;
+  }
 }
 
 .custom-editor {
-	font-family: 'Lato';
+  font-family: 'Lato';
 }
 
 .custom-editor .main-container {
-	width: fit-content;
-	margin-left: auto;
-	margin-right: auto;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .custom-editor .ck-content,
@@ -32,253 +32,205 @@
 .custom-editor .ck-content h6,
 .custom-editor .ck-content span,
 .custom-editor .ck-content div {
-	color: #000000;
-	font-family:sans-serif;
-	line-height: 1.6;
-	word-break: break-word;
+  color: #000000;
+  font-family: sans-serif;
+  line-height: 1.6;
+  word-break: break-word;
 }
 
 .custom-editor .editor-container_classic-editor .editor-container__editor {
-	min-width: 795px;
-	max-width: 795px;
-	position: relative;
+  min-width: 795px;
+  max-width: 795px;
+  position: relative;
 }
 
 .custom-editor .ck-content h3.editor-category {
-	font-family: 'Oswald' !important;
-	font-size: 20px !important;
-	font-weight: bold !important;
-	color: #555 !important;
-	letter-spacing: 10px !important;
-	margin: 0 !important;
-	padding: 0 !important;
-}
-
-.custom-editor .ck-content h2.editor-title {
-	font-family: 'Oswald';
-	font-size: 50px;
-	font-weight: bold;
-	margin: 0;
-	padding: 0;
-	border: 0;
+  font-family: 'Oswald' !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+  color: #555 !important;
+  letter-spacing: 10px !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .custom-editor .ck-content h3.editor-subtitle {
-	font-family: 'Oswald';
-	font-size: 20px;
-	color: #000000;
-	margin: 0 0 1em;
-	font-weight: bold;
-	padding: 0;
+  font-family: 'Oswald';
+  font-size: 20px;
+  color: #000000;
+  margin: 0 0 1em;
+  font-weight: bold;
+  padding: 0;
 }
 
 .custom-editor .ck-content p.editor-info-box {
-	--background-size: 30px;
-	--background-color: #e91e63;
-	padding: 1.2em 2em;
-	border: 1px solid var(--background-color);
-	background: linear-gradient(
-			135deg,
-			var(--background-color) 0%,
-			var(--background-color) var(--background-size),
-			transparent var(--background-size)
-		),
-		linear-gradient(
-			135deg,
-			transparent calc(100% - var(--background-size)),
-			var(--background-color) calc(100% - var(--background-size)),
-			var(--background-color)
-		);
-	border-radius: 10px;
-	margin: 1.5em 2em;
-	box-shadow: 5px 5px 0 #ffe6ef;
+  --background-size: 30px;
+  --background-color: #e91e63;
+  padding: 1.2em 2em;
+  border: 1px solid var(--background-color);
+  background: linear-gradient(
+      135deg,
+      var(--background-color) 0%,
+      var(--background-color) var(--background-size),
+      transparent var(--background-size)
+    ),
+    linear-gradient(
+      135deg,
+      transparent calc(100% - var(--background-size)),
+      var(--background-color) calc(100% - var(--background-size)),
+      var(--background-color)
+    );
+  border-radius: 10px;
+  margin: 1.5em 2em;
+  box-shadow: 5px 5px 0 #ffe6ef;
 }
 
 .custom-editor .ck-content blockquote.editor-side-quote {
-	font-family: 'Oswald';
-	font-style: normal;
-	float: right;
-	width: 35%;
-	position: relative;
-	border: 0;
-	overflow: visible;
-	z-index: 1;
-	margin-left: 1em;
+  font-family: 'Oswald';
+  font-style: normal;
+  float: right;
+  width: 35%;
+  position: relative;
+  border: 0;
+  overflow: visible;
+  z-index: 1;
+  margin-left: 1em;
 }
 
 .custom-editor .ck-content blockquote.editor-side-quote::before {
-	content: '"';
-	position: absolute;
-	top: -37px;
-	left: -10px;
-	display: block;
-	font-size: 200px;
-	color: #e7e7e7;
-	z-index: -1;
-	line-height: 1;
+  content: '"';
+  position: absolute;
+  top: -37px;
+  left: -10px;
+  display: block;
+  font-size: 200px;
+  color: #e7e7e7;
+  z-index: -1;
+  line-height: 1;
 }
 
 .custom-editor .ck-content blockquote.editor-side-quote p {
-	font-size: 2em;
-	line-height: 1;
+  font-size: 2em;
+  line-height: 1;
 }
 
 .custom-editor .ck-content blockquote.editor-side-quote p:last-child:not(:first-child) {
-	font-size: 1.3em;
-	text-align: right;
-	color: #555;
+  font-size: 1.3em;
+  text-align: right;
+  color: #555;
 }
 
 .custom-editor .ck-content span.editor-marker {
-	background: yellow;
+  background: yellow;
 }
 
 .custom-editor .ck-content span.editor-spoiler {
-	background: #000;
-	color: #000;
+  background: #000;
+  color: #000;
 }
 
 .custom-editor .ck-content span.editor-spoiler:hover {
-	background: #000;
-	color: #fff;
+  background: #000;
+  color: #fff;
 }
 
 .custom-editor .ck-content pre.editor-code {
-	border: 0;
-	margin-left: 2em;
-	margin-right: 2em;
-	border-radius: 10px;
+  border: 0;
+  margin-left: 2em;
+  margin-right: 2em;
+  border-radius: 10px;
 }
 
 .custom-editor .ck-content pre.editor-code::before {
-	content: '';
-	display: block;
-	height: 13px;
-	background: url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1NCAxMyI+CiAgPGNpcmNsZSBjeD0iNi41IiBjeT0iNi41IiByPSI2LjUiIGZpbGw9IiNGMzZCNUMiLz4KICA8Y2lyY2xlIGN4PSIyNi41IiBjeT0iNi41IiByPSI2LjUiIGZpbGw9IiNGOUJFNEQiLz4KICA8Y2lyY2xlIGN4PSI0Ny41IiBjeT0iNi41IiByPSI2LjUiIGZpbGw9IiM1NkM0NTMiLz4KPC9zdmc+Cg==);
-	margin-bottom: 8px;
-	background-repeat: no-repeat;
+  content: '';
+  display: block;
+  height: 13px;
+  background: url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1NCAxMyI+CiAgPGNpcmNsZSBjeD0iNi41IiBjeT0iNi41IiByPSI2LjUiIGZpbGw9IiNGMzZCNUMiLz4KICA8Y2lyY2xlIGN4PSIyNi41IiBjeT0iNi41IiByPSI2LjUiIGZpbGw9IiNGOUJFNEQiLz4KICA8Y2lyY2xlIGN4PSI0Ny41IiBjeT0iNi41IiByPSI2LjUiIGZpbGw9IiM1NkM0NTMiLz4KPC9zdmc+Cg==);
+  margin-bottom: 8px;
+  background-repeat: no-repeat;
 }
 
 .custom-editor .ck-content pre.editor-code--dark {
-	background: #272822;
-	color: #fff;
-	box-shadow: 5px 5px 0 #0000001f;
+  background: #272822;
+  color: #fff;
+  box-shadow: 5px 5px 0 #0000001f;
 }
 
 .custom-editor .ck-content pre.editor-code--light {
-	background: #dddfe0;
-	color: #000;
-	box-shadow: 5px 5px 0 #b3b3b3;
+  background: #dddfe0;
+  color: #000;
+  box-shadow: 5px 5px 0 #b3b3b3;
 }
 
 .custom-editor .ck-content .text-tiny {
-	font-size: 10px;
+  font-size: 10px;
 }
 
 .custom-editor .ck-content .text-small {
-	font-size: 12px;
+  font-size: 12px;
 }
 
 .custom-editor .ck-content .text-default {
-	font-size: 16px;
+  font-size: 16px;
 }
 
 .custom-editor .ck-content .text-big {
-	font-size: 20px;
+  font-size: 20px;
 }
 
 .custom-editor .ck-content .text-huge {
-	font-size: 24px;
+  font-size: 24px;
 }
 
 .custom-editor .ck.ck-editor__main > .ck-editor__editable {
-	background: #fff !important;
-	border: 1px solid #c4c4c4 !important;
-	padding: 20px !important;
-	color: #333333 !important;
-	min-height: 400px !important;
+  background: #fff !important;
+  border: 1px solid #c4c4c4 !important;
+  padding: 20px !important;
+  color: #333333 !important;
+  min-height: 400px !important;
 }
 
 .custom-editor .ck.ck-editor__main > .ck-editor__editable:focus {
-	border-color: #2271b1 !important;
+  border-color: #2271b1 !important;
 }
 
 .custom-editor .ck.ck-toolbar {
-	background: #f8f9fa !important;
-	border: 1px solid #c4c4c4 !important;
+  background: #f8f9fa !important;
+  border: 1px solid #c4c4c4 !important;
 }
 
 .custom-editor .ck.ck-button:not(.ck-color-grid__tile):not(.ck-color-table__tile) {
-	background: transparent !important;
+  background: transparent !important;
 }
 
 .custom-editor .ck.ck-button:not(.ck-color-grid__tile):not(.ck-color-table__tile):hover {
-	background: #e9ecef !important;
+  background: #e9ecef !important;
 }
 
 .custom-editor .ck.ck-toolbar * {
-	color: #333333 !important;
+  color: #333333 !important;
 }
 
 .custom-editor .ck.ck-toolbar .ck-button:focus {
-	box-shadow: none !important;
-	border-color: #2271b1 !important;
+  box-shadow: none !important;
+  border-color: #2271b1 !important;
 }
 
-.custom-editor .ck-content p.editor-gray-background {
-	background-color: #2d2d2d;
-	padding: 15px;
-	border-radius: 4px;
-	margin: 1em 0;
-	color: white;
-}
 
 .custom-editor .ck-content p.editor-blue-background {
-	background-color: #e8f4ff;
-	padding: 15px;
-	border-radius: 4px;
-	margin: 1em 0;
+  background-color: #e8f4ff;
+  padding: 15px;
+  border-radius: 4px;
+  margin: 1em 0;
 }
 
 .custom-editor .ck-content p.editor-green-background {
-	background-color: #e8fff0;
-	padding: 15px;
-	border-radius: 4px;
-	margin: 1em 0;
+  background-color: #e8fff0;
+  padding: 15px;
+  border-radius: 4px;
+  margin: 1em 0;
 }
 
-/* Heading backgrounds */
-.custom-editor .ck-content h1.editor-gray-background,
-.custom-editor .ck-content h2.editor-gray-background,
-.custom-editor .ck-content h3.editor-gray-background,
-.custom-editor .ck-content h4.editor-gray-background,
-.custom-editor .ck-content h5.editor-gray-background,
-.custom-editor .ck-content h6.editor-gray-background {
-	background-color: #2d2d2d;
-	padding: 15px;
-	border-radius: 4px;
-	margin: 1em 0;
-	color: white;
-}
-
-/* List backgrounds */
-.custom-editor .ck-content ul.editor-gray-background,
-.custom-editor .ck-content ol.editor-gray-background {
-	background-color: #2d2d2d;
-	padding: 15px 15px 15px 40px;
-	border-radius: 4px;
-	margin: 1em 0;
-	color: white;
-}
-
-/* Blockquote backgrounds */
-.custom-editor .ck-content blockquote.editor-gray-background {
-	background-color: #2d2d2d;
-	padding: 15px;
-	border-radius: 4px;
-	margin: 1em 0;
-	color: white;
-}
 
 /* Repeat for blue and green backgrounds */
 /* Blue backgrounds */
@@ -291,11 +243,11 @@
 .custom-editor .ck-content ul.editor-blue-background,
 .custom-editor .ck-content ol.editor-blue-background,
 .custom-editor .ck-content blockquote.editor-blue-background {
-	background-color: #1a2636;
-	padding: 15px;
-	border-radius: 4px;
-	margin: 1em 0;
-	color: white;
+  background-color: #1a2636;
+  padding: 15px;
+  border-radius: 4px;
+  margin: 1em 0;
+  color: white;
 }
 
 /* Green backgrounds */
@@ -308,41 +260,36 @@
 .custom-editor .ck-content ul.editor-green-background,
 .custom-editor .ck-content ol.editor-green-background,
 .custom-editor .ck-content blockquote.editor-green-background {
-	background-color: #1a362a;
-	padding: 15px;
-	border-radius: 4px;
-	margin: 1em 0;
-	color: white;
+  background-color: #1a362a;
+  padding: 15px;
+  border-radius: 4px;
+  margin: 1em 0;
+  color: white;
 }
 
 /* Font styles */
 .custom-editor .ck-content p.editor-font-nunito {
-	font-family: 'Nunito Sans', sans-serif;
-	line-height: 1.6;
+  font-family: 'Nunito Sans', sans-serif;
+  line-height: 1.6;
 }
 
 .custom-editor .ck-content p.editor-font-inter {
-	font-family: 'Inter', sans-serif;
-	line-height: 1.6;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
 }
 
 .custom-editor .ck-content p.editor-font-source {
-	font-family: 'Source Sans Pro', sans-serif;
-	line-height: 1.6;
+  font-family: 'Source Sans Pro', sans-serif;
+  line-height: 1.6;
 }
 
 /* Default font for the editor content */
 .custom-editor .ck-content {
-	font-family: 'Nunito Sans', sans-serif;
-	line-height: 1.6;
+  font-family: 'Nunito Sans', sans-serif;
+  line-height: 1.6;
 }
 
-/* Make sure font styles work with backgrounds */
-.custom-editor .ck-content p.editor-gray-background,
-.custom-editor .ck-content p.editor-blue-background,
-.custom-editor .ck-content p.editor-green-background {
-	font-family: inherit;  /* This will keep the font when backgrounds are applied */
-}
+
 
 /* Image styles */
 .custom-editor .ck-content .image {
@@ -400,8 +347,8 @@
   word-break: break-word;
   color: #333;
   background-color: #f7f7f7;
-  padding: .6em;
-  font-size: .75em;
+  padding: 0.6em;
+  font-size: 0.75em;
   outline-offset: -1px;
 }
 

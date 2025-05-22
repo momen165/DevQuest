@@ -282,7 +282,7 @@ const DEFAULT_CONFIG = {
         model: 'heading1',
         view: {
           name: 'h1',
-          classes: ['editor-gray-background'],
+
         },
         title: 'Heading 1',
         class: 'ck-heading_heading1',
@@ -291,7 +291,7 @@ const DEFAULT_CONFIG = {
         model: 'heading2',
         view: {
           name: 'h2',
-          classes: ['editor-title'],
+
         },
         title: 'Heading 2',
         class: 'ck-heading_heading2',
@@ -359,7 +359,7 @@ const DEFAULT_CONFIG = {
       {
         name: 'Title',
         element: 'h2',
-        classes: ['editor-title'],
+
       },
       {
         name: 'Subtitle',

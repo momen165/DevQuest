@@ -11,8 +11,9 @@ import '../../styles/LessonPage.css';
 // import SplitPane from 'react-split-pane';
 import LoadingSpinner from './CircularProgress';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import he from 'he'; // Import he library for HTML entity decoding
+import { decode as decodeEntities } from 'entities';
+
+import styled from '@emotion/styled';
 
 const languageMappings = {
   62: 'java',
@@ -333,7 +334,7 @@ const LessonPage = () => {
           setCode(progressResponse.data.submitted_code);
         } else {
           // Decode the template code before setting it
-          setCode(lessonData.template_code ? he.decode(lessonData.template_code) : '');
+          setCode(lessonData.template_code ? decodeEntities(lessonData.template_code) : '');
         }
       } catch (_) {
         // Silently handle any errors and redirect to home
@@ -423,15 +424,15 @@ const LessonPage = () => {
           style={{
             ...(windowWidth > 1024
               ? {
-                  width: `${100 - divider - 1}%`,
-                  flex: 'none',
-                  height: '100%',
-                }
+                width: `${100 - divider - 1}%`,
+                flex: 'none',
+                height: '100%',
+              }
               : {
-                  height: `${100 - divider - 1}%`,
-                  flex: 'none',
-                  width: '100%',
-                }),
+                height: `${100 - divider - 1}%`,
+                flex: 'none',
+                width: '100%',
+              }),
             minWidth: 200,
             minHeight: 150,
             transition: isDragging ? 'none' : windowWidth > 1024 ? 'width 0.2s' : 'height 0.2s',

@@ -6,7 +6,7 @@ import CustomEditor from '../../../components/CustomEditor';
 import SimpleMonacoEditor from '../../../components/SimpleMonacoEditor';
 import ErrorAlert from './ErrorAlert';
 import { useAuth } from '../../../AuthContext'; // Import useAuth for context
-import he from 'he'; // Import the he library for HTML entity decoding
+import { decode as decodeEntities } from 'entities'; // Import the decode function from entities
 
 const languageMappings = {
   100: 'python',      // Python (3.12.5)
@@ -103,7 +103,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
   const [templateCode, setTemplateCode] = useState(() => {
     // Decode HTML entities when loading template code
     if (lesson?.template_code) {
-      return he.decode(lesson.template_code);
+      return decodeEntities(lesson.template_code);
     }
     return '';
   });
@@ -119,8 +119,8 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
   const [test_cases, setTestCases] = useState(() => {
     if (lesson?.test_cases) {
       try {
-        const cases = Array.isArray(lesson.test_cases) 
-          ? lesson.test_cases 
+        const cases = Array.isArray(lesson.test_cases)
+          ? lesson.test_cases
           : JSON.parse(lesson.test_cases);
         return cases.map(test => ({
           input: test.input || '',
@@ -145,16 +145,16 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
       try {
         const sectionResponse = await axios.get(
           `${import.meta.env.VITE_API_URL}/sections/${section.section_id}`,
-          { headers: { Authorization: `Bearer ${user.token}` }}
+          { headers: { Authorization: `Bearer ${user.token}` } }
         );
 
         if (!sectionResponse.data?.course_id) return;
 
         const courseResponse = await axios.get(
           `${import.meta.env.VITE_API_URL}/courses/${sectionResponse.data.course_id}`,
-          { headers: { Authorization: `Bearer ${user.token}` }}
+          { headers: { Authorization: `Bearer ${user.token}` } }
         );
-        
+
         if (courseResponse.data?.language_id) {
           setLanguageId(courseResponse.data.language_id);
         }
@@ -179,7 +179,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         setError('Test case expected output is required when not using auto-detect or pattern validation');
         return false;
       }
-      
+
       if (testCase.use_pattern && !testCase.pattern.trim()) {
         setError('Pattern is required when pattern validation is enabled');
         return false;
@@ -192,7 +192,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
   // Handler functions
   const handleTestCaseChange = (index, field, value) => {
     const updatedTestCases = [...test_cases];
-    
+
     if (field === 'auto_detect') {
       updatedTestCases[index] = {
         ...updatedTestCases[index],
@@ -215,7 +215,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         [field]: value
       };
     }
-    
+
     setTestCases(updatedTestCases);
   };
 
@@ -235,13 +235,13 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     setIsSaving(true);
     setError('');
 
-     const processedTestCases = test_cases.map(test => ({
-        input: test.input || '',
-        auto_detect: test.auto_detect === true,
-        use_pattern: test.use_pattern === true,
-        pattern: test.pattern || '',
-        expected_output: test.auto_detect ? '' : (test.expected_output || '')
-      }));
+    const processedTestCases = test_cases.map(test => ({
+      input: test.input || '',
+      auto_detect: test.auto_detect === true,
+      use_pattern: test.use_pattern === true,
+      pattern: test.pattern || '',
+      expected_output: test.auto_detect ? '' : (test.expected_output || '')
+    }));
 
 
     try {
@@ -253,7 +253,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
         xp: parseInt(xp),
 
         test_cases: processedTestCases,
-       
+
         template_code: templateCode,
         hint,
         solution,
@@ -309,7 +309,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     if (!lesson?.lesson_id) return;
     if (!window.confirm('Are you sure you want to delete this lesson?')) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/lesson/${lesson.lesson_id}`,{
+      await axios.delete(`${import.meta.env.VITE_API_URL}/lesson/${lesson.lesson_id}`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       onDelete(lesson.lesson_id);
@@ -323,11 +323,11 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
     <div className={`lesson-edit-add-container ${isSaving ? 'loading' : ''}`}>
       {isSaving && <div className="loader">Saving...</div>}
       {error && <ErrorAlert message={error} onClose={() => setError('')} />}
-      
+
       <h3 className="form-title">
         {lesson ? '✏️ Edit Lesson' : '➕ Add New Lesson'}
       </h3>
-      
+
       <form className="lesson-form">
         <div className="form-group">
           <label className="edit-add-label">📝 Lesson Name</label>
@@ -367,7 +367,7 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
 
         <div className="form-group">
           <label className="edit-add-label">🧪 Test Cases</label>
-          
+
           <div className="test-cases">
             <h3>Test Cases</h3>
             {test_cases.map((testCase, index) => (
@@ -506,10 +506,10 @@ const LessonEditAddComponent = ({ section, lesson = null, onSave, onCancel, onDe
               <FaTrash /> Delete Lesson
             </button>
           )}
-          <button 
-            type="button" 
-            onClick={handleSave} 
-            disabled={isSaving} 
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
             className="save-button"
           >
             <FaSave /> {isSaving ? 'Saving...' : 'Save Lesson'}

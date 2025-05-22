@@ -5,7 +5,7 @@ import axios from 'axios';
 import LessonEditAddComponent from './LessonEditAddComponent';
 import '../../../pages/admin/styles/ViewLessonsComponent.css';
 import ErrorAlert from './ErrorAlert';
-import he from 'he'; // Import he library for HTML encoding
+
 
 import { useAuth } from '../../../AuthContext';
 import CircularProgress from "@mui/material/CircularProgress";
@@ -39,7 +39,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
         template_code: lesson.template_code || '' // Ensure template_code is loaded as is
       }));
 
-     
+
 
       setLessons(lessonsWithFormattedContent || []);
     } catch (err) {
@@ -142,7 +142,7 @@ const ViewLessonsComponent = ({ section, onClose }) => {
         }
 
       );
-      
+
     } catch (err) {
       console.error('Error updating lesson order:', err);
     }

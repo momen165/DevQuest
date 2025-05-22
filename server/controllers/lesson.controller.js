@@ -1,5 +1,5 @@
 const logActivity = require("../utils/logger");
-const he = require("he");
+const { decode: decodeEntities } = require("entities");
 const { AppError, asyncHandler } = require("../utils/error.utils");
 const lessonQueries = require("../models/lesson.model");
 const db = require("../config/database");
@@ -35,7 +35,7 @@ const addLesson = asyncHandler(async (req, res) => {
     xp,
     test_cases,
     nextOrder,
-    template_code ? he.decode(template_code) : "",
+    template_code ? decodeEntities(template_code) : "",
     hint,
     solution
   );
@@ -286,7 +286,7 @@ const updateLesson = asyncHandler(async (req, res) => {
       xp,
       test_cases, // Use original test cases
       section_id,
-      template_code ? he.decode(template_code) : "",
+      template_code ? decodeEntities(template_code) : "",
       hint,
       solution,
       test_cases[0]?.auto_detect || false // Use first test case's auto_detect value
@@ -406,7 +406,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     user_id,
     lesson_id
   );
-  const sanitizedCode = he.decode(submitted_code);
+  const sanitizedCode = decodeEntities(submitted_code);
   const completedAt = completed ? new Date() : null;
 
   if (checkResult.rows.length > 0) {

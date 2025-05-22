@@ -37,26 +37,14 @@
   font-size: 24px;
   padding: 15px 10px;
   margin: 0;
-  cursor: pointer;
+
   user-select: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   transition: background-color 0.3s ease;
-  background-color: #1a2636; /* Default background */
+
   border-radius: 4px;
-}
-
-.lesson-content h2:hover {
-  background-color: #233043;
-}
-
-.lesson-content h2.solution {
-  background-color: #1a362a;
-}
-
-.lesson-content h2.solution:hover {
-  background-color: #234335;
 }
 
 .lesson-content h2 + div {
@@ -73,17 +61,6 @@
   max-height: 500px; /* Adjust based on your content */
   opacity: 1;
   padding: 1em 10px;
-}
-
-.lesson-content h2::after {
-  content: '▼';
-  font-size: 0.8em;
-  transition: transform 0.3s ease;
-  margin-left: 10px;
-}
-
-.lesson-content h2:has(+ div.show)::after {
-  transform: rotate(180deg);
 }
 
 .code-block {
@@ -138,27 +115,6 @@
   margin-right: 10px;
 }
 
-/* Background styles with updated fonts */
-.lesson-content h1.editor-gray-background,
-.lesson-content h2.editor-gray-background,
-.lesson-content h3.editor-gray-background {
-  background-color: #2d2d2d;
-  padding: 12px 10px;
-  margin: 1em 0;
-  color: white;
-  border-radius: 4px;
-}
-
-.lesson-content h1.editor-blue-background,
-.lesson-content h2.editor-blue-background,
-.lesson-content h3.editor-blue-background {
-  background-color: #1a2636;
-  padding: 12px 10px;
-  margin: 1em 0;
-  color: white;
-  border-radius: 4px;
-}
-
 .lesson-content h1.editor-green-background,
 .lesson-content h2.editor-green-background,
 .lesson-content h3.editor-green-background {
@@ -198,7 +154,6 @@
 .lesson-content .text-small {
   font-size: 14px;
 }
-
 
 /* Table styling */
 .lesson-table {
@@ -241,9 +196,6 @@
 .lesson-table tbody tr:hover {
   background-color: #2a2a48;
 }
-
-
-
 
 .lesson-content .text-big {
   font-size: 18px;
