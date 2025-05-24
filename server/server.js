@@ -17,7 +17,7 @@ const {
 
 // Initialize app
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 // Database connection
 const db = require("./config/database");
