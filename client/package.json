@@ -37,7 +37,9 @@
     "react-select": "^5.10.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.27.0",
     "eslint-plugin-react": "^7.37.5",
     "vite": "^6.0.6"
   }

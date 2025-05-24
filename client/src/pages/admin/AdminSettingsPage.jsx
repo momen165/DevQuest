@@ -12,7 +12,7 @@ function GrantFreeSubscriptionForm() {
 
   const handleGrant = async (e) => {
     e.preventDefault();
-    if (!userId || isNaN(userId)) {
+    if (!userId || Number.isNaN(userId)) {
       toast.error('Please enter a valid user ID');
       return;
     }
@@ -173,7 +173,7 @@ const AdminSettingsPage = () => {
     e.preventDefault();
     const action = isAddingAdmin ? 'add' : 'remove';
 
-    if (!newAdminId || isNaN(newAdminId)) {
+    if (!newAdminId || Number.isNaN(newAdminId)) {
       showNotification('error', 'Invalid Input', 'Please enter a valid user ID');
       return;
     }
@@ -315,9 +315,8 @@ const AdminSettingsPage = () => {
                 </button>
               </div>
               <button
-                className={`admin-settings-submit-btn ${
-                  !isAddingAdmin ? 'admin-settings-remove-btn' : ''
-                }`}
+                className={`admin-settings-submit-btn ${!isAddingAdmin ? 'admin-settings-remove-btn' : ''
+                  }`}
                 type="submit"
               >
                 {isAddingAdmin ? 'Add Admin' : 'Remove Admin'}
