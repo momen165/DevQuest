@@ -611,22 +611,7 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
   return (
     <div className={`custom-editor ${className || ''}`}>
       {/* Debug message visible in the DOM */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: '10px',
-          right: '10px',
-          background: 'rgba(0,0,0,0.7)',
-          color: 'white',
-          padding: '8px',
-          borderRadius: '4px',
-          fontSize: '12px',
-          zIndex: 9999,
-          maxWidth: '300px',
-        }}
-      >
-        Empty paragraph debugging active - check console logs (prefix: EDITOR)
-      </div>
+  
       <div className="main-container">
         <div
           className="editor-container editor-container_classic-editor editor-container_include-style"

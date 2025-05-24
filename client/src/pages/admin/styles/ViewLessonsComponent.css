@@ -1,101 +1,299 @@
 .view-lessons-container {
   margin: 20px;
-  padding: 20px;
-  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
-  border-radius: 8px;
-  border: 1px solid rgba(52, 152, 219, 0.3);
+  padding: 40px;
+  background: linear-gradient(135deg, rgba(26, 41, 66, 0.95) 0%, rgba(44, 62, 80, 0.95) 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(52, 152, 219, 0.2);
   color: #ffffff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 8px 30px rgba(52, 152, 219, 0.1);
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.view-lessons-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.6), transparent);
 }
 
 .add-lesson-container {
-  margin-bottom: 20px;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 10px;
+  margin-bottom: 30px;
+  border-bottom: 3px solid transparent;
+  background: linear-gradient(90deg, #3498db, #2980b9) padding-box,
+    linear-gradient(90deg, #3498db, #2980b9, #3498db) border-box;
+  border-image: linear-gradient(90deg, #3498db, #2980b9, #3498db) 1;
+  padding-bottom: 20px;
+  position: relative;
+}
+
+.add-lesson-container::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, #3498db, #2980b9);
+  border-radius: 2px;
 }
 
 .add-lesson-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(52, 152, 219, 0.8);
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
   color: #ffffff;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   border: none;
-  border-radius: 4px;
-  padding: 10px 20px;
+  border-radius: 12px;
+  padding: 16px 24px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.add-lesson-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
 
 .add-lesson-button:hover {
-  background-color: rgba(52, 152, 219, 1);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(52, 152, 219, 0.4);
+}
+
+.add-lesson-button:hover::before {
+  left: 100%;
 }
 
 .lesson-table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(52, 152, 219, 0.3);
+  border-spacing: 0 12px;
+  background: transparent;
+  margin-top: 20px;
+}
+
+.lesson-table thead tr {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.15) 0%, rgba(41, 128, 185, 0.2) 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .lesson-table th,
 .lesson-table td {
   text-align: left;
-  padding: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
   color: #ffffff;
+  border: none;
+  vertical-align: middle;
 }
 
 .lesson-table th {
-  background-color: rgba(52, 152, 219, 0.1);
-  font-weight: 600;
+  background: transparent;
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
 }
 
-.lesson-table tr:hover {
-  background-color: rgba(52, 152, 219, 0.1);
-  transition: background-color 0.2s ease;
+.lesson-table th:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.lesson-table th:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.lesson-table tbody tr {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.12) 100%);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lesson-table tbody tr:hover {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.15) 0%, rgba(41, 128, 185, 0.2) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
+  border-color: rgba(52, 152, 219, 0.3);
+}
+
+.lesson-table tbody tr td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.lesson-table tbody tr td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .icon {
   font-size: 18px;
   cursor: pointer;
-  margin-right: 10px;
-  transition: all 0.3s ease;
+  margin-right: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
 
 .icon:hover {
-  opacity: 0.8;
-  transform: scale(1.1);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.icon:hover::before {
+  left: 100%;
 }
 
 .icon.edit-lesson-icon {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.2) 0%, rgba(41, 128, 185, 0.3) 100%);
   color: #3498db;
+  border-color: rgba(52, 152, 219, 0.3);
+}
+
+.icon.edit-lesson-icon:hover {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.3) 0%, rgba(41, 128, 185, 0.4) 100%);
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+  border-color: rgba(52, 152, 219, 0.5);
 }
 
 .icon.delete-lesson-icon {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.2) 0%, rgba(192, 57, 43, 0.3) 100%);
   color: #e74c3c;
+  border-color: rgba(231, 76, 60, 0.3);
+}
+
+.icon.delete-lesson-icon:hover {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.3) 0%, rgba(192, 57, 43, 0.4) 100%);
+  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+  border-color: rgba(231, 76, 60, 0.5);
 }
 
 .save-button {
-  margin-top: 20px;
-  background-color: rgba(52, 152, 219, 0.8);
+  margin-top: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
   color: #ffffff;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   border: none;
-  border-radius: 4px;
-  padding: 10px 20px;
+  border-radius: 12px;
+  padding: 16px 32px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.save-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
 
 .save-button:hover {
-  background-color: rgba(52, 152, 219, 1);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(39, 174, 96, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
 }
-  
+
+.save-button:hover::before {
+  left: 100%;
+}
+
+.save-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .view-lessons-container {
+    margin: 10px;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .lesson-table {
+    border-spacing: 0 8px;
+  }
+
+  .lesson-table th,
+  .lesson-table td {
+    padding: 15px 10px;
+    font-size: 14px;
+  }
+
+  .add-lesson-button,
+  .save-button {
+    padding: 14px 20px;
+    font-size: 14px;
+  }
+
+  .icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    margin-right: 8px;
+  }
+}

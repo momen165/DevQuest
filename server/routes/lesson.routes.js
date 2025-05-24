@@ -4,6 +4,20 @@ const { authenticateToken, requireAuth } = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
 const lessonController = require("../controllers/lesson.controller");
 
+// Unlock hint/solution endpoints
+router.post(
+  "/lesson/:lessonId/unlock-hint",
+  authenticateToken,
+  sessionTracker,
+  lessonController.unlockHint
+);
+router.post(
+  "/lesson/:lessonId/unlock-solution",
+  authenticateToken,
+  sessionTracker,
+  lessonController.unlockSolution
+);
+
 // CRUD Operations
 router.post(
   "/lesson",

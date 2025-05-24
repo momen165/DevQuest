@@ -147,6 +147,7 @@ const AdminCourses = () => {
             <button
               className="add-course-button"
               onClick={handleAddCourseClick}
+              type="button"
             >
               Add Course
             </button>

@@ -1,7 +1,53 @@
+// Unlock hint for a user/lesson (create row if needed)
+const unlockHint = async (user_id, lesson_id) => {
+  // Try to update first
+  let result = await db.query(
+    `UPDATE lesson_progress SET hint_unlocked = TRUE WHERE user_id = $1 AND lesson_id = $2 RETURNING *;`,
+    [user_id, lesson_id]
+  );
+  if (result.rows.length === 0) {
+    // No row exists, insert one
+    // Need course_id for insert
+    const courseRes = await db.query(
+      `SELECT section.course_id FROM lesson JOIN section ON lesson.section_id = section.section_id WHERE lesson.lesson_id = $1`,
+      [lesson_id]
+    );
+    const course_id = courseRes.rows[0]?.course_id;
+    if (!course_id) throw new Error("Course not found for lesson");
+    result = await db.query(
+      `INSERT INTO lesson_progress (user_id, lesson_id, course_id, hint_unlocked) VALUES ($1, $2, $3, TRUE) RETURNING *;`,
+      [user_id, lesson_id, course_id]
+    );
+  }
+  return result;
+};
+
+// Unlock solution for a user/lesson (create row if needed)
+const unlockSolution = async (user_id, lesson_id) => {
+  let result = await db.query(
+    `UPDATE lesson_progress SET solution_unlocked = TRUE WHERE user_id = $1 AND lesson_id = $2 RETURNING *;`,
+    [user_id, lesson_id]
+  );
+  if (result.rows.length === 0) {
+    const courseRes = await db.query(
+      `SELECT section.course_id FROM lesson JOIN section ON lesson.section_id = section.section_id WHERE lesson.lesson_id = $1`,
+      [lesson_id]
+    );
+    const course_id = courseRes.rows[0]?.course_id;
+    if (!course_id) throw new Error("Course not found for lesson");
+    result = await db.query(
+      `INSERT INTO lesson_progress (user_id, lesson_id, course_id, solution_unlocked) VALUES ($1, $2, $3, TRUE) RETURNING *;`,
+      [user_id, lesson_id, course_id]
+    );
+  }
+  return result;
+};
 const db = require("../config/database");
 const { AppError } = require("../utils/error.utils");
 
 const lessonQueries = {
+  unlockHint,
+  unlockSolution,
   // Get next order value for a section
   getNextOrder: async (section_id) => {
     const query = `
@@ -276,7 +322,7 @@ const lessonQueries = {
   // Get lesson progress
   getLessonProgress: async (user_id, lesson_id) => {
     const query = `
-      SELECT completed, completed_at, submitted_code
+      SELECT completed, completed_at, submitted_code, hint_unlocked, solution_unlocked
       FROM lesson_progress
       WHERE user_id = $1 AND lesson_id = $2;
     `;

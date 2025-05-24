@@ -4,6 +4,23 @@ const { AppError, asyncHandler } = require("../utils/error.utils");
 const lessonQueries = require("../models/lesson.model");
 const db = require("../config/database");
 
+// Unlock hint for a lesson (POST /lesson/:lessonId/unlock-hint)
+const unlockHint = asyncHandler(async (req, res) => {
+  const { lessonId } = req.params;
+  const userId = req.user.user_id;
+  // Ensure lesson_progress row exists (user started lesson)
+  await lessonQueries.unlockHint(userId, lessonId);
+  res.status(200).json({ success: true });
+});
+
+// Unlock solution for a lesson (POST /lesson/:lessonId/unlock-solution)
+const unlockSolution = asyncHandler(async (req, res) => {
+  const { lessonId } = req.params;
+  const userId = req.user.user_id;
+  await lessonQueries.unlockSolution(userId, lessonId);
+  res.status(200).json({ success: true });
+});
+
 const FREE_LESSON_LIMIT = 5;
 
 // Add a new lesson
@@ -140,7 +157,33 @@ const getLessonById = asyncHandler(async (req, res) => {
       });
     }
 
-    const lessonData = result.rows[0]; // Check if this is the first lesson in the section
+    // Clone lesson data to avoid mutating DB result
+    const lessonData = { ...result.rows[0] };
+    // Remove solution and hint from the response for security by default
+    delete lessonData.solution;
+    delete lessonData.hint;
+
+    // Always check lesson_progress for unlocks
+    const progressResult = await lessonQueries.getLessonProgress(
+      userId,
+      lessonId
+    );
+    const hintUnlocked = progressResult.rows[0]?.hint_unlocked;
+    const solutionUnlocked = progressResult.rows[0]?.solution_unlocked;
+
+    // If unlocked, always return hint/solution
+    if (hintUnlocked) {
+      lessonData.hint = result.rows[0].hint;
+    } else if (req.query.showHint === "true") {
+      // (Optional: fallback to old logic if needed)
+      lessonData.hint = result.rows[0].hint;
+    }
+    if (solutionUnlocked) {
+      lessonData.solution = result.rows[0].solution;
+    } else if (req.query.showSolution === "true") {
+      // (Optional: fallback to old logic if needed)
+      lessonData.solution = result.rows[0].solution;
+    }
     const sectionLessonsQuery = `
       SELECT l.lesson_id, l.lesson_order, lp.completed
       FROM lesson l
@@ -248,6 +291,7 @@ const getLessonById = asyncHandler(async (req, res) => {
       }
     }
 
+    res.json(lessonData);
     res.json(lessonData);
   } catch (err) {
     throw new AppError(err.message, 500);
@@ -507,4 +551,6 @@ module.exports = {
   getLastAccessedLesson,
   getLessons,
   fixLessonOrders,
+  unlockHint,
+  unlockSolution,
 };

@@ -8,21 +8,148 @@ import '../styles/LessonContent.css';
 
 import { getFontClass } from '../utils/editorUtils';
 
+import axios from 'axios';
+import { useAuth } from '../AuthContext';
+import { useParams } from 'react-router-dom';
+
 const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
   const HINT_THRESHOLD = 2; // Show hint after 2 failed attempts
   const SOLUTION_THRESHOLD = 4; // Show solution after 4 failed attempts
 
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
+  const [dynamicHint, setDynamicHint] = useState(hint);
+  const [dynamicSolution, setDynamicSolution] = useState(solution);
+  const { user } = useAuth();
+  const { lessonId } = useParams();
 
-  const canShowHint = failedAttempts >= HINT_THRESHOLD;
-  const canShowSolution = failedAttempts >= SOLUTION_THRESHOLD;
+  // Axios instance for API
+  const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+    timeout: 10000,
+    validateStatus: (status) => true,
+  });
 
-  // Reset visibility when failedAttempts changes
+  const [hintUnlocked, setHintUnlocked] = useState(false);
+  const [solutionUnlocked, setSolutionUnlocked] = useState(false);
+  // Track the attempt at which the hint was unlocked
+  const [hintUnlockAttempt, setHintUnlockAttempt] = useState(null);
+  const canShowHint = hintUnlocked || failedAttempts >= HINT_THRESHOLD;
+  // Solution unlocks after 2 more failed attempts after hint is unlocked
+  const canShowSolution =
+    solutionUnlocked ||
+    (hintUnlocked && hintUnlockAttempt !== null && failedAttempts >= hintUnlockAttempt + 2);
+
+  // On mount, fetch lesson progress to check unlock status
   useEffect(() => {
-    if (!canShowHint) setShowHint(false);
-    if (!canShowSolution) setShowSolution(false);
-  }, [canShowHint, canShowSolution]);
+    if (!user || !lessonId) return;
+    (async () => {
+      try {
+        const res = await api.get(
+          `/lesson-progress?user_id=${user.user_id}&lesson_id=${lessonId}`,
+          {
+            headers: { Authorization: `Bearer ${user?.token}` },
+          }
+        );
+        if (res.status === 200 && res.data) {
+          if (res.data.hint_unlocked) {
+            setHintUnlocked(true);
+            setShowHint(true);
+            // If this is the first time unlocking, record the attempt number
+            setHintUnlockAttempt((prev) => (prev !== null ? prev : failedAttempts));
+            // Fetch hint if not present
+            if (!dynamicHint) {
+              const hintRes = await api.get(`/lesson/${lessonId}?showHint=true`, {
+                headers: { Authorization: `Bearer ${user?.token}` },
+              });
+              if (hintRes.status === 200 && hintRes.data.hint) {
+                setDynamicHint(hintRes.data.hint);
+              }
+            }
+          } else {
+            setHintUnlocked(false);
+            setHintUnlockAttempt(null);
+          }
+          if (res.data.solution_unlocked) {
+            setSolutionUnlocked(true);
+            setShowSolution(true);
+            // Fetch solution if not present
+            if (!dynamicSolution) {
+              const solRes = await api.get(`/lesson/${lessonId}?showSolution=true`, {
+                headers: { Authorization: `Bearer ${user?.token}` },
+              });
+              if (solRes.status === 200 && solRes.data.solution) {
+                setDynamicSolution(solRes.data.solution);
+              }
+            }
+          } else {
+            setSolutionUnlocked(false);
+          }
+        }
+      } catch (e) {}
+    })();
+    // eslint-disable-next-line
+  }, [user, lessonId, failedAttempts]);
+
+  // Reset visibility and dynamic hint/solution when failedAttempts changes (unless already unlocked)
+  useEffect(() => {
+    if (!canShowHint && !showHint) {
+      setShowHint(false);
+      setDynamicHint(hint);
+    }
+    if (!canShowSolution && !showSolution) {
+      setShowSolution(false);
+      setDynamicSolution(solution);
+    }
+  }, [canShowHint, canShowSolution, hint, solution, showHint, showSolution]);
+
+  // Fetch hint from backend if needed and unlock it persistently
+  useEffect(() => {
+    if (showHint && canShowHint && !dynamicHint) {
+      (async () => {
+        try {
+          // Unlock hint in DB
+          await api.post(
+            `/lesson/${lessonId}/unlock-hint`,
+            {},
+            {
+              headers: { Authorization: `Bearer ${user?.token}` },
+            }
+          );
+          // Fetch hint
+          const res = await api.get(`/lesson/${lessonId}?showHint=true`, {
+            headers: { Authorization: `Bearer ${user?.token}` },
+          });
+          if (res.status === 200 && res.data.hint) {
+            setDynamicHint(res.data.hint);
+          }
+        } catch (e) {}
+      })();
+    }
+  }, [showHint, canShowHint, dynamicHint, lessonId, user]);
+
+  // Fetch solution from backend if needed and unlock it persistently
+  useEffect(() => {
+    if (showSolution && canShowSolution && !dynamicSolution) {
+      (async () => {
+        try {
+          await api.post(
+            `/lesson/${lessonId}/unlock-solution`,
+            {},
+            {
+              headers: { Authorization: `Bearer ${user?.token}` },
+            }
+          );
+          const res = await api.get(`/lesson/${lessonId}?showSolution=true`, {
+            headers: { Authorization: `Bearer ${user?.token}` },
+          });
+          if (res.status === 200 && res.data.solution) {
+            setDynamicSolution(res.data.solution);
+          }
+        } catch (e) {}
+      })();
+    }
+  }, [showSolution, canShowSolution, dynamicSolution, lessonId, user]);
 
   // Initialize syntax highlighting
   useEffect(() => {
@@ -223,47 +350,47 @@ const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
     <div className="lesson-content">
       <div className="content-section">{parse(content, options)}</div>
 
-      {(hint || solution) && (
-        <div className="help-section">
-          {hint && (
-            <div className={`hint-section ${!canShowHint ? 'disabled' : ''}`}>
-              <button
-                onClick={() => setShowHint(!showHint)}
-                className={`hint-button ${canShowHint ? 'available' : ''}`}
-                disabled={!canShowHint}
-              >
-                💡 {showHint ? 'Hide Hint' : 'Show Hint'}
-                {!canShowHint && (
-                  <span className="attempts-needed">
-                    (Available after {HINT_THRESHOLD - failedAttempts} more failed attempts)
-                  </span>
-                )}
-              </button>
-              {showHint && canShowHint && <div className="hint-content">{parse(hint)}</div>}
-            </div>
-          )}
-
-          {solution && (
-            <div className={`solution-section ${!canShowSolution ? 'disabled' : ''}`}>
-              <button
-                onClick={() => setShowSolution(!showSolution)}
-                className={`solution-button ${canShowSolution ? 'available' : ''}`}
-                disabled={!canShowSolution}
-              >
-                ✨ {showSolution ? 'Hide Solution' : 'Show Solution'}
-                {!canShowSolution && (
-                  <span className="attempts-needed">
-                    (Available after {SOLUTION_THRESHOLD - failedAttempts} more failed attempts)
-                  </span>
-                )}
-              </button>
-              {showSolution && canShowSolution && (
-                <div className="solution-content">{parse(solution)}</div>
-              )}
-            </div>
+      <div className="help-section">
+        <div className={`hint-section ${!canShowHint ? 'disabled' : ''}`}>
+          <button
+            onClick={() => setShowHint(!showHint)}
+            className={`hint-button ${canShowHint ? 'available' : ''}`}
+            disabled={!canShowHint}
+          >
+            💡 {showHint ? 'Hide Hint' : 'Show Hint'}
+            {!canShowHint && (
+              <span className="attempts-needed">
+                (Available after {HINT_THRESHOLD - failedAttempts} more failed attempts)
+              </span>
+            )}
+          </button>
+          {showHint && canShowHint && (dynamicHint || hint) && (
+            <div className="hint-content">{parse(dynamicHint || hint)}</div>
           )}
         </div>
-      )}
+
+        <div className={`solution-section ${!canShowSolution ? 'disabled' : ''}`}>
+          <button
+            onClick={() => setShowSolution(!showSolution)}
+            className={`solution-button ${canShowSolution ? 'available' : ''}`}
+            disabled={!canShowSolution}
+          >
+            ✨ {showSolution ? 'Hide Solution' : 'Show Solution'}
+            {!canShowSolution && (
+              <span className="attempts-needed">
+                {hintUnlocked && hintUnlockAttempt !== null
+                  ? `(Available after ${
+                      hintUnlockAttempt + 2 - failedAttempts
+                    } more failed attempts)`
+                  : `(Available after ${SOLUTION_THRESHOLD - failedAttempts} more failed attempts)`}
+              </span>
+            )}
+          </button>
+          {showSolution && canShowSolution && (dynamicSolution || solution) && (
+            <div className="solution-content">{parse(dynamicSolution || solution)}</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
