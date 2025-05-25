@@ -2,10 +2,12 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const db = require("../config/database");
 const NodeCache = require("node-cache");
 
-// Initialize cache with 5 minutes TTL
+// Initialize cache with 15 minutes TTL and check every 5 minutes
 const subscriptionCache = new NodeCache({
-  stdTTL: 300, // 5 minutes in seconds
-  checkperiod: 320,
+  stdTTL: 900, // 15 minutes in seconds
+  checkperiod: 300, // 5 minutes check period
+  useClones: false, // Disable cloning for better performance
+  deleteOnExpire: true,
 });
 
 // Add a subscription
@@ -324,9 +326,12 @@ const checkActiveSubscription = async (req, res) => {
     if (cachedData) {
       return res.json(cachedData);
     }
-
     const query = `
-      SELECT s.*
+      SELECT 
+        s.subscription_type,
+        s.status,
+        s.subscription_end_date,
+        s.amount_paid
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       WHERE us.user_id = $1 
@@ -458,9 +463,54 @@ const getSubscriptionStatusForUser = async (req, res) => {
   }
 };
 
+// Warm up the subscription cache
+const warmSubscriptionCache = async (userId) => {
+  const cacheKey = `subscription_${userId}`;
+
+  // Skip if already in cache
+  if (subscriptionCache.has(cacheKey)) return;
+
+  try {
+    const query = `
+      SELECT 
+        s.subscription_type,
+        s.status,
+        s.subscription_end_date,
+        s.amount_paid
+      FROM subscription s
+      JOIN user_subscription us ON s.subscription_id = us.subscription_id
+      WHERE us.user_id = $1 
+      AND s.status = 'active'
+      AND s.subscription_end_date > CURRENT_TIMESTAMP
+      ORDER BY s.subscription_start_date DESC
+      LIMIT 1;
+    `;
+
+    const { rows } = await db.query(query, [userId]);
+
+    const response = {
+      hasActiveSubscription: rows.length > 0,
+      subscription:
+        rows.length > 0
+          ? {
+              subscription_type: rows[0].subscription_type,
+              status: rows[0].status,
+              subscription_end_date: rows[0].subscription_end_date,
+              amount_paid: rows[0].amount_paid,
+            }
+          : null,
+    };
+
+    subscriptionCache.set(cacheKey, response);
+  } catch (error) {
+    console.error("Error warming subscription cache:", error);
+  }
+};
+
 module.exports = {
   checkActiveSubscription,
   checkSubscriptionStatusFromDb,
   listSubscriptions,
   getSubscriptionStatusForUser,
+  warmSubscriptionCache,
 };

@@ -1,5 +1,20 @@
+const NodeCache = require("node-cache");
 const db = require("../config/database");
 const logActivity = require("../utils/logger");
+
+// Initialize cache with 15 minutes TTL
+const sectionCache = new NodeCache({
+  stdTTL: 900, // 15 minutes
+  checkperiod: 300, // Check for expired entries every 5 minutes
+  useClones: false,
+  deleteOnExpire: true,
+});
+
+// Clear section cache when data changes
+const clearSectionCache = (courseId) => {
+  sectionCache.del(`course_sections_${courseId}`);
+  sectionCache.del(`admin_sections_${courseId}`);
+};
 
 // Add a new section
 const addSection = async (req, res) => {
@@ -10,6 +25,9 @@ const addSection = async (req, res) => {
   }
 
   const { course_id, name, description } = req.body;
+
+  // Clear cache before making changes
+  clearSectionCache(course_id);
 
   try {
     // Validate required fields
@@ -45,8 +63,11 @@ const addSection = async (req, res) => {
     await logActivity(
       "Section",
       `New section added: ${name} for course ID ${course_id}`,
-      req.user.userId,
+      req.user.userId
     );
+
+    // Update cache
+    clearSectionCache(course_id);
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -63,28 +84,59 @@ const getAdminSections = async (req, res) => {
     return res.status(400).json({ error: "course_id is required" });
   }
 
+  // Check cache first
+  const cacheKey = `admin_sections_${course_id}`;
+  const cachedData = sectionCache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
+  }
+
   try {
-    const query = `
+    // Separate queries for better performance
+    // 1. Get sections first
+    const sectionsQuery = `
       SELECT 
-        s.section_id, 
-        s.name, 
-        s.description,
-        s.section_order,
-        json_agg(
-          json_build_object(
-            'lesson_id', l.lesson_id,
-            'name', l.name,
-            'lesson_order', l.lesson_order
-          ) ORDER BY l.lesson_order
-        ) as lessons
-      FROM section s
-      LEFT JOIN lesson l ON s.section_id = l.section_id
-      WHERE s.course_id = $1
-      GROUP BY s.section_id, s.name, s.description, s.section_order
-      ORDER BY s.section_order ASC;
+        section_id, 
+        name, 
+        description,
+        section_order
+      FROM section 
+      WHERE course_id = $1
+      ORDER BY section_order ASC;
     `;
-    const result = await db.query(query, [course_id]);
-    return res.json(result.rows);
+    const sections = await db.query(sectionsQuery, [course_id]);
+
+    if (sections.rows.length === 0) {
+      const emptyResult = [];
+      sectionCache.set(cacheKey, emptyResult);
+      return res.json(emptyResult);
+    }
+
+    // 2. Get all lessons for these sections in one query
+    const sectionIds = sections.rows.map((s) => s.section_id);
+    const lessonsQuery = `
+      SELECT 
+        section_id,
+        lesson_id,
+        name,
+        lesson_order
+      FROM lesson
+      WHERE section_id = ANY($1)
+      ORDER BY lesson_order ASC;
+    `;
+    const lessons = await db.query(lessonsQuery, [sectionIds]);
+
+    // Organize data
+    const result = sections.rows.map((section) => ({
+      ...section,
+      lessons: lessons.rows
+        .filter((lesson) => lesson.section_id === section.section_id)
+        .map(({ section_id, ...lesson }) => lesson),
+    }));
+
+    // Cache the result
+    sectionCache.set(cacheKey, result);
+    return res.json(result);
   } catch (err) {
     console.error("Error fetching admin sections:", err);
     return res.status(500).json({ error: "Failed to fetch sections" });
@@ -95,31 +147,62 @@ const getAdminSections = async (req, res) => {
 const getUserSections = async (req, res) => {
   const { courseId } = req.params;
   const userId = req.user.user_id;
+  const cacheKey = `course_sections_${courseId}_${userId}`;
 
   try {
-    const query = `
+    // Check cache first
+    const cachedData = sectionCache.get(cacheKey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
+
+    // Separate queries for better performance
+    // 1. Get sections first
+    const sectionsQuery = `
       SELECT 
-        s.section_id, 
-        s.name, 
-        s.description,
-        s.section_order,
-        json_agg(
-          json_build_object(
-            'lesson_id', l.lesson_id,
-            'name', l.name,
-            'completed', COALESCE(lp.completed, false),
-            'description', s.description
-          ) ORDER BY l.lesson_order
-        ) as lessons
-      FROM section s
-      LEFT JOIN lesson l ON s.section_id = l.section_id
-      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $2
-      WHERE s.course_id = $1
-      GROUP BY s.section_id, s.name, s.description, s.section_order
-      ORDER BY s.section_order ASC;
+        section_id, 
+        name, 
+        description,
+        section_order
+      FROM section 
+      WHERE course_id = $1
+      ORDER BY section_order ASC;
     `;
-    const result = await db.query(query, [courseId, userId]);
-    return res.json(result.rows);
+    const sections = await db.query(sectionsQuery, [courseId]);
+
+    if (sections.rows.length === 0) {
+      const emptyResult = [];
+      sectionCache.set(cacheKey, emptyResult);
+      return res.json(emptyResult);
+    }
+
+    // 2. Get lessons and progress for all sections in one query
+    const sectionIds = sections.rows.map((s) => s.section_id);
+    const lessonsQuery = `
+      SELECT 
+        l.section_id,
+        l.lesson_id,
+        l.name,
+        l.lesson_order,
+        COALESCE(lp.completed, false) as completed
+      FROM lesson l
+      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
+      WHERE l.section_id = ANY($2)
+      ORDER BY l.lesson_order ASC;
+    `;
+    const lessons = await db.query(lessonsQuery, [userId, sectionIds]);
+
+    // Organize data
+    const result = sections.rows.map((section) => ({
+      ...section,
+      lessons: lessons.rows
+        .filter((lesson) => lesson.section_id === section.section_id)
+        .map(({ section_id, ...lesson }) => lesson),
+    }));
+
+    // Cache the result
+    sectionCache.set(cacheKey, result);
+    return res.json(result);
   } catch (err) {
     console.error("Error fetching user sections:", err);
     return res.status(500).json({ error: "Failed to fetch sections" });
@@ -165,6 +248,19 @@ const editSection = async (req, res) => {
   const { section_id } = req.params;
   const { name, description } = req.body;
 
+  // Get course_id to clear cache
+  let course_id;
+  try {
+    const sectionQuery = "SELECT course_id FROM section WHERE section_id = $1";
+    const result = await db.query(sectionQuery, [section_id]);
+    if (result.rows.length > 0) {
+      course_id = result.rows[0].course_id;
+      clearSectionCache(course_id);
+    }
+  } catch (err) {
+    console.error("Error fetching course_id:", err);
+  }
+
   try {
     // Validate section_id
     if (!section_id || isNaN(section_id)) {
@@ -194,6 +290,9 @@ const editSection = async (req, res) => {
 
     await logActivity("Section", `Section updated: ${name}`, req.user.userId);
 
+    // Update cache
+    clearSectionCache(result.rows[0].course_id);
+
     res.status(200).json(result.rows[0]);
   } catch (err) {
     console.error("Error updating section:", err);
@@ -210,6 +309,19 @@ const deleteSection = async (req, res) => {
   }
 
   const { section_id } = req.params;
+
+  // Get course_id to clear cache
+  let course_id;
+  try {
+    const sectionQuery = "SELECT course_id FROM section WHERE section_id = $1";
+    const result = await db.query(sectionQuery, [section_id]);
+    if (result.rows.length > 0) {
+      course_id = result.rows[0].course_id;
+      clearSectionCache(course_id);
+    }
+  } catch (err) {
+    console.error("Error fetching course_id:", err);
+  }
 
   try {
     // Validate section_id
@@ -261,14 +373,15 @@ const deleteSection = async (req, res) => {
     await logActivity(
       "Section",
       `Section deleted: ${sectionName}`,
-      req.user.userId,
+      req.user.userId
     );
 
-    res
-      .status(200)
-      .json({
-        message: "Section and associated lessons deleted successfully.",
-      });
+    // Update cache
+    clearSectionCache(section_id);
+
+    res.status(200).json({
+      message: "Section and associated lessons deleted successfully.",
+    });
   } catch (err) {
     console.error("Error deleting section:", err);
     res.status(500).json({ error: "Failed to delete section." });
@@ -287,11 +400,9 @@ const reorderSections = async (req, res) => {
 
   try {
     if (!sections || !Array.isArray(sections)) {
-      return res
-        .status(400)
-        .json({
-          error: "Invalid input format. Expected an array of sections.",
-        });
+      return res.status(400).json({
+        error: "Invalid input format. Expected an array of sections.",
+      });
     }
 
     const client = await db.connect();
@@ -301,13 +412,18 @@ const reorderSections = async (req, res) => {
     const updatePromises = sections.map(({ section_id, order }) => {
       return client.query(
         "UPDATE section SET section_order = $1 WHERE section_id = $2",
-        [order, section_id],
+        [order, section_id]
       );
     });
 
     await Promise.all(updatePromises);
     await client.query("COMMIT");
     client.release();
+
+    // Update cache
+    sections.forEach(({ section_id }) => {
+      clearSectionCache(section_id);
+    });
 
     res.status(200).json({ message: "Sections reordered successfully." });
   } catch (err) {

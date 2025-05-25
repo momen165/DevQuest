@@ -42,6 +42,8 @@ app.use(
     allowedHeaders: [
       "Content-Type",
       "Authorization",
+      "Cache-Control",
+      "Pragma",
       "sentry-trace",
       "baggage",
     ],

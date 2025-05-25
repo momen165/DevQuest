@@ -90,11 +90,7 @@ const LessonPage = React.lazy(() => import("./pages/user/LessonPage"));
 
 // Loading component for Suspense fallback
 
-const Loading = () => (
-	<div>
-		<CircularProgress />
-	</div>
-);
+
 
 function App() {
 	// Component to wrap routes that need maintenance check
@@ -171,7 +167,7 @@ function AppContent() {
 	);
 
 	return (
-		<Suspense fallback={<Loading />}>
+	
 			<Routes>
 				{/* Auth routes - No maintenance check */}
 
@@ -416,7 +412,7 @@ function AppContent() {
 
 				<Route path="*" element={<NotFoundPage />} />
 			</Routes>
-		</Suspense>
+		
 	);
 }
 

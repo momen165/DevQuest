@@ -1,6 +1,7 @@
 const logActivity = require("../utils/logger");
 const { decode: decodeEntities } = require("entities");
 const { AppError, asyncHandler } = require("../utils/error.utils");
+const { setCacheHeaders } = require("../utils/cache.utils");
 const lessonQueries = require("../models/lesson.model");
 const db = require("../config/database");
 
@@ -8,8 +9,9 @@ const db = require("../config/database");
 const unlockHint = asyncHandler(async (req, res) => {
   const { lessonId } = req.params;
   const userId = req.user.user_id;
-  // Ensure lesson_progress row exists (user started lesson)
   await lessonQueries.unlockHint(userId, lessonId);
+  // No caching for mutation endpoints
+  setCacheHeaders(res, { noStore: true });
   res.status(200).json({ success: true });
 });
 
@@ -18,6 +20,8 @@ const unlockSolution = asyncHandler(async (req, res) => {
   const { lessonId } = req.params;
   const userId = req.user.user_id;
   await lessonQueries.unlockSolution(userId, lessonId);
+  // No caching for mutation endpoints
+  setCacheHeaders(res, { noStore: true });
   res.status(200).json({ success: true });
 });
 
@@ -73,6 +77,8 @@ const addLesson = asyncHandler(async (req, res) => {
   // Recalculate progress for all enrolled users
   await lessonQueries.recalculateProgressForCourse(courseId);
 
+  // No caching for mutation endpoints
+  setCacheHeaders(res, { noStore: true });
   res.status(201).json(result.rows[0]);
 });
 
@@ -99,6 +105,14 @@ const getLessonsBySection = asyncHandler(async (req, res) => {
   const userId = req.user.user_id;
 
   const result = await lessonQueries.getLessonsBySection(userId, sectionId);
+
+  // Cache lessons by section for 1 hour with stale-while-revalidate
+  setCacheHeaders(res, {
+    public: false, // Since this is user-specific
+    maxAge: 3600,
+    staleWhileRevalidate: 600,
+  });
+
   res.json(result.rows);
 });
 
@@ -107,6 +121,33 @@ const getLessonById = asyncHandler(async (req, res) => {
   const { lessonId } = req.params;
   const userId = req.user.user_id;
 
+  // First, check if we have a cached version using ETag
+  const result = await lessonQueries.getLessonById(lessonId);
+  if (result.rows.length === 0) {
+    return res.status(404).json({
+      status: "not_found",
+      message: "Lesson not found",
+    });
+  }
+
+  // Clone lesson data and prepare it for caching
+  const lessonData = { ...result.rows[0] };
+  delete lessonData.solution; // Remove sensitive data before generating ETag
+  delete lessonData.hint;
+
+  // Check if client's cached version is still valid
+  const isNotModified = setCacheHeaders(res, {
+    public: false,
+    maxAge: 86400,
+    staleWhileRevalidate: 3600,
+    data: lessonData,
+  });
+
+  if (isNotModified) {
+    return; // 304 Not Modified was sent
+  }
+
+  // If we get here, we need to send the full response
   // Check subscription status and completed lessons count
   const subscriptionQuery = `
     WITH completed_lessons AS (
@@ -291,6 +332,13 @@ const getLessonById = asyncHandler(async (req, res) => {
       }
     }
 
+    // Cache individual lessons for 1 day with stale-while-revalidate
+    setCacheHeaders(res, {
+      public: false, // Since this contains user-specific progress
+      maxAge: 86400,
+      staleWhileRevalidate: 3600,
+    });
+
     res.json(lessonData);
     res.json(lessonData);
   } catch (err) {
@@ -355,6 +403,8 @@ const updateLesson = asyncHandler(async (req, res) => {
       parseInt(req.user.user_id)
     );
 
+    // No caching for mutation endpoints
+    setCacheHeaders(res, { noStore: true });
     res.json(result.rows[0]);
   } catch (error) {
     console.error("Error updating lesson:", error);
@@ -401,6 +451,8 @@ const deleteLesson = asyncHandler(async (req, res) => {
     parseInt(req.user.user_id)
   );
 
+  // No caching for mutation endpoints
+  setCacheHeaders(res, { noStore: true });
   res.status(200).json({ message: "Lesson deleted successfully." });
 });
 
@@ -424,6 +476,8 @@ const reorderLessons = asyncHandler(async (req, res) => {
       )
     );
     await client.query("COMMIT");
+    // No caching for mutation endpoints
+    setCacheHeaders(res, { noStore: true });
     res.json({ success: true });
   } catch (err) {
     await client.query("ROLLBACK");
@@ -499,6 +553,8 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     throw new AppError("Enrollment not found.", 404);
   }
 
+  // No caching for mutation endpoints
+  setCacheHeaders(res, { noStore: true });
   res.status(200).json({
     message: "Lesson progress and enrollment updated.",
     data: updateEnrollmentResult.rows[0],
@@ -513,6 +569,13 @@ const getLessonProgress = asyncHandler(async (req, res) => {
   }
 
   const result = await lessonQueries.getLessonProgress(user_id, lesson_id);
+
+  // Cache progress for 5 minutes with stale-while-revalidate
+  setCacheHeaders(res, {
+    public: false,
+    maxAge: 300,
+    staleWhileRevalidate: 60,
+  });
 
   if (result.rows.length === 0) {
     return res
@@ -536,6 +599,14 @@ const getLessons = asyncHandler(async (req, res) => {
   }
 
   const result = await lessonQueries.getLessons(section_id, course_id);
+
+  // Cache course/section lessons for 1 hour with stale-while-revalidate
+  setCacheHeaders(res, {
+    public: true, // This data is the same for all users
+    maxAge: 3600,
+    staleWhileRevalidate: 600,
+  });
+
   res.status(200).json(result.rows);
 });
 

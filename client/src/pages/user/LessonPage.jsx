@@ -67,8 +67,12 @@ const CopyNotification = styled.div`
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   timeout: 10000,
-  // Silence Axios errors in console
-  validateStatus: (status) => true,
+  // Handle both successful responses and 304 Not Modified
+  validateStatus: (status) => (status >= 200 && status < 300) || status === 304,
+  // Enable automatic caching in supported browsers
+  headers: {
+    'Cache-Control': 'max-age=3600'
+  }
 });
 
 const LessonPage = () => {
@@ -200,12 +204,19 @@ const LessonPage = () => {
       setError('');
 
       try {
-        // Check subscription status and completed lessons count first
-        const subscriptionResponse = await api.get('/check', {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+        // Make parallel API calls for independent data
+        const [subscriptionResponse, lessonResponse] = await Promise.all([
+          api.get('/check', {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }),
+          api.get(`/lesson/${lessonId}`, {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          })
+        ]);
 
         if (subscriptionResponse.status !== 200) {
           navigate('/pricing');
@@ -217,7 +228,7 @@ const LessonPage = () => {
         setHasActiveSubscription(activeSubscription);
         setCompletedLessonsCount(completedLessons || 0);
 
-        // If user has no active subscription and has completed the free lesson limit, redirect to pricing
+        // Check subscription limit
         if (!activeSubscription && completedLessons >= FREE_LESSON_LIMIT) {
           navigate('/pricing', {
             state: {
@@ -228,13 +239,7 @@ const LessonPage = () => {
           return;
         }
 
-        // First get the lesson data
-        const lessonResponse = await api.get(`/lesson/${lessonId}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-
+        // Handle lesson response
         if (lessonResponse.status === 403) {
           // Check if the error is due to subscription limit or lesson being locked
           if (lessonResponse.data?.status === 'subscription_required') {
@@ -279,56 +284,54 @@ const LessonPage = () => {
         setLesson(lessonData);
         setLanguageId(lessonData.language_id);
 
-        // Get section data
-        const sectionResponse = await api.get(`/sections/${lessonData.section_id}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+        // Make parallel API calls for course data
+        const [sectionResponse, progressResponse] = await Promise.all([
+          api.get(`/sections/${lessonData.section_id}`, {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }),
+          api.get(`/lesson-progress`, {
+            params: {
+              user_id: user.user_id,
+              lesson_id: lessonId,
+            },
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          })
+        ]);
 
         if (sectionResponse.status !== 200 || !sectionResponse.data) {
           navigate('/');
           return;
         }
 
-        // Get all sections for the course
-        const sectionsResponse = await api.get(
-          `/sections/course/${sectionResponse.data.course_id}`,
-          {
+        // Get sections and lessons in parallel
+        const [sectionsResponse, allLessonsResponse] = await Promise.all([
+          api.get(`/sections/course/${sectionResponse.data.course_id}`, {
             headers: {
               Authorization: `Bearer ${user.token}`,
             },
-          }
-        );
+          }),
+          api.get('/lesson', {
+            params: {
+              course_id: sectionResponse.data.course_id,
+            },
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          })
+        ]);
 
         if (sectionsResponse.status === 200) {
           setSections(sectionsResponse.data || []);
         }
 
-        // Get ALL lessons for the course
-        const allLessonsResponse = await api.get('/lesson', {
-          params: {
-            course_id: sectionResponse.data.course_id,
-          },
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-
         if (allLessonsResponse.status === 200) {
           setLessons(allLessonsResponse.data || []);
           setTotalLessons(allLessonsResponse.data.length);
         }
-
-        const progressResponse = await api.get(`/lesson-progress`, {
-          params: {
-            user_id: user.user_id,
-            lesson_id: lessonId,
-          },
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
 
         if (progressResponse.status === 200 && progressResponse.data.submitted_code) {
           setCode(progressResponse.data.submitted_code);

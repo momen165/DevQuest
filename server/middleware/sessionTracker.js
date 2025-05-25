@@ -1,11 +1,15 @@
 // server/middleware/sessionTracker.js
 const db = require("../config/database");
+const {
+  warmSubscriptionCache,
+} = require("../controllers/subscription.controller");
 
 /**
  * Middleware to track user sessions for analytics (user_sessions table)
  * - Creates a new session on first request or after timeout
  * - Updates session_end and session_duration on each request
  * - Increments page_views
+ * - Warms subscription cache in background
  */
 module.exports = async function sessionTracker(req, res, next) {
   // Set a timestamp as soon as the function is called for accurate timing
@@ -20,6 +24,11 @@ module.exports = async function sessionTracker(req, res, next) {
       "0.0.0.0";
     let deviceType = req.headers["user-agent"] || "Unknown";
     if (deviceType.length > 50) deviceType = deviceType.slice(0, 50);
+
+    // Start subscription cache warming in background
+    warmSubscriptionCache(userId).catch((err) => {
+      console.error("[SessionTracker] Cache warming error:", err);
+    });
 
     // Find the most recent session (not ended, or ended within timeout)
     const { rows } = await db.query(
