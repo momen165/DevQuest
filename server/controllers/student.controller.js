@@ -32,7 +32,7 @@ const getAllStudents = async (req, res) => {
         FROM users u
         LEFT JOIN user_subscription us ON u.user_id = us.user_id
         LEFT JOIN subscription s ON us.subscription_id = s.subscription_id
-        WHERE u.admin = false -- Only non-admin users
+        WHERE NOT EXISTS (SELECT 1 FROM admins a WHERE a.admin_id = u.user_id) -- Only non-admin users
         ORDER BY u.user_id, s.subscription_start_date DESC NULLS LAST
       ),
       student_stats AS (
@@ -47,7 +47,7 @@ const getAllStudents = async (req, res) => {
         LEFT JOIN enrollment e ON u.user_id = e.user_id
         LEFT JOIN lesson_progress lp ON u.user_id = lp.user_id AND lp.completed = true
         LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
-        WHERE u.admin = false
+        WHERE NOT EXISTS (SELECT 1 FROM admins a WHERE a.admin_id = u.user_id)
         GROUP BY u.user_id
       )
       SELECT 

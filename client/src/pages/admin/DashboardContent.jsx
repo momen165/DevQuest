@@ -120,38 +120,38 @@ const DashboardContent = () => {
   if (error) {
     return <div className="error-message">{error}</div>;
   }
-
   return (
     <div className="dashboard-content">
-      <header className="dashboard-header">
-        <h1>Dashboard</h1>
-        <div className="profile">
-          <span>Welcome, {user?.name}</span>
-          <Link to="/" className="dashboard-to-homeLink">
-            ← Back to website
-          </Link>
-        </div>
-      </header>
+     
+        <header className="dashboard-header">
+          <h1>Dashboard</h1>
+          <div className="profile">
+            <span>Welcome, {user?.name}</span>
+            <Link to="/" className="dashboard-to-homeLink">
+              ← Back to website
+            </Link>
+          </div>
+        </header>
 
-      <div className="stats-cards">
-        <div className="card">
-          <FaUserGraduate className="icon" />
-          <h3>{studentsCount}</h3>
-          <p>Students</p>
+        <div className="stats-cards">
+          <div className="card">
+            <FaUserGraduate className="icon" />
+            <h3>{studentsCount}</h3>
+            <p>Students</p>
+          </div>
+          <div className="card">
+            <FaUserPlus className="icon" />
+            <h3>{newStudentsCount}</h3>
+            <p>New Students in the last week</p>
+          </div>
+          <div className="card">
+            <FaBook className="icon" />
+            <h3>{coursesCount}</h3>
+            <p>Courses</p>
+          </div>
         </div>
-        <div className="card">
-          <FaUserPlus className="icon" />
-          <h3>{newStudentsCount}</h3>
-          <p>New Students in the last week</p>
-        </div>
-        <div className="card">
-          <FaBook className="icon" />
-          <h3>{coursesCount}</h3>
-          <p>Courses</p>
-        </div>
-      </div>
 
-      <div className="activity-section">
+        <div className="activity-section">
         <div className="recent-activity">
           <div className="activity-header">
             <h2>Recent Activity</h2>
@@ -229,7 +229,7 @@ const DashboardContent = () => {
           <div className="recent-tickets">
             <div className="activity-header">
               <h2>New Support Tickets</h2>
-              <Link to="/admin/support" className="see-all-button">
+              <Link to="/support" className="see-all-button">
                 See all
               </Link>
             </div>
@@ -278,6 +278,7 @@ const DashboardContent = () => {
         />
       )}
     </div>
+ 
   );
 };
 

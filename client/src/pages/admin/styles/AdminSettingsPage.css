@@ -111,12 +111,12 @@
 }
 
 .admin-settings-submit-btn::before {
-  content: "👥";
+  content: '👥';
   font-size: 1.1rem;
 }
 
 .admin-settings-submit-btn.admin-settings-remove-btn::before {
-  content: "🚫";
+  content: '🚫';
 }
 
 .admin-settings-submit-btn:hover {
@@ -250,21 +250,21 @@
   right: 0;
   bottom: 0;
   background-color: rgba(255, 255, 255, 0.1);
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 34px;
   border: 2px solid rgba(52, 152, 219, 0.3);
 }
 
 .admin-settings-toggle-slider:before {
   position: absolute;
-  content: "";
+  content: '';
   height: 26px;
   width: 26px;
   left: 4px;
   background-color: white;
   top: 2px;
-  
-  transition: .4s;
+
+  transition: 0.4s;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
@@ -318,12 +318,12 @@
 }
 
 .admin-settings-submit-btn::before {
-  content: "👥";
+  content: '👥';
   font-size: 1.1rem;
 }
 
 .admin-settings-submit-btn.admin-settings-remove-btn::before {
-  content: "🚫";
+  content: '🚫';
 }
 
 .admin-settings-submit-btn:hover {
@@ -359,7 +359,7 @@
 }
 
 /* Messages */
-.admin-settings-error, 
+.admin-settings-error,
 .admin-settings-success,
 .error-message,
 .success-message {
@@ -430,17 +430,17 @@
 
 .admin-settings-error::before,
 .admin-settings-success::before {
-  font-family: "Font Awesome 5 Free";
+  font-family: 'Font Awesome 5 Free';
   font-weight: 900;
   font-size: 1rem;
 }
 
 .admin-settings-error::before {
-  content: "⚠️";
+  content: '⚠️';
 }
 
 .admin-settings-success::before {
-  content: "✅";
+  content: '✅';
 }
 
 .admin-settings-action-buttons {
@@ -471,4 +471,16 @@
 
 .admin-settings-mode-btn:hover {
   background: rgba(52, 152, 219, 0.2);
+}
+
+.refresh-button {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  background: rgba(52, 152, 219, 0.3);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }

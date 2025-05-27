@@ -9,20 +9,37 @@ const {
   closeTicket,
   getRecentTickets,
 } = require("../controllers/support.controller");
-const {
-  authenticateToken,
-  requireAuth
-} = require("../middleware/auth");
+const { authenticateToken, requireAuth } = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
+const { cacheMiddleware } = require("../utils/cache.utils");
+const {
+  performanceMiddleware,
+} = require("../middleware/performance.middleware");
 
+router.post(
+  "/support",
+  authenticateToken,
+  requireAuth,
+  sessionTracker,
+  submitTicket
+);
 
-router.post("/support", authenticateToken, requireAuth, sessionTracker, submitTicket);
-router.get("/support-tickets", authenticateToken, requireAuth, sessionTracker, getTickets);
+router.get(
+  "/support-tickets",
+  authenticateToken,
+  requireAuth,
+  sessionTracker,
+  cacheMiddleware("support-tickets", 300),
+  performanceMiddleware("support-tickets"), // Performance monitoring for support tickets
+  getTickets
+);
 router.get(
   "/user-support-tickets",
   authenticateToken,
   requireAuth,
   sessionTracker,
+  cacheMiddleware("user-support-tickets", 300),
+  performanceMiddleware("user-support-tickets"), // Performance monitoring for support tickets
   getUserTicketsByUserId
 ); // Route for user support tickets by user ID
 router.post(
@@ -51,6 +68,8 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
+  cacheMiddleware("support-tickets/recent", 300),
+  performanceMiddleware("user-support-tickets"),
   getRecentTickets
 );
 

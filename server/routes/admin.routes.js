@@ -45,7 +45,13 @@ router.use(authenticateToken);
 router.use(requireAuth);
 router.use(trackVisit); // <-- Add this so all admin routes after this will have trackVisit with req.user set
 router.use(sessionTracker);
-router.get("/status", checkAdminStatus);
+router.get(
+  "/status",
+   cacheMiddleware("status", 300),
+  performanceMiddleware("status"),
+  checkAdminStatus,
+ 
+);
 router.get("/activities", requireAdmin, getAdminActivities);
 router.get("/metrics/system", requireAdmin, getSystemMetrics);
 router.get("/metrics/performance", requireAdmin, getPerformanceMetrics);
@@ -53,6 +59,12 @@ router.post("/add-admin", requireAdmin, addAdmin);
 router.post("/maintenance-mode", requireAdmin, toggleMaintenanceMode);
 router.get("/settings", requireAdmin, getSystemSettings);
 router.post("/remove-admin", requireAdmin, removeAdmin);
-router.get("/analytics", requireAdmin, getSiteAnalytics);
+router.get(
+  "/analytics",
+  requireAdmin,
+  cacheMiddleware("analytics", 300),
+  performanceMiddleware("analytics"), // Performance monitoring for analytics
+  getSiteAnalytics
+);
 router.post("/grant-free-subscription", requireAdmin, grantFreeSubscription);
 module.exports = router;

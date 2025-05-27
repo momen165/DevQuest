@@ -4,6 +4,10 @@ const courseController = require("../controllers/course.controller");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
 const upload = require("../config/multer");
+const { cacheMiddleware } = require("../utils/cache.utils");
+const {
+  performanceMiddleware,
+} = require("../middleware/performance.middleware");
 
 // Add a course
 router.post(
@@ -26,7 +30,12 @@ router.put(
 );
 
 // Get all courses
-router.get("/courses", courseController.getCourses);
+router.get(
+  "/courses",
+  cacheMiddleware("courses", 300),
+  performanceMiddleware("courses"),
+  courseController.getCourses
+);
 
 // Get a specific course by ID
 router.get("/courses/:course_id", courseController.getCourseById);

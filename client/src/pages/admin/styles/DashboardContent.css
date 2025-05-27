@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
-  padding: 24px 32px;
+  padding: 20px; /* Remove padding to eliminate gap */
   box-sizing: border-box;
   background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
   font-size: 16px;
@@ -51,7 +51,6 @@
   grid-template-columns: repeat(auto-fit, minmax(250px, 5fr));
   gap: 24px;
   width: 100%;
-
 }
 
 .dashboard-content .card {
@@ -81,7 +80,7 @@
   background: linear-gradient(120deg, #60a5fa, #818cf8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-   margin: 0;
+  margin: 0;
   font-weight: 700;
 }
 

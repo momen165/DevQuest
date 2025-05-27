@@ -25,6 +25,8 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
+   cacheMiddleware("feedback", 300),
+  performanceMiddleware("submitFeedback"), // Performance monitoring for feedback submission
   getFeedback
 );
 router.post(
@@ -32,7 +34,9 @@ router.post(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  submitFeedback
+ 
+  submitFeedback,
+  
 );
 router.post(
   "/feedback/reply",
