@@ -124,14 +124,16 @@ const getAdminSections = async (req, res) => {
       WHERE section_id = ANY($1)
       ORDER BY lesson_order ASC;
     `;
-    const lessons = await db.query(lessonsQuery, [sectionIds]);
-
-    // Organize data
+    const lessons = await db.query(lessonsQuery, [sectionIds]); // Organize data
     const result = sections.rows.map((section) => ({
       ...section,
       lessons: lessons.rows
         .filter((lesson) => lesson.section_id === section.section_id)
-        .map(({ section_id, ...lesson }) => lesson),
+        .map((lesson) => {
+          /* eslint-disable-next-line no-unused-vars */
+          const { section_id: _unused, ...lessonWithoutSectionId } = lesson;
+          return lessonWithoutSectionId;
+        }),
     }));
 
     // Cache the result
@@ -147,90 +149,178 @@ const getAdminSections = async (req, res) => {
 const getUserSections = async (req, res) => {
   const { courseId } = req.params;
   const userId = req.user.user_id;
-  const cacheKey = `course_sections_${courseId}_${userId}`;
+
+  // Note: We're not using this internal cache anymore since we've added cacheMiddleware
+  // The route-level caching is more efficient and prevents duplicate caching logic
 
   try {
-    // Check cache first
-    const cachedData = sectionCache.get(cacheKey);
-    if (cachedData) {
-      return res.json(cachedData);
+    // Use a more efficient query with Common Table Expressions (CTE) to get all data in one go
+    const optimizedQuery = `
+      WITH section_data AS (
+        SELECT 
+          s.section_id, 
+          s.name, 
+          s.description,
+          s.section_order
+        FROM section s
+        WHERE s.course_id = $1
+        ORDER BY s.section_order ASC
+      ),
+      lesson_data AS (
+        SELECT 
+          l.section_id,
+          l.lesson_id,
+          l.name,
+          l.lesson_order,
+          COALESCE(lp.completed, false) as completed
+        FROM lesson l
+        LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $2
+        WHERE l.section_id IN (SELECT section_id FROM section_data)
+        ORDER BY l.lesson_order ASC
+      )
+      SELECT 
+        sd.*,
+        json_agg(
+          CASE WHEN ld.lesson_id IS NULL THEN NULL
+          ELSE json_build_object(
+            'lesson_id', ld.lesson_id,
+            'name', ld.name,
+            'lesson_order', ld.lesson_order,
+            'completed', ld.completed
+          ) END
+        ) FILTER (WHERE ld.lesson_id IS NOT NULL) AS lessons
+      FROM section_data sd
+      LEFT JOIN lesson_data ld ON sd.section_id = ld.section_id
+      GROUP BY sd.section_id, sd.name, sd.description, sd.section_order
+      ORDER BY sd.section_order ASC;
+    `;
+
+    const result = await db.query(optimizedQuery, [courseId, userId]);
+
+    // If no sections found, return empty array
+    if (result.rows.length === 0) {
+      return res.json([]);
     }
 
-    // Separate queries for better performance
-    // 1. Get sections first
-    const sectionsQuery = `
-      SELECT 
-        section_id, 
-        name, 
-        description,
-        section_order
-      FROM section 
-      WHERE course_id = $1
-      ORDER BY section_order ASC;
-    `;
-    const sections = await db.query(sectionsQuery, [courseId]);
-
-    if (sections.rows.length === 0) {
-      const emptyResult = [];
-      sectionCache.set(cacheKey, emptyResult);
-      return res.json(emptyResult);
-    }
-
-    // 2. Get lessons and progress for all sections in one query
-    const sectionIds = sections.rows.map((s) => s.section_id);
-    const lessonsQuery = `
-      SELECT 
-        l.section_id,
-        l.lesson_id,
-        l.name,
-        l.lesson_order,
-        COALESCE(lp.completed, false) as completed
-      FROM lesson l
-      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
-      WHERE l.section_id = ANY($2)
-      ORDER BY l.lesson_order ASC;
-    `;
-    const lessons = await db.query(lessonsQuery, [userId, sectionIds]);
-
-    // Organize data
-    const result = sections.rows.map((section) => ({
+    // Handle case where lessons might be null for a section
+    const formattedResult = result.rows.map((section) => ({
       ...section,
-      lessons: lessons.rows
-        .filter((lesson) => lesson.section_id === section.section_id)
-        .map(({ section_id, ...lesson }) => lesson),
+      lessons: section.lessons || [],
     }));
 
-    // Cache the result
-    sectionCache.set(cacheKey, result);
-    return res.json(result);
+    return res.json(formattedResult);
   } catch (err) {
     console.error("Error fetching user sections:", err);
     return res.status(500).json({ error: "Failed to fetch sections" });
   }
 };
 
-// Get section by ID
+// Get section by ID - Optimized version with enhanced data
 const getSectionById = async (req, res) => {
   const { section_id } = req.params;
+  const userId = req.user?.user_id;
 
   try {
-    const query = `
+    // Single optimized query using CTE for comprehensive section data
+    const optimizedQuery = `
+      WITH section_info AS (
+        SELECT 
+          s.section_id, 
+          s.course_id,
+          s.name, 
+          s.description,
+          s.section_order,
+          c.name as course_name,
+          c.status as course_status
+        FROM section s
+        JOIN course c ON s.course_id = c.course_id
+        WHERE s.section_id = $1
+      ),
+      section_lessons AS (
+        SELECT 
+          l.lesson_id,
+          l.name as lesson_name,
+          l.lesson_order,
+          l.xp,
+          CASE 
+            WHEN $2 IS NOT NULL THEN COALESCE(lp.completed, false)
+            ELSE false
+          END as completed
+        FROM lesson l
+        LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $2
+        WHERE l.section_id = $1
+        ORDER BY l.lesson_order ASC
+      ),
+      section_stats AS (
+        SELECT 
+          COUNT(sl.lesson_id) as total_lessons,
+          COALESCE(SUM(CASE WHEN sl.completed THEN 1 ELSE 0 END), 0) as completed_lessons,
+          COALESCE(SUM(l.xp), 0) as total_xp,
+          COALESCE(SUM(CASE WHEN sl.completed THEN l.xp ELSE 0 END), 0) as earned_xp
+        FROM section_lessons sl
+        LEFT JOIN lesson l ON sl.lesson_id = l.lesson_id
+      )
       SELECT 
-        s.section_id, 
-        s.course_id,
-        s.name, 
-        s.description,
-        s.section_order
-      FROM section s
-      WHERE s.section_id = $1
+        si.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'lesson_id', sl.lesson_id,
+              'lesson_name', sl.lesson_name,
+              'lesson_order', sl.lesson_order,
+              'xp', sl.xp,
+              'completed', sl.completed
+            ) ORDER BY sl.lesson_order
+          ) FILTER (WHERE sl.lesson_id IS NOT NULL), 
+          '[]'::json
+        ) as lessons,
+        ss.total_lessons,
+        ss.completed_lessons,
+        ss.total_xp,
+        ss.earned_xp,
+        CASE 
+          WHEN ss.total_lessons > 0 THEN 
+            ROUND((ss.completed_lessons::decimal / ss.total_lessons::decimal) * 100, 1)
+          ELSE 0 
+        END as completion_percentage
+      FROM section_info si
+      CROSS JOIN section_stats ss
+      LEFT JOIN section_lessons sl ON true
+      GROUP BY si.section_id, si.course_id, si.name, si.description, si.section_order, 
+               si.course_name, si.course_status, ss.total_lessons, ss.completed_lessons, 
+               ss.total_xp, ss.earned_xp
     `;
-    const result = await db.query(query, [section_id]);
+
+    const result = await db.query(optimizedQuery, [section_id, userId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Section not found" });
     }
 
-    res.json(result.rows[0]);
+    const sectionData = result.rows[0];
+
+    // Build optimized response structure
+    const response = {
+      section_id: sectionData.section_id,
+      course_id: sectionData.course_id,
+      name: sectionData.name,
+      description: sectionData.description,
+      section_order: sectionData.section_order,
+      course_name: sectionData.course_name,
+      course_status: sectionData.course_status,
+      lessons: sectionData.lessons || [],
+      stats: {
+        total_lessons: sectionData.total_lessons,
+        completed_lessons: sectionData.completed_lessons,
+        total_xp: sectionData.total_xp,
+        earned_xp: sectionData.earned_xp,
+        completion_percentage: sectionData.completion_percentage,
+      },
+      optimized: true,
+      timestamp: new Date().toISOString(),
+    };
+
+    res.json(response);
   } catch (err) {
     console.error("Error fetching section:", err);
     res.status(500).json({ error: "Failed to fetch section details" });

@@ -255,7 +255,7 @@ const getSiteAnalyticsDB = async (days) => {
     mostAttemptedLessons: `
       SELECT l.name as lesson_title, COUNT(lp.lesson_id) as attempts
       FROM lesson_progress lp JOIN lesson l ON lp.lesson_id = l.lesson_id
-      WHERE (lp.completed_at >= NOW() - INTERVAL '${days} days' OR lp.started_at >= NOW() - INTERVAL '${days} days') 
+      WHERE lp.completed_at >= NOW() - INTERVAL '${days} days'
       GROUP BY l.lesson_id, l.name ORDER BY attempts DESC LIMIT 5`,
     courseStats: `
       SELECT 

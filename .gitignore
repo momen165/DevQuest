@@ -13,7 +13,7 @@ build/
 dist/
 
 
-
+.scripts/
 
 # Cache files
 .cache/

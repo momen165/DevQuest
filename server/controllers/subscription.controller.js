@@ -319,13 +319,6 @@ const checkActiveSubscription = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // Check cache first
-    const cacheKey = `subscription_${userId}`;
-    const cachedData = subscriptionCache.get(cacheKey);
-
-    if (cachedData) {
-      return res.json(cachedData);
-    }
     const query = `
       SELECT 
         s.subscription_type,
@@ -355,9 +348,6 @@ const checkActiveSubscription = async (req, res) => {
             }
           : null,
     };
-
-    // Store in cache
-    subscriptionCache.set(cacheKey, response);
 
     res.json(response);
   } catch (error) {

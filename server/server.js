@@ -7,6 +7,10 @@ const updateUserStreak = require("./middleware/updateUserStreak");
 const sanitizeInput = require("./middleware/sanitizeInput");
 const { handleError } = require("./utils/error.utils");
 const trackVisit = require("./middleware/trackVisits");
+const {
+  performanceMiddleware,
+  wrapDatabaseQuery,
+} = require("./middleware/performance.middleware");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { closeExpiredTickets } = require("./controllers/support.controller");
@@ -21,6 +25,10 @@ const PORT = process.env.PORT || 5000;
 
 // Database connection
 const db = require("./config/database");
+
+// Wrap database with performance tracking
+wrapDatabaseQuery(db);
+
 db.query("SELECT NOW()", (err, result) => {
   if (err) {
     console.error("Database connection error:", err);
@@ -144,6 +152,7 @@ const uploadRoutes = require("./routes/upload.routes");
 const supportRoutes = require("./routes/support.routes");
 const adminRoutes = require("./routes/admin.routes");
 const pageviewRoutes = require("./routes/pageview.routes");
+const performanceRoutes = require("./routes/performance.routes");
 
 // Import controllers for public endpoints
 const {
@@ -161,10 +170,6 @@ app.use("/api/password-reset", authLimiter);
 app.use(standardLimiter);
 
 // Define public endpoints explicitly before any authentication middleware is applied
-// System status endpoints
-app.get("/api/admin/system-settings", getMaintenanceStatus);
-app.get("/api/admin/maintenance-status", getMaintenanceStatus);
-
 // Public data endpoints
 app.get("/api/getCoursesWithRatings", getCoursesWithRatings);
 app.get("/api/feedback/public", getPublicFeedback);
@@ -231,6 +236,7 @@ app.use("/api", uploadRoutes);
 app.use("/api", supportRoutes);
 app.use("/api", paymentRouter);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin", performanceRoutes);
 
 // For streak updates, apply the middleware to all routes that need it
 app.use(updateUserStreak);

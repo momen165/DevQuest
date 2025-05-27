@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/CourseCard.css";
 
@@ -17,7 +17,7 @@ const languageBackgrounds = {
   73: "rgba(222, 165, 132, 0.5)", // Rust - Rust orange
 };
 
-const CourseCard = ({
+const CourseCard = memo(({
   title,
   level,
   rating,
@@ -32,16 +32,31 @@ const CourseCard = ({
   const navigate = useNavigate();
   const fullImageUrl = image;
 
-  const getBackgroundColor = (langId) => {
-    const color = languageBackgrounds[langId] || languageBackgrounds.default;
+  // Memoize expensive calculations
+  const cardStyles = useMemo(() => {
+    const getBackgroundColor = (langId) => {
+      return languageBackgrounds[langId] || languageBackgrounds[71]; // Default to Python
+    };
 
-    return color;
-  };
+    const cardBackground = `linear-gradient(145deg, 
+      ${getBackgroundColor(language_id)}, 
+      rgba(9, 20, 41, 0.98)
+    )`;
 
-  const cardBackground = `linear-gradient(145deg, 
-    ${getBackgroundColor(language_id)}, 
-    rgba(9, 20, 41, 0.98)
-  )`;
+    return {
+      "--language-color": cardBackground,
+      "--hover-color": cardBackground.replace("0.5)", "0.7)"), // Darker version
+    };
+  }, [language_id]);
+
+  // Memoize progress circle styles
+  const progressStyles = useMemo(() => {
+    if (!isEnrolled || !progress) return {};
+    
+    return {
+      background: `conic-gradient(green 0% ${progress}%, #2e2e2e ${progress}% 100%)`,
+    };
+  }, [isEnrolled, progress]);
 
   const handleButtonClick = () => {
     if (isEnrolled) {
@@ -49,16 +64,11 @@ const CourseCard = ({
     } else {
       navigate(`/enroll/${courseId}`);
     }
-    const cardBackground = getBackgroundColor(language_id);
   };
-
   return (
     <div
       className="course-card"
-      style={{
-        "--language-color": cardBackground,
-        "--hover-color": cardBackground.replace("0.5)", "0.7)"), // Darker version
-      }}
+      style={cardStyles}
     >
       <div className="course-head">
         <div className="course-icon">
@@ -80,14 +90,11 @@ const CourseCard = ({
         </div>
         <div className="course-students">{students} students</div>
       </div>
-      <div className="enroll-btn">
-        {isEnrolled && (
+      <div className="enroll-btn">        {isEnrolled && (
           <div className="progress-container">
             <div
               className="progress-circle"
-              style={{
-                background: `conic-gradient(green 0% ${progress}%, #2e2e2e ${progress}% 100%)`,
-              }}
+              style={progressStyles}
             >
               <div className="circle-mid"></div>
             </div>
@@ -104,6 +111,6 @@ const CourseCard = ({
       </div>
     </div>
   );
-};
+});
 
 export default CourseCard;

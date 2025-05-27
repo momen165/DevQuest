@@ -3,6 +3,10 @@ const router = express.Router();
 const sectionController = require("../controllers/section.controller");
 const sessionTracker = require("../middleware/sessionTracker");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
+const { cacheMiddleware } = require("../utils/cache.utils");
+const {
+  performanceMiddleware,
+} = require("../middleware/performance.middleware");
 
 // Admin routes
 router.post(
@@ -42,17 +46,26 @@ router.post(
 );
 
 // User routes
-router.get("/sections", authenticateToken, sessionTracker, sectionController.getAdminSections);
+router.get(
+  "/sections",
+  authenticateToken,
+  sessionTracker,
+  sectionController.getAdminSections
+);
 router.get(
   "/sections/course/:courseId",
   authenticateToken,
   sessionTracker,
+  performanceMiddleware("getUserSections"),
+  cacheMiddleware("courses", 600), // 10 minute cache
   sectionController.getUserSections
 );
 router.get(
   "/sections/:section_id",
   authenticateToken,
   sessionTracker,
+  performanceMiddleware("section-details"),
+  cacheMiddleware("user", 300), // 5 minutes cache for section data
   sectionController.getSectionById
 );
 

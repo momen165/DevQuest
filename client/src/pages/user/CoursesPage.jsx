@@ -20,50 +20,86 @@ const CoursesPage = () => {
   const [enrollments, setEnrollments] = useState({});
   const [progress, setProgress] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
-
   useEffect(() => {
-    const fetchCoursesAndRatings = async () => {
+    const fetchOptimizedCoursesData = async () => {
       setLoading(true);
       try {
-        const [coursesResponse, enrollmentsResponse] = await Promise.all([
-          axios.get(`${api_url}/getCoursesWithRatings`),
-          user?.user_id
-            ? axios.get(`${api_url}/students/${user.user_id}/enrollments`)
-            : Promise.resolve({}),
-        ]);
+        // Use the new optimized endpoint that combines all data in one request
+        const config = user?.token ? {
+          headers: { Authorization: `Bearer ${user.token}` }
+        } : {};
 
-        const { courses, userscount } = coursesResponse.data;
+        const response = await axios.get(`${api_url}/optimized-courses`, config);
+        const { courses, optimized } = response.data;
 
-        setCourses(courses);
-        setFilteredCourses(courses);
-        setUserscount(userscount || {});
-        setEnrollments(enrollmentsResponse.data || {});
+        // Transform the optimized data for component state
+        const coursesData = courses.map(course => ({
+          ...course,
+          name: course.name || course.title // Ensure compatibility
+        }));
+
+        const userscountMap = {};
+        const enrollmentsMap = {};
+        const progressMap = {};
+
+        courses.forEach(course => {
+          userscountMap[course.course_id] = course.userscount || 0;
+          if (course.is_enrolled) {
+            enrollmentsMap[course.course_id] = true;
+          }
+          if (course.progress) {
+            progressMap[course.course_id] = { progress: course.progress };
+          }
+        });
+
+        setCourses(coursesData);
+        setFilteredCourses(coursesData);
+        setUserscount(userscountMap);
+        setEnrollments(enrollmentsMap);
+        setProgress(progressMap);
+
+       
       } catch (err) {
-        console.error('Error:', err);
-        setError('Failed to load data');
+        console.error('Error loading optimized courses data:', err);
+        // Fallback to original approach if optimized endpoint fails
+        try {
+          const [coursesResponse, enrollmentsResponse] = await Promise.all([
+            axios.get(`${api_url}/getCoursesWithRatings`),
+            user?.user_id
+              ? axios.get(`${api_url}/students/${user.user_id}/enrollments`)
+              : Promise.resolve({}),
+          ]);
+
+          const { courses, userscount } = coursesResponse.data;
+          setCourses(courses);
+          setFilteredCourses(courses);
+          setUserscount(userscount || {});
+          setEnrollments(enrollmentsResponse.data || {});
+        } catch (fallbackErr) {
+          console.error('Fallback error:', fallbackErr);
+          setError('Failed to load course data');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCoursesAndRatings();
+    fetchOptimizedCoursesData();
   }, [user]);
-
-  useEffect(() => {
-    const fetchProgress = async () => {
-      if (!user) return;
-
-      try {
-        const response = await axios.get(`${api_url}/students/${user.user_id}`);
-        setProgress(response.data.courses);
-      } catch (err) {
-        console.error('Error:', err);
-        setError('Failed to load progress data');
-      }
-    };
-
-    fetchProgress();
-  }, [user]);
+  // Remove the separate progress fetching effect since it's now included in the optimized endpoint
+  // useEffect(() => {
+  //   const fetchProgress = async () => {
+  //     if (!user) return;
+  //     try {
+  //       const response = await axios.get(`${api_url}/students/${user.user_id}`);
+  //       setProgress(response.data.courses);
+  //     } catch (err) {
+  //       console.error('Error:', err);
+  //       setError('Failed to load progress data');
+  //     }
+  //   };
+  //   fetchProgress();
+  // }, [user]);
 
   const handleFilter = (filter) => {
     switch (filter.toLowerCase()) {
@@ -159,11 +195,11 @@ const CoursesPage = () => {
             description={course.description}
             image={course.image}
             language_id={course.language_id}
-            isEnrolled={!!enrollments[course.course_id]}
-            progress={
+            isEnrolled={!!enrollments[course.course_id]}            progress={
+              // Support both array format (legacy) and object format (optimized)
               Array.isArray(progress)
                 ? progress.find((p) => p.course_id === course.course_id)?.progress || 0
-                : 0
+                : progress[course.course_id]?.progress || 0
             }
           />
         ))}

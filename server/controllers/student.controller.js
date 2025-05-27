@@ -1,5 +1,4 @@
 const db = require("../config/database");
-const { getLastAccessedLesson } = require("./lesson.controller");
 const {
   calculateLevel,
   calculateXPToNextLevel,
@@ -14,28 +13,82 @@ const getAllStudents = async (req, res) => {
       return res.status(403).json({ error: "Access denied. Admins only." });
     }
 
-    const query = `
+    // Single optimized query that gets all student data including subscription info, enrollment counts, and stats
+    const optimizedQuery = `
+      WITH student_subscriptions AS (
+        SELECT DISTINCT ON (u.user_id)
+          u.user_id,
+          u.name,
+          u.email,
+          u.created_at,
+          u.is_verified,
+          s.subscription_type,
+          s.subscription_end_date,
+          s.status as subscription_status,
+          CASE 
+            WHEN s.subscription_id IS NOT NULL AND s.status = 'active' AND s.subscription_end_date > CURRENT_TIMESTAMP THEN true
+            ELSE false
+          END AS has_active_subscription
+        FROM users u
+        LEFT JOIN user_subscription us ON u.user_id = us.user_id
+        LEFT JOIN subscription s ON us.subscription_id = s.subscription_id
+        WHERE u.admin = false -- Only non-admin users
+        ORDER BY u.user_id, s.subscription_start_date DESC NULLS LAST
+      ),
+      student_stats AS (
+        SELECT 
+          u.user_id,
+          COUNT(DISTINCT e.course_id) as total_enrollments,
+          COALESCE(AVG(e.progress), 0) as avg_progress,
+          COUNT(DISTINCT CASE WHEN e.progress >= 100 THEN e.course_id END) as completed_courses,
+          COALESCE(SUM(l.xp), 0) as total_xp,
+          COUNT(DISTINCT CASE WHEN lp.completed = true THEN lp.lesson_id END) as exercises_completed
+        FROM users u
+        LEFT JOIN enrollment e ON u.user_id = e.user_id
+        LEFT JOIN lesson_progress lp ON u.user_id = lp.user_id AND lp.completed = true
+        LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
+        WHERE u.admin = false
+        GROUP BY u.user_id
+      )
       SELECT 
-        u.user_id, 
-        u.name, 
-        u.email, 
-        u.created_at,
-        u.is_verified,
-        s.subscription_type,
-        s.subscription_end_date,
-        CASE 
-          WHEN s.subscription_id IS NOT NULL AND s.status = 'active' AND s.subscription_end_date > CURRENT_TIMESTAMP THEN true
-          ELSE false
-        END AS has_active_subscription
-      FROM users u
-      LEFT JOIN user_subscription us ON u.user_id = us.user_id
-      LEFT JOIN subscription s ON us.subscription_id = s.subscription_id
-      WHERE (s.subscription_id IS NULL 
-        OR (s.status = 'active' AND s.subscription_end_date > CURRENT_TIMESTAMP));
+        ss.*,
+        COALESCE(st.total_enrollments, 0) as total_enrollments,
+        ROUND(COALESCE(st.avg_progress, 0)::numeric, 1) as avg_progress,
+        COALESCE(st.completed_courses, 0) as completed_courses,
+        COALESCE(st.total_xp, 0) as total_xp,
+        COALESCE(st.exercises_completed, 0) as exercises_completed
+      FROM student_subscriptions ss
+      LEFT JOIN student_stats st ON ss.user_id = st.user_id
+      ORDER BY ss.created_at DESC
     `;
 
-    const { rows } = await db.query(query);
-    res.status(200).json({ students: rows, count: rows.length });
+    const { rows } = await db.query(optimizedQuery);
+
+    // Enhanced response structure with optimization metadata
+    const response = {
+      students: rows,
+      count: rows.length,
+      metadata: {
+        totalStudents: rows.length,
+        verifiedStudents: rows.filter((s) => s.is_verified).length,
+        activeSubscriptions: rows.filter((s) => s.has_active_subscription)
+          .length,
+        averageProgress:
+          rows.length > 0
+            ? Math.round(
+                (rows.reduce(
+                  (sum, s) => sum + (parseFloat(s.avg_progress) || 0),
+                  0
+                ) /
+                  rows.length) *
+                  10
+              ) / 10
+            : 0,
+      },
+      optimized: true,
+    };
+
+    res.status(200).json(response);
   } catch (err) {
     console.error("Error fetching students:", err.message || err);
     res
@@ -53,74 +106,110 @@ const getStudentById = async (req, res) => {
   const { studentId } = req.params;
 
   try {
-    // Update the user info query to include skills
-    const userQuery = `
+    // Single optimized query that gets all student data including courses and stats
+    const optimizedQuery = `
+      WITH student_info AS (
+        SELECT 
+          u.user_id, 
+          u.name, 
+          u.email, 
+          u.bio, 
+          u.streak,
+          u.skills,
+          u.profileimage
+        FROM users u
+        WHERE u.user_id = $1
+      ),
+      course_enrollments AS (
+        SELECT 
+          e.course_id,
+          c.name as course_name,
+          e.progress
+        FROM enrollment e
+        JOIN course c ON e.course_id = c.course_id
+        WHERE e.user_id = $1
+      ),
+      student_stats AS (
+        SELECT 
+          COALESCE(SUM(l.xp), 0) as total_xp,
+          COUNT(DISTINCT lp.lesson_id) as exercises_completed
+        FROM lesson_progress lp
+        LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
+        WHERE lp.user_id = $1 AND lp.completed = true
+      ),
+      last_lessons AS (
+        SELECT DISTINCT ON (s.course_id)
+          s.course_id,
+          l.lesson_id,
+          l.name as lesson_name,
+          sec.name as section_name,
+          lp.completed_at
+        FROM lesson_progress lp
+        JOIN lesson l ON lp.lesson_id = l.lesson_id
+        JOIN section sec ON l.section_id = sec.section_id
+        JOIN course s ON sec.course_id = s.course_id
+        WHERE lp.user_id = $1
+        ORDER BY s.course_id, lp.completed_at DESC NULLS LAST
+      )
       SELECT 
-        user_id, 
-        name, 
-        email, 
-        bio, 
-        streak,
-        skills,
-        profileimage
-      FROM users 
-      WHERE user_id = $1
+        si.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'course_id', ce.course_id,
+              'course_name', ce.course_name,
+              'progress', COALESCE(ce.progress, 0),
+              'last_lesson', 
+              CASE 
+                WHEN ll.lesson_id IS NOT NULL THEN
+                  json_build_object(
+                    'lesson_id', ll.lesson_id,
+                    'name', ll.lesson_name,
+                    'section_name', ll.section_name,
+                    'completed_at', ll.completed_at
+                  )
+                ELSE NULL
+              END
+            )
+          ) FILTER (WHERE ce.course_id IS NOT NULL), 
+          '[]'::json
+        ) as courses,
+        COALESCE(ss.total_xp, 0) as total_xp,
+        COALESCE(ss.exercises_completed, 0) as exercises_completed
+      FROM student_info si
+      LEFT JOIN course_enrollments ce ON true
+      LEFT JOIN student_stats ss ON true
+      LEFT JOIN last_lessons ll ON ce.course_id = ll.course_id
+      GROUP BY si.user_id, si.name, si.email, si.bio, si.streak, si.skills, 
+               si.profileimage, ss.total_xp, ss.exercises_completed
     `;
-    const userResult = await db.query(userQuery, [studentId]);
 
-    if (userResult.rows.length === 0) {
+    const result = await db.query(optimizedQuery, [studentId]);
+
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    // Get enrolled courses with progress
-    const coursesQuery = `
-      SELECT 
-        c.course_id,
-        c.name as course_name,
-        e.progress
-      FROM enrollment e
-      JOIN course c ON e.course_id = c.course_id
-      WHERE e.user_id = $1
-    `;
-    const enrollments = (await db.query(coursesQuery, [studentId])).rows;
+    const studentData = result.rows[0];
+    const totalXP = parseInt(studentData.total_xp) || 0;
+    const courses = studentData.courses || [];
 
-    // Add last lesson information to each course
-    const courses = await Promise.all(
-      enrollments.map(async (enrollment) => {
-        const lastLesson = await getLastAccessedLesson(
-          studentId,
-          enrollment.course_id,
-        );
-        return {
-          ...enrollment,
-          last_lesson: lastLesson,
-          progress: parseFloat(enrollment.progress) || 0,
-        };
-      }),
-    );
-
-    // Get stats
-    const statsQuery = `
-      SELECT 
-        COALESCE(SUM(l.xp), 0) as totalXP,
-        COUNT(DISTINCT lp.lesson_id) as exercises_completed
-      FROM lesson_progress lp
-      LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
-      WHERE lp.user_id = $1 AND lp.completed = true
-    `;
-    const stats = (await db.query(statsQuery, [studentId])).rows[0];
-    const totalXP = parseInt(stats.totalxp) || 0;
-
-    // Combine all data
+    // Build optimized response
     const response = {
-      ...userResult.rows[0],
-      courses,
-      exercisesCompleted: parseInt(stats.exercises_completed),
+      user_id: studentData.user_id,
+      name: studentData.name,
+      email: studentData.email,
+      bio: studentData.bio,
+      streak: studentData.streak,
+      skills: studentData.skills || [],
+      profileimage: studentData.profileimage,
+      courses: courses,
+      exercisesCompleted: parseInt(studentData.exercises_completed) || 0,
       courseXP: totalXP,
       level: calculateLevel(totalXP),
       xpToNextLevel: calculateXPToNextLevel(totalXP),
-      completedCourses: courses.filter((c) => c.progress >= 100).length,
-      skills: userResult.rows[0].skills || [],
+      completedCourses: courses.filter((c) => (c.progress || 0) >= 100).length,
+      optimized: true,
     };
 
     res.json(response);
@@ -329,7 +418,7 @@ const deleteStudentAccount = async (req, res) => {
           `Query executed:`,
           query.split(" ")[2],
           `Rows affected:`,
-          result.rowCount,
+          result.rowCount
         );
       } catch (err) {
         console.error(`Error executing query: ${query}`, err);

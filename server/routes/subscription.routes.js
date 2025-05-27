@@ -8,6 +8,10 @@ const {
 } = require("../controllers/subscription.controller");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
+const { cacheMiddleware } = require("../utils/cache.utils");
+const {
+  performanceMiddleware,
+} = require("../middleware/performance.middleware");
 const router = express.Router();
 
 // Database-only routes
@@ -16,9 +20,19 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
+  performanceMiddleware("subscription-status"),
+  cacheMiddleware("user", 180),
   checkSubscriptionStatusFromDb
-); // DB check
-router.get("/check", authenticateToken, requireAuth, sessionTracker, checkActiveSubscription); // Stripe check
+); // Optimized DB check with caching and performance monitoring
+router.get(
+  "/check",
+  authenticateToken,
+  requireAuth,
+  sessionTracker,
+  performanceMiddleware("subscription-check"),
+  cacheMiddleware("user", 180),
+  checkActiveSubscription
+); // Optimized Stripe check with caching and performance monitoring
 router.get(
   "/list-subscriptions",
   authenticateToken,

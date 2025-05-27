@@ -2,6 +2,10 @@ const express = require("express");
 const authController = require("../controllers/auth.controller");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
 const { body } = require("express-validator");
+const { cacheMiddleware } = require("../utils/cache.utils");
+const {
+  performanceMiddleware,
+} = require("../middleware/performance.middleware");
 
 // Create router instance
 const router = express.Router();
@@ -40,8 +44,13 @@ router.get("/verify-email", authController.verifyEmail);
 router.post("/resend-verification", authController.resendVerificationEmail);
 router.post("/password-reset", authController.sendPasswordResetEmail);
 router.post("/reset-password", authController.resetPassword);
-router.get("/check-auth", authenticateToken, authController.checkAuth); // Only needs token, no force requirement
-
+router.get(
+  "/check-auth",
+  authenticateToken,
+  performanceMiddleware("check-auth"),
+  cacheMiddleware("user", 120),
+  authController.checkAuth
+); // Only needs token, no force requirement
 
 // Protected routes - require valid authentication
 router.use(authenticateToken);

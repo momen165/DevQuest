@@ -15,14 +15,28 @@ const {
 // Middleware
 const { authenticateToken, requireAuth } = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
+const { cacheMiddleware } = require("../utils/cache.utils");
+const {
+  performanceMiddleware,
+} = require("../middleware/performance.middleware");
 
 // Routes
-router.get("/students", authenticateToken, requireAuth, sessionTracker, getAllStudents);
+router.get(
+  "/students",
+  authenticateToken,
+  requireAuth,
+  sessionTracker,
+  performanceMiddleware("students-list"),
+  cacheMiddleware("admin", 300), // 5 minutes cache for admin data
+  getAllStudents
+);
 router.get(
   "/students/:studentId",
   authenticateToken,
   requireAuth,
   sessionTracker,
+  performanceMiddleware("student-details"),
+  cacheMiddleware("user", 180), // 3 minutes cache for user-specific data
   getStudentById
 );
 router.get(
@@ -37,6 +51,8 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
+  performanceMiddleware("student-enrollments"),
+  cacheMiddleware("user", 300), // 5 minutes cache for user-specific data
   getEnrollmentsByUserId
 );
 router.get(

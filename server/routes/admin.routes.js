@@ -20,10 +20,24 @@ const {
   requireAuth,
   requireAdmin,
 } = require("../middleware/auth");
+const { cacheMiddleware } = require("../utils/cache.utils");
+const {
+  performanceMiddleware,
+} = require("../middleware/performance.middleware");
 
-// Public route - no authentication required
-router.get("/system-settings", getMaintenanceStatus);
-router.get("/maintenance-status", getMaintenanceStatus); // Add an alias for consistency
+// Public routes - no authentication required, but with caching optimization
+router.get(
+  "/system-settings",
+  performanceMiddleware("systemSettings"),
+  cacheMiddleware("static", 600),
+  getMaintenanceStatus
+);
+router.get(
+  "/maintenance-status",
+  performanceMiddleware("maintenanceStatus"),
+  cacheMiddleware("static", 600),
+  getMaintenanceStatus
+); // Add an alias for consistency
 
 // Protected admin routes - these should use requireAdmin middleware
 const sessionTracker = require("../middleware/sessionTracker");

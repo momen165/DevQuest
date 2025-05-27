@@ -55,61 +55,10 @@ const CourseSection = () => {
   });
   const [courseName, setCourseName] = useState('');
   const [profileData, setProfileData] = useState(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
-  const FREE_LESSON_LIMIT = 5;
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);  const FREE_LESSON_LIMIT = 5;
 
   useEffect(() => {
-    const fetchSubscriptionStatus = async () => {
-      try {
-        const response = await api.get('/check', {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-
-        setHasActiveSubscription(response.data.hasActiveSubscription);
-      } catch (err) {
-        console.error('Error checking subscription:', err);
-      }
-    };
-
-    const fetchProfileData = async () => {
-      try {
-        const response = await api.get(`/students/${user.user_id}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-
-        setProfileData(response.data);
-      } catch (err) {
-        console.error('Error checking subscription status:', err);
-      }
-    };
-
-    if (user?.user_id) {
-      fetchSubscriptionStatus();
-      fetchProfileData();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    // Check for error message in location state (from redirects)
-    if (location.state?.errorMessage) {
-      setErrorMessage(location.state.errorMessage);
-      setShowErrorMessage(true);
-
-      // Clear the error message after 5 seconds
-      const timer = setTimeout(() => {
-        setShowErrorMessage(false);
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [location]);
-
-  useEffect(() => {
-    const fetchData = async () => {
+    const fetchOptimizedCourseSectionData = async () => {
       setLoading(true);
       setError('');
       try {
@@ -117,9 +66,52 @@ const CourseSection = () => {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
+        };        // Use the new optimized endpoint that combines all data in one request
+        const response = await fetchWithRetry(`/optimized-course-section/${courseId}`, config);
+        
+        if (response.data) {
+          const { course, subscription, profile, sections, stats } = response.data;
+          
+          // Set all state from the optimized response
+          setCourseName(course.title);
+          setHasActiveSubscription(subscription.hasActiveSubscription);
+          setProfileData({
+            name: profile.name,
+            profileimage: profile.profileimage,
+            streak: profile.streak,
+            exercisesCompleted: profile.exercisesCompleted
+          });
+          
+          // Ensure lessons array exists and is properly formatted
+          const formattedSections = sections.map((section) => ({
+            ...section,
+            lessons: Array.isArray(section.lessons) ? section.lessons : [],
+          }));
+          setSections(formattedSections);
+          
+          setStats(stats);
+          
+          
+        }
+      } catch (err) {
+        console.error('Error loading optimized course section data:', err);
+        
+        // Fallback to original approach if optimized endpoint fails
+        await fetchDataFallback();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchDataFallback = async () => {
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
         };
 
-        // First check if course exists
+        // Original separate API calls as fallback
         try {
           const courseResponse = await fetchWithRetry(`/courses/${courseId}`, config);
           if (courseResponse.data) {
@@ -133,13 +125,20 @@ const CourseSection = () => {
             setTimeout(() => {
               navigate('/');
             }, 2000);
-            setLoading(false);
-            return; // Stop further API calls if course doesn't exist
+            return;
           }
-          throw err; // Re-throw other errors
+          throw err;
         }
 
-        // If course exists, fetch other data
+        // Check subscription status
+        const subscriptionResponse = await fetchWithRetry('/check', config);
+        setHasActiveSubscription(subscriptionResponse.data.hasActiveSubscription);
+
+        // Get profile data
+        const profileResponse = await fetchWithRetry(`/students/${user.user_id}`, config);
+        setProfileData(profileResponse.data);
+
+        // Get sections, course stats, and overall stats
         const [sectionsResponse, courseStatsResponse, overallStatsResponse] = await Promise.all([
           fetchWithRetry(`/sections/course/${courseId}`, config),
           fetchWithRetry(`/student/courses/${courseId}/stats`, config),
@@ -147,7 +146,6 @@ const CourseSection = () => {
         ]);
 
         if (sectionsResponse.data) {
-          // Ensure lessons array exists and is properly formatted
           const formattedSections = sectionsResponse.data.map((section) => ({
             ...section,
             lessons: Array.isArray(section.lessons) ? section.lessons : [],
@@ -158,7 +156,6 @@ const CourseSection = () => {
         if (courseStatsResponse.data && overallStatsResponse.data) {
           const totalXP = overallStatsResponse.data.totalXP || 0;
           const userLevel = calculateLevel(totalXP);
-          const progress = calculateLevelProgress(totalXP);
 
           setStats({
             courseXP: courseStatsResponse.data.courseXP || 0,
@@ -172,24 +169,27 @@ const CourseSection = () => {
           });
         }
       } catch (err) {
-        console.error('Error details:', err.response?.data || err.message);
+        console.error('Fallback error details:', err.response?.data || err.message);
         setError('Failed to fetch course data. Please try again.');
-      } finally {
-        setLoading(false);
       }
-    };
-
-    if (courseId && user?.user_id) {
-      fetchData();
+    };    if (courseId && user?.user_id) {
+      fetchOptimizedCourseSectionData();
     }
   }, [courseId, user, navigate]);
 
   useEffect(() => {
-    if (location.state && location.state.errorMessage) {
+    // Check for error message in location state (from redirects)
+    if (location.state?.errorMessage) {
       setErrorMessage(location.state.errorMessage);
       setShowErrorMessage(true);
-    }
-  }, [location.state]);
+
+      // Clear the error message after 5 seconds
+      const timer = setTimeout(() => {
+        setShowErrorMessage(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }  }, [location]);
 
   return (
     <>

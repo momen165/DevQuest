@@ -18,6 +18,7 @@ import { CircularProgress } from "@mui/material";
 
 import Analytics from "./pages/admin/EnhancedAnalytics";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Toaster } from "react-hot-toast";
 // Lazy load components
 
 const HomePage = React.lazy(() => import("./pages/user/HomePage"));
@@ -94,7 +95,6 @@ const LessonPage = React.lazy(() => import("./pages/user/LessonPage"));
 
 function App() {
 	// Component to wrap routes that need maintenance check
-
 	return (
 		<>
 			<SpeedInsights />
@@ -105,6 +105,22 @@ function App() {
 					v7_relativeSplatPath: true,
 				}}
 			>
+				<Toaster
+					position="top-right"
+					toastOptions={{
+						duration: 4000,
+						style: {
+							background: '#363636',
+							color: '#fff',
+						},
+						success: {
+							duration: 3000,
+							theme: {
+								primary: '#4aed88',
+							},
+						},
+					}}
+				/>
 				<AppContent />
 			</Router>
 		</>

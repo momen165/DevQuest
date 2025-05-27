@@ -105,6 +105,312 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
   res.status(200).json(responseData);
 });
 
+// Optimized endpoint that combines all course data in a single request
+const getOptimizedCoursesData = handleAsync(async (req, res) => {
+  const {
+    trackCacheHit,
+    trackCacheMiss,
+  } = require("../utils/performance.utils");
+  const userId = req.user?.userId;
+  const cacheKey = userId
+    ? `optimized_courses_${userId}`
+    : "optimized_courses_guest";
+
+  // Check cache first
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    trackCacheHit("optimized-courses", cacheKey);
+    return res.status(200).json({ ...cachedData, cached: true });
+  }
+
+  trackCacheMiss("optimized-courses", cacheKey);
+
+  try {
+    // Single optimized query to get all course data
+    let coursesQuery;
+    let queryParams;
+
+    if (userId) {
+      // Query for authenticated users - includes enrollment and progress data
+      coursesQuery = `
+        WITH course_enrollments AS (
+          SELECT course_id, COUNT(user_id) AS enrollment_count
+          FROM enrollment
+          GROUP BY course_id
+        ),
+        user_enrollments AS (
+          SELECT course_id, progress
+          FROM enrollment
+          WHERE user_id = $1
+        ),
+        course_progress AS (
+          SELECT 
+            s.course_id,
+            COUNT(CASE WHEN lp.completed = true THEN 1 END) * 100.0 / 
+            NULLIF(COUNT(l.lesson_id), 0) as calculated_progress
+          FROM section s
+          LEFT JOIN lesson l ON s.section_id = l.section_id
+          LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
+          GROUP BY s.course_id
+        )
+        SELECT 
+          c.*,
+          COALESCE(ce.enrollment_count, 0) as userscount,
+          CASE WHEN ue.course_id IS NOT NULL THEN true ELSE false END as is_enrolled,
+          COALESCE(ROUND(cp.calculated_progress::numeric, 0), 0) as progress
+        FROM course c
+        LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id
+        LEFT JOIN user_enrollments ue ON c.course_id = ue.course_id
+        LEFT JOIN course_progress cp ON c.course_id = cp.course_id
+        WHERE c.status = 'Published'
+        ORDER BY c.course_id;
+      `;
+      queryParams = [userId];
+    } else {
+      // Query for guest users - only basic course data
+      coursesQuery = `
+        WITH course_enrollments AS (
+          SELECT course_id, COUNT(user_id) AS enrollment_count
+          FROM enrollment
+          GROUP BY course_id
+        )
+        SELECT 
+          c.*,
+          COALESCE(ce.enrollment_count, 0) as userscount,
+          false as is_enrolled,
+          0 as progress
+        FROM course c
+        LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id
+        WHERE c.status = 'Published'
+        ORDER BY c.course_id;
+      `;
+      queryParams = [];
+    }
+
+    const result = await db.query(coursesQuery, queryParams);
+
+    // Format the response data
+    const responseData = {
+      courses: result.rows,
+      optimized: true,
+      cached: false,
+    };
+
+    // Cache the result for 5 minutes
+    cache.set(cacheKey, responseData, 300);
+
+    res.status(200).json(responseData);
+  } catch (error) {
+    console.error("Error fetching optimized courses data:", error);
+    res.status(500).json({ error: "Failed to fetch optimized courses data" });
+  }
+});
+
+// Optimized endpoint for CourseSection.jsx that combines multiple API calls
+const getOptimizedCourseSectionData = handleAsync(async (req, res) => {
+  const {
+    trackCacheHit,
+    trackCacheMiss,
+  } = require("../utils/performance.utils");
+
+  const { courseId } = req.params;
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+
+  const cacheKey = `optimized_course_section_${courseId}_${userId}`;
+
+  // Check cache first
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    trackCacheHit("optimized-course-section", cacheKey);
+    return res.status(200).json({ ...cachedData, cached: true });
+  }
+
+  trackCacheMiss("optimized-course-section", cacheKey);
+
+  try {
+    // Single optimized query that combines all the data needed by CourseSection.jsx
+    const optimizedQuery = `
+      WITH course_info AS (
+        SELECT 
+          c.course_id,
+          c.name as title,
+          c.description,
+          c.status
+        FROM course c
+        WHERE c.course_id = $1 AND c.status = 'Published'
+      ),
+      subscription_info AS (        SELECT 
+          CASE 
+            WHEN s.status = 'active' AND s.subscription_end_date > NOW() THEN true 
+            ELSE false 
+          END as has_active_subscription,
+          COALESCE(
+            (SELECT COUNT(*) 
+             FROM lesson_progress lp 
+             WHERE lp.user_id = $2 AND lp.completed = true), 0
+          ) as completed_lessons_count
+        FROM users u
+        LEFT JOIN subscription s ON u.user_id = s.user_id
+        WHERE u.user_id = $2
+      ),
+      user_profile AS (
+        SELECT 
+          u.name,
+          u.profileimage,
+          u.streak,
+          COALESCE(
+            (SELECT COUNT(*) 
+             FROM lesson_progress lp 
+             WHERE lp.user_id = u.user_id AND lp.completed = true), 0
+          ) as exercises_completed
+        FROM users u
+        WHERE u.user_id = $2
+      ),
+      sections_with_lessons AS (
+        SELECT 
+          s.section_id,
+          s.name,
+          s.description,
+          s.section_order,
+          json_agg(
+            json_build_object(
+              'lesson_id', l.lesson_id,
+              'name', l.name,
+              'lesson_order', l.lesson_order,
+              'completed', COALESCE(lp.completed, false)
+            ) ORDER BY l.lesson_order
+          ) as lessons
+        FROM section s
+        LEFT JOIN lesson l ON s.section_id = l.section_id
+        LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $2
+        WHERE s.course_id = $1
+        GROUP BY s.section_id, s.name, s.description, s.section_order
+        ORDER BY s.section_order
+      ),
+      course_stats AS (
+        SELECT 
+          COALESCE(SUM(l.xp), 0) as course_xp,
+          COUNT(DISTINCT lp.lesson_id) as exercises_completed
+        FROM lesson_progress lp
+        JOIN lesson l ON lp.lesson_id = l.lesson_id
+        JOIN section s ON l.section_id = s.section_id
+        WHERE lp.user_id = $2 
+        AND s.course_id = $1
+        AND lp.completed = true
+      ),
+      overall_stats AS (
+        SELECT 
+          COALESCE(SUM(l.xp), 0) as total_xp,
+          COUNT(DISTINCT lp.lesson_id) as total_exercises_completed
+        FROM lesson_progress lp
+        LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
+        WHERE lp.user_id = $2 AND lp.completed = true
+      )
+      SELECT 
+        ci.course_id,
+        ci.title,
+        ci.description,
+        ci.status,
+        si.has_active_subscription,
+        si.completed_lessons_count,
+        up.name as user_name,
+        up.profileimage as user_profile_image,
+        up.streak as user_streak,
+        up.exercises_completed as user_exercises_completed,
+        COALESCE(cs.course_xp, 0) as course_xp,
+        COALESCE(cs.exercises_completed, 0) as course_exercises_completed,
+        COALESCE(os.total_xp, 0) as total_xp,
+        COALESCE(os.total_exercises_completed, 0) as total_exercises_completed,
+        (
+          SELECT json_agg(
+            json_build_object(
+              'section_id', swl.section_id,
+              'name', swl.name,
+              'description', swl.description,
+              'section_order', swl.section_order,
+              'lessons', swl.lessons
+            ) ORDER BY swl.section_order
+          )
+          FROM sections_with_lessons swl
+        ) as sections
+      FROM course_info ci
+      CROSS JOIN subscription_info si
+      CROSS JOIN user_profile up
+      CROSS JOIN course_stats cs
+      CROSS JOIN overall_stats os;
+    `;
+
+    const result = await db.query(optimizedQuery, [courseId, userId]);
+
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Course not found or not available" });
+    }
+
+    const data = result.rows[0];
+
+    // Calculate level and XP to next level
+    const calculateLevel = (totalXP) => {
+      return Math.floor(totalXP / 100) + 1;
+    };
+
+    const calculateXPToNextLevel = (totalXP) => {
+      const currentLevel = calculateLevel(totalXP);
+      const xpForNextLevel = currentLevel * 100;
+      return xpForNextLevel - totalXP;
+    };
+
+    const level = calculateLevel(data.total_xp);
+    const xpToNextLevel = calculateXPToNextLevel(data.total_xp);
+
+    // Format the response data
+    const responseData = {
+      course: {
+        course_id: data.course_id,
+        title: data.title,
+        description: data.description,
+        status: data.status,
+      },
+      subscription: {
+        hasActiveSubscription: data.has_active_subscription,
+        completedLessonsCount: data.completed_lessons_count,
+      },
+      profile: {
+        name: data.user_name,
+        profileimage: data.user_profile_image,
+        streak: data.user_streak,
+        exercisesCompleted: data.user_exercises_completed,
+      },
+      sections: data.sections || [],
+      stats: {
+        courseXP: data.course_xp,
+        exercisesCompleted: data.course_exercises_completed,
+        streak: data.user_streak,
+        name: data.user_name,
+        profileImage: data.user_profile_image,
+        totalXP: data.total_xp,
+        level: level,
+        xpToNextLevel: xpToNextLevel,
+      },
+      optimized: true,
+      cached: false,
+    };
+
+    // Cache the result for 3 minutes (course section data changes more frequently)
+    cache.set(cacheKey, responseData, 180);
+
+    return res.status(200).json(responseData);
+  } catch (error) {
+    console.error("Error fetching optimized course section data:", error);
+    res.status(500).json({ error: "Failed to fetch course section data" });
+  }
+});
+
 // Add this before submitFeedback function
 const checkFeedbackEligibility = async (userId, courseId) => {
   const { rows } = await db.query(QUERIES.checkUserProgress, [
@@ -301,12 +607,12 @@ module.exports = {
   getFeedback,
   submitFeedback,
   getCoursesWithRatings,
+  getOptimizedCoursesData, // Export the new optimized endpoint
   replyToFeedback,
   getPublicFeedback,
-
   checkFeedbackEligibility,
   getRecentFeedback,
   reopenFeedback,
-
   clearCoursesCache,
+  getOptimizedCourseSectionData,
 };

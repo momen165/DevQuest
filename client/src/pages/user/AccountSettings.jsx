@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Select from 'react-select';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/AccountSettingsSidebar";
 import { useAuth } from "../../AuthContext";
@@ -38,12 +39,10 @@ function ProfilePage() {
         },
       });
 
-      const updatedUser = { ...user, profileimage: null };
-
-      setUser(updatedUser);
+      const updatedUser = { ...user, profileimage: null };      setUser(updatedUser);
 
       localStorage.setItem("user", JSON.stringify(updatedUser));
-      alert("Profile picture removed successfully");
+      toast.success("Profile picture removed successfully");
     } catch (error) {
       console.error("[handleRemoveProfilePic] Error:", error);
       console.error(
@@ -51,9 +50,9 @@ function ProfilePage() {
         error.response?.data,
       );
       console.error("[handleRemoveProfilePic] Stack:", error.stack);
-      alert(
+      toast.error(
         error.response?.data?.error ||
-        "An error occurred while removing your profile picture",
+        "An error occurred while removing your profile picture"
       );
     }
   };
@@ -86,13 +85,11 @@ function ProfilePage() {
       const updatedUser = {
         ...user,
         profileimage: profileimage,
-      };
-
-      setUser(updatedUser);
+      };      setUser(updatedUser);
 
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      alert("Profile picture updated successfully");
+      toast.success("Profile picture updated successfully");
     } catch (error) {
       console.error("[handleProfilePicChange] Error:", error);
       console.error(
@@ -100,9 +97,9 @@ function ProfilePage() {
         error.response?.data,
       );
       console.error("[handleProfilePicChange] Stack:", error.stack);
-      alert(
+      toast.error(
         error.response?.data?.error ||
-        "An error occurred while uploading your profile picture",
+        "An error occurred while uploading your profile picture"
       );
     }
   };
@@ -129,17 +126,15 @@ function ProfilePage() {
             Authorization: `Bearer ${user.token}`,
           },
         },
-      );
-
-      const updatedUser = { ...user, name, country, bio, skills: skillsArray };
+      );      const updatedUser = { ...user, name, country, bio, skills: skillsArray };
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
-      alert("Profile updated successfully");
+      toast.success("Profile updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert(
+      toast.error(
         error.response?.data?.error ||
-        "An error occurred while updating your profile",
+        "An error occurred while updating your profile"
       );
     }
   };
