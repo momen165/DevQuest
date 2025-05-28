@@ -27,15 +27,18 @@ const QUERIES = {
     WHERE ($1::int IS NULL OR f.course_id = $1)
     ORDER BY f.feedback_id DESC
   `,
-  getPublicFeedback: `
-    SELECT f.feedback_id, f.rating, f.comment, u.name, u.profileimage, 
+  getPublicFeedbackIds: `
+    SELECT feedback_id
+    FROM feedback
+    WHERE rating >= 4 AND comment IS NOT NULL AND comment != ''
+  `,
+  getPublicFeedbackDetails: `
+    SELECT f.feedback_id, f.rating, f.comment, u.name, u.profileimage,
            u.country, c.name as course_name, c.difficulty
     FROM feedback f
     JOIN users u ON f.user_id = u.user_id
     JOIN course c ON f.course_id = c.course_id
-    WHERE f.rating >= 4 AND f.comment IS NOT NULL AND f.comment != ''
-    ORDER BY f.rating DESC, RANDOM()
-    LIMIT 5
+    WHERE f.feedback_id = ANY($1::int[])
   `,
   checkUserProgress: `
     SELECT e.progress, f.feedback_id
@@ -73,6 +76,35 @@ const getFeedback = handleAsync(async (req, res) => {
   const courseId = req.query.course_id ? parseInt(req.query.course_id) : null;
   const { rows } = await db.query(QUERIES.getAllFeedback, [courseId]);
   res.status(200).json(rows || []);
+});
+
+// Get public feedback (optimized for random selection)
+const getPublicFeedback = handleAsync(async (req, res) => {
+  const { rows: feedbackIds } = await db.query(QUERIES.getPublicFeedbackIds);
+
+  // Randomly select 5 feedback IDs
+  const selectedIds = [];
+  const numToSelect = Math.min(5, feedbackIds.length);
+  const availableIndices = Array.from(
+    { length: feedbackIds.length },
+    (_, i) => i
+  );
+
+  for (let i = 0; i < numToSelect; i++) {
+    const randomIndex = Math.floor(Math.random() * availableIndices.length);
+    const selectedIndex = availableIndices.splice(randomIndex, 1)[0];
+    selectedIds.push(feedbackIds[selectedIndex].feedback_id);
+  }
+
+  if (selectedIds.length === 0) {
+    return res.status(200).json([]);
+  }
+
+  const { rows: feedbackDetails } = await db.query(
+    QUERIES.getPublicFeedbackDetails,
+    [selectedIds]
+  );
+  res.status(200).json(feedbackDetails);
 });
 
 // Get courses with ratings and user counts
@@ -569,12 +601,6 @@ const replyToFeedback = handleAsync(async (req, res) => {
   }
 });
 
-// Get public feedback
-const getPublicFeedback = handleAsync(async (req, res) => {
-  const { rows } = await db.query(QUERIES.getPublicFeedback);
-  res.status(200).json(rows);
-});
-
 // Add this function to get recent feedback
 const getRecentFeedback = handleAsync(async (req, res) => {
   const { rows } = await db.query(QUERIES.getRecentFeedback);
@@ -609,7 +635,7 @@ module.exports = {
   getCoursesWithRatings,
   getOptimizedCoursesData, // Export the new optimized endpoint
   replyToFeedback,
-  getPublicFeedback,
+  getPublicFeedback, // Re-add this export
   checkFeedbackEligibility,
   getRecentFeedback,
   reopenFeedback,

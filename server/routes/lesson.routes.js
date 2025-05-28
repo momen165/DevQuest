@@ -27,6 +27,7 @@ router.post(
   lessonController.addLesson
 ); // Add a lesson
 router.get("/lesson", lessonController.getLessons); // This route will handle both section_id and course_id queries
+
 router.get(
   "/lesson/:lessonId",
   authenticateToken,

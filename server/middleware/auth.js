@@ -12,7 +12,7 @@ const publicRoutes = [
   "health",
 ];
 
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   // Check if the route is in the public routes list
   const pathParts = req.path.split("/").filter(Boolean);
   const lastPathPart = pathParts[pathParts.length - 1];
@@ -37,28 +37,34 @@ const authenticateToken = (req, res, next) => {
   }
 
   // Verify the token
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      // Handle specific JWT errors more gracefully
-      if (err.name === "TokenExpiredError") {
-        return res.status(401).json({
-          error: "Token has expired",
-          code: "TOKEN_EXPIRED",
-        });
-      }
+  try {
+    const user = await new Promise((resolve, reject) => {
+      jwt.verify(token, process.env.JWT_SECRET, (err, decodedUser) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(decodedUser);
+      });
+    });
 
+    // Normalize userId/user_id to ensure consistent naming
+    req.user = { ...user, user_id: user.userId || user.user_id };
+    next(); // Only call next() if token is successfully verified
+  } catch (err) {
+    // Handle specific JWT errors more gracefully
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
+        error: "Token has expired",
+        code: "TOKEN_EXPIRED",
+      });
+    } else {
       console.error("Token verification failed:", err.message);
       return res.status(403).json({
         error: "Invalid token",
         code: "INVALID_TOKEN",
       });
     }
-
-    // Normalize userId/user_id to ensure consistent naming
-    req.user = { ...user, user_id: user.userId || user.user_id };
-
-    next();
-  });
+  }
 };
 
 // Middleware to require authentication

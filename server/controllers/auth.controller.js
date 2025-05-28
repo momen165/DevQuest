@@ -5,7 +5,12 @@ const { validationResult } = require("express-validator");
 const logActivity = require("../utils/logger");
 const mailjet = require("node-mailjet");
 const crypto = require("crypto");
+const NodeCache = require("node-cache"); // Import NodeCache
 require("dotenv").config();
+
+// Initialize cache for user existence checks
+const userExistenceCache = new NodeCache({ stdTTL: 60 }); // Cache for 60 seconds
+const USER_EXISTENCE_CACHE_KEY_PREFIX = "user_exists_";
 
 // Configuration
 const CONFIG = {
@@ -175,6 +180,9 @@ const signup = handleAsync(async (req, res) => {
     return res.status(400).json({ error: "Email already registered" });
   }
 
+  // Invalidate cache for this user if they are registered
+  userExistenceCache.del(USER_EXISTENCE_CACHE_KEY_PREFIX + email.toLowerCase());
+
   const { rows } = await db.query(
     "INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id",
     [name, email.toLowerCase(), hashedPassword, country, false]
@@ -242,6 +250,11 @@ const login = handleAsync(async (req, res) => {
       [email.toLowerCase()]
     ),
   ]);
+
+  // Cache user existence after login
+  if (userResult.rows.length > 0) {
+    userExistenceCache.set(USER_EXISTENCE_CACHE_KEY_PREFIX + userResult.rows[0].user_id, true);
+  }
 
   if (userResult.rows.length === 0) {
     return res.status(401).json({ error: "Invalid credentials" });
@@ -315,6 +328,11 @@ const refreshAccessToken = handleAsync(async (req, res) => {
     ),
     db.query("SELECT 1 FROM admins WHERE admin_id = $1", [user_id]),
   ]);
+
+  // Cache user existence after token refresh
+  if (userResult.rows.length > 0) {
+    userExistenceCache.set(USER_EXISTENCE_CACHE_KEY_PREFIX + user_id, true);
+  }
 
   if (userResult.rows.length === 0) {
     return res.status(404).json({ error: "User not found" });
@@ -395,6 +413,9 @@ const updateProfile = handleAsync(async (req, res) => {
       [req.user.userId]
     );
 
+    // Invalidate user existence cache if profile is updated (e.g., email changes)
+    userExistenceCache.del(USER_EXISTENCE_CACHE_KEY_PREFIX + req.user.userId);
+
     const isAdmin = adminResult.rowCount > 0;
 
     const accessToken = helpers.generateAccessToken(req.user.userId, {
@@ -458,6 +479,11 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
     "SELECT user_id FROM users WHERE email = $1",
     [email.toLowerCase()]
   );
+
+  // Invalidate user existence cache if password reset is requested
+  if (rows.length > 0) {
+    userExistenceCache.del(USER_EXISTENCE_CACHE_KEY_PREFIX + rows[0].user_id);
+  }
 
   if (rows.length > 0) {
     const resetToken = helpers.generateToken(rows[0].user_id, {

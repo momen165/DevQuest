@@ -1,8 +1,13 @@
 // server/middleware/sessionTracker.js
 const db = require("../config/database");
+const NodeCache = require("node-cache"); // Import NodeCache
 const {
   warmSubscriptionCache,
 } = require("../controllers/subscription.controller");
+
+// Initialize cache for recent sessions with a short TTL (e.g., 5 minutes)
+const sessionCache = new NodeCache({ stdTTL: 300 });
+const SESSION_CACHE_KEY_PREFIX = "session_";
 
 /**
  * Middleware to track user sessions for analytics (user_sessions table)
@@ -12,7 +17,6 @@ const {
  * - Warms subscription cache in background
  */
 module.exports = async function sessionTracker(req, res, next) {
-  // Set a timestamp as soon as the function is called for accurate timing
   const now = new Date();
 
   try {
@@ -30,12 +34,20 @@ module.exports = async function sessionTracker(req, res, next) {
       console.error("[SessionTracker] Cache warming error:", err);
     });
 
-    // Find the most recent session (not ended, or ended within timeout)
-    const { rows } = await db.query(
-      `SELECT * FROM user_sessions WHERE user_id = $1 AND (session_end IS NULL OR session_end >= NOW() - INTERVAL '30 minutes') ORDER BY session_start DESC LIMIT 1`,
-      [userId]
-    );
-    let session = rows[0];
+    const sessionCacheKey = SESSION_CACHE_KEY_PREFIX + userId;
+    let session = sessionCache.get(sessionCacheKey);
+
+    if (!session) {
+      // Find the most recent session (not ended, or ended within timeout)
+      const { rows } = await db.query(
+        `SELECT * FROM user_sessions WHERE user_id = $1 AND (session_end IS NULL OR session_end >= NOW() - INTERVAL '30 minutes') ORDER BY session_start DESC LIMIT 1`,
+        [userId]
+      );
+      session = rows[0];
+      if (session) {
+        sessionCache.set(sessionCacheKey, session); // Cache the session
+      }
+    }
 
     // Define the max gap (in ms) between requests to consider as "active" (e.g., 5 min)
     const MAX_ACTIVE_GAP = 5 * 60 * 1000;
@@ -65,6 +77,7 @@ module.exports = async function sessionTracker(req, res, next) {
           `UPDATE user_sessions SET session_end = NOW(), session_duration = $1, page_views = $2 WHERE session_id = $3`,
           [duration, newPageViews, sessionId]
         );
+        sessionCache.del(sessionCacheKey); // Invalidate cache on update
       } else if (gap > MAX_ACTIVE_GAP) {
         // Gap too long: close previous session and start a new one
 
@@ -72,10 +85,12 @@ module.exports = async function sessionTracker(req, res, next) {
           `UPDATE user_sessions SET session_end = NOW(), session_duration = $1 WHERE session_id = $2`,
           [duration, sessionId]
         );
+        sessionCache.del(sessionCacheKey); // Invalidate cache on update
         await db.query(
           `INSERT INTO user_sessions (user_id, session_start, ip_address, device_type, page_views) VALUES ($1, NOW(), $2, $3, 1)`,
           [userId, ip, deviceType]
         );
+        sessionCache.del(sessionCacheKey); // Invalidate cache on new session
       } else {
         // If gap is 0 (multiple requests in the same ms), just update page_views
 
@@ -83,11 +98,13 @@ module.exports = async function sessionTracker(req, res, next) {
           `UPDATE user_sessions SET page_views = $1 WHERE session_id = $2`,
           [newPageViews, sessionId]
         );
+        sessionCache.del(sessionCacheKey); // Invalidate cache on update
       }
     }
   } catch (err) {
     console.error("[SessionTracker] Error:", err);
-    // Don't block request
+    // Pass the error to the next error-handling middleware
+    return next(err);
   }
   next();
 };

@@ -20,9 +20,12 @@ const pool = new Pool({
   },
 
   connectionTimeoutMillis: 10000,
-  statement_timeout: 10000,
+  idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+
   query_timeout: 10000,
   connectionLimit: process.env.DB_CONNECTION_LIMIT || 20,
+  keepAlive: true, // Enable TCP keep-alive probes
+  keepAliveInitialDelayMillis: 10000, // Send first keep-alive probe after 10 seconds of inactivity
 });
 
 // Add event listeners for connection issues
@@ -33,7 +36,7 @@ pool.on("error", (err) => {
 
 // Export query and connect methods
 module.exports = {
-  query: (text, params) => pool.query(text, params),
-  connect: () => pool.connect(),
+  query: (text, params) => pool.query(text, params), // Keep original query for direct use if needed
+  connect: () => pool.connect(), // Export connect method for explicit client acquisition
   pool, // Export the pool itself for direct access if needed
 };

@@ -229,7 +229,7 @@ const trackAPIPerformance = (
 /**
  * Track database query performance
  */
-const trackDatabaseQuery = (queryType, queryTime, success) => {
+const trackDatabaseQuery = (queryType, queryTime, success, queryText = "") => {
   if (!apiMetrics.database.has(queryType)) {
     apiMetrics.database.set(queryType, {
       queryType,
@@ -261,7 +261,7 @@ const trackDatabaseQuery = (queryType, queryTime, success) => {
   // Log slow queries
   if (queryTime > 100) {
     console.warn(
-      `🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms`
+      `🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms\nQuery: ${queryText}`
     );
   }
 };

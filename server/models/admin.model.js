@@ -1,11 +1,25 @@
 const db = require("../config/database");
+const NodeCache = require("node-cache"); // Import NodeCache
+
+// Initialize cache for admin access with a short TTL (e.g., 60 seconds)
+const adminAccessCache = new NodeCache({ stdTTL: 60 });
+const ADMIN_ACCESS_CACHE_KEY_PREFIX = "admin_access_";
 
 // Check if a user has admin access
 const checkAdminAccess = async (userId) => {
+  const cacheKey = ADMIN_ACCESS_CACHE_KEY_PREFIX + userId;
+  let isAdmin = adminAccessCache.get(cacheKey);
+
+  if (isAdmin !== undefined) {
+    return isAdmin; // Return from cache if available
+  }
+
   try {
     const query = "SELECT 1 FROM admins WHERE admin_id = $1";
     const result = await db.query(query, [userId]);
-    return result.rowCount > 0;
+    isAdmin = result.rowCount > 0;
+    adminAccessCache.set(cacheKey, isAdmin); // Store in cache
+    return isAdmin;
   } catch (error) {
     console.error("Error checking admin access:", error);
     return false;
@@ -126,6 +140,9 @@ const addAdminDB = async (userId, requesterId) => {
 
   await db.query("INSERT INTO admins (admin_id) VALUES ($1)", [userId]);
 
+  // Invalidate cache for the added admin
+  adminAccessCache.del(ADMIN_ACCESS_CACHE_KEY_PREFIX + userId);
+
   const [requesterInfo, targetInfo] = await Promise.all([
     db.query("SELECT name FROM users WHERE user_id = $1", [requesterId]),
     db.query("SELECT name FROM users WHERE user_id = $1", [userId]),
@@ -148,6 +165,9 @@ const removeAdminDB = async (userIdToRemove, requesterId) => {
   }
 
   await db.query("DELETE FROM admins WHERE admin_id = $1", [userIdToRemove]);
+
+  // Invalidate cache for the removed admin
+  adminAccessCache.del(ADMIN_ACCESS_CACHE_KEY_PREFIX + userIdToRemove);
 
   const [requesterInfo, targetInfo] = await Promise.all([
     db.query("SELECT name FROM users WHERE user_id = $1", [requesterId]),

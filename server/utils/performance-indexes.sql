@@ -21,6 +21,9 @@ CREATE INDEX IF NOT EXISTS idx_section_course_id ON section (course_id);
 CREATE INDEX IF NOT EXISTS idx_lesson_section_id ON lesson (section_id);
 CREATE INDEX IF NOT EXISTS idx_lesson_section_order ON lesson (section_id, lesson_order);
 
+-- Index for lessons by course query
+CREATE INDEX IF NOT EXISTS idx_section_course_order ON section (course_id, section_order);
+
 -- Index for feedback queries
 CREATE INDEX IF NOT EXISTS idx_feedback_course_rating ON feedback (course_id, rating);
 CREATE INDEX IF NOT EXISTS idx_feedback_user_course ON feedback (user_id, course_id);

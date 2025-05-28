@@ -296,6 +296,12 @@ app.get("*", (req, res, next) => {
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || err.status || 500; // Handle both statusCode and legacy status
   console.error(`[${new Date().toISOString()}] Error:`, err.message);
+
+  // IMPORTANT: Check if headers have already been sent
+  if (res.headersSent) {
+    return next(err); // Delegate to default Express error handler if headers already sent
+  }
+
   res.status(statusCode).json({
     error: err.message || "Internal Server Error",
     code: err.code || "INTERNAL_ERROR",

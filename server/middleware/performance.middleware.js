@@ -45,20 +45,30 @@ const performanceMiddleware = (endpointName) => {
  * Middleware to wrap database queries with performance tracking
  */
 const wrapDatabaseQuery = (db) => {
-  const originalQuery = db.query;
+  const originalQuery = db.query; // This is the original pool.query method
 
   db.query = async function (text, params) {
     const startTime = process.hrtime.bigint();
+
+    // // Log pool state before query (pool.query handles connect/release)
+    // console.log(
+    //   `[DB Pool State Before Query] Total: ${db.pool.totalCount}, Idle: ${db.pool.idleCount}, Waiting: ${db.pool.waitingCount}`
+    // );
 
     try {
       const result = await originalQuery.call(db, text, params);
       const endTime = process.hrtime.bigint();
       const queryTime = Number(endTime - startTime) / 1000000; // Convert to milliseconds
 
-      // Extract query type from SQL
       const queryType = text.trim().split(" ")[0].toUpperCase();
 
-      trackDatabaseQuery(queryType, queryTime, true);
+      // console.warn(
+      //   `Detailed DB Query: ${queryType} - Total: ${queryTime.toFixed(
+      //     2
+      //   )}ms\nQuery: ${text}`
+      // );
+
+      trackDatabaseQuery(queryType, queryTime, true, text);
 
       return result;
     } catch (error) {
@@ -66,7 +76,7 @@ const wrapDatabaseQuery = (db) => {
       const queryTime = Number(endTime - startTime) / 1000000;
 
       const queryType = text.trim().split(" ")[0].toUpperCase();
-      trackDatabaseQuery(queryType, queryTime, false);
+      trackDatabaseQuery(queryType, queryTime, false, text);
 
       throw error;
     }

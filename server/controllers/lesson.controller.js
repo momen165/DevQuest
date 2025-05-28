@@ -4,6 +4,11 @@ const { AppError, asyncHandler } = require("../utils/error.utils");
 const { setCacheHeaders } = require("../utils/cache.utils");
 const lessonQueries = require("../models/lesson.model");
 const db = require("../config/database");
+const NodeCache = require("node-cache"); // Import NodeCache
+
+// Initialize cache for lessons with a short TTL (e.g., 60 seconds)
+const lessonsCache = new NodeCache({ stdTTL: 60 });
+const LESSONS_CACHE_KEY_PREFIX = "lessons_course_";
 
 // Unlock hint for a lesson (POST /lesson/:lessonId/unlock-hint)
 const unlockHint = asyncHandler(async (req, res) => {
@@ -77,7 +82,10 @@ const addLesson = asyncHandler(async (req, res) => {
   // Recalculate progress for all enrolled users
   await lessonQueries.recalculateProgressForCourse(courseId);
 
-  // No caching for mutation endpoints
+  // Invalidate relevant caches after adding a lesson
+  lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `course_${courseId}`);
+  lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `section_${section_id}`);
+
   setCacheHeaders(res, { noStore: true });
   res.status(201).json(result.rows[0]);
 });
@@ -97,6 +105,8 @@ const fixLessonOrders = asyncHandler(async (req, res) => {
   }
 
   res.status(200).json({ message: "Lesson orders fixed successfully" });
+  // Invalidate all lesson caches after fixing orders
+  lessonsCache.flushAll();
 });
 
 // Get all lessons for a specific section
@@ -114,6 +124,40 @@ const getLessonsBySection = asyncHandler(async (req, res) => {
   });
 
   res.json(result.rows);
+});
+
+const getLessons = asyncHandler(async (req, res) => {
+  const { course_id, section_id } = req.query;
+  const userId = req.user?.user_id; // Optional, as lessons can be public
+
+  let cacheKey;
+  let lessons;
+
+  if (course_id) {
+    cacheKey = LESSONS_CACHE_KEY_PREFIX + `course_${course_id}`;
+  } else if (section_id) {
+    cacheKey = LESSONS_CACHE_KEY_PREFIX + `section_${section_id}`;
+  } else {
+    throw new AppError("Either course_id or section_id is required.", 400);
+  }
+
+  // Try to get from cache first
+  lessons = lessonsCache.get(cacheKey);
+
+  if (!lessons) {
+    // If not in cache, fetch from DB
+    if (course_id) {
+      lessons = await lessonQueries.getLessons(null, course_id); // Use existing getLessons for course_id
+    } else {
+      lessons = await lessonQueries.getLessonsBySection(userId, section_id); // Use existing getLessonsBySection
+    }
+    lessons = lessons.rows; // Assuming lessonQueries return { rows: [...] }
+
+    // Store in cache
+    lessonsCache.set(cacheKey, lessons);
+  }
+
+  res.status(200).json(lessons);
 });
 
 // Get a specific lesson by ID
@@ -340,7 +384,6 @@ const getLessonById = asyncHandler(async (req, res) => {
     });
 
     res.json(lessonData);
-    res.json(lessonData);
   } catch (err) {
     throw new AppError(err.message, 500);
   }
@@ -403,7 +446,10 @@ const updateLesson = asyncHandler(async (req, res) => {
       parseInt(req.user.user_id)
     );
 
-    // No caching for mutation endpoints
+    // Invalidate relevant caches after updating a lesson
+    lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `course_${courseId}`);
+    lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `section_${section_id}`);
+
     setCacheHeaders(res, { noStore: true });
     res.json(result.rows[0]);
   } catch (error) {
@@ -451,14 +497,17 @@ const deleteLesson = asyncHandler(async (req, res) => {
     parseInt(req.user.user_id)
   );
 
-  // No caching for mutation endpoints
+  // Invalidate relevant caches after deleting a lesson
+  lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `course_${courseId}`);
+  lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `section_${lessonResult.rows[0].section_id}`);
+
   setCacheHeaders(res, { noStore: true });
   res.status(200).json({ message: "Lesson deleted successfully." });
 });
 
 // Reorder lessons
 const reorderLessons = asyncHandler(async (req, res) => {
-  const { lessons } = req.body;
+  const { lessons, section_id, course_id } = req.body; // Add section_id and course_id to body
 
   if (!Array.isArray(lessons)) {
     throw new AppError(
@@ -476,7 +525,15 @@ const reorderLessons = asyncHandler(async (req, res) => {
       )
     );
     await client.query("COMMIT");
-    // No caching for mutation endpoints
+
+    // Invalidate relevant caches after reordering lessons
+    if (course_id) {
+      lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `course_${course_id}`);
+    }
+    if (section_id) {
+      lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `section_${section_id}`);
+    }
+
     setCacheHeaders(res, { noStore: true });
     res.json({ success: true });
   } catch (err) {
@@ -590,25 +647,6 @@ const getLastAccessedLesson = async (userId, courseId) => {
   const result = await lessonQueries.getLastAccessedLesson(userId, courseId);
   return result.rows[0] || null;
 };
-
-const getLessons = asyncHandler(async (req, res) => {
-  const { section_id, course_id } = req.query;
-
-  if (!section_id && !course_id) {
-    throw new AppError("Either section_id or course_id must be provided.", 400);
-  }
-
-  const result = await lessonQueries.getLessons(section_id, course_id);
-
-  // Cache course/section lessons for 1 hour with stale-while-revalidate
-  setCacheHeaders(res, {
-    public: true, // This data is the same for all users
-    maxAge: 3600,
-    staleWhileRevalidate: 600,
-  });
-
-  res.status(200).json(result.rows);
-});
 
 module.exports = {
   addLesson,

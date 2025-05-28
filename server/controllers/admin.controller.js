@@ -1,9 +1,14 @@
 // Grant free subscription to a user (admin only)
 const AdminModel = require("../models/admin.model.js");
 const { logAdminActivity } = require("../models/activity");
+const NodeCache = require("node-cache"); // Import NodeCache
 // We need these imports for the generateTestData script, even though they're not used directly in this controller
 // eslint-disable-next-line no-unused-vars
 const { format, subDays } = require("date-fns");
+
+// Initialize cache for maintenance mode with a short TTL (e.g., 10 seconds)
+const maintenanceCache = new NodeCache({ stdTTL: 10 });
+const MAINTENANCE_CACHE_KEY = "maintenance_mode_status";
 
 const grantFreeSubscription = async (req, res) => {
   try {
@@ -187,6 +192,9 @@ const toggleMaintenanceMode = async (req, res) => {
       `Maintenance mode ${enabled ? "enabled" : "disabled"}`
     );
 
+    // Clear the cache when maintenance mode is toggled
+    maintenanceCache.del(MAINTENANCE_CACHE_KEY);
+
     res.status(200).json({
       maintenanceMode: settings.maintenance_mode,
       message: `Maintenance mode ${enabled ? "enabled" : "disabled"}`,
@@ -229,7 +237,16 @@ const checkAdminStatus = async (req, res) => {
 
 const getMaintenanceStatus = async (req, res) => {
   try {
-    const settings = await AdminModel.getMaintenanceStatusDB();
+    // Try to get from cache first
+    let settings = maintenanceCache.get(MAINTENANCE_CACHE_KEY);
+
+    if (!settings) {
+      // If not in cache, fetch from DB
+      settings = await AdminModel.getMaintenanceStatusDB();
+      // Store in cache with a short TTL
+      maintenanceCache.set(MAINTENANCE_CACHE_KEY, settings);
+    }
+
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
     res.status(200).json({
       maintenanceMode: settings?.maintenance_mode || false,
