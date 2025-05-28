@@ -46,9 +46,29 @@ const EnrollmentPage = () => {
 
     fetchCourseData();
   }, [courseId, user, navigate]);
+  if (loading) {
+    return (
+      <div className="enrollment-page loading">
+        <div className="loading-container">
+          <CircularProgress size={60} style={{ color: '#4776c9' }} />
+          <p className="loading-text">Loading course details...</p>
+        </div>
+      </div>
+    );
+  }
 
-  if (!course) {
-    return <div>Course not found</div>;
+  if (error) {
+    return (
+      <div className="enrollment-page error">
+        <div className="error-container">
+          <h2>⚠️ Something went wrong</h2>
+          <p>{error}</p>
+          <button className="retry-button" onClick={() => window.location.reload()}>
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const fullImageUrl = course.image ? course.image : "/fallback-image.png";
@@ -88,28 +108,57 @@ const EnrollmentPage = () => {
       e.target.style.display = "none";
     }
   };
-
   return (
     <div className="enrollment-page">
+      {/* Floating particles for visual appeal */}
+      <div className="floating-particles">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className={`particle particle-${i + 1}`}></div>
+        ))}
+      </div>
+      
       <div className="enroll-info">
         <header className="enrollment-header">
-          <h2 className="course-intro">Introduction to {course.title}</h2>
+          <div className="course-intro">Introduction to {course.title}</div>
           <h1 className="course-titl">Master the Language of the Future</h1>
           <p className="course-description">
-            {course.description || "Course description goes here."}
+            {course.description || "Embark on an exciting journey to master cutting-edge technologies and transform your career. Our comprehensive course is designed to take you from beginner to expert with hands-on projects, real-world applications, and industry-standard practices."}
           </p>
+          
+          {/* Course highlights */}
+          <div className="course-highlights">
+            <div className="highlight-item">
+              <span className="highlight-icon">🚀</span>
+              <span>Interactive Learning</span>
+            </div>
+            <div className="highlight-item">
+              <span className="highlight-icon">💡</span>
+              <span>Real Projects</span>
+            </div>
+            <div className="highlight-item">
+              <span className="highlight-icon">🏆</span>
+              <span>Industry Certified</span>
+            </div>
+          </div>
+          
           <button className="start-button" onClick={handleStartLearning}>
-            {isEnrolled ? "Continue learning" : "Start learning"} {course.title}
+            <span className="button-text">
+              {isEnrolled ? "Continue learning" : "Start learning"} {course.title}
+            </span>
+            <span className="button-arrow">→</span>
           </button>
         </header>
       </div>
+      
       <div className="enroll-img">
-        <img
-          src={fullImageUrl}
-          alt={`Course: ${course.title}`}
-          style={{ width: "700px", height: "auto" }}
-          onError={handleImageError}
-        />
+        <div className="image-container">
+          <img
+            src={fullImageUrl}
+            alt={`Course: ${course.title}`}
+            onError={handleImageError}
+          />
+          <div className="image-glow"></div>
+        </div>
       </div>
     </div>
   );
