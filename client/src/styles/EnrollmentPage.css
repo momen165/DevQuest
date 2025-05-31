@@ -1,30 +1,18 @@
 /* src/styles/EnrollmentPage.css */
 
+/* Base styles for the enrollment page */
 .enrollment-page {
   display: flex;
-  height: 100vh;
   flex-direction: row;
+  height: 100vh;
   background: linear-gradient(135deg, #0f1419 0%, #1a2a4e 50%, #2a3f6f 100%);
   color: white;
   overflow: hidden;
   position: relative;
 }
 
-/* Creative background elements */
-.enrollment-page::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: radial-gradient(circle at 20% 80%, rgba(51, 91, 153, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(71, 118, 201, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(0, 123, 255, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 1;
-}
-
+/* Common styles for pseudo-elements */
+.enrollment-page::before,
 .enrollment-page::after {
   content: '';
   position: absolute;
@@ -32,6 +20,19 @@
   left: 0;
   right: 0;
   bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Creative background elements - before */
+.enrollment-page::before {
+  background-image: radial-gradient(circle at 20% 80%, rgba(51, 91, 153, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(71, 118, 201, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(0, 123, 255, 0.05) 0%, transparent 50%);
+}
+
+/* Creative background elements - after */
+.enrollment-page::after {
   background: linear-gradient(
       45deg,
       transparent 48%,
@@ -47,10 +48,9 @@
       transparent 52%
     );
   background-size: 100px 100px;
-  pointer-events: none;
-  z-index: 1;
 }
 
+/* Enrollment Header */
 .enrollment-header {
   text-align: left;
   display: flex;
@@ -63,6 +63,7 @@
   z-index: 2;
 }
 
+/* Enrollment Information Section */
 .enroll-info {
   flex: 1;
   max-width: 700px;
@@ -71,6 +72,7 @@
   z-index: 2;
 }
 
+/* Course Introduction Tag */
 .course-intro {
   font-size: 0.9rem;
   font-weight: 600;
@@ -102,10 +104,11 @@
   animation: shine 2s infinite;
 }
 
+/* Course Title */
 .course-titl {
   font-size: clamp(48px, 8vw, 96px);
   font-weight: 800;
-  margin: 0px;
+  margin: 0;
   background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 50%, #b8e6ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -117,6 +120,7 @@
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
+/* Course Description */
 .course-description {
   font-size: 1.1rem;
   margin: 24px 0;
@@ -129,11 +133,12 @@
   max-width: 90%;
 }
 
+/* Start Button */
 .start-button {
   display: flex;
   align-items: center;
-  gap: 12px;
   justify-content: center;
+  gap: 12px;
   background: linear-gradient(135deg, #007bff 0%, #0056b3 50%, #004085 100%);
   background-size: 200% 200%;
   color: white;
@@ -188,6 +193,7 @@
   transform: translateX(4px);
 }
 
+/* Enrollment Image Section */
 .enroll-img {
   flex: 1;
   display: flex;
@@ -295,28 +301,12 @@
   height: 5px;
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-    opacity: 0.7;
-  }
-  33% {
-    transform: translateY(-20px) rotate(120deg);
-    opacity: 1;
-  }
-  66% {
-    transform: translateY(10px) rotate(240deg);
-    opacity: 0.5;
-  }
-}
-
 /* Course highlights section */
 .course-highlights {
   display: flex;
+  flex-wrap: wrap;
   gap: 24px;
   margin: 20px 0;
-  flex-wrap: wrap;
   transform: translateY(30px);
   opacity: 0;
   animation: slideUp 0.6s ease-out 1s forwards;
@@ -343,6 +333,71 @@
 
 .highlight-icon {
   font-size: 1.2rem;
+}
+
+/* Loading and Error States */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+  gap: 20px;
+  padding: 40px;
+}
+
+.loading-text {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 20px;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.error-container h2 {
+  font-size: 2rem;
+  color: #ff6b6b;
+  margin: 0;
+}
+
+.error-container p {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 10px 0;
+}
+
+.retry-button {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.retry-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+}
+
+/* Loading states and interactions */
+.enrollment-page.loading {
+  pointer-events: none;
+}
+
+.enrollment-page.loading::before {
+  animation: shimmer 1.5s infinite;
+}
+
+/* Enhanced focus states for accessibility */
+.start-button:focus {
+  outline: none;
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.5);
 }
 
 /* Animation Keyframes */
@@ -437,56 +492,6 @@
     opacity: 0.6;
     transform: translate(-50%, -50%) scale(1.05);
   }
-}
-
-/* Loading and Error States */
-.loading-container,
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  text-align: center;
-  gap: 20px;
-  padding: 40px;
-}
-
-.loading-text {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-top: 20px;
-  animation: fadeInOut 2s ease-in-out infinite;
-}
-
-.error-container h2 {
-  font-size: 2rem;
-  color: #ff6b6b;
-  margin: 0;
-}
-
-.error-container p {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 10px 0;
-}
-
-.retry-button {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-  color: white;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 10px;
-}
-
-.retry-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
 }
 
 @keyframes fadeInOut {
@@ -684,21 +689,6 @@
     height: auto;
     object-fit: contain;
   }
-}
-
-/* Loading states and interactions */
-.enrollment-page.loading {
-  pointer-events: none;
-}
-
-.enrollment-page.loading::before {
-  animation: shimmer 1.5s infinite;
-}
-
-/* Enhanced focus states for accessibility */
-.start-button:focus {
-  outline: none;
-  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.5);
 }
 
 /* Dark mode considerations */

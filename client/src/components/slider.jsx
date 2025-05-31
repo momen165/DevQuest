@@ -79,11 +79,9 @@ const CoursesSlider = () => {
   const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(null);
-  const [scrollLeft, setScrollLeft] = useState(null);
-  const [courses, setCourses] = useState([]);
+  const [scrollLeft, setScrollLeft] = useState(null);  const [courses, setCourses] = useState([]);
 
   const [userscount, setUserscount] = useState({});
-  const [loading, setLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
@@ -94,14 +92,10 @@ const CoursesSlider = () => {
 
         const topCourses = [...courses]
           .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-          .slice(0, 5);
-
-        setCourses(topCourses);
+          .slice(0, 5);        setCourses(topCourses);
         setUserscount(userscount || {});
       } catch (err) {
         console.error("Error fetching courses:", err);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -185,20 +179,13 @@ const CoursesSlider = () => {
         onMouseUp={onMouseUp}
         onMouseMove={onMouseMove}
         onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
-      >
+        onTouchEnd={() => setIsPaused(false)}      >
         <div className="home-slider__track">
-          {loading ? (
-            <div className="home-slider__loading">
-              <div className="home-slider__loading-spinner"></div>
-              <span>Loading courses...</span>
-            </div>
-          ) : (
-            // Triple the courses for smooth infinite scroll
-            [...courses, ...courses, ...courses].map((course, index) => {
-              const languageStyle =
-                languageBackgrounds[course.language_id] ||
-                languageBackgrounds.default;
+          {/* Triple the courses for smooth infinite scroll */}
+          {[...courses, ...courses, ...courses].map((course, index) => {
+            const languageStyle =
+              languageBackgrounds[course.language_id] ||
+              languageBackgrounds.default;
 
               return (
                 <div
@@ -270,11 +257,9 @@ const CoursesSlider = () => {
                         </svg>
                       </button>
                     </div>
-                  </div>
-                </div>
+                  </div>                </div>
               );
-            })
-          )}
+            })}
         </div>
       </div>
     </div>

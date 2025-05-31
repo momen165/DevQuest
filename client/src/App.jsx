@@ -14,7 +14,6 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import "./App.css";
 
-import { CircularProgress } from "@mui/material";
 
 import Analytics from "./pages/admin/EnhancedAnalytics";
 import { SpeedInsights } from "@vercel/speed-insights/react";

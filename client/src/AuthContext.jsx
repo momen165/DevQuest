@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
-import { CircularProgress } from '@mui/material';
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -186,10 +186,6 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user;
 
-  if (loading) {
-    return <div><CircularProgress /></div>; // Avoid rendering children until loading is complete
-  }
-
   return (
     <AuthContext.Provider
       value={{
@@ -200,6 +196,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         isAuthenticated,
         refreshToken,
+        loading,
       }}
     >
       {children}

@@ -9,13 +9,19 @@ const ProtectedRoute = ({ children, adminRequired = false }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-
   useEffect(() => {
     const checkServerAuth = async () => {
       try {
+        // Only make the request if we have a user and token
+        if (!user?.token) {
+          setIsAuthenticated(false);
+          setLoading(false);
+          return;
+        }
+
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/check-auth`, {
           headers: {
-            'Authorization': `Bearer ${user?.token}`,
+            'Authorization': `Bearer ${user.token}`,
           },
         });
 
@@ -29,10 +35,11 @@ const ProtectedRoute = ({ children, adminRequired = false }) => {
       }
     };
 
+    // Wait for auth loading to complete and check if we have a user
     if (!authLoading) {
       checkServerAuth();
     }
-  }, [authLoading, user]);
+  }, [authLoading, user?.token]);
 
   if (loading) {
       return <div className="centered-loader">
