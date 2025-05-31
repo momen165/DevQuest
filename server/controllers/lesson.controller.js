@@ -165,33 +165,25 @@ const getLessonById = asyncHandler(async (req, res) => {
   const { lessonId } = req.params;
   const userId = req.user.user_id;
 
-  // First, check if we have a cached version using ETag
-  const result = await lessonQueries.getLessonById(lessonId);
-  if (result.rows.length === 0) {
-    return res.status(404).json({
-      status: "not_found",
-      message: "Lesson not found",
-    });
+  // Fetch lesson once, check existence and set ETag
+  const lessonResult = await lessonQueries.getLessonById(lessonId);
+  if (lessonResult.rows.length === 0) {
+    return res
+      .status(404)
+      .json({ status: "not_found", message: "Lesson not found" });
   }
-
-  // Clone lesson data and prepare it for caching
-  const lessonData = { ...result.rows[0] };
-  delete lessonData.solution; // Remove sensitive data before generating ETag
-  delete lessonData.hint;
-
-  // Check if client's cached version is still valid
+  const originalLesson = lessonResult.rows[0];
+  const etagData = { ...originalLesson };
+  delete etagData.solution;
+  delete etagData.hint;
   const isNotModified = setCacheHeaders(res, {
     public: false,
     maxAge: 86400,
     staleWhileRevalidate: 3600,
-    data: lessonData,
+    data: etagData,
   });
+  if (isNotModified) return;
 
-  if (isNotModified) {
-    return; // 304 Not Modified was sent
-  }
-
-  // If we get here, we need to send the full response
   // Check subscription status and completed lessons count
   const subscriptionQuery = `
     WITH completed_lessons AS (
@@ -216,15 +208,29 @@ const getLessonById = asyncHandler(async (req, res) => {
     LEFT JOIN subscription_status s ON true;
   `;
 
+  const sectionLessonsQuery = `
+    SELECT l.lesson_id, l.lesson_order, lp.completed
+    FROM lesson l
+    LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
+    WHERE l.section_id = $2
+    ORDER BY l.lesson_order ASC
+  `;
+
   try {
-    const subscriptionResult = await db.query(subscriptionQuery, [userId]);
+    // Run subscription, progress, and section-fetch in parallel
+    const [subscriptionResult, progressResult, sectionLessonsResult] =
+      await Promise.all([
+        db.query(subscriptionQuery, [userId]),
+        lessonQueries.getLessonProgress(userId, lessonId),
+        db.query(sectionLessonsQuery, [userId, originalLesson.section_id]),
+      ]);
+
+    // Check subscription limits
     const completedLessons =
       parseInt(subscriptionResult.rows[0]?.lesson_count) || 0;
     const hasActiveSubscription = Boolean(
       subscriptionResult.rows[0]?.subscription_id
     );
-
-    // If user has no active subscription and has completed the free lesson limit
     if (!hasActiveSubscription && completedLessons >= FREE_LESSON_LIMIT) {
       return res.status(403).json({
         status: "subscription_required",
@@ -233,55 +239,19 @@ const getLessonById = asyncHandler(async (req, res) => {
       });
     }
 
-    const result = await lessonQueries.getLessonById(lessonId);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        status: "not_found",
-        message: "Lesson not found",
-      });
-    }
-
-    // Clone lesson data to avoid mutating DB result
-    const lessonData = { ...result.rows[0] };
-    // Remove solution and hint from the response for security by default
+    // Build response object
+    const lessonData = { ...originalLesson };
     delete lessonData.solution;
     delete lessonData.hint;
-
-    // Always check lesson_progress for unlocks
-    const progressResult = await lessonQueries.getLessonProgress(
-      userId,
-      lessonId
-    );
     const hintUnlocked = progressResult.rows[0]?.hint_unlocked;
     const solutionUnlocked = progressResult.rows[0]?.solution_unlocked;
-
-    // If unlocked, always return hint/solution
-    if (hintUnlocked) {
-      lessonData.hint = result.rows[0].hint;
-    } else if (req.query.showHint === "true") {
-      // (Optional: fallback to old logic if needed)
-      lessonData.hint = result.rows[0].hint;
+    if (hintUnlocked || req.query.showHint === "true") {
+      lessonData.hint = originalLesson.hint;
     }
-    if (solutionUnlocked) {
-      lessonData.solution = result.rows[0].solution;
-    } else if (req.query.showSolution === "true") {
-      // (Optional: fallback to old logic if needed)
-      lessonData.solution = result.rows[0].solution;
+    if (solutionUnlocked || req.query.showSolution === "true") {
+      lessonData.solution = originalLesson.solution;
     }
-    const sectionLessonsQuery = `
-      SELECT l.lesson_id, l.lesson_order, lp.completed
-      FROM lesson l
-      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
-      WHERE l.section_id = $2
-      ORDER BY l.lesson_order ASC
-    `;
-
-    const sectionLessons = await db.query(sectionLessonsQuery, [
-      userId,
-      lessonData.section_id,
-    ]);
-
+    let sectionLessons = sectionLessonsResult;
     // First lesson is always accessible
     if (
       sectionLessons.rows.length > 0 &&
@@ -499,7 +469,9 @@ const deleteLesson = asyncHandler(async (req, res) => {
 
   // Invalidate relevant caches after deleting a lesson
   lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `course_${courseId}`);
-  lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `section_${lessonResult.rows[0].section_id}`);
+  lessonsCache.del(
+    LESSONS_CACHE_KEY_PREFIX + `section_${lessonResult.rows[0].section_id}`
+  );
 
   setCacheHeaders(res, { noStore: true });
   res.status(200).json({ message: "Lesson deleted successfully." });

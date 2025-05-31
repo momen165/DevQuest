@@ -1,12 +1,13 @@
 // LessonContent.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import parse, { domToReact } from 'html-react-parser';
-import hljs from 'highlight.js';
 import { FaRegCopy, FaCheck } from 'react-icons/fa';
-import 'highlight.js/styles/srcery.css';
 import '../styles/LessonContent.css';
 
 import { getFontClass } from '../utils/editorUtils';
+import { useOptimizedHighlighting } from '../hooks/useOptimizedHighlighting';
+import { loadCSSAsync } from '../utils/performanceUtils';
+import { loadAdditionalFonts } from '../utils/fontLoader';
 
 import axios from 'axios';
 import { useAuth } from '../AuthContext';
@@ -29,9 +30,10 @@ const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
     timeout: 10000,
     validateStatus: (status) => true,
   });
-
   const [hintUnlocked, setHintUnlocked] = useState(false);
-  const [solutionUnlocked, setSolutionUnlocked] = useState(false);
+  const [solutionUnlocked, setSolutionUnlocked] = useState(false);  const [highlightCSSLoaded, setHighlightCSSLoaded] = useState(false);
+  const [isAboveFold, setIsAboveFold] = useState(true);
+  const [showHelpSection, setShowHelpSection] = useState(false);
   // Track the attempt at which the hint was unlocked
   const [hintUnlockAttempt, setHintUnlockAttempt] = useState(null);
   const canShowHint = hintUnlocked || failedAttempts >= HINT_THRESHOLD;
@@ -148,20 +150,60 @@ const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
           }
         } catch (e) {}
       })();
-    }
-  }, [showSolution, canShowSolution, dynamicSolution, lessonId, user]);
-
-  // Initialize syntax highlighting
+    }  }, [showSolution, canShowSolution, dynamicSolution, lessonId, user]);
+  // Lazy load highlight.js CSS only when needed
   useEffect(() => {
-    // Remove previous highlighting
-    document.querySelectorAll('pre code').forEach((block) => {
-      block.removeAttribute('data-highlighted');
-      // Get the raw text content without escaping
-      const rawContent = block.textContent || '';
-      block.textContent = rawContent;
-      hljs.highlightElement(block);
-    });
-  }, [content, hint, solution]);
+    if (content && !highlightCSSLoaded) {
+      // Check if content contains code blocks
+      const hasCodeBlocks = content.includes('<pre') || content.includes('<code');
+      if (hasCodeBlocks) {
+        import('highlight.js/styles/srcery.css').then(() => {
+          setHighlightCSSLoaded(true);
+        }).catch(() => {
+          // Fallback: load via loadCSSAsync
+          loadCSSAsync('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/srcery.min.css');
+          setHighlightCSSLoaded(true);
+        });
+      }
+    }
+  }, [content, highlightCSSLoaded]);
+  // Load additional fonts asynchronously for better LCP
+  useEffect(() => {
+    // Delay font loading to prioritize critical content
+    const timer = setTimeout(() => {
+      loadAdditionalFonts();
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  // Detect if content is above the fold
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsAboveFold(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    const contentElement = document.querySelector('.lesson-content');
+    if (contentElement) {
+      observer.observe(contentElement);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Delay help section loading to improve LCP
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowHelpSection(true);
+    }, isAboveFold ? 1000 : 100); // Longer delay if above fold
+    
+    return () => clearTimeout(timer);
+  }, [isAboveFold]);
+
+  // Use optimized syntax highlighting hook
+  useOptimizedHighlighting([content, hint, solution]);
 
   const copyCodeToClipboard = (code, event) => {
     const button = event.currentTarget;
@@ -320,10 +362,8 @@ const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
         }
 
         const className = codeNode.attribs?.class || '';
-        const language = className.replace('language-', '') || 'plaintext';
-
-        return (
-          <div className="code-block">
+        const language = className.replace('language-', '') || 'plaintext';        return (
+          <div className="code-block" style={{ contain: 'layout style paint' }}>
             <button className="copy" onClick={(e) => copyCodeToClipboard(codeText, e)}>
               <span
                 className="tooltip"
@@ -335,7 +375,7 @@ const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
                 <FaCheck className="checkmark" />
               </span>
             </button>
-            <pre>
+            <pre style={{ willChange: 'contents' }}>
               <code className={`hljs language-${language}`}>{codeText}</code>
             </pre>
           </div>
@@ -343,56 +383,58 @@ const LessonContent = ({ content, hint, solution, failedAttempts = 0 }) => {
       }
     },
   };
-
   if (!content) return null;
 
   return (
     <div className="lesson-content">
-      <div className="content-section">{parse(content, options)}</div>
-
-      <div className="help-section">
-        <div className={`hint-section ${!canShowHint ? 'disabled' : ''}`}>
-          <button
-            onClick={() => setShowHint(!showHint)}
-            className={`hint-button ${canShowHint ? 'available' : ''}`}
-            disabled={!canShowHint}
-          >
-            💡 {showHint ? 'Hide Hint' : 'Show Hint'}
-            {!canShowHint && (
-              <span className="attempts-needed">
-                (Available after {HINT_THRESHOLD - failedAttempts} more failed attempts)
-              </span>
+      <div className="content-section" style={{ contain: 'layout style' }}>
+        {parse(content, options)}
+      </div>      {/* Defer help section loading to improve LCP */}
+      {showHelpSection && (
+        <div className="help-section" style={{ contain: 'layout style' }}>
+          <div className={`hint-section ${!canShowHint ? 'disabled' : ''}`}>
+            <button
+              onClick={() => setShowHint(!showHint)}
+              className={`hint-button ${canShowHint ? 'available' : ''}`}
+              disabled={!canShowHint}
+            >
+              💡 {showHint ? 'Hide Hint' : 'Show Hint'}
+              {!canShowHint && (
+                <span className="attempts-needed">
+                  (Available after {HINT_THRESHOLD - failedAttempts} more failed attempts)
+                </span>
+              )}
+            </button>
+            {showHint && canShowHint && (dynamicHint || hint) && (
+              <div className="hint-content">{parse(dynamicHint || hint)}</div>
             )}
-          </button>
-          {showHint && canShowHint && (dynamicHint || hint) && (
-            <div className="hint-content">{parse(dynamicHint || hint)}</div>
-          )}
-        </div>
+          </div>
 
-        <div className={`solution-section ${!canShowSolution ? 'disabled' : ''}`}>
-          <button
-            onClick={() => setShowSolution(!showSolution)}
-            className={`solution-button ${canShowSolution ? 'available' : ''}`}
-            disabled={!canShowSolution}
-          >
-            ✨ {showSolution ? 'Hide Solution' : 'Show Solution'}
-            {!canShowSolution && (
-              <span className="attempts-needed">
-                {hintUnlocked && hintUnlockAttempt !== null
-                  ? `(Available after ${
-                      hintUnlockAttempt + 2 - failedAttempts
-                    } more failed attempts)`
-                  : `(Available after ${SOLUTION_THRESHOLD - failedAttempts} more failed attempts)`}
-              </span>
+          <div className={`solution-section ${!canShowSolution ? 'disabled' : ''}`}>
+            <button
+              onClick={() => setShowSolution(!showSolution)}
+              className={`solution-button ${canShowSolution ? 'available' : ''}`}
+              disabled={!canShowSolution}
+            >
+              ✨ {showSolution ? 'Hide Solution' : 'Show Solution'}
+              {!canShowSolution && (
+                <span className="attempts-needed">
+                  {hintUnlocked && hintUnlockAttempt !== null
+                    ? `(Available after ${
+                        hintUnlockAttempt + 2 - failedAttempts
+                      } more failed attempts)`
+                    : `(Available after ${SOLUTION_THRESHOLD - failedAttempts} more failed attempts)`}
+                </span>
+              )}
+            </button>
+            {showSolution && canShowSolution && (dynamicSolution || solution) && (
+              <div className="solution-content">{parse(dynamicSolution || solution)}</div>
             )}
-          </button>
-          {showSolution && canShowSolution && (dynamicSolution || solution) && (
-            <div className="solution-content">{parse(dynamicSolution || solution)}</div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-export default LessonContent;
+export default memo(LessonContent);

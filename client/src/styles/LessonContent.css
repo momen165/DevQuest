@@ -1,12 +1,10 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+﻿/* Critical fonts loaded synchronously, others loaded asynchronously */
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
 
 .lesson-content {
+  /* Performance optimizations */
+  contain: layout style;
+  will-change: contents;
   color: white;
   font-size: 17px;
   line-height: 1.6;
@@ -68,6 +66,9 @@
   margin: 1em 10px;
   width: calc(100% - 20px);
   box-sizing: border-box;
+  /* Performance optimizations */
+  contain: layout style paint;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .lesson-content h3 {
@@ -295,6 +296,9 @@
   background: #272822;
   border-radius: 4px;
   padding: 12px;
+  /* Performance optimizations */
+  will-change: contents;
+  transform: translateZ(0);
 }
 
 /* Code element styling */

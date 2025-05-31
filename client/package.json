@@ -12,7 +12,7 @@
     "@ckeditor/ckeditor5-react": "^9.4.0",
     "@emotion/styled": "^11.14.0",
     "@hello-pangea/dnd": "^17.0.0",
-    "@monaco-editor/react": "^4.6.0",
+    "@monaco-editor/react": "^4.7.0",
     "@mui/material": "^6.3.0",
     "@sentry/react": "^9.22.0",
     "@sentry/vite-plugin": "^3.5.0",
