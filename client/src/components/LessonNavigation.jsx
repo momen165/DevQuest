@@ -15,11 +15,14 @@ const LessonNavigation = ({
   currentSectionId,
   sections, // All sections for the current course
   lessonXp, // XP gained for completing the lesson
+  currentLessonProgress, // <-- new prop
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth(); // Get user from AuthContext
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false); // Tracks if the current lesson is marked as completed by the user
+  const [isCompleted, setIsCompleted] = useState(
+    currentLessonProgress?.completed || false
+  ); // Use prop for initial value
   const [showSuccessMessage, setShowSuccessMessage] = useState(false); // Controls visibility of SuccessNotification
   const [showErrorMessage, setShowErrorMessage] = useState(false); // Controls visibility of error messages
   const [errorMessageText, setErrorMessageText] = useState(''); // Text for error messages
@@ -28,38 +31,6 @@ const LessonNavigation = ({
   const [courseId, setCourseId] = useState(null);
   const [openSectionId, setOpenSectionId] = useState(currentSectionId); // Tracks which section is expanded in the menu
   const [loadingMenu, setLoadingMenu] = useState(false); // Loading state for menu data
-
-  // Effect to fetch initial lesson progress (whether it's already completed)
-  useEffect(() => {
-    const fetchLessonProgress = async () => {
-      if (!user || !currentLessonId) {
-        // console.warn('User not logged in or currentLessonId missing for fetching progress.');
-        return;
-      }
-
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/lesson-progress?user_id=${user.user_id}&lesson_id=${currentLessonId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
-
-        if (response.data.completed) {
-          setIsCompleted(true);
-        } else {
-          setIsCompleted(false); // Explicitly set to false if not completed
-        }
-      } catch (err) {
-        console.error('Error fetching lesson progress:', err);
-        // Optionally, handle this error in the UI, e.g., show a generic error message
-      }
-    };
-
-    fetchLessonProgress();
-  }, [currentLessonId, user]);
 
   // Effect to fetch data for the navigation menu (course name, sections, lessons)
   useEffect(() => {
@@ -187,22 +158,21 @@ const LessonNavigation = ({
       showNotification('error', 'You need to complete previous lessons first.');
       navigate(`/lesson/${redirectLessonId}`);
     }
-  }, [menuSections, currentLessonId, loadingMenu]);
+  }, [menuSections, currentLessonId, loadingMenu, navigate]); // Added navigate to dependency array
 
   // Memoized organization of lessons by section, used for "Prev" and "Next" button logic
   const organizedSections = React.useMemo(() => {
-    if (!sections || !lessons) return [];
+    if (!sections || !lessons) return []; // sections and lessons are props from LessonPage
     return sections
       .map((section) => ({
         ...section,
         lessons: lessons
           .filter((lesson) => lesson.section_id === section.section_id)
-          .sort((a, b) => a.lesson_order - b.lesson_order), // Ensure lessons are sorted
+          .sort((a, b) => a.lesson_order - b.lesson_order), 
       }))
-      .sort((a, b) => a.section_order - b.section_order); // Ensure sections are sorted
+      .sort((a, b) => a.section_order - b.section_order); 
   }, [sections, lessons]);
 
-  // Calculate current section and lesson indices for navigation logic
   const currentSectionIndex = React.useMemo(
     () => organizedSections.findIndex((section) => section.section_id === currentSectionId),
     [organizedSections, currentSectionId]
@@ -223,7 +193,6 @@ const LessonNavigation = ({
     [currentSectionLessonsForNav, currentLessonId]
   );
 
-  // Function to show notifications (error or general messages)
   const showNotification = (type, text) => {
     if (type === 'success') {
       setShowSuccessMessage(true);
@@ -234,19 +203,16 @@ const LessonNavigation = ({
       setShowSuccessMessage(false);
     }
 
-    // Clear any existing timers
     if (window._messageTimer) {
       clearTimeout(window._messageTimer);
     }
 
-    // Set a new timer to hide the message
     window._messageTimer = setTimeout(() => {
       setShowSuccessMessage(false);
       setShowErrorMessage(false);
-    }, 4000); // 4-second notification display
+    }, 4000); 
   };
 
-  // Function to handle lesson completion
   const completeLesson = async () => {
     if (!user) {
       showNotification('error', 'You must be logged in to complete a lesson.');
@@ -260,7 +226,7 @@ const LessonNavigation = ({
           user_id: user.user_id,
           lesson_id: currentLessonId,
           completed: true,
-          submitted_code: code, // Send the code if available
+          submitted_code: code, 
         },
         {
           headers: {
@@ -271,9 +237,8 @@ const LessonNavigation = ({
 
       if (response.status === 200) {
         setIsCompleted(true);
-        showNotification('success', ''); // Empty text, SuccessNotification has its own message
+        showNotification('success', ''); 
 
-        // Optimistically update completion status in menuSections
         setMenuSections((prevMenuSections) =>
           prevMenuSections.map((section) => ({
             ...section,
@@ -283,7 +248,6 @@ const LessonNavigation = ({
           }))
         );
       } else {
-        // Handle non-200 success responses if your API uses them
         showNotification(
           'error',
           response.data?.message || 'Unable to update lesson progress. Please try again.'
@@ -297,13 +261,10 @@ const LessonNavigation = ({
     }
   };
 
-  // Navigation to the previous lesson
   const goToPreviousLesson = () => {
     if (lessonIndexInSection > 0) {
-      // Go to previous lesson in current section
       navigate(`/lesson/${currentSectionLessonsForNav[lessonIndexInSection - 1].lesson_id}`);
     } else if (currentSectionIndex > 0) {
-      // Go to last lesson of previous section
       const previousSection = organizedSections[currentSectionIndex - 1];
       const previousSectionLessons = previousSection.lessons || [];
 
@@ -317,19 +278,16 @@ const LessonNavigation = ({
     }
   };
 
-  // Navigation to the next lesson
   const goToNextLesson = () => {
     if (!isCompleted) {
       showNotification('error', 'Please complete the current lesson before moving to the next.');
       return;
     }
     if (lessonIndexInSection < currentSectionLessonsForNav.length - 1) {
-      // Go to next lesson in current section
       const nextLesson = currentSectionLessonsForNav[lessonIndexInSection + 1];
-      onNext(); // Call the onNext prop
+      onNext(); 
       navigate(`/lesson/${nextLesson.lesson_id}`);
     } else if (currentSectionIndex < organizedSections.length - 1) {
-      // Go to first lesson of next section
       const nextSection = organizedSections[currentSectionIndex + 1];
       const nextSectionLessons = nextSection.lessons || [];
 
@@ -338,37 +296,26 @@ const LessonNavigation = ({
         return;
       }
       const firstLessonInNextSection = nextSectionLessons[0];
-      onNext(); // Call the onNext prop
+      onNext(); 
       navigate(`/lesson/${firstLessonInNextSection.lesson_id}`);
     } else {
-      // This is the last lesson of the last section
       showNotification(
         'success',
         'Congratulations! You have completed all lessons in this course!'
       );
-      // Optionally, navigate to a course completion page or dashboard
-      // navigate(`/course/${courseId}/completed`);
     }
   };
 
-  // Toggle which section is open in the navigation menu
   const toggleSection = (sectionId) => {
     setOpenSectionId((prevId) => (sectionId === prevId ? null : sectionId));
   };
 
-  // Function to check if a lesson is accessible
   const isLessonAccessible = (sectionIndex, lessonIndex) => {
-    // First lesson of any section is always accessible
     if (lessonIndex === 0) return true;
-
     const section = menuSections[sectionIndex];
-
-    // For other lessons in a section, check if the previous lesson in the same section is completed
     return section.lessons[lessonIndex - 1].completed;
   };
 
-  // Effect to remove the general notification animation style if it was added by this component previously.
-  // SuccessNotification now handles its own styles.
   useEffect(() => {
     const styleElement = document.getElementById('notification-animation-style');
     if (styleElement) {
@@ -378,7 +325,6 @@ const LessonNavigation = ({
 
   return (
     <>
-      {/* Side Navigation Menu */}
       <div className={`lesson-nav-menu ${isMenuOpen ? 'open' : ''}`}>
         {loadingMenu && <div className="loading-menu-indicator">Loading course...</div>}
         {!loadingMenu && courseName && (
@@ -417,7 +363,7 @@ const LessonNavigation = ({
                       onClick={() => {
                         if (accessible) {
                           navigate(`/lesson/${lesson.lesson_id}`);
-                          setIsMenuOpen(false); // Close menu on navigation
+                          setIsMenuOpen(false); 
                         } else {
                           showNotification('error', 'Complete previous lessons first to unlock this lesson.');
                         }
@@ -437,19 +383,17 @@ const LessonNavigation = ({
         )}
       </div>
 
-      {/* Success Notification */}
       {showSuccessMessage && lessonXp > 0 && <SuccessNotification xp={lessonXp} />}
 
-      {/* Error Message */}
       {showErrorMessage && (
         <div
-          className="floating-message error" // Ensure 'error' class is styled in LessonNavigation.css
+          className="floating-message error"
           style={{
             position: 'fixed',
             top: '120px',
             left: '50%',
             transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(231, 76, 60, 0.95)', // Error color
+            backgroundColor: 'rgba(231, 76, 60, 0.95)', 
             color: 'white',
             padding: '20px 30px',
             borderRadius: '12px',
@@ -457,14 +401,12 @@ const LessonNavigation = ({
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
             textAlign: 'center',
             minWidth: '320px',
-            // animation: 'fadeIn 0.5s ease-out', // Assuming fadeIn is defined globally or in LessonNavigation.css
           }}
         >
           <div>{errorMessageText}</div>
         </div>
       )}
 
-      {/* Bottom Navigation Bar */}
       <div className="lesson-navigation">
         <button
           className={`lesson-menu-toggle ${isMenuOpen ? 'active' : ''}`}
@@ -485,11 +427,10 @@ const LessonNavigation = ({
           <button
             className="nav-button complete-button"
             onClick={completeLesson}
-            disabled={isCompleted || !isAnswerCorrect} // Disable if already completed or no code submitted
+            disabled={isCompleted || !isAnswerCorrect} 
           >
             {isCompleted ? 'Completed' : 'Complete'}
           </button>
-          {/* Show Next button if not the very last lesson */}
           {!(
             lessonIndexInSection >= currentSectionLessonsForNav.length - 1 &&
             currentSectionIndex >= organizedSections.length - 1
@@ -497,7 +438,7 @@ const LessonNavigation = ({
               <button
                 className="nav-button next-button"
                 onClick={goToNextLesson}
-                disabled={!isCompleted} // Enable only if current lesson is completed
+                disabled={!isCompleted} 
               >
                 Next
               </button>

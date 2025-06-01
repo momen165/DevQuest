@@ -16,7 +16,7 @@ const CONFIG = {
   },
   judge0: {
     host: "judge0-ce.p.rapidapi.com",
-    apiKey: "[REDACTED]", //  RapidAPI key
+    apiKey: process.env.RAPIDAPI_KEY, //  RapidAPI key
     pollInterval: 2000,
     maxPollTime: 20000,
     maxOutputSize: 1024 * 100,
@@ -131,7 +131,7 @@ const helpers = {
 
     try {
       const base64SourceCode = Buffer.from(submission.source_code).toString(
-        "base64",
+        "base64"
       );
       const base64ExpectedOutput = submission.expected_output
         ? Buffer.from(submission.expected_output).toString("base64")
@@ -159,7 +159,7 @@ const helpers = {
           },
           timeout: 30000, // 30 seconds
           timeoutErrorMessage: "Request timed out while connecting to Judge0",
-        },
+        }
       );
 
       // Get language-specific error formatter
@@ -174,12 +174,12 @@ const helpers = {
           : "",
         error: response.data.stderr
           ? languageConfig.formatError(
-              Buffer.from(response.data.stderr, "base64").toString(),
+              Buffer.from(response.data.stderr, "base64").toString()
             )
           : "",
         compile_error: response.data.compile_output
           ? languageConfig.formatError(
-              Buffer.from(response.data.compile_output, "base64").toString(),
+              Buffer.from(response.data.compile_output, "base64").toString()
             )
           : "",
         status_description: response.data.status?.description || "Unknown",
@@ -268,7 +268,7 @@ const runCode = handleAsync(async (req, res) => {
         JOIN lesson l ON s.section_id = l.section_id
         WHERE l.lesson_id = $1
       `,
-        [lessonId],
+        [lessonId]
       ),
       db.query("SELECT test_cases FROM lesson WHERE lesson_id = $1", [
         lessonId,
@@ -327,12 +327,12 @@ const runCode = handleAsync(async (req, res) => {
         } else if (testCase.use_pattern) {
           validationResult = validatePattern(
             result.actual_output,
-            testCase.pattern,
+            testCase.pattern
           );
         } else {
           validationResult = validateExactMatch(
             result.actual_output,
-            testCase.expected_output,
+            testCase.expected_output
           );
         }
 
@@ -346,7 +346,7 @@ const runCode = handleAsync(async (req, res) => {
           use_pattern: testCase.use_pattern,
           pattern: testCase.pattern,
         };
-      }),
+      })
     );
 
     // Check if all test cases passed their respective validations
@@ -383,7 +383,9 @@ const validatePattern = (actualOutput, pattern) => {
       actual_output: actualOutput,
       error: isMatch
         ? ""
-        : `Output must be either ${pattern.split("|").join(" or ")} (any case). Got "${cleanOutput}" instead.`,
+        : `Output must be either ${pattern
+            .split("|")
+            .join(" or ")} (any case). Got "${cleanOutput}" instead.`,
       status_description: isMatch
         ? "Pattern match successful"
         : "Pattern match failed",

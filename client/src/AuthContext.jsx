@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 
@@ -105,30 +105,39 @@ export const AuthProvider = ({ children }) => {
   }, [refreshToken]);
 
   useEffect(() => {
-    const storedUserData = localStorage.getItem("user");
-    if (storedUserData) {
-      const parsedData = JSON.parse(storedUserData);
-      try {
-        const decodedToken = jwtDecode(parsedData.token);
+    const initializeAuth = async () => {
+      setLoading(true); // Ensure loading is true at the start of this effect
+      const storedUserData = localStorage.getItem("user");
+      if (storedUserData) {
+        const parsedData = JSON.parse(storedUserData);
+        try {
+          const decodedToken = jwtDecode(parsedData.token);
+          const currentTimeInSeconds = Date.now() / 1000;
 
-        // Check if the token has expired
-        if (decodedToken.exp * 1000 < Date.now()) {
-          // Try to refresh the token
-          refreshToken();
-        } else {
-          setUser({
-            ...parsedData,
-            user_id: decodedToken.userId, // Normalize userId to user_id
-          });
+          // Proactively refresh if token is expired OR will expire in the next 5 minutes
+          if (decodedToken.exp < currentTimeInSeconds + 300) {
+            await refreshToken(); // This function handles setUser on success or logout (which sets user to null) on failure.
+          } else {
+            // Token is valid and not expiring soon
+            setUser({
+              ...parsedData,
+              user_id: decodedToken.userId,
+            });
+          }
+        } catch (error) {
+          // Invalid token stored (e.g., malformed) or other decoding error
+          console.error("Error initializing auth from storage:", error);
+          await logoutRef.current?.(); // Attempt to logout, which will clear user state
         }
-      } catch (error) {
-        logout();
       }
-    }
-    setLoading(false);
+      // If no storedUserData, user remains null (initial state)
+      setLoading(false); // Set loading to false after all checks and potential refresh
+    };
+
+    initializeAuth();
   }, [refreshToken]);
 
-  const login = async (token, refreshToken, userData) => {
+  const login = async (token, refreshTokenProp, userData) => {
     try {
       const decodedToken = jwtDecode(token);
       const { userId, name, country, bio, admin, profileimage } = decodedToken;
@@ -186,19 +195,19 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user;
 
+  const contextValue = useMemo(() => ({
+    user,
+    token: user?.token,
+    setUser, // setUser itself is stable
+    login, // login is stable (not changing reference unless AuthProvider remounts)
+    logout, // logout is stable (useCallback)
+    isAuthenticated, // derived from user, will update when user changes
+    refreshToken, // refreshToken is stable (useCallback)
+    loading,
+  }), [user, isAuthenticated, loading, login, logout, refreshToken]); // setUser is not needed in deps as it's stable
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token: user?.token,
-        setUser,
-        login,
-        logout,
-        isAuthenticated,
-        refreshToken,
-        loading,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
