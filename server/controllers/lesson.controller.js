@@ -147,15 +147,22 @@ const getLessons = asyncHandler(async (req, res) => {
   if (!lessons) {
     // If not in cache, fetch from DB
     if (course_id) {
-      lessons = await lessonQueries.getLessons(null, course_id); // Use existing getLessons for course_id
+      lessons = await lessonQueries.getLessons(null, course_id);
     } else {
-      lessons = await lessonQueries.getLessonsBySection(userId, section_id); // Use existing getLessonsBySection
+      lessons = await lessonQueries.getLessonsBySection(userId, section_id);
     }
-    lessons = lessons.rows; // Assuming lessonQueries return { rows: [...] }
+    lessons = lessons.rows;
 
     // Store in cache
     lessonsCache.set(cacheKey, lessons);
   }
+
+  // Add HTTP cache headers for better performance
+  setCacheHeaders(res, {
+    public: !userId, // Public if no user context, private if user-specific
+    maxAge: 3600, // 1 hour
+    staleWhileRevalidate: 600, // 10 minutes
+  });
 
   res.status(200).json(lessons);
 });
