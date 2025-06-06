@@ -26,7 +26,7 @@
     "geoip-lite": "^1.4.10",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
-    "multer": ">=2.0.0",
+    "multer": "2.0.1",
     "node-cache": "^5.1.2",
     "node-mailjet": "^6.0.6",
     "pg": "^8.13.1",
