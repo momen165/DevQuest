@@ -326,7 +326,7 @@ const refreshAccessToken = handleAsync(async (req, res) => {
       "SELECT name, country, bio, skills, profileimage FROM users WHERE user_id = $1",
       [user_id]
     ),
-    db.query("SELECT 1 FROM admins WHERE admin_id = $1", [user_id]),
+    db.query("SELECT 1 FROM admin_lookup WHERE admin_id = $1", [user_id]),
   ]);
 
   // Cache user existence after token refresh
@@ -409,7 +409,7 @@ const updateProfile = handleAsync(async (req, res) => {
     const updatedUser = result.rows[0];
 
     const adminResult = await db.query(
-      "SELECT 1 FROM admins WHERE admin_id = $1",
+      "SELECT 1 FROM admin_lookup WHERE admin_id = $1",
       [req.user.userId]
     );
 
@@ -561,7 +561,7 @@ const checkAuth = handleAsync(async (req, res) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const [userResult, adminResult] = await Promise.all([
     db.query("SELECT 1 FROM users WHERE user_id = $1", [decoded.userId]),
-    db.query("SELECT 1 FROM admins WHERE admin_id = $1", [decoded.userId]),
+    db.query("SELECT 1 FROM admin_lookup WHERE admin_id = $1", [decoded.userId]),
   ]);
 
   if (userResult.rows.length === 0) {
@@ -775,7 +775,7 @@ const sendFeedbackReplyEmail = async ({
 
 const checkAdminStatus = handleAsync(async (req, res, next) => {
   const { rowCount } = await db.query(
-    "SELECT 1 FROM admins WHERE admin_id = $1",
+    "SELECT 1 FROM admin_lookup WHERE admin_id = $1",
     [req.user.userId]
   );
 

@@ -40,8 +40,11 @@ module.exports = async function sessionTracker(req, res, next) {
     if (!session) {
       // Find the most recent session (not ended, or ended within timeout)
       const { rows } = await db.query(
-        `SELECT * FROM user_sessions WHERE user_id = $1 AND (session_end IS NULL OR session_end >= NOW() - INTERVAL '30 minutes') ORDER BY session_start DESC LIMIT 1`,
-        [userId]
+          `SELECT * FROM active_user_sessions
+           WHERE user_id = $1
+           ORDER BY session_start DESC
+           LIMIT 1`,
+          [userId]
       );
       session = rows[0];
       if (session) {

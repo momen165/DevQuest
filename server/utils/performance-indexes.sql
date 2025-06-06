@@ -35,6 +35,9 @@ CREATE INDEX IF NOT EXISTS idx_enrollment_count_by_course ON enrollment (course_
 CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 CREATE INDEX IF NOT EXISTS idx_users_verification ON users (is_verified) WHERE is_verified = true;
 
+-- Index for active user sessions lookup
+CREATE INDEX IF NOT EXISTS idx_active_sessions_user_start ON active_user_sessions (user_id, session_start DESC);
+
 -- Analyze tables after creating indexes for better query planning
 ANALYZE course;
 ANALYZE enrollment;
@@ -43,3 +46,4 @@ ANALYZE section;
 ANALYZE lesson;
 ANALYZE feedback;
 ANALYZE users;
+ANALYZE active_user_sessions;

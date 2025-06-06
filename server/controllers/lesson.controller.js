@@ -241,11 +241,10 @@ const getLessonById = asyncHandler(async (req, res) => {
   `;
 
   const sectionLessonsQuery = `
-    SELECT l.lesson_id, l.lesson_order, lp.completed
-    FROM lesson l
-    LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
-    WHERE l.section_id = $2
-    ORDER BY l.lesson_order ASC
+    SELECT lesson_id, lesson_order, completed
+    FROM section_lesson_progress
+    WHERE section_id = $2 AND (user_id = $1 OR user_id IS NULL)
+    ORDER BY lesson_order ASC
   `;
 
   try {

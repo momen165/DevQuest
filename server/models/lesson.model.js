@@ -8,9 +8,12 @@ const unlockHint = async (user_id, lesson_id) => {
   if (result.rows.length === 0) {
     // No row exists, insert one
     // Need course_id for insert
+    // In unlockHint and unlockSolution functions, replace the courseRes query with:
     const courseRes = await db.query(
-      `SELECT section.course_id FROM lesson JOIN section ON lesson.section_id = section.section_id WHERE lesson.lesson_id = $1`,
-      [lesson_id]
+        `SELECT course_id FROM section_course_info WHERE section_id = (
+          SELECT section_id FROM lesson WHERE lesson_id = $1
+        )`,
+        [lesson_id]
     );
     const course_id = courseRes.rows[0]?.course_id;
     if (!course_id) throw new Error("Course not found for lesson");
@@ -122,23 +125,10 @@ const lessonQueries = {
     return db.query(query, [userId, sectionId]);
   },
 
-  // Get lesson by ID with course language
   getLessonById: async (lessonId) => {
     const query = `
-      SELECT 
-        lesson.*, 
-        COALESCE(
-          lesson.test_cases,
-          '[{"input": "", "expected_output": "", "auto_detect": false, "use_pattern": false, "pattern": ""}]'::jsonb
-        ) as test_cases,
-        course.language_id,
-        lesson.hint,
-        lesson.solution,
-        lesson.auto_detect
-      FROM lesson
-      JOIN section ON lesson.section_id = section.section_id
-      JOIN course ON section.course_id = course.course_id
-      WHERE lesson.lesson_id = $1;
+      SELECT * FROM lesson_details
+      WHERE lesson_id = $1;
     `;
     return db.query(query, [lessonId]);
   },
@@ -348,36 +338,24 @@ const lessonQueries = {
     return db.query(query, [userId, courseId]);
   },
 
-  // Get lessons by section or course
   getLessons: async (section_id, course_id) => {
     let query;
     let params;
 
     if (section_id) {
       query = `
-        SELECT 
-          lesson.*,
-          section.section_order,
-          section.name as section_name
-        FROM lesson
-        JOIN section ON lesson.section_id = section.section_id
-        WHERE lesson.section_id = $1
-        ORDER BY lesson.lesson_order ASC;
+        SELECT * FROM lesson_section_view
+        WHERE section_id = $1
+        ORDER BY lesson_order ASC;
       `;
       params = [section_id];
     } else {
       query = `
-        SELECT 
-          lesson.*,
-          section.section_id,
-          section.name as section_name,
-          section.section_order
-        FROM lesson
-        JOIN section ON lesson.section_id = section.section_id
-        WHERE section.course_id = $1
-        ORDER BY 
-          section.section_order ASC,
-          lesson.lesson_order ASC;
+        SELECT * FROM lesson_course_view
+        WHERE section_id IN (
+          SELECT section_id FROM section WHERE course_id = $1
+        )
+        ORDER BY section_order ASC, lesson_order ASC;
       `;
       params = [course_id];
     }
@@ -400,18 +378,11 @@ const lessonQueries = {
     return db.query(query, [section_id]);
   },
 
-  // Get course and section info from section_id
   getCourseIdFromSection: async (section_id) => {
     const query = `
-      SELECT 
-        c.course_id,
-        c.name as course_name,
-        s.name as section_name,
-        s.section_id
-      FROM section s
-      JOIN course c ON s.course_id = c.course_id
-      WHERE s.section_id = $1;
-    `;
+    SELECT * FROM section_course_info
+    WHERE section_id = $1;
+  `;
     return db.query(query, [section_id]);
   },
 

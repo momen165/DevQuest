@@ -15,7 +15,7 @@ const checkAdminAccess = async (userId) => {
   }
 
   try {
-    const query = "SELECT 1 FROM admins WHERE admin_id = $1";
+    const query = "SELECT 1 FROM admin_lookup WHERE admin_id = $1";
     const result = await db.query(query, [userId]);
     isAdmin = result.rowCount > 0;
     adminAccessCache.set(cacheKey, isAdmin); // Store in cache
@@ -131,7 +131,7 @@ const addAdminDB = async (userId, requesterId) => {
   }
 
   const adminCheck = await db.query(
-    "SELECT 1 FROM admins WHERE admin_id = $1",
+    "SELECT 1 FROM admin_lookup WHERE admin_id = $1",
     [userId]
   );
   if (adminCheck.rowCount > 0) {
@@ -157,7 +157,7 @@ const addAdminDB = async (userId, requesterId) => {
 // Remove admin
 const removeAdminDB = async (userIdToRemove, requesterId) => {
   const adminCheck = await db.query(
-    "SELECT 1 FROM admins WHERE admin_id = $1",
+    "SELECT 1 FROM admin_lookup WHERE admin_id = $1",
     [userIdToRemove]
   );
   if (adminCheck.rowCount === 0) {
