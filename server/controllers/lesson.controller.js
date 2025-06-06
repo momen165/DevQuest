@@ -126,6 +126,31 @@ const getLessonsBySection = asyncHandler(async (req, res) => {
   res.json(result.rows);
 });
 
+// Admin-specific route to get all lesson fields for a section
+const getAdminLessonsForSection = asyncHandler(async (req, res) => {
+  if (!req.user.admin) {
+    throw new AppError("Access denied. Admins only.", 403);
+  }
+
+  const { section_id } = req.query;
+
+  if (!section_id) {
+    throw new AppError("section_id is required.", 400);
+  }
+
+  // Use getLessons which returns all lesson fields
+  const result = await lessonQueries.getLessons(section_id, null);
+
+  // Cache admin lessons for 1 hour
+  setCacheHeaders(res, {
+    public: false,
+    maxAge: 3600,
+    staleWhileRevalidate: 600,
+  });
+
+  res.status(200).json(result.rows);
+});
+
 const getLessons = asyncHandler(async (req, res) => {
   const { course_id, section_id } = req.query;
   const userId = req.user?.user_id; // Optional, as lessons can be public
@@ -641,4 +666,5 @@ module.exports = {
   fixLessonOrders,
   unlockHint,
   unlockSolution,
+  getAdminLessonsForSection, // Expose admin-specific method
 };

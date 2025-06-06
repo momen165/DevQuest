@@ -23,15 +23,16 @@ const ViewLessonsComponent = ({ section, onClose }) => {
     try {
       if (!user?.token) {
         throw new Error('Authentication token is missing. Please log in again.');
-      }
-
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/lesson?section_id=${section.section_id}`, {
+      }      const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/lessons?section_id=${section.section_id}`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       });
+
+      // Debug: Log the lessons returned from the API
+      console.log('Fetched lessons from API:', response.data);
 
       const lessonsWithFormattedContent = response.data.map(lesson => ({
         ...lesson,

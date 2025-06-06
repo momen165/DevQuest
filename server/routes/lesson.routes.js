@@ -27,8 +27,15 @@ router.post(
   lessonController.addLesson
 ); // Add a lesson
 
-
 router.get("/lesson", lessonController.getLessons); // This route will handle both section_id and course_id queries
+
+// Admin route to get all lesson fields for a section
+router.get(
+  "/admin/lessons",
+  authenticateToken,
+  requireAuth,
+  lessonController.getAdminLessonsForSection
+); // Admin-specific route with all lesson fields
 
 router.get(
   "/lesson/:lessonId",
