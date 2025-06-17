@@ -1,5 +1,13 @@
 const db = require("../config/database");
 
+/**
+ * Submits a new support ticket or updates an existing open ticket for a user.
+ * @param {object} req - The request object.
+ * @param {string} req.body.message - The user's message for the ticket.
+ * @param {string} req.user.user_id - The ID of the user submitting the ticket.
+ * @param {object} res - The response object.
+ * @returns {Promise<object>} - A promise that resolves with the response.
+ */
 const submitTicket = async (req, res) => {
   const { message } = req.body;
   const userId = req.user.user_id;
@@ -125,6 +133,13 @@ DevQuest Support Team`;
   }
 };
 
+/**
+ * Fetches open support tickets for a specific user.
+ * @param {object} req - The request object.
+ * @param {string} req.user.user_id - The ID of the user requesting the tickets.
+ * @param {object} res - The response object.
+ * @returns {Promise<object>} - A promise that resolves with the response.
+ */
 const getUserTicketsByUserId = async (req, res) => {
   const userId = req.user.user_id;
 
@@ -174,6 +189,13 @@ const getUserTicketsByUserId = async (req, res) => {
   }
 };
 
+/**
+ * Fetches all support tickets (accessible only to admins).
+ * @param {object} req - The request object.
+ * @param {boolean} req.user.admin - Indicates if the requesting user is an admin.
+ * @param {object} res - The response object.
+ * @returns {Promise<object>} - A promise that resolves with the response.
+ */
 const getTickets = async (req, res) => {
   const isAdmin = req.user.admin;
 
@@ -236,6 +258,15 @@ const getTickets = async (req, res) => {
   }
 };
 
+/**
+ * Adds a reply to a support ticket.
+ * @param {object} req - The request object.
+ * @param {string} req.params.ticketId - The ID of the ticket to reply to.
+ * @param {string} req.body.reply - The reply message.
+ * @param {boolean} req.user.admin - Indicates if the requesting user is an admin.
+ * @param {object} res - The response object.
+ * @returns {Promise<object>} - A promise that resolves with the response.
+ */
 const replyToTicket = async (req, res) => {
   const { ticketId } = req.params;
   const { reply } = req.body;
@@ -270,6 +301,13 @@ const replyToTicket = async (req, res) => {
   }
 };
 
+/**
+ * Deletes a support ticket and its associated messages.
+ * @param {object} req - The request object.
+ * @param {string} req.params.ticketId - The ID of the ticket to delete.
+ * @param {object} res - The response object.
+ * @returns {Promise<object>} - A promise that resolves with the response.
+ */
 const deleteTicket = async (req, res) => {
   const { ticketId } = req.params;
 
@@ -297,6 +335,10 @@ const deleteTicket = async (req, res) => {
   }
 };
 
+/**
+ * Closes any support tickets that have expired.
+ * @returns {Promise<void>} - A promise indicating when the process completes.
+ */
 const closeExpiredTickets = async () => {
   try {
     const query = `
@@ -317,6 +359,14 @@ const closeExpiredTickets = async () => {
   }
 };
 
+/**
+ * Closes a specific support ticket for a user.
+ * @param {object} req - The request object.
+ * @param {string} req.params.ticketId - The ID of the ticket to close.
+ * @param {string} req.user.user_id - The ID of the user closing the ticket.
+ * @param {object} res - The response object.
+ * @returns {Promise<object>} - A promise that resolves with the response.
+ */
 const closeTicket = async (req, res) => {
   const { ticketId } = req.params;
   const userId = req.user.user_id;
@@ -357,6 +407,13 @@ const closeTicket = async (req, res) => {
   }
 };
 
+/**
+ * Fetches recent support tickets (accessible only to admins).
+ * @param {object} req - The request object.
+ * @param {boolean} req.user.admin - Indicates if the requesting user is an admin.
+ * @param {object} res - The response object.
+ * @returns {Promise<object>} - A promise that resolves with the response.
+ */
 const getRecentTickets = async (req, res) => {
   const isAdmin = req.user.admin;
 

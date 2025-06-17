@@ -59,6 +59,7 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
 
       try {
         // --- BLOCK 1: Subscription & Core Lesson ---
+        //console.log(`Attempting to fetch lesson ${lessonId} for user ${user?.user_id}`);
 
         const [subscriptionResponse, lessonResponse] = await Promise.all([
           apiClient.get('/check', { headers: { Authorization: `Bearer ${user?.token}` } }),
@@ -66,6 +67,12 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
             headers: { Authorization: `Bearer ${user?.token}` },
           }),
         ]);
+
+        // console.log(`Lesson ${lessonId} fetch response:`, {
+        //   subscriptionStatus: subscriptionResponse.status,
+        //   lessonStatus: lessonResponse.status,
+        //   lessonData: lessonResponse.data ? 'Present' : 'Missing',
+        // });
 
         if (!isMounted) {
           return;
@@ -85,14 +92,26 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
           return;
         }
         if (lessonResponse.status === 403) {
+          console.log(`LESSON ${lessonId} ACCESS DENIED (403):`, lessonResponse.data);
+
           if (lessonResponse.data?.status === 'subscription_required') {
+            console.log(`LESSON ${lessonId}: Subscription required`);
             if (isMounted) navigate('/pricing', { state: { message: 'Subscription required.' } });
             return;
           } else if (lessonResponse.data?.status === 'locked') {
+            // console.log(`LESSON ${lessonId}: Locked - Need to complete previous lessons`);
+            // console.log(`Section ID from locked response:`, lessonResponse.data?.section_id);
+
             const lockedSectionResponse = await apiClient.get(
               `/sections/${lessonResponse.data?.section_id || 0}`,
               { headers: { Authorization: `Bearer ${user?.token}` } }
             );
+
+            console.log(`LESSON ${lessonId}: Locked section response:`, {
+              status: lockedSectionResponse.status,
+              courseId: lockedSectionResponse.data?.course_id,
+            });
+
             if (isMounted) {
               if (lockedSectionResponse.status === 200 && lockedSectionResponse.data?.course_id) {
                 navigate(`/course/${lockedSectionResponse.data.course_id}`, {
@@ -113,6 +132,14 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
         }
 
         const lessonData = lessonResponse.data;
+        // console.log(`LESSON ${lessonId} DATA:`, {
+        //   name: lessonData.name,
+        //   section_id: lessonData.section_id,
+        //   language_id: lessonData.language_id,
+        //   xp: lessonData.xp,
+        //   hasTemplateCode: !!lessonData.template_code,
+        // });
+
         if (isMounted) {
           setLesson(lessonData);
           setLanguageId(lessonData.language_id);
@@ -130,6 +157,17 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
             headers: { Authorization: `Bearer ${user?.token}` },
           }),
         ]);
+
+        // console.log(`LESSON ${lessonId} SECTION & PROGRESS:`, {
+        //   sectionStatus: sectionResponse.status,
+        //   progressStatus: progressResponse.status,
+        //   progress: progressResponse.data
+        //     ? {
+        //         completed: progressResponse.data.completed,
+        //         hasSubmittedCode: !!progressResponse.data.submitted_code,
+        //       }
+        //     : 'No progress data',
+        // });
 
         if (!isMounted) {
           /* ... */ return;
@@ -170,6 +208,7 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
           }
           if (allLessonsDataResponse.status === 200) {
             const allLessons = allLessonsDataResponse.data || [];
+
             setLessonsForNav(allLessons); // Used by LessonPage for LessonNavigation prop
 
             setTotalLessons(allLessons.length);
@@ -188,6 +227,12 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
         }
       } catch (err) {
         console.error(`%cuseLessonData: fetchLesson error:`, 'color: red; font-weight: bold;', err);
+        console.log(`LESSON ${lessonId} ERROR DETAILS:`, {
+          status: err.response?.status,
+          message: err.response?.data?.message || err.message,
+          data: err.response?.data,
+        });
+
         if (isMounted) navigate('/');
       } finally {
         if (isMounted) {

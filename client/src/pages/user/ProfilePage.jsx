@@ -7,6 +7,7 @@ import defaultProfilePic from "../../assets/images/default-profile-pic.png";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import CircularProgress from "./CircularProgress"; // Adjust the path to your CircularProgress component
+import BadgeDisplay from "../../components/BadgeDisplay";
 import {
   calculateLevel,
   calculateLevelProgress,
@@ -18,6 +19,8 @@ function ProfilePage() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [badges, setBadges] = useState([]);
+  const [loadingBadges, setLoadingBadges] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,8 +42,29 @@ function ProfilePage() {
       }
     };
 
+    const fetchUserBadges = async () => {
+      try {
+        setLoadingBadges(true);
+        const badgeResponse = await axios.get(
+          `${import.meta.env.VITE_API_URL}/badges/user`,
+          {
+            headers: { Authorization: `Bearer ${user.token}` },
+          }
+        );
+        
+        if (badgeResponse.data.success && badgeResponse.data.badges) {
+          setBadges(badgeResponse.data.badges);
+        }
+      } catch (err) {
+        console.error("Error fetching badges:", err);
+      } finally {
+        setLoadingBadges(false);
+      }
+    };
+
     if (user && user.user_id) {
       fetchProfileData();
+      fetchUserBadges();
     }
   }, [user]);
 
@@ -238,11 +262,9 @@ function ProfilePage() {
                 </div>
                 <div className={styles.achievementsSection}>
                   <h3 className={styles.sectionTitle}>
-                    Achievements and badges
+                    Achievements and Badges
                   </h3>
-                  <div className={styles.achievementsPlaceholder}>
-                    <p>Achievements coming soon!</p>
-                  </div>
+                  <BadgeDisplay badges={badges} loading={loadingBadges} />
                 </div>
               </div>
             </div>

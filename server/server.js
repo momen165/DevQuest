@@ -18,6 +18,7 @@ const {
   router: paymentRouter,
   webhookHandler,
 } = require("./routes/payment.routes");
+const { createBadgesTable } = require("./models/badge.model");
 
 // Initialize app
 const app = express();
@@ -35,6 +36,13 @@ db.query("SELECT NOW()", (err, result) => {
     process.exit(1);
   } else {
     console.log("Database connected:", result.rows[0].now);
+
+    // Initialize badge tables after database connection is successful
+    createBadgesTable()
+      .then(() => console.log(""))
+      .catch((error) =>
+        console.error("Error initializing badge system:", error)
+      );
   }
 });
 
@@ -153,6 +161,7 @@ const supportRoutes = require("./routes/support.routes");
 const adminRoutes = require("./routes/admin.routes");
 const pageviewRoutes = require("./routes/pageview.routes");
 const performanceRoutes = require("./routes/performance.routes");
+const badgeRoutes = require("./routes/badge.routes");
 
 // Import controllers for public endpoints
 const {
@@ -237,6 +246,7 @@ app.use("/api", supportRoutes);
 app.use("/api", paymentRouter);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", performanceRoutes);
+app.use("/api/badges", badgeRoutes);
 
 // For streak updates, apply the middleware to all routes that need it
 app.use(updateUserStreak);

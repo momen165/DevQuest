@@ -274,10 +274,187 @@ const uploadEditorImage = [
   },
 ];
 
+// Upload badge image (admin only)
+const uploadBadgeImage = [
+  async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user.admin) {
+        return res.status(403).json({ error: "Access denied. Admin only." });
+      }
+
+      const { badgeType } = req.query;
+      if (!badgeType) {
+        return res.status(400).json({ error: "Badge type is required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded." });
+      }
+
+      // Set the folder path and filename
+      const folderPath = `badges/`;
+      const filename = `${badgeType}.png`;
+      const fullKey = `${folderPath}${filename}`;
+
+      // Process the image - badges should be square and PNG with transparency
+      const processedBuffer = await sharp(req.file.buffer)
+        .resize(200, 200)
+        .toFormat("png", { quality: 90 })
+        .toBuffer();
+
+      // Define R2 upload parameters
+      const params = {
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: fullKey,
+        Body: processedBuffer,
+        ContentType: "image/png", // Explicitly set ContentType to PNG
+      };
+
+      // Upload to R2
+      const command = new PutObjectCommand(params);
+      await s3Client.send(command);
+
+      // Direct CDN URL
+      const badgeUrl = `https://cdn.dev-quest.tech/${fullKey}`;
+
+      // Update the badge image in the database if it exists
+      const updateQuery = "UPDATE badges SET image_path = $1 WHERE badge_type = $2";
+      await db.query(updateQuery, [badgeUrl, badgeType]);
+
+      res.status(200).json({
+        message: "Badge image uploaded successfully",
+        badgeUrl,
+        badgeType
+      });
+    } catch (error) {
+      console.error("Error uploading badge image:", error);
+      res.status(500).json({ error: "Failed to upload badge image" });
+    }
+  },
+];
+
+// Upload course image
+const uploadCourseImage = [
+  async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user.admin) {
+        return res.status(403).json({ error: "Access denied. Admin only." });
+      }
+
+      const { courseId } = req.query;
+      if (!courseId) {
+        return res.status(400).json({ error: "Course ID is required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded." });
+      }
+
+      // Set the folder path and filename
+      const folderPath = `course_images/`;
+      const filename = `course_${courseId}.png`;
+      const fullKey = `${folderPath}${filename}`;
+
+      // Process the image for courses
+      const processedBuffer = await sharp(req.file.buffer)
+        .resize(800, 450, { fit: 'cover' }) // 16:9 ratio for courses
+        .toFormat("png", { quality: 90 })
+        .toBuffer();
+
+      // Define R2 upload parameters
+      const params = {
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: fullKey,
+        Body: processedBuffer,
+        ContentType: "image/png",
+      };
+
+      // Upload to R2
+      const command = new PutObjectCommand(params);
+      await s3Client.send(command);
+
+      // Direct CDN URL
+      const imageUrl = `https://cdn.dev-quest.tech/${fullKey}`;
+
+      // Update the course image in the database
+      const updateQuery = "UPDATE course SET image_url = $1 WHERE course_id = $2";
+      await db.query(updateQuery, [imageUrl, courseId]);
+
+      res.status(200).json({
+        message: "Course image uploaded successfully",
+        imageUrl,
+        courseId
+      });
+    } catch (error) {
+      console.error("Error uploading course image:", error);
+      res.status(500).json({ error: "Failed to upload course image" });
+    }
+  },
+];
+
+// Enhanced profile image upload with better error handling
+const uploadProfileImage = [
+  async (req, res) => {
+    try {
+      const userId = req.user.userId;
+
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is missing from the token" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded." });
+      }
+
+      // Set the folder path and filename
+      const folderPath = `user_images/`;
+      const filename = `profile_${userId}.png`;
+      const fullKey = `${folderPath}${filename}`;
+
+      const processedBuffer = await sharp(req.file.buffer)
+        .resize(400, 400, { fit: 'cover' }) // Square profile images
+        .toFormat("png", { quality: 90 })
+        .toBuffer();
+
+      // Define R2 upload parameters
+      const params = {
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: fullKey,
+        Body: processedBuffer,
+        ContentType: "image/png",
+      };
+
+      // Upload to R2
+      const command = new PutObjectCommand(params);
+      await s3Client.send(command);
+
+      // Direct CDN URL
+      const profileImage = `https://cdn.dev-quest.tech/${fullKey}`;
+
+      // Save the URL in the database
+      const query = "UPDATE users SET profileimage = $1 WHERE user_id = $2";
+      await db.query(query, [profileImage, userId]);
+
+      res.status(200).json({
+        message: "Profile image uploaded successfully",
+        profileImage
+      });
+    } catch (error) {
+      console.error("Error uploading profile image:", error);
+      res.status(500).json({ error: "Failed to upload profile image" });
+    }
+  },
+];
+
 module.exports = {
   testRoute,
   uploadFile,
   uploadProfilePic,
   removeProfilePic,
   uploadEditorImage,
+  uploadProfileImage,
+  uploadCourseImage,
+  uploadBadgeImage,
 };

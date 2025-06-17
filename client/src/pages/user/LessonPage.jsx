@@ -7,6 +7,7 @@ import LessonContent from '../../components/LessonContent';
 import MonacoEditorComponent from '../../components/MonacoEditorComponent';
 import LoadingSpinner from './CircularProgress';
 import CopyNotification from '../../components/CopyNotification';
+import BadgeNotification from '../../components/BadgeNotification';
 import { languageMappings as LSLanguageMappings } from '../../utils/lessonConstants';
 import { useLessonData } from '../../hooks/useLessonData';
 import { useResizablePanes } from '../../hooks/useResizablePanes';
@@ -19,16 +20,16 @@ const LessonPage = () => {
   const navigate = useNavigate();
 
   const [lessonDataRefreshTrigger, setLessonDataRefreshTrigger] = useState(0);
+  const [earnedBadge, setEarnedBadge] = useState(null);
 
   const {
     lesson,
     loading: lessonLoading,
     error: lessonError,
     languageId: lessonLanguageId,
-    lessonsForNav, // Restored: from useLessonData
-    sectionsForNav, // Restored: from useLessonData
+    lessonsForNav,
+    sectionsForNav,
     initialCode,
-    // courseIdForNav, // LessonNavigation will get its own courseId if needed
     currentLessonProgress 
   } = useLessonData(lessonId, !authLoading && user ? user : null, navigate, lessonDataRefreshTrigger);
 
@@ -41,7 +42,7 @@ const LessonPage = () => {
 
   const [code, setCode] = useState('');
   const [consoleOutput, setConsoleOutput] = useState('Output will appear here...');
-  const [isAnswerCorrect, setIsAnswerCorrect] = useState(false); // Used by original LessonNavigation
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
   const [showCopyNotification, setShowCopyNotification] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
 
@@ -51,26 +52,64 @@ const LessonPage = () => {
     }
   }, [initialCode]);
 
-  const resetState = () => { // This is the onNext callback for LessonNavigation
+  const resetState = () => {
     setConsoleOutput('Output will appear here...');
     setIsAnswerCorrect(false);
-    // Potentially trigger a refresh if needed, or rely on lessonId change
-    // setLessonDataRefreshTrigger(prev => prev + 1); // Consider if this is needed onNext
   };
 
   const showCopiedNotification = () => {
     setShowCopyNotification(true);
     setTimeout(() => setShowCopyNotification(false), 2000);
   };
-  const handleCodeResult = (success) => {
+  
+  const handleCodeResult = (success, resultData) => {
     if (!success) {
       setFailedAttempts((prev) => prev + 1);
+    } else if (resultData?.badge_awarded) {
+      // Show badge notification when a badge is awarded
+      setEarnedBadge({
+        badge_type: resultData.badge_awarded.badge_type,
+        name: getBadgeName(resultData.badge_awarded.badge_type),
+        description: getBadgeDescription(resultData.badge_awarded.badge_type),
+        image_path: getBadgeImagePath(resultData.badge_awarded.badge_type)
+      });
     }
-  };  const handleRequestProgressRefresh = () => {
+  };  
+  
+  const handleRequestProgressRefresh = () => {
     setLessonDataRefreshTrigger(prev => prev + 1);
   };
 
-  // handleMarkLessonAsComplete is not needed if LessonNavigation handles its own completion update via API
+  // Helper functions to get badge info
+  const getBadgeName = (badgeType) => {
+    const badgeNames = {
+      'code_novice': 'Code Novice',
+      'lesson_smasher': 'Lesson Smasher',
+      'language_explorer': 'Language Explorer',
+      'streak_master': 'Streak Master',
+      'xp_achiever': '100 XP Achieved'
+    };
+    return badgeNames[badgeType] || 'Achievement';
+  };
+
+  const getBadgeDescription = (badgeType) => {
+    const badgeDescriptions = {
+      'code_novice': 'Unlocked after submitting your first code',
+      'lesson_smasher': 'Unlocked after completing 10 lessons successfully',
+      'language_explorer': 'Unlocked after using 3 different programming languages',
+      'streak_master': 'Unlocked after maintaining a 7-day learning streak',
+      'xp_achiever': 'Unlocked after reaching 100 XP'
+    };
+    return badgeDescriptions[badgeType] || 'You achieved something special!';
+  };
+
+  const getBadgeImagePath = (badgeType) => {
+    return `https://cdn.dev-quest.tech/badges/${badgeType}.png`;
+  };
+
+  const handleCloseBadgeNotification = () => {
+    setEarnedBadge(null);
+  };
   
   if (authLoading || lessonLoading) {
     return (
@@ -121,7 +160,7 @@ const LessonPage = () => {
             hint={lesson.hint}
             solution={lesson.solution}
             failedAttempts={failedAttempts}
-            currentLessonProgress={currentLessonProgress} // Pass progress to LessonContent
+            currentLessonProgress={currentLessonProgress}
             onRequestProgressRefresh={handleRequestProgressRefresh}
           />
         </div>
@@ -160,20 +199,28 @@ const LessonPage = () => {
 
       <LessonNavigation
         currentLessonId={parseInt(lessonId)}
-        lessons={lessonsForNav} // Pass lessonsForNav from useLessonData
-        sections={sectionsForNav} // Pass sectionsForNav from useLessonData
+        lessons={lessonsForNav}
+        sections={sectionsForNav}
         isAnswerCorrect={isAnswerCorrect}
         onNext={resetState}
         code={code}
         currentSectionId={lesson.section_id} 
         lessonXp={lesson.xp}
-        currentLessonProgress={currentLessonProgress} // Pass progress to LessonNavigation
+        currentLessonProgress={currentLessonProgress}
       />
+      
       {showCopyNotification && (
         <CopyNotification>
           <span>✓</span>
           <span>Copied!</span>
         </CopyNotification>
+      )}
+      
+      {earnedBadge && (
+        <BadgeNotification 
+          badge={earnedBadge} 
+          onClose={handleCloseBadgeNotification} 
+        />
       )}
     </>
   );

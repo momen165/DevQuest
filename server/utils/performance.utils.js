@@ -261,7 +261,7 @@ const trackDatabaseQuery = (queryType, queryTime, success, queryText = "") => {
   // Log slow queries
   if (queryTime > 100) {
     console.warn(
-      `🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms\nQuery: ${queryText}`
+      //`🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms\nQuery: ${queryText}`
     );
   }
 };

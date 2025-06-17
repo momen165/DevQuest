@@ -311,9 +311,41 @@ const LessonNavigation = ({
   };
 
   const isLessonAccessible = (sectionIndex, lessonIndex) => {
+    // First lesson in any section is always accessible
     if (lessonIndex === 0) return true;
+    
+    // Get the section
     const section = menuSections[sectionIndex];
-    return section.lessons[lessonIndex - 1].completed;
+    if (!section || !section.lessons) {
+      console.error('Invalid section data in isLessonAccessible:', { sectionIndex, section });
+      return false;
+    }
+    
+    // Get the previous lesson in this section
+    const prevLesson = section.lessons[lessonIndex - 1];
+    if (!prevLesson) {
+      console.error('Previous lesson not found:', { 
+        sectionIndex, 
+        lessonIndex, 
+        sectionLessonsCount: section.lessons.length 
+      });
+      return false;
+    }
+    
+    // First section's lessons are accessible if previous lesson is completed
+    if (sectionIndex === 0) {
+      return prevLesson.completed;
+    }
+    
+    // For other sections, check if previous lesson is completed
+    // If not, check if all lessons in previous section are completed
+    if (!prevLesson.completed) {
+      // Check if all lessons in the previous section are completed
+      // This is a simplified check - the server will do the full validation
+      return false;
+    }
+    
+    return prevLesson.completed;
   };
 
   useEffect(() => {

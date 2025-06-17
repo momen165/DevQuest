@@ -1,4 +1,5 @@
 ﻿const db = require("../config/database");
+const badgeController = require("../controllers/badge.controller");
 
 const updateUserStreak = async (req, res, next) => {
   if (!req.user) {
@@ -82,6 +83,22 @@ const updateUserStreak = async (req, res, next) => {
         newLastVisit: updateResult.rows[0].last_visit,
         newLastStreakUpdate: updateResult.rows[0].last_streak_update,
       });
+
+      // Check for Streak Master badge if streak reaches or exceeds 7 days
+      if (newStreak >= 7) {
+        try {
+          const badgeAwarded = await badgeController.checkAndAwardBadges(userId, 'streak_update', {
+            streakDays: newStreak
+          });
+          
+          if (badgeAwarded && badgeAwarded.awarded) {
+            console.log(`[Badge] User ${userId} earned the Streak Master badge for ${newStreak} day streak`);
+          }
+        } catch (badgeError) {
+          console.error('[Badge Error] Error while checking streak badge:', badgeError);
+          // Don't throw the error, just log it to avoid disrupting the user experience
+        }
+      }
     }
 
     next();

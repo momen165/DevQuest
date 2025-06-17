@@ -101,7 +101,7 @@ const MonacoEditorComponent = ({
     try {
       setIsRunning(true);
       setCooldown(true);
-      // console.log('Running code...');
+      console.log('Running code for lesson ID:', lessonId);
       setConsoleOutput(<CircularProgress />);
 
       if (!languageId) {
@@ -123,7 +123,11 @@ const MonacoEditorComponent = ({
         languageId,
       };
 
-      // console.log('Sending request to run code with payload:', payload);
+      console.log('Sending request to run code with payload:', {
+        lessonId: parseInt(lessonId, 10),
+        languageId,
+        codeLength: code.length
+      });
 
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/run?base64_encoded=true`,
@@ -135,10 +139,15 @@ const MonacoEditorComponent = ({
           },
         }
       );
-      // console.log('sent request to run code with payload:', payload);
-      // console.log('Received response from server:', response.data);
+      
+      console.log('Code execution response:', {
+        status: response.status,
+        success: response.data.success,
+        badge_awarded: response.data.badge_awarded,
+        resultsCount: response.data.results?.length
+      });
 
-      const { results, success } = response.data;
+      const { results, success, badge_awarded } = response.data;
       if (!results || results.length === 0) {
         setConsoleOutput('No results received from the server.');
         return;
@@ -148,6 +157,14 @@ const MonacoEditorComponent = ({
       let allPassed = true;
       // Check if any test case has auto_detect enabled
       const isAutoDetect = results.some((testCase) => testCase.auto_detect);
+
+      // Log test case results
+      console.log('Test case results:', results.map(r => ({ 
+        status: r.status, 
+        auto_detect: r.auto_detect,
+        use_pattern: r.use_pattern,
+        error: r.error
+      })));
 
       results.forEach((testCase, index) => {
         const { input, expected_output, actual_output, status, auto_detect, use_pattern, error } =
@@ -186,16 +203,31 @@ const MonacoEditorComponent = ({
 
       if (allPassed) {
         output += '✅ All validations passed!\n';
+        console.log(`LESSON ${lessonId} COMPLETION: All tests passed, marking as complete`);
+        
+        // If a badge was awarded, add that to the output
+        if (badge_awarded) {
+          output += '\n🎖️ Achievement unlocked: ' + 
+            (badge_awarded.badge_type === 'code_novice' ? 'Code Novice' :
+             badge_awarded.badge_type === 'lesson_smasher' ? 'Lesson Smasher' :
+             badge_awarded.badge_type === 'language_explorer' ? 'Language Explorer' :
+             badge_awarded.badge_type === 'streak_master' ? 'Streak Master' :
+             badge_awarded.badge_type === 'xp_achiever' ? '100 XP Achieved' :
+             'New Badge') + '!\n';
+        }
       } else {
         output += '❌ Validation failed. Please check the requirements and try again.';
+        console.log(`LESSON ${lessonId} COMPLETION: Tests failed, not marking as complete`);
       }
 
       setConsoleOutput(output);
       setIsAnswerCorrect(success);
+      console.log(`LESSON ${lessonId} COMPLETION: setIsAnswerCorrect(${success})`);
 
-      // Call onCodeResult with the success status
+      // Call onCodeResult with the success status and response data
       if (onCodeResult) {
-        onCodeResult(success);
+        console.log(`LESSON ${lessonId} COMPLETION: Calling onCodeResult(${success})`);
+        onCodeResult(success, response.data);
       }
     } catch (err) {
       console.error('Error running code:', err.response?.data || err.message);
@@ -229,9 +261,11 @@ const MonacoEditorComponent = ({
       }
 
       setConsoleOutput(errorMessage);
+      console.log(`LESSON ${lessonId} ERROR: Failed to run code`);
 
       // Also call onCodeResult with false on error
       if (onCodeResult) {
+        console.log(`LESSON ${lessonId} ERROR: Calling onCodeResult(false)`);
         onCodeResult(false);
       }
     } finally {

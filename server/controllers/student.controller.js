@@ -3,6 +3,7 @@ const {
   calculateLevel,
   calculateXPToNextLevel,
 } = require("../utils/xpCalculator");
+const badgeController = require("../controllers/badge.controller");
 
 // Fetch all students
 const getAllStudents = async (req, res) => {
@@ -307,35 +308,63 @@ const getProgressByUserId = async (req, res) => {
   }
 };
 
+// Check for XP badges when student stats are retrieved
+const checkXPBadges = async (userId, totalXP) => {
+  try {
+    if (totalXP >= 100) {
+      const badgeAwarded = await badgeController.checkAndAwardBadges(userId, 'xp_update', { totalXp: totalXP });
+      return badgeAwarded;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error checking XP badges:', error);
+    return null;
+  }
+};
+
+// Get student stats with badge checks
 const getStudentStats = async (req, res) => {
-  const { userId } = req.params;
+  const userId = req.user.userId;
 
   try {
-    const query = `
-            SELECT 
-                COALESCE(SUM(l.xp), 0) as totalXP,
-                COUNT(DISTINCT lp.lesson_id) as exercisesCompleted
-            FROM lesson_progress lp
-            LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
-            WHERE lp.user_id = $1 AND lp.completed = true
-        `;
-    const result = await db.query(query, [userId]);
+    // Optimized query to get student stats in a single database call
+    const statsQuery = `
+      SELECT
+        COALESCE(SUM(l.xp), 0) as totalXP,
+        COUNT(DISTINCT lp.lesson_id) as completed_exercises,
+        COUNT(DISTINCT lp.course_id) as courses_interacted,
+        MAX(lp.completed_at) as last_activity
+      FROM lesson_progress lp
+      JOIN lesson l ON lp.lesson_id = l.lesson_id
+      WHERE lp.user_id = $1 AND lp.completed = true;
+    `;
+
+    const { rows } = await db.query(statsQuery, [userId]);
+    const stats = rows[0];
 
     // Calculate level based on total XP
-    const stats = result.rows[0];
     const totalXP = parseInt(stats.totalxp) || 0;
     const level = calculateLevel(totalXP);
     const xpToNextLevel = calculateXPToNextLevel(totalXP);
+    
+    // Check XP badges
+    let badgeAwarded = null;
+    if (totalXP >= 100) {
+      badgeAwarded = await checkXPBadges(userId, totalXP);
+    }
 
-    res.json({
+    res.status(200).json({
       totalXP,
-      exercisesCompleted: parseInt(stats.exercisescompleted) || 0,
       level,
       xpToNextLevel,
+      completedExercises: parseInt(stats.completed_exercises) || 0,
+      coursesInteracted: parseInt(stats.courses_interacted) || 0,
+      lastActivity: stats.last_activity,
+      badgeAwarded
     });
-  } catch (err) {
-    console.error("Error fetching student stats:", err);
-    res.status(500).json({ error: "Failed to fetch student statistics" });
+  } catch (error) {
+    console.error("Error fetching student stats:", error);
+    res.status(500).json({ error: "Failed to retrieve student statistics" });
   }
 };
 

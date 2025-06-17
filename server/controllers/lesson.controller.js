@@ -93,20 +93,35 @@ const addLesson = asyncHandler(async (req, res) => {
 // Fix existing lesson orders
 const fixLessonOrders = asyncHandler(async (req, res) => {
   const sections = await lessonQueries.getAllSections();
+  let fixedCount = 0;
 
-  for (const section of sections.rows) {
+  // Get all sections ordered by section_order
+  const orderedSectionsQuery = `
+    SELECT section_id, name
+    FROM section
+    ORDER BY section_order ASC
+  `;
+  const orderedSections = await db.query(orderedSectionsQuery);
+
+  for (const section of orderedSections.rows) {
     const lessons = await lessonQueries.getLessonsBySectionForOrdering(
       section.section_id
     );
 
     for (let i = 0; i < lessons.rows.length; i++) {
       await lessonQueries.updateLessonOrder(lessons.rows[i].lesson_id, i);
+      fixedCount++;
     }
   }
 
-  res.status(200).json({ message: "Lesson orders fixed successfully" });
   // Invalidate all lesson caches after fixing orders
   lessonsCache.flushAll();
+
+  res.status(200).json({
+    message: "Lesson orders fixed successfully",
+    fixedCount: fixedCount,
+    sectionsProcessed: orderedSections.rows.length,
+  });
 });
 
 // Get all lessons for a specific section
@@ -241,10 +256,14 @@ const getLessonById = asyncHandler(async (req, res) => {
   `;
 
   const sectionLessonsQuery = `
-    SELECT lesson_id, lesson_order, completed
-    FROM section_lesson_progress
-    WHERE section_id = $2 AND (user_id = $1 OR user_id IS NULL)
-    ORDER BY lesson_order ASC
+    SELECT 
+      l.lesson_id, 
+      l.lesson_order,
+      COALESCE(lp.completed, false) as completed
+    FROM lesson l
+    LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
+    WHERE l.section_id = $2
+    ORDER BY l.lesson_order ASC
   `;
 
   try {
@@ -308,6 +327,13 @@ const getLessonById = asyncHandler(async (req, res) => {
 
         // If the previous lesson is not completed, check if this is the first section
         if (!previousLessonCompleted) {
+          // Add debugging information
+          console.log(
+            `Lesson ${lessonId} access denied: Previous lesson (ID: ${
+              sectionLessons.rows[currentLessonIndex - 1].lesson_id
+            }) not completed`
+          );
+
           const sectionsQuery = `
             SELECT s.section_id, s.section_order 
             FROM section s
@@ -339,7 +365,7 @@ const getLessonById = asyncHandler(async (req, res) => {
               const prevSectionId =
                 sectionsResult.rows[prevSectionIndex].section_id;
 
-              // Check if all lessons in the previous section are completed
+              // Check if all lessons in the previous section are completed using the new function
               const prevSectionLessonsQuery = `
                 SELECT COUNT(*) as total,
                        SUM(CASE WHEN lp.completed = true THEN 1 ELSE 0 END) as completed
@@ -359,6 +385,24 @@ const getLessonById = asyncHandler(async (req, res) => {
               );
 
               if (totalLessons > 0 && completedLessons < totalLessons) {
+                return res.status(403).json({
+                  status: "locked",
+                  message:
+                    "You need to complete all lessons in the previous section first.",
+                });
+              }
+
+              // Check if all lessons in the previous section are completed using the new function
+              const prevSectionCompletion =
+                await lessonQueries.checkSectionCompletion(
+                  userId,
+                  prevSectionId
+                );
+
+              if (!prevSectionCompletion.allCompleted) {
+                console.log(
+                  `Lesson ${lessonId} access denied: Not all lessons in previous section (ID: ${prevSectionId}) are completed. Completed: ${prevSectionCompletion.completed}/${prevSectionCompletion.total}`
+                );
                 return res.status(403).json({
                   status: "locked",
                   message:
@@ -529,16 +573,36 @@ const reorderLessons = asyncHandler(async (req, res) => {
     );
     await client.query("COMMIT");
 
+    // Get course_id if not provided but section_id is
+    let courseIdToInvalidate = course_id;
+    if (!courseIdToInvalidate && section_id) {
+      const courseResult = await lessonQueries.getCourseIdFromSection(
+        section_id
+      );
+      if (courseResult.rows.length > 0) {
+        courseIdToInvalidate = courseResult.rows[0].course_id;
+      }
+    }
+
     // Invalidate relevant caches after reordering lessons
-    if (course_id) {
-      lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `course_${course_id}`);
+    if (courseIdToInvalidate) {
+      lessonsCache.del(
+        LESSONS_CACHE_KEY_PREFIX + `course_${courseIdToInvalidate}`
+      );
     }
     if (section_id) {
       lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `section_${section_id}`);
     }
 
+    // Log the reordering action
+    await logActivity(
+      "lessons_reordered",
+      `Admin (ID: ${req.user.user_id}) reordered ${lessons.length} lessons in section ID ${section_id}`,
+      parseInt(req.user.user_id)
+    );
+
     setCacheHeaders(res, { noStore: true });
-    res.json({ success: true });
+    res.json({ success: true, lessons_updated: lessons.length });
   } catch (err) {
     await client.query("ROLLBACK");
     throw err;
@@ -651,6 +715,102 @@ const getLastAccessedLesson = async (userId, courseId) => {
   return result.rows[0] || null;
 };
 
+// Check lesson ordering integrity
+const checkLessonOrderIntegrity = asyncHandler(async (req, res) => {
+  if (!req.user.admin) {
+    throw new AppError("Access denied. Admins only.", 403);
+  }
+
+  const { course_id } = req.query;
+
+  if (!course_id) {
+    throw new AppError("course_id is required.", 400);
+  }
+
+  try {
+    // Get all sections for the course
+    const sectionsQuery = `
+      SELECT section_id, name, section_order
+      FROM section
+      WHERE course_id = $1
+      ORDER BY section_order ASC
+    `;
+    const sections = await db.query(sectionsQuery, [course_id]);
+
+    const result = {
+      course_id: parseInt(course_id),
+      sections_count: sections.rows.length,
+      sections: [],
+      issues_found: 0,
+    };
+
+    // Check each section
+    for (const section of sections.rows) {
+      const lessonsQuery = `
+        SELECT lesson_id, name, lesson_order
+        FROM lesson
+        WHERE section_id = $1
+        ORDER BY lesson_order ASC
+      `;
+      const lessons = await db.query(lessonsQuery, [section.section_id]);
+
+      const sectionResult = {
+        section_id: section.section_id,
+        name: section.name,
+        lessons_count: lessons.rows.length,
+        issues: [],
+      };
+
+      // Check for gaps or duplicates in lesson_order
+      const orderValues = lessons.rows.map((l) => l.lesson_order);
+
+      if (orderValues.length > 0) {
+        const min = Math.min(...orderValues);
+        const max = Math.max(...orderValues);
+
+        // Check for duplicates
+        const duplicates = orderValues.filter(
+          (value, index, self) => self.indexOf(value) !== index
+        );
+
+        // Check for gaps
+        const gaps = [];
+        for (let i = min; i < max; i++) {
+          if (!orderValues.includes(i)) {
+            gaps.push(i);
+          }
+        }
+
+        if (duplicates.length > 0) {
+          sectionResult.issues.push({
+            type: "duplicate_orders",
+            values: duplicates,
+          });
+          result.issues_found += duplicates.length;
+        }
+
+        if (gaps.length > 0) {
+          sectionResult.issues.push({
+            type: "order_gaps",
+            values: gaps,
+          });
+          result.issues_found += gaps.length;
+        }
+      }
+
+      result.sections.push(sectionResult);
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error checking lesson order integrity:", error);
+    throw new AppError(
+      `Failed to check lesson order integrity: ${error.message}`,
+      500
+    );
+  }
+});
+
 module.exports = {
   addLesson,
   getLessonsBySection,
@@ -665,5 +825,6 @@ module.exports = {
   fixLessonOrders,
   unlockHint,
   unlockSolution,
-  getAdminLessonsForSection, // Expose admin-specific method
+  getAdminLessonsForSection,
+  checkLessonOrderIntegrity,
 };

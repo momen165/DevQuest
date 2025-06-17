@@ -10,10 +10,10 @@ const unlockHint = async (user_id, lesson_id) => {
     // Need course_id for insert
     // In unlockHint and unlockSolution functions, replace the courseRes query with:
     const courseRes = await db.query(
-        `SELECT course_id FROM section_course_info WHERE section_id = (
+      `SELECT course_id FROM section_course_info WHERE section_id = (
           SELECT section_id FROM lesson WHERE lesson_id = $1
         )`,
-        [lesson_id]
+      [lesson_id]
     );
     const course_id = courseRes.rows[0]?.course_id;
     if (!course_id) throw new Error("Course not found for lesson");
@@ -373,7 +373,7 @@ const lessonQueries = {
       SELECT lesson_id 
       FROM lesson 
       WHERE section_id = $1 
-      ORDER BY lesson_id ASC
+      ORDER BY lesson_order ASC
     `;
     return db.query(query, [section_id]);
   },
@@ -413,6 +413,28 @@ const lessonQueries = {
       AND e.course_id = $1
     `;
     return db.query(query, [course_id]);
+  },
+
+  // Check if all lessons in a section are completed by a user
+  checkSectionCompletion: async (user_id, section_id) => {
+    const query = `
+      SELECT 
+        COUNT(*) AS total_lessons,
+        SUM(CASE WHEN lp.completed = true THEN 1 ELSE 0 END) AS completed_lessons
+      FROM lesson l
+      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
+      WHERE l.section_id = $2
+    `;
+
+    const result = await db.query(query, [user_id, section_id]);
+    const totalLessons = parseInt(result.rows[0].total_lessons);
+    const completedLessons = parseInt(result.rows[0].completed_lessons || 0);
+
+    return {
+      total: totalLessons,
+      completed: completedLessons,
+      allCompleted: totalLessons > 0 && completedLessons === totalLessons,
+    };
   },
 };
 

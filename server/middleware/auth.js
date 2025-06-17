@@ -22,7 +22,7 @@ const authenticateToken = async (req, res, next) => {
       return req.path.includes(route) || lastPathPart === route;
     })
   ) {
-    console.log(`Public route detected: ${req.path}`);
+    //console.log(`Public route detected: ${req.path}`);
     return next(); // Skip authentication for public routes
   }
 
@@ -78,7 +78,7 @@ const requireAuth = (req, res, next) => {
       return req.path.includes(route) || lastPathPart === route;
     })
   ) {
-    console.log(`Public route skipping auth check: ${req.path}`);
+   // console.log(`Public route skipping auth check: ${req.path}`);
     return next();
   }
 

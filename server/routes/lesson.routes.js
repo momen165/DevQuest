@@ -84,6 +84,14 @@ router.post(
   lessonController.fixLessonOrders
 );
 
+// Add route for checking lesson order integrity
+router.get(
+  "/admin/lesson-order-integrity",
+  authenticateToken,
+  requireAuth,
+  lessonController.checkLessonOrderIntegrity
+);
+
 router.get(
   "/lessons/section/:sectionId/progress",
   authenticateToken,

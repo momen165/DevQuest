@@ -3,6 +3,8 @@ const db = require("../config/database");
 const { Buffer } = require("buffer");
 const NodeCache = require("node-cache");
 const rateLimit = require("express-rate-limit");
+const lessonQueries = require("../models/lesson.model");
+const badgeController = require("../controllers/badge.controller");
 //YygtxMr4Uud43e6NrsWjntszH8rUF95n
 // Configuration
 const CONFIG = {
@@ -244,6 +246,7 @@ const handleAsync = (fn) => async (req, res) => {
 // Main controller functions
 const runCode = handleAsync(async (req, res) => {
   let { code, lessonId } = req.body;
+  const userId = req.user.userId; // Get the user ID from the request
 
   if (!code || !lessonId) {
     return res.status(400).json({ error: "Code and lessonId are required." });
@@ -352,12 +355,95 @@ const runCode = handleAsync(async (req, res) => {
     // Check if all test cases passed their respective validations
     const allPassed = results.every((result) => result.status === "Passed");
 
+    // Get course ID for the lesson
+    const courseResult = await db.query(
+      `SELECT s.course_id 
+       FROM section s
+       JOIN lesson l ON s.section_id = l.section_id
+       WHERE l.lesson_id = $1`,
+      [lessonId]
+    );
+    const courseId = courseResult.rows[0]?.course_id;
+
+    // If all tests passed, update lesson progress and check badge eligibility
+    let badgeAwarded = null;
+    if (allPassed) {
+      // First, check if the lesson was already completed
+      const progressResult = await lessonQueries.getLessonProgress(userId, lessonId);
+      
+      if (progressResult.rows.length === 0) {
+        // This is the first completion - insert progress record
+        await lessonQueries.insertLessonProgress(
+          userId,
+          lessonId,
+          true,
+          new Date(),
+          courseId,
+          code
+        );
+        
+        // Check for Code Novice badge (first code submission)
+        badgeAwarded = await badgeController.checkAndAwardBadges(userId, 'code_submission');
+      } else if (!progressResult.rows[0].completed) {
+        // Update existing progress record
+        await lessonQueries.updateLessonProgress(
+          userId,
+          lessonId,
+          true,
+          new Date(),
+          code
+        );
+      }
+
+      // Recalculate progress for the course
+      await lessonQueries.recalculateProgressForCourse(courseId);
+
+      // Get the count of completed lessons for the user
+      const completedLessonsResult = await lessonQueries.getCompletedLessonsCount(userId, courseId);
+      const completedLessonsCount = parseInt(completedLessonsResult.rows[0].completed_lessons || 0);
+
+      // Check for Lesson Smasher badge (10 completed lessons)
+      if (completedLessonsCount >= 10) {
+        const lessonSmasherBadge = await badgeController.checkAndAwardBadges(userId, 'lesson_completed', {
+          completedLessonsCount
+        });
+        
+        if (lessonSmasherBadge && lessonSmasherBadge.awarded) {
+          badgeAwarded = lessonSmasherBadge;
+        }
+      }
+
+      // Check for Language Explorer badge
+      const languagesResult = await db.query(
+        `SELECT COUNT(DISTINCT c.language_id) as unique_languages
+         FROM lesson_progress lp
+         JOIN lesson l ON lp.lesson_id = l.lesson_id
+         JOIN section s ON l.section_id = s.section_id
+         JOIN course c ON s.course_id = c.course_id
+         WHERE lp.user_id = $1 AND lp.completed = true`,
+        [userId]
+      );
+      
+      const uniqueLanguagesCount = parseInt(languagesResult.rows[0].unique_languages || 0);
+      
+      if (uniqueLanguagesCount >= 3) {
+        const languageExplorerBadge = await badgeController.checkAndAwardBadges(userId, 'language_used', {
+          uniqueLanguagesCount
+        });
+        
+        if (languageExplorerBadge && languageExplorerBadge.awarded && !badgeAwarded) {
+          badgeAwarded = languageExplorerBadge;
+        }
+      }
+    }
+
     res.json({
       results,
       success: allPassed,
       message: allPassed ? "All test cases passed!" : "Some test cases failed.",
       execution_successful: true,
       validation_passed: allPassed,
+      badge_awarded: badgeAwarded
     });
   } catch (error) {
     console.error("Error running code:", error);
