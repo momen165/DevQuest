@@ -253,7 +253,10 @@ const login = handleAsync(async (req, res) => {
 
   // Cache user existence after login
   if (userResult.rows.length > 0) {
-    userExistenceCache.set(USER_EXISTENCE_CACHE_KEY_PREFIX + userResult.rows[0].user_id, true);
+    userExistenceCache.set(
+      USER_EXISTENCE_CACHE_KEY_PREFIX + userResult.rows[0].user_id,
+      true
+    );
   }
 
   if (userResult.rows.length === 0) {
@@ -422,6 +425,29 @@ const updateProfile = handleAsync(async (req, res) => {
       admin: isAdmin,
     });
 
+    // After updating user profile, check if all required fields are filled for Profile Complete badge
+    try {
+      const allFieldsFilled = !!(
+        updatedUser.name &&
+        updatedUser.country &&
+        updatedUser.bio &&
+        updatedUser.skills &&
+        updatedUser.profileimage
+      );
+      if (allFieldsFilled) {
+        await require("../controllers/badge.controller").checkAndAwardBadges(
+          req.user.userId,
+          "profile_complete",
+          { profileComplete: true }
+        );
+      }
+    } catch (badgeErr) {
+      console.error(
+        "[Profile Badge] Error checking/awarding profile complete badge:",
+        badgeErr
+      );
+    }
+
     res.status(200).json({
       message: "Profile updated successfully",
       token: accessToken,
@@ -561,7 +587,9 @@ const checkAuth = handleAsync(async (req, res) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const [userResult, adminResult] = await Promise.all([
     db.query("SELECT 1 FROM users WHERE user_id = $1", [decoded.userId]),
-    db.query("SELECT 1 FROM admin_lookup WHERE admin_id = $1", [decoded.userId]),
+    db.query("SELECT 1 FROM admin_lookup WHERE admin_id = $1", [
+      decoded.userId,
+    ]),
   ]);
 
   if (userResult.rows.length === 0) {

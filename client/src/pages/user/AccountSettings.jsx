@@ -9,6 +9,7 @@ import { useAuth } from "../../AuthContext";
 import "../../styles/AccountSettings.css";
 import defaultProfilePic from "../../assets/images/default-profile-pic.png";
 import { FaCamera } from "react-icons/fa";
+import BadgeNotification from "../../components/BadgeNotification";
 
 function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -19,6 +20,30 @@ function ProfilePage() {
   const [bio, setBio] = useState("");
   const [skills, setSkills] = useState("");
   const [newSkill, setNewSkill] = useState("");
+
+  // Badge notification state
+  const [showBadgeNotification, setShowBadgeNotification] = useState(false);
+  const [profileCompleteBadge, setProfileCompleteBadge] = useState(null);
+  const [badgesBefore, setBadgesBefore] = useState([]);
+
+  // Fetch badges before profile update
+  useEffect(() => {
+    const fetchBadges = async () => {
+      if (user && user.token) {
+        try {
+          const res = await axios.get(`${import.meta.env.VITE_API_URL}/badges/user`, {
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
+          if (res.data.success && Array.isArray(res.data.badges)) {
+            setBadgesBefore(res.data.badges);
+          }
+        } catch (err) {
+          // Optionally handle error
+        }
+      }
+    };
+    fetchBadges();
+  }, [user]);
 
   useEffect(() => {
     if (!user || !user.token) {
@@ -106,12 +131,13 @@ function ProfilePage() {
 
   const handleSaveChanges = async (e) => {
     e.preventDefault();
-
     try {
       const skillsArray = skills
         .split(",")
         .map((skill) => skill.trim())
         .filter((skill) => skill !== "");
+
+      console.log("[DEBUG] badgesBefore:", badgesBefore);
 
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/update-profile`,
@@ -126,10 +152,28 @@ function ProfilePage() {
             Authorization: `Bearer ${user.token}`,
           },
         },
-      );      const updatedUser = { ...user, name, country, bio, skills: skillsArray };
+      );
+      const updatedUser = { ...user, name, country, bio, skills: skillsArray };
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
       toast.success("Profile updated successfully");
+
+      // Fetch badges after update
+      const badgeRes = await axios.get(`${import.meta.env.VITE_API_URL}/badges/user`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (badgeRes.data.success && Array.isArray(badgeRes.data.badges)) {
+        const badgesAfter = badgeRes.data.badges;
+        console.log("[DEBUG] badgesAfter:", badgesAfter);
+        const hadProfileComplete = badgesBefore.some(b => b.badge_type === "profile_complete");
+        const newProfileBadge = badgesAfter.find(b => b.badge_type === "profile_complete");
+        console.log("[DEBUG] hadProfileComplete:", hadProfileComplete, "newProfileBadge:", newProfileBadge);
+        if (!hadProfileComplete && newProfileBadge) {
+          console.log("[DEBUG] Triggering BadgeNotification for profile_complete");
+          setProfileCompleteBadge(newProfileBadge);
+          setShowBadgeNotification(true);
+        }
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error(
@@ -142,6 +186,12 @@ function ProfilePage() {
   return (
     <>
       <Navbar />
+      {showBadgeNotification && profileCompleteBadge && (
+        <BadgeNotification
+          badge={profileCompleteBadge}
+          onClose={() => setShowBadgeNotification(false)}
+        />
+      )}
       <div className="account-settings-profile-page">
         <Sidebar activeLink="profile" />
 
@@ -287,7 +337,7 @@ function ProfilePage() {
                   placeholder="Add a skill..."
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyPress={(e) => {
+                  onKeyDown={(e) => {
                     if (e.key === "Enter" && newSkill.trim()) {
                       setSkills(skills ? `${skills}, ${newSkill}` : newSkill);
                       setNewSkill("");

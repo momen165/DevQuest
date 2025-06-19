@@ -698,6 +698,59 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     console.error("[XP Badge] Error checking/awarding XP badge:", badgeErr);
   }
 
+  // --- BADGE LOGIC: Perfectionist ---
+  try {
+    // Check if user completed all lessons in the course (Perfectionist)
+    if (completed && completedLessons === totalLessons && totalLessons > 0) {
+      await require("../controllers/badge.controller").checkAndAwardBadges(
+        user_id,
+        "perfectionist",
+        { courseCompleted: true }
+      );
+    }
+    // --- BADGE LOGIC: Daily Learner & Marathoner ---
+    if (completed) {
+      // Daily Learner: check for 3 consecutive days
+      const streakRes = await db.query(
+        `SELECT completed_at FROM lesson_progress WHERE user_id = $1 AND completed = true ORDER BY completed_at DESC LIMIT 10`,
+        [user_id]
+      );
+      const days = streakRes.rows.map(
+        (r) =>
+          r.completed_at && new Date(r.completed_at).toISOString().slice(0, 10)
+      );
+      let consecutive = 1;
+      for (let i = 1; i < days.length; i++) {
+        const prev = new Date(days[i - 1]);
+        const curr = new Date(days[i]);
+        if ((prev - curr) / (1000 * 60 * 60 * 24) === 1) consecutive++;
+        else if (prev.getTime() !== curr.getTime()) break;
+      }
+      if (consecutive >= 3) {
+        await require("../controllers/badge.controller").checkAndAwardBadges(
+          user_id,
+          "daily_learner",
+          { consecutiveDays: consecutive }
+        );
+      }
+      // Marathoner: check for 5 lessons in a single day
+      const today = new Date().toISOString().slice(0, 10);
+      const todayCount = days.filter((d) => d === today).length;
+      if (todayCount >= 5) {
+        await require("../controllers/badge.controller").checkAndAwardBadges(
+          user_id,
+          "marathoner",
+          { lessonsToday: todayCount }
+        );
+      }
+    }
+  } catch (badgeErr) {
+    console.error(
+      "[Extra Badges] Error checking/awarding extra badges:",
+      badgeErr
+    );
+  }
+
   // No caching for mutation endpoints
   setCacheHeaders(res, { noStore: true });
   res.status(200).json({

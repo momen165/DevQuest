@@ -7,6 +7,10 @@ const BadgeType = {
   LANGUAGE_EXPLORER: "language_explorer",
   STREAK_MASTER: "streak_master",
   XP_ACHIEVER: "xp_achiever",
+  PERFECTIONIST: "perfectionist",
+  DAILY_LEARNER: "daily_learner",
+  MARATHONER: "marathoner",
+  PROFILE_COMPLETE: "profile_complete",
 };
 
 // Create badges table if not exists
@@ -76,6 +80,30 @@ const initDefaultBadges = async () => {
       name: "100 XP Achieved",
       description: "Unlocked after reaching 100 XP",
       image_path: "/badges/xp_achiever.png",
+    },
+    {
+      badge_type: BadgeType.PERFECTIONIST,
+      name: "Perfectionist",
+      description: "Unlocked after achieving 100% completion in a course",
+      image_path: "/badges/perfectionist.png",
+    },
+    {
+      badge_type: BadgeType.DAILY_LEARNER,
+      name: "Daily Learner",
+      description: "Unlocked after completing a lesson on 3 consecutive days",
+      image_path: "/badges/daily_learner.png",
+    },
+    {
+      badge_type: BadgeType.MARATHONER,
+      name: "Marathoner",
+      description: "Unlocked after completing 5 lessons in a single day",
+      image_path: "/badges/marathoner.png",
+    },
+    {
+      badge_type: BadgeType.PROFILE_COMPLETE,
+      name: "Profile Complete",
+      description: "Unlocked after filling out all profile fields",
+      image_path: "/badges/profile_complete.png",
     },
   ];
 

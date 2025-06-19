@@ -107,14 +107,6 @@ const checkAndAwardBadges = async (userId, eventType, eventData = {}) => {
 
       case "xp_update":
         // Check for XP Achiever badge (100 XP)
-        console.log("[XP BADGE DEBUG]", {
-          userId,
-          totalXp: eventData.totalXp,
-          hasXpAchieverBadge: await BadgeModel.userHasBadge(
-            userId,
-            BadgeModel.BadgeType.XP_ACHIEVER
-          ),
-        });
         if (eventData.totalXp >= 100) {
           const hasXpAchieverBadge = await BadgeModel.userHasBadge(
             userId,
@@ -124,6 +116,68 @@ const checkAndAwardBadges = async (userId, eventType, eventData = {}) => {
             badgeAwarded = await BadgeModel.awardBadge(
               userId,
               BadgeModel.BadgeType.XP_ACHIEVER
+            );
+          }
+        }
+        break;
+
+      // --- NEW BADGES ---
+      case "perfectionist":
+        // Check for Perfectionist badge (100% course completion)
+        if (eventData.courseCompleted === true) {
+          const hasPerfectionist = await BadgeModel.userHasBadge(
+            userId,
+            BadgeModel.BadgeType.PERFECTIONIST
+          );
+          if (!hasPerfectionist) {
+            badgeAwarded = await BadgeModel.awardBadge(
+              userId,
+              BadgeModel.BadgeType.PERFECTIONIST
+            );
+          }
+        }
+        break;
+      case "daily_learner":
+        // Check for Daily Learner badge (3 consecutive days)
+        if (eventData.consecutiveDays >= 3) {
+          const hasDailyLearner = await BadgeModel.userHasBadge(
+            userId,
+            BadgeModel.BadgeType.DAILY_LEARNER
+          );
+          if (!hasDailyLearner) {
+            badgeAwarded = await BadgeModel.awardBadge(
+              userId,
+              BadgeModel.BadgeType.DAILY_LEARNER
+            );
+          }
+        }
+        break;
+      case "marathoner":
+        // Check for Marathoner badge (5 lessons in a day)
+        if (eventData.lessonsToday >= 5) {
+          const hasMarathoner = await BadgeModel.userHasBadge(
+            userId,
+            BadgeModel.BadgeType.MARATHONER
+          );
+          if (!hasMarathoner) {
+            badgeAwarded = await BadgeModel.awardBadge(
+              userId,
+              BadgeModel.BadgeType.MARATHONER
+            );
+          }
+        }
+        break;
+      case "profile_complete":
+        // Check for Profile Complete badge (all profile fields filled)
+        if (eventData.profileComplete === true) {
+          const hasProfileComplete = await BadgeModel.userHasBadge(
+            userId,
+            BadgeModel.BadgeType.PROFILE_COMPLETE
+          );
+          if (!hasProfileComplete) {
+            badgeAwarded = await BadgeModel.awardBadge(
+              userId,
+              BadgeModel.BadgeType.PROFILE_COMPLETE
             );
           }
         }

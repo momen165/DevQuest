@@ -66,12 +66,13 @@ const LessonPage = () => {
     if (!success) {
       setFailedAttempts((prev) => prev + 1);
     } else if (resultData?.badge_awarded) {
-      // Show badge notification when a badge is awarded
+      // Use backend badge fields if available, fallback to helpers
+      const badge = resultData.badge_awarded;
       setEarnedBadge({
-        badge_type: resultData.badge_awarded.badge_type,
-        name: getBadgeName(resultData.badge_awarded.badge_type),
-        description: getBadgeDescription(resultData.badge_awarded.badge_type),
-        image_path: getBadgeImagePath(resultData.badge_awarded.badge_type)
+        badge_type: badge.badge_type,
+        name: badge.name || getBadgeName(badge.badge_type),
+        description: badge.description || getBadgeDescription(badge.badge_type),
+        image_path: badge.image_path || getBadgeImagePath(badge.badge_type)
       });
     }
   };  

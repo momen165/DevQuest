@@ -19,7 +19,6 @@ router.post("/track-pageview", async (req, res) => {
     }
 
     // Get the real client IP (handle x-forwarded-for with multiple IPs)
-    // Get the real client IP (handle x-forwarded-for with multiple IPs)
     let ip =
       req.headers["x-forwarded-for"] ||
       req.connection.remoteAddress ||
@@ -31,14 +30,14 @@ router.post("/track-pageview", async (req, res) => {
       ip = ip.replace("::ffff:", "");
     }
     // Log for debugging
-    console.log(
-      "[Analytics] Tracking pageview:",
-      path,
-      "| IP:",
-      ip,
-      "| UA:",
-      req.headers["user-agent"]
-    );
+    // console.log(
+    //   "[Analytics] Tracking pageview:",
+    //   path,
+    //   "| IP:",
+    //   ip,
+    //   "| UA:",
+    //   req.headers["user-agent"]
+    // );
 
     // Get geo-location info from IP (if available)
     const geo = geoip.lookup(ip);
