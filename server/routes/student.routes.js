@@ -19,30 +19,34 @@ const { cacheMiddleware } = require("../utils/cache.utils");
 const {
   performanceMiddleware,
 } = require("../middleware/performance.middleware");
+const updateUserStreak = require("../middleware/updateUserStreak");
 
 // Routes
 router.get(
   "/students",
   authenticateToken,
   requireAuth,
+  updateUserStreak,
   sessionTracker,
   performanceMiddleware("students-list"),
-  cacheMiddleware("admin", 300), // 5 minutes cache for admin data
+
   getAllStudents
 );
 router.get(
   "/students/:studentId",
   authenticateToken,
   requireAuth,
+  updateUserStreak,
   sessionTracker,
   performanceMiddleware("student-details"),
-  cacheMiddleware("user", 180), // 3 minutes cache for user-specific data
+
   getStudentById
 );
 router.get(
   "/students/:studentId/courses",
   authenticateToken,
   requireAuth,
+  updateUserStreak,
   sessionTracker,
   getCoursesByStudentId
 );
@@ -50,15 +54,17 @@ router.get(
   "/students/:userId/enrollments",
   authenticateToken,
   requireAuth,
+  updateUserStreak,
   sessionTracker,
   performanceMiddleware("student-enrollments"),
-  cacheMiddleware("user", 300), // 5 minutes cache for user-specific data
+
   getEnrollmentsByUserId
 );
 router.get(
   "/student/stats/:userId",
   authenticateToken,
   requireAuth,
+  updateUserStreak,
   sessionTracker,
   getStudentStats
 );
@@ -66,6 +72,7 @@ router.get(
   "/student/courses/:courseId/stats",
   authenticateToken,
   requireAuth,
+  updateUserStreak,
   sessionTracker,
   getCourseStats
 );
@@ -73,6 +80,7 @@ router.delete(
   "/student/delete-account",
   authenticateToken,
   requireAuth,
+  updateUserStreak,
   sessionTracker,
   deleteStudentAccount
 );

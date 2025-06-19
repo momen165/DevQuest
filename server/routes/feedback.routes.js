@@ -48,19 +48,19 @@ router.post(
 router.get(
   "/getCoursesWithRatings",
   performanceMiddleware("getCoursesWithRatings"),
-  cacheMiddleware("courses", 300),
+
   getCoursesWithRatings
 );
 router.get(
   "/optimized-courses",
   performanceMiddleware("optimized-courses"),
-  cacheMiddleware("courses", 300),
+
   getOptimizedCoursesData
 ); // New optimized endpoint with performance monitoring
 router.get(
   "/feedback/public",
   performanceMiddleware("publicFeedback"),
-  cacheMiddleware("static", 600),
+
   getPublicFeedback
 );
 
@@ -106,7 +106,7 @@ router.get(
   requireAuth,
   sessionTracker,
   performanceMiddleware("optimized-course-section"),
-  cacheMiddleware("course-section", 180), // 3 minutes cache
+
   getOptimizedCourseSectionData
 );
 

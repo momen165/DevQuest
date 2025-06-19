@@ -57,7 +57,7 @@ router.get(
   authenticateToken,
   sessionTracker,
   performanceMiddleware("getUserSections"),
-  cacheMiddleware("courses", 600), // 10 minute cache
+  
   sectionController.getUserSections
 );
 router.get(
@@ -65,7 +65,7 @@ router.get(
   authenticateToken,
   sessionTracker,
   performanceMiddleware("section-details"),
-  cacheMiddleware("user", 300), // 5 minutes cache for section data
+ 
   sectionController.getSectionById
 );
 

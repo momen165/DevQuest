@@ -29,13 +29,11 @@ const {
 router.get(
   "/system-settings",
   performanceMiddleware("systemSettings"),
-  cacheMiddleware("static", 600),
   getMaintenanceStatus
 );
 router.get(
   "/maintenance-status",
   performanceMiddleware("maintenanceStatus"),
-  cacheMiddleware("static", 600),
   getMaintenanceStatus
 ); // Add an alias for consistency
 
@@ -47,7 +45,6 @@ router.use(trackVisit); // <-- Add this so all admin routes after this will have
 router.use(sessionTracker);
 router.get(
   "/status",
-   cacheMiddleware("status", 300),
   performanceMiddleware("status"),
   checkAdminStatus,
  

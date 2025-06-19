@@ -248,9 +248,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/admin", performanceRoutes);
 app.use("/api/badges", badgeRoutes);
 
-// For streak updates, apply the middleware to all routes that need it
-app.use(updateUserStreak);
-
 // Checkout session endpoint - requires auth but handled in its route
 app.get("/api/checkout-session/:sessionId", async (req, res) => {
   const { sessionId } = req.params;

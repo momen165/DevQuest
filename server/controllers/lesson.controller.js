@@ -677,6 +677,27 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     throw new AppError("Enrollment not found.", 404);
   }
 
+  // Check and award XP badge if eligible
+  try {
+    const totalXPResult = await db.query(
+      `SELECT COALESCE(SUM(l.xp), 0) as total_xp
+       FROM lesson_progress lp
+       JOIN lesson l ON lp.lesson_id = l.lesson_id
+       WHERE lp.user_id = $1 AND lp.completed = true`,
+      [user_id]
+    );
+    const xp = parseInt(totalXPResult.rows[0].total_xp, 10) || 0;
+    if (xp >= 100) {
+      await require("../controllers/badge.controller").checkAndAwardBadges(
+        user_id,
+        "xp_update",
+        { totalXp: xp }
+      );
+    }
+  } catch (badgeErr) {
+    console.error("[XP Badge] Error checking/awarding XP badge:", badgeErr);
+  }
+
   // No caching for mutation endpoints
   setCacheHeaders(res, { noStore: true });
   res.status(200).json({
@@ -693,13 +714,6 @@ const getLessonProgress = asyncHandler(async (req, res) => {
   }
 
   const result = await lessonQueries.getLessonProgress(user_id, lesson_id);
-
-  // Cache progress for 5 minutes with stale-while-revalidate
-  setCacheHeaders(res, {
-    public: false,
-    maxAge: 300,
-    staleWhileRevalidate: 60,
-  });
 
   if (result.rows.length === 0) {
     return res
