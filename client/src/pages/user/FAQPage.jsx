@@ -81,7 +81,7 @@ const FAQPage = () => {
       <Navbar />
       <div className="faq-page">
         <div className="faq-header">
-          <img src={faqImage} alt="FAQ Illustration" className="faq-image" />
+          <img src={faqImage} alt="Frequently Asked Questions illustration with question mark and information symbols" className="faq-image" />
           <h1>Frequently Asked Questions</h1>
         </div>
         <div className="faq-content">

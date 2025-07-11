@@ -119,7 +119,7 @@ const HomePage = () => {
 
           {/* Hero Image */}
           <div className="hero-image">
-            <img src={heroimg} alt="Coding" />
+            <img src={heroimg} alt="DevQuest interactive coding platform illustration showing programming interface and learning elements" />
           </div>
         </div>
 

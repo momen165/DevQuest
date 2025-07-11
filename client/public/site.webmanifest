@@ -1,0 +1,28 @@
+{
+  "name": "DevQuest - Interactive Coding Education Platform",
+  "short_name": "DevQuest",
+  "description": "Master coding with DevQuest's interactive platform. Learn Python, JavaScript, Java, C++ and more through hands-on exercises.",
+  "icons": [
+    {
+      "src": "/websiteicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/websiteicon.ico",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/websiteicon.ico", 
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "scope": "/",
+  "orientation": "portrait-primary"
+}
