@@ -201,6 +201,37 @@ const CoursesPage = () => {
     ]
   };
 
+  // Structured data for each course (JSON-LD)
+  const courseStructuredDataList = filteredCourses.map(course => ({
+    "@context": "https://schema.org",
+    "@type": "Course",
+    "name": course.name,
+    "description": course.description,
+    "provider": {
+      "@type": "EducationalOrganization",
+      "name": "DevQuest",
+      "url": "https://www.dev-quest.tech"
+    },
+    "hasCourseInstance": [{
+      "@type": "CourseInstance",
+      "courseMode": "online",
+      "instructor": "DevQuest Team",
+      "startDate": "2025-01-01",
+      "endDate": "2025-12-31",
+      "location": {
+        "@type": "VirtualLocation",
+        "url": "https://www.dev-quest.tech"
+      }
+    }],
+    "offers": {
+      "@type": "Offer",
+      "url": `https://www.dev-quest.tech/courses/${course.course_id}`,
+      "price": course.price ?? "0",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    }
+  }));
+
   return (
     <div className="courses-page">
       <SEOHead
@@ -210,6 +241,15 @@ const CoursesPage = () => {
         canonical="/CoursesPage"
         structuredData={structuredData}
       />
+      {/* Inject JSON-LD for each course for Google rich results */}
+      {courseStructuredDataList.map((data, idx) => (
+        <script
+          key={idx}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+          aria-hidden="true"
+        />
+      ))}
       <Navbar />
       <header className="courses-header">
         <FilterTabs onFilterChange={handleFilter} onSearch={handleSearch} searchTerm={searchTerm} />
@@ -226,7 +266,8 @@ const CoursesPage = () => {
             description={course.description}
             image={course.image}
             language_id={course.language_id}
-            isEnrolled={!!enrollments[course.course_id]}            progress={
+            isEnrolled={!!enrollments[course.course_id]}
+            progress={
               // Support both array format (legacy) and object format (optimized)
               Array.isArray(progress)
                 ? progress.find((p) => p.course_id === course.course_id)?.progress || 0
