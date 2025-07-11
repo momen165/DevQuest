@@ -1,0 +1,45 @@
+User-agent: *
+Allow: /
+
+# Important pages
+Allow: /CoursesPage
+Allow: /pricing
+Allow: /faq
+Allow: /RegistrationPage
+
+# Block admin and private areas
+Disallow: /Dashboard
+Disallow: /AdminCourses
+Disallow: /Students
+Disallow: /PaymentInfo
+Disallow: /Feedback
+Disallow: /AdminSettingsPage
+Disallow: /Support
+Disallow: /Analytics
+
+# Block user account areas
+Disallow: /AccountSettings
+Disallow: /ProfilePage
+Disallow: /ChangePassword
+Disallow: /Billing
+Disallow: /CourseSection/
+Disallow: /course/
+Disallow: /lesson/
+
+# Block authentication pages
+Disallow: /LoginPage
+Disallow: /ForgotPasswordPage
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /confirm-email-change
+Disallow: /Unauthorized
+
+# Block enrollment and payment pages
+Disallow: /enroll/
+Disallow: /success
+
+# Sitemap location
+Sitemap: https://devquest.com/sitemap.xml
+
+# Crawl delay (optional, to be respectful)
+Crawl-delay: 1

@@ -3,6 +3,7 @@ import '../../styles/CoursesPage.css';
 import CourseCard from '../../components/CourseCard';
 import FilterTabs from '../../components/FilterTabs';
 import Navbar from '../../components/Navbar';
+import SEOHead from '../../components/SEOHead';
 import { useAuth } from '../../AuthContext';
 import CircularProgress from '@mui/material/CircularProgress';
 import Footer from '../../components/Footer';
@@ -177,8 +178,38 @@ const CoursesPage = () => {
     }
   };
 
+  // Structured data for courses page
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    "name": "Programming Courses",
+    "description": "Comprehensive collection of interactive programming courses",
+    "provider": {
+      "@type": "EducationalOrganization",
+      "name": "DevQuest",
+      "url": "https://devquest.com"
+    },
+    "courseMode": "online",
+    "educationalLevel": "beginner to advanced",
+    "teaches": [
+      "Python Programming",
+      "JavaScript Development", 
+      "Java Programming",
+      "C++ Programming",
+      "Web Development",
+      "Software Engineering"
+    ]
+  };
+
   return (
     <div className="courses-page">
+      <SEOHead
+        title="Programming Courses - Learn Python, JavaScript, Java & More | DevQuest"
+        description="Explore our comprehensive catalog of interactive programming courses. Learn Python, JavaScript, Java, C++ and more with hands-on exercises, real-time feedback and personalized learning paths. Choose from beginner to advanced levels."
+        keywords="programming courses, Python course, JavaScript course, Java programming, C++ tutorial, coding bootcamp, online programming, learn to code, developer courses, coding education"
+        canonical="/CoursesPage"
+        structuredData={structuredData}
+      />
       <Navbar />
       <header className="courses-header">
         <FilterTabs onFilterChange={handleFilter} onSearch={handleSearch} searchTerm={searchTerm} />

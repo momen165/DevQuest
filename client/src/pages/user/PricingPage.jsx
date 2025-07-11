@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../../styles/PricingPage.css";
 import Navbar from "../../components/Navbar";
+import SEOHead from "../../components/SEOHead";
 import { useAuth } from "../../AuthContext";
 import { loadStripe } from "@stripe/stripe-js"; // Import loadStripe
 
@@ -132,8 +133,49 @@ const PricingPage = () => {
     setShowPopup(false);
   };
 
+  // Structured data for pricing page
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "DevQuest Premium Subscription",
+    "description": "Unlock unlimited access to all programming courses and premium features",
+    "brand": {
+      "@type": "Brand",
+      "name": "DevQuest"
+    },
+    "offers": [
+      {
+        "@type": "Offer",
+        "priceSpecification": {
+          "@type": "PriceSpecification",
+          "price": "9.99",
+          "priceCurrency": "USD",
+          "billingDuration": "P1M"
+        },
+        "availability": "https://schema.org/InStock"
+      },
+      {
+        "@type": "Offer", 
+        "priceSpecification": {
+          "@type": "PriceSpecification",
+          "price": "99.99",
+          "priceCurrency": "USD",
+          "billingDuration": "P1Y"
+        },
+        "availability": "https://schema.org/InStock"
+      }
+    ]
+  };
+
   return (
     <div className="pricing-page">
+      <SEOHead
+        title="Pricing Plans - Choose Your DevQuest Subscription | DevQuest"
+        description="Choose the perfect DevQuest subscription plan for you. Get unlimited access to all programming courses, premium features, and personalized learning paths. Monthly and yearly plans available with flexible pricing."
+        keywords="DevQuest pricing, programming course subscription, coding bootcamp cost, monthly coding plan, yearly programming access, premium coding education, affordable programming courses"
+        canonical="/pricing"
+        structuredData={structuredData}
+      />
       <Navbar />
       <main className="pricing-content">
         <h1>Select the best plan that suits you</h1>
