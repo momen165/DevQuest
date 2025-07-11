@@ -8,6 +8,7 @@ import CoursesSlider from "../../components/slider";
 import SupportForm from "../../components/SupportForm";
 import Footer from "../../components/Footer";
 import FeedbackCardScroll from "../../components/FeedbackCardScroll";
+import SEOHead from "../../components/SEOHead";
 
 // Asset Imports
 import heroimg from "../../assets/images/logo-noText.svg";
@@ -29,9 +30,53 @@ const HomePage = () => {
   const handleCreateAccount = () => navigate("/RegistrationPage");
   const handleContinueLearning = () => navigate("/ProfilePage");
 
+  // Structured data for homepage
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "DevQuest",
+    "description": "Interactive coding education platform offering comprehensive programming courses",
+    "url": "https://devquest.com",
+    "logo": "https://devquest.com/websiteicon.ico",
+    "sameAs": [],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "availableLanguage": "English"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Programming Courses",
+      "itemListElement": [
+        {
+          "@type": "Course",
+          "name": "Python Programming",
+          "description": "Comprehensive Python programming course with hands-on exercises"
+        },
+        {
+          "@type": "Course", 
+          "name": "JavaScript Development",
+          "description": "Interactive JavaScript course for web development"
+        },
+        {
+          "@type": "Course",
+          "name": "Java Programming", 
+          "description": "Object-oriented programming with Java"
+        }
+      ]
+    }
+  };
 
   return (
     <>
+      <SEOHead
+        title="DevQuest - Master Coding with Interactive Programming Courses"
+        description="Unlock your coding potential with DevQuest's interactive platform. Learn Python, JavaScript, Java, C++ and more through hands-on exercises, real-time feedback, and gamified learning experience. Start your programming journey today!"
+        keywords="learn programming, coding courses, Python tutorial, JavaScript course, Java programming, C++ development, interactive coding, programming education, coding bootcamp, developer training"
+        canonical="/"
+        structuredData={structuredData}
+      />
+      
       {/* Navigation */}
       <Navbar />
 

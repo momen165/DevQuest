@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import "../../styles/FAQPage.css";
 import Navbar from "../../components/Navbar";
+import SEOHead from "../../components/SEOHead";
 import faqImage from "../../assets/images/faq-illustration.png";
 
 const FAQPage = () => {
@@ -54,8 +55,29 @@ const FAQPage = () => {
     setActiveIndex(index === activeIndex ? null : index);
   };
 
+  // Structured data for FAQ page
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+
   return (
     <>
+      <SEOHead
+        title="Frequently Asked Questions - DevQuest Help Center | DevQuest"
+        description="Find answers to common questions about DevQuest's programming courses, subscription plans, features, and learning platform. Get help with account setup, course access, billing, and technical support."
+        keywords="DevQuest FAQ, programming course help, coding platform support, subscription questions, technical support, account help, course access, billing support"
+        canonical="/faq"
+        structuredData={structuredData}
+      />
       <Navbar />
       <div className="faq-page">
         <div className="faq-header">
