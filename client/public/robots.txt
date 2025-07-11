@@ -39,7 +39,7 @@ Disallow: /enroll/
 Disallow: /success
 
 # Sitemap location
-Sitemap: https://devquest.com/sitemap.xml
+Sitemap: https://www.dev-quest.tech/sitemap.xml
 
 # Crawl delay (optional, to be respectful)
 Crawl-delay: 1

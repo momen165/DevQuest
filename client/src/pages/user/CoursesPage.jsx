@@ -187,7 +187,7 @@ const CoursesPage = () => {
     "provider": {
       "@type": "EducationalOrganization",
       "name": "DevQuest",
-      "url": "https://devquest.com"
+      "url": "https://www.dev-quest.tech"
     },
     "courseMode": "online",
     "educationalLevel": "beginner to advanced",

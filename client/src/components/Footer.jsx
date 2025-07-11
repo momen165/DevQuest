@@ -98,7 +98,7 @@ const Footer = () => {
               <h3 className="footer__title">Contact</h3>
               <ul className="footer__contact-list">
                 <li>
-                  <FaEnvelope /> <span>contact@devquest.com</span>
+                  <FaEnvelope /> <span>contact@dev-quest.tech</span>
                 </li>
               </ul>
             </div>
@@ -108,15 +108,13 @@ const Footer = () => {
 
       <div className="footer__bottom">
         <div className="footer__social">
-          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.linkedin.com/in/momen-aabed/" target="_blank" rel="noopener noreferrer">
             <FaLinkedin />
           </a>
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+          <a href="https://github.com/momen165" target="_blank" rel="noopener noreferrer">
             <FaGithub />
           </a>
-          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
-            <FaTwitter />
-          </a>
+         
         </div>
         <p className="footer__copyright">
           &copy; {new Date().getFullYear()} DevQuest. All rights reserved.

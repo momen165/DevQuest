@@ -19,7 +19,7 @@ const CONFIG = {
   timeoutMs: 10000,
   targetResponseTime: 500, // Target: under 500ms
   credentials: {
-    email: "admin@devquest.com",
+    email: "admin@dev-quest.tech",
     password: "Admin123!",
   },
 };

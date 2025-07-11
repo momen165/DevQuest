@@ -93,7 +93,7 @@ Your Support Ticket ID is: #${newTicketId}
 
 One of our administrators will review your message and respond as soon as possible. Please note that our typical response time is within 24 hours.
 
-If you don't receive a response within 24 hours, please contact us at Support@devquest.com and include your Support Ticket ID (#${newTicketId}) in your email.
+If you don't receive a response within 24 hours, please contact us at Support@dev-quest.tech and include your Support Ticket ID (#${newTicketId}) in your email.
 
 We appreciate your patience!
 

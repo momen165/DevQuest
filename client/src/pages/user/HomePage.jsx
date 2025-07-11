@@ -36,8 +36,8 @@ const HomePage = () => {
     "@type": "EducationalOrganization",
     "name": "DevQuest",
     "description": "Interactive coding education platform offering comprehensive programming courses",
-    "url": "https://devquest.com",
-    "logo": "https://devquest.com/websiteicon.ico",
+    "url": "https://www.dev-quest.tech",
+    "logo": "https://www.dev-quest.tech/websiteicon.ico",
     "sameAs": [],
     "contactPoint": {
       "@type": "ContactPoint",
