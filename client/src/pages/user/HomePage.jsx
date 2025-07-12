@@ -60,9 +60,13 @@ const HomePage = () => {
           "hasCourseInstance": [{
             "@type": "CourseInstance",
             "courseMode": "online",
-            "instructor": "DevQuest Team",
+            "instructor": {
+              "@type": "Person",
+              "name": "DevQuest Team"
+            },
             "startDate": "2025-01-01",
             "endDate": "2025-12-31",
+            "courseWorkload": "PT20H",
             "location": {
               "@type": "VirtualLocation",
               "url": "https://www.dev-quest.tech"
@@ -70,6 +74,7 @@ const HomePage = () => {
           }],
           "offers": {
             "@type": "Offer",
+            "category": "Education",
             "url": "https://www.dev-quest.tech/courses",
             "price": "0",
             "priceCurrency": "USD",
@@ -88,9 +93,13 @@ const HomePage = () => {
           "hasCourseInstance": [{
             "@type": "CourseInstance",
             "courseMode": "online",
-            "instructor": "DevQuest Team",
+            "instructor": {
+              "@type": "Person",
+              "name": "DevQuest Team"
+            },
             "startDate": "2025-01-01",
             "endDate": "2025-12-31",
+            "courseWorkload": "PT25H",
             "location": {
               "@type": "VirtualLocation",
               "url": "https://www.dev-quest.tech"
@@ -98,6 +107,7 @@ const HomePage = () => {
           }],
           "offers": {
             "@type": "Offer",
+            "category": "Education",
             "url": "https://www.dev-quest.tech/courses",
             "price": "0",
             "priceCurrency": "USD",
@@ -116,9 +126,13 @@ const HomePage = () => {
           "hasCourseInstance": [{
             "@type": "CourseInstance",
             "courseMode": "online",
-            "instructor": "DevQuest Team",
+            "instructor": {
+              "@type": "Person",
+              "name": "DevQuest Team"
+            },
             "startDate": "2025-01-01",
             "endDate": "2025-12-31",
+            "courseWorkload": "PT30H",
             "location": {
               "@type": "VirtualLocation",
               "url": "https://www.dev-quest.tech"
@@ -126,6 +140,7 @@ const HomePage = () => {
           }],
           "offers": {
             "@type": "Offer",
+            "category": "Education",
             "url": "https://www.dev-quest.tech/courses",
             "price": "0",
             "priceCurrency": "USD",

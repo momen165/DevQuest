@@ -215,9 +215,13 @@ const CoursesPage = () => {
     "hasCourseInstance": [{
       "@type": "CourseInstance",
       "courseMode": "online",
-      "instructor": "DevQuest Team",
+      "instructor": {
+        "@type": "Person",
+        "name": "DevQuest Team"
+      },
       "startDate": "2025-01-01",
       "endDate": "2025-12-31",
+      "courseWorkload": "PT20H",
       "location": {
         "@type": "VirtualLocation",
         "url": "https://www.dev-quest.tech"
@@ -225,6 +229,7 @@ const CoursesPage = () => {
     }],
     "offers": {
       "@type": "Offer",
+      "category": "Education",
       "url": `https://www.dev-quest.tech/courses/${course.course_id}`,
       "price": course.price ?? "0",
       "priceCurrency": "USD",
