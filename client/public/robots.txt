@@ -1,11 +1,25 @@
 User-agent: *
 Allow: /
 
-# Important pages
+# Important public pages - explicitly allow
 Allow: /CoursesPage
 Allow: /pricing
 Allow: /faq
 Allow: /RegistrationPage
+
+# Allow static assets
+Allow: /static/
+Allow: /assets/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.ico
+Allow: /*.woff
+Allow: /*.woff2
 
 # Block admin and private areas
 Disallow: /Dashboard
@@ -37,6 +51,14 @@ Disallow: /Unauthorized
 # Block enrollment and payment pages
 Disallow: /enroll/
 Disallow: /success
+
+# Block API endpoints
+Disallow: /api/
+
+# Block external monitoring/analytics
+Disallow: /*.ingest.*.sentry.io/
+Disallow: /sentry/
+Disallow: /_vercel/
 
 # Sitemap location
 Sitemap: https://www.dev-quest.tech/sitemap.xml
