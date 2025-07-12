@@ -285,19 +285,11 @@ app.use((req, res, next) => {
 });
 
 // Serve React frontend
-const path = require("path");
-app.get("*", (req, res, next) => {
-  // Only handle non-API requests
-  if (!req.path.startsWith("/api")) {
-    // Only set Document-Policy for requests that accept HTML
-    if (req.accepts("html")) {
-      res.set("Document-Policy", "js-profiling");
-    }
-    res.sendFile(path.resolve(__dirname, "../client/index.html"));
-  } else {
-    next();
-  }
+
+app.get("/", (req, res) => {
+  res.send("API is alive!");
 });
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

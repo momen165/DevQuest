@@ -1,163 +1,115 @@
-# COPILOT EDITS OPERATIONAL GUIDELINES
+# DevQuest AI Coding Agent Instructions
 
-## PRIME DIRECTIVE
+## Architecture Overview
 
-    Avoid working on more than one file at a time.
-    Multiple simultaneous edits to a file will cause corruption.
-    Be chatting and teach about what you are doing while coding.
+DevQuest is a full-stack coding education platform with React frontend and Node.js/Express backend, using PostgreSQL with advanced performance monitoring and caching systems.
 
-## LARGE FILE & COMPLEX CHANGE PROTOCOL
+### Key Architectural Patterns
 
-### MANDATORY PLANNING PHASE
+- **Monorepo Structure**: Root `package.json` with `concurrently` scripts for unified dev workflow
+- **Middleware Chain**: All routes use `authenticateToken → sessionTracker → performanceMiddleware → cacheMiddleware`
+- **Performance-First**: Every endpoint has performance tracking via `performance.middleware.js` and `cache.utils.js`
+- **Multi-tier Caching**: NodeCache with different TTLs (courses: 5min, users: 3min, static: 15min)
 
-    When working with large files (>300 lines) or complex changes:
-    	1. ALWAYS start by creating a detailed plan BEFORE making any edits
-            2. Your plan MUST include:
-                   - All functions/sections that need modification
-                   - The order in which changes should be applied
-                   - Dependencies between changes
-                   - Estimated number of separate edits required
+## Critical Development Workflows
 
-            3. Format your plan as:
+### Starting the Application
 
-## PROPOSED EDIT PLAN
+```bash
+# From root directory - starts both frontend and backend
+npm run dev
 
-    Working with: [filename]
-    Total planned edits: [number]
+# Individual services
+npm run dev:server  # Backend only
+npm run dev:client  # Frontend only
+```
 
-### MAKING EDITS
+### Database Connection
 
-    - Focus on one conceptual change at a time
-    - Show clear "before" and "after" snippets when proposing changes
-    - Include concise explanations of what changed and why
-    - Always check if the edit maintains the project's coding style
-    - If the change is large, break it into smaller, logical steps
-    - Dont stop until the task is 100% complete
-    - Use any available Tools
+- Uses PostgreSQL with SSL certificates in `server/certs/ca.pem`
+- Connection pooling configured with performance monitoring via `wrapDatabaseQuery()`
+- All queries automatically tracked for performance analytics
 
-### Edit sequence:
+### Authentication Flow
 
-    1. [First specific change] - Purpose: [why]
-    2. [Second specific change] - Purpose: [why]
-    3. Do you approve this plan? I'll proceed with Edit [number] after your confirmation.
-    4. WAIT for explicit user confirmation before making ANY edits when user ok edit [number]
+- JWT-based with refresh tokens and auto-refresh in `AuthContext.jsx`
+- Public routes defined in `server/middleware/auth.js` (maintenance-status, health, etc.)
+- Authentication state persisted in localStorage with automatic token refresh
 
-### EXECUTION PHASE
+## Project-Specific Conventions
 
-    - After each individual edit, clearly indicate progress:
-    	"✅ Completed edit [#] of [total]. Ready for next edit?"
-    - If you discover additional needed changes during editing:
-    - STOP and update the plan
-    - Get approval before continuing
+### Backend Patterns
 
-### REFACTORING GUIDANCE
+1. **Route Structure**: Always include middleware chain:
 
-    When refactoring large files:
-    - Break work into logical, independently functional chunks
-    - Ensure each intermediate state maintains functionality
-    - Consider temporary duplication as a valid interim step
-    - Always indicate the refactoring pattern being applied
+   ```javascript
+   router.get(
+     "/endpoint",
+     cacheMiddleware("key", ttl),
+     performanceMiddleware("endpoint-name"),
+     controller.method
+   );
+   ```
 
-### RATE LIMIT AVOIDANCE
+2. **Error Handling**: Use centralized `utils/error.utils.js` with `handleError()` wrapper
 
-    - For very large files, suggest splitting changes across multiple sessions
-    - Prioritize changes that are logically complete units
-    - Always provide clear stopping points
+3. **Performance Testing**: Each new endpoint requires a test script in `/scripts/` directory following the pattern in `test-course-sections-endpoint.js`
 
-## General Requirements
+### Frontend Patterns
 
-    Use modern technologies as described below for all code suggestions. Prioritize clean, maintainable code with appropriate comments.
+1. **Lazy Loading**: All page components are lazy-loaded in `App.jsx`
+2. **API Client**: Axios with automatic auth headers via `AuthContext`
+3. **State Management**: Context API for auth, local state for components
+4. **Code Editor**: Monaco Editor integration for interactive coding exercises
 
-### Accessibility
+### File Upload System
 
-    - Ensure compliance with **WCAG 2.1** AA level minimum, AAA whenever feasible.
-    - Always suggest:
-    - Labels for form fields.
-    - Proper **ARIA** roles and attributes.
-    - Adequate color contrast.
-    - Alternative texts (`alt`, `aria-label`) for media elements.
-    - Semantic HTML for clear structure.
-    - Tools like **Lighthouse** for audits.
+- AWS S3 integration via `utils/s3.utils.js`
+- Multer configuration in `config/multer.js` with Sharp for image processing
+- Upload routes use `upload.single("image")` middleware
 
-## HTML/CSS Requirements
+## Integration Points
 
-    - **HTML**:
-    - Use HTML5 semantic elements (`<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, `<footer>`, `<search>`, etc.)
-    - Include appropriate ARIA attributes for accessibility
-    - Ensure valid markup that passes W3C validation
-    - Use responsive design practices
-    - Optimize images using modern formats (`WebP`, `AVIF`)
-    - Include `loading="lazy"` on images where applicable
-    - Generate `srcset` and `sizes` attributes for responsive images when relevant
+### External Services
 
+- **Stripe**: Payment processing with webhook handling in `routes/payment.routes.js`
+- **AWS S3**: File storage with presigned URL generation
+- **Sentry**: Error tracking configured in Vite with source maps
+- **Vercel**: Frontend deployment with speed insights
 
-    - **CSS**:
-    - Use modern CSS features including:
-    - CSS Grid and Flexbox for layouts
-    - CSS Custom Properties (variables)
-    - CSS animations and transitions
-    - Media queries for responsive design
-    - Logical properties (`margin-inline`, `padding-block`, etc.)
-    - Modern selectors (`:is()`, `:where()`, `:has()`)
-    - Follow BEM or similar methodology for class naming
-    - Use CSS nesting where appropriate
-    - Include dark mode support with `prefers-color-scheme`
-    - Prioritize modern, performant fonts and variable fonts for smaller file sizes
-    - Use modern units (`rem`, `vh`, `vw`) instead of traditional pixels (`px`) for better responsiveness
+### Database Performance System
 
-## JavaScript Requirements
+- Custom performance indexes in `utils/performance-indexes.sql`
+- Query performance tracking via `trackDatabaseQuery()` in `performance.utils.js`
+- Automatic performance reports generated in `/scripts/` directory
 
-    - **Minimum Compatibility**: ECMAScript 2020 (ES11) or higher
-    - **Features to Use**:
-    - Arrow functions
-    - Template literals
-    - Destructuring assignment
-    - Spread/rest operators
-    - Async/await for asynchronous code
-    - Classes with proper inheritance when OOP is needed
-    - Object shorthand notation
-    - Optional chaining (`?.`)
-    - Nullish coalescing (`??`)
-    - Dynamic imports
-    - BigInt for large integers
-    - `Promise.allSettled()`
-    - `String.prototype.matchAll()`
-    - `globalThis` object
-    - Private class fields and methods
-    - Export * as namespace syntax
-    - Array methods (`map`, `filter`, `reduce`, `flatMap`, etc.)
-    - **Avoid**:
-    - `var` keyword (use `const` and `let`)
-    - jQuery or any external libraries
-    - Callback-based asynchronous patterns when promises can be used
-    - Internet Explorer compatibility
-    - Legacy module formats (use ES modules)
-    - Limit use of `eval()` due to security risks
-    - **Performance Considerations:**
-    - Recommend code splitting and dynamic imports for lazy loading
-    **Error Handling**:
-    - Use `try-catch` blocks **consistently** for asynchronous and API calls, and handle promise rejections explicitly.
-    - Differentiate among:
-    - **Network errors** (e.g., timeouts, server errors, rate-limiting)
-    - **Functional/business logic errors** (logical missteps, invalid user input, validation failures)
-    - **Runtime exceptions** (unexpected errors such as null references)
-    - Provide **user-friendly** error messages (e.g., “Something went wrong. Please try again shortly.”) and log more technical details to dev/ops (e.g., via a logging service).
-    - Consider a central error handler function or global event (e.g., `window.addEventListener('unhandledrejection')`) to consolidate reporting.
-    - Carefully handle and validate JSON responses, incorrect HTTP status codes, etc.
+### Analytics & Monitoring
 
-## Documentation Requirements
+- User session tracking via `sessionTracker.js` middleware
+- Visit tracking with GeoIP detection in `trackVisits.js`
+- Performance metrics stored in dedicated analytics tables
 
-    - Include JSDoc comments for JavaScript/TypeScript.
-    - Document complex functions with clear examples.
-    - Maintain concise Markdown documentation.
-    - Minimum docblock info: `param`, `return`, `throws`, `author`
+## Critical Files for AI Understanding
 
-## Security Considerations
+### Backend Core
 
-    - Sanitize all user inputs thoroughly.
-    - Parameterize database queries.
-    - Enforce strong Content Security Policies (CSP).
-    - Use CSRF protection where applicable.
-    - Ensure secure cookies (`HttpOnly`, `Secure`, `SameSite=Strict`).
-    - Limit privileges and enforce role-based access control.
-    - Implement detailed internal logging and monitoring.
+- `server/server.js` - Main application setup with middleware chain
+- `server/config/database.js` - PostgreSQL connection with SSL and pooling
+- `server/middleware/auth.js` - Authentication system with public routes
+- `server/utils/cache.utils.js` - Multi-tier caching system
+- `server/middleware/performance.middleware.js` - Performance tracking
+
+### Frontend Core
+
+- `client/src/App.jsx` - Main routing with lazy loading
+- `client/src/AuthContext.jsx` - Authentication state and token refresh
+- `client/src/ProtectedRoute.jsx` - Route protection logic
+
+## Development Guidelines
+
+1. **Always add performance middleware** to new routes with appropriate cache keys
+2. **Use absolute imports** in React components via jsconfig.json configuration
+3. **Follow the middleware chain pattern** for all authenticated routes
+4. **Create performance tests** for new endpoints using existing script patterns
+5. **Use caching strategically** with appropriate TTLs based on data volatility
+6. **Leverage the monorepo scripts** - don't run individual npm commands in subdirectories

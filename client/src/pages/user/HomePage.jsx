@@ -51,17 +51,86 @@ const HomePage = () => {
         {
           "@type": "Course",
           "name": "Python Programming",
-          "description": "Comprehensive Python programming course with hands-on exercises"
+          "description": "Comprehensive Python programming course with hands-on exercises",
+          "provider": {
+            "@type": "EducationalOrganization",
+            "name": "DevQuest",
+            "url": "https://www.dev-quest.tech"
+          },
+          "hasCourseInstance": [{
+            "@type": "CourseInstance",
+            "courseMode": "online",
+            "instructor": "DevQuest Team",
+            "startDate": "2025-01-01",
+            "endDate": "2025-12-31",
+            "location": {
+              "@type": "VirtualLocation",
+              "url": "https://www.dev-quest.tech"
+            }
+          }],
+          "offers": {
+            "@type": "Offer",
+            "url": "https://www.dev-quest.tech/courses",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
         },
         {
           "@type": "Course", 
           "name": "JavaScript Development",
-          "description": "Interactive JavaScript course for web development"
+          "description": "Interactive JavaScript course for web development",
+          "provider": {
+            "@type": "EducationalOrganization",
+            "name": "DevQuest",
+            "url": "https://www.dev-quest.tech"
+          },
+          "hasCourseInstance": [{
+            "@type": "CourseInstance",
+            "courseMode": "online",
+            "instructor": "DevQuest Team",
+            "startDate": "2025-01-01",
+            "endDate": "2025-12-31",
+            "location": {
+              "@type": "VirtualLocation",
+              "url": "https://www.dev-quest.tech"
+            }
+          }],
+          "offers": {
+            "@type": "Offer",
+            "url": "https://www.dev-quest.tech/courses",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
         },
         {
           "@type": "Course",
           "name": "Java Programming", 
-          "description": "Object-oriented programming with Java"
+          "description": "Object-oriented programming with Java",
+          "provider": {
+            "@type": "EducationalOrganization",
+            "name": "DevQuest",
+            "url": "https://www.dev-quest.tech"
+          },
+          "hasCourseInstance": [{
+            "@type": "CourseInstance",
+            "courseMode": "online",
+            "instructor": "DevQuest Team",
+            "startDate": "2025-01-01",
+            "endDate": "2025-12-31",
+            "location": {
+              "@type": "VirtualLocation",
+              "url": "https://www.dev-quest.tech"
+            }
+          }],
+          "offers": {
+            "@type": "Offer",
+            "url": "https://www.dev-quest.tech/courses",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
         }
       ]
     }
