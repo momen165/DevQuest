@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import axios from "axios";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import defaultProfilePic from "../assets/images/default-profile-pic.png";
-import "../styles/FeedbackCardScroll.css"; // Ensure you have the correct path to your CSS file
+import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import defaultProfilePic from '../assets/images/default-profile-pic.png';
+import '../styles/FeedbackCardScroll.css'; // Ensure you have the correct path to your CSS file
 
 const FeedbackCardScroll = () => {
   const sectionRef = useRef(null);
@@ -19,10 +19,10 @@ const FeedbackCardScroll = () => {
     };
 
     checkMobile();
-    window.addEventListener("resize", checkMobile);
+    window.addEventListener('resize', checkMobile);
 
     return () => {
-      window.removeEventListener("resize", checkMobile);
+      window.removeEventListener('resize', checkMobile);
     };
   }, []);
 
@@ -36,7 +36,7 @@ const FeedbackCardScroll = () => {
         const transformedData = data.map((item) => ({
           name: item.name,
           avatar: item.profileimage || defaultProfilePic,
-          rating: "★".repeat(item.rating),
+          rating: '★'.repeat(item.rating),
           text: item.comment,
           courseName: item.course_name,
           country: item.country,
@@ -44,7 +44,7 @@ const FeedbackCardScroll = () => {
 
         setFeedbackData(transformedData);
       } catch (error) {
-        console.error("Error fetching feedback:", error);
+        console.error('Error fetching feedback:', error);
         // Fallback to empty array to prevent layout breaks
         setFeedbackData([]);
       } finally {
@@ -64,8 +64,8 @@ const FeedbackCardScroll = () => {
     const timeline = gsap.timeline({
       scrollTrigger: {
         trigger: sectionRef.current,
-        start: "top 15%",
-        end: "+=100%",
+        start: 'top 15%',
+        end: '+=100%',
         scrub: 0.8,
         pin: true,
         anticipatePin: 1,
@@ -88,21 +88,21 @@ const FeedbackCardScroll = () => {
       });
 
       // Add hover animations
-      card.addEventListener("mouseenter", () => {
+      card.addEventListener('mouseenter', () => {
         gsap.to(card, {
           scale: 1.1,
           zIndex: 100,
           duration: 0.3,
-          ease: "power2.out",
+          ease: 'power2.out',
         });
       });
 
-      card.addEventListener("mouseleave", () => {
+      card.addEventListener('mouseleave', () => {
         gsap.to(card, {
           scale: isCenter ? 1.05 : 0.92,
           zIndex: 1,
           duration: 0.3,
-          ease: "power2.out",
+          ease: 'power2.out',
         });
       });
 
@@ -115,9 +115,9 @@ const FeedbackCardScroll = () => {
           rotateY: 0,
           scale: isCenter ? 1.05 : 0.92,
           duration: 1,
-          ease: "power2.inOut",
+          ease: 'power2.inOut',
         },
-        i * 0.15,
+        i * 0.15
       );
     });
 
@@ -126,8 +126,8 @@ const FeedbackCardScroll = () => {
       // Clean up hover events
       cardsRef.current.forEach((card) => {
         if (card) {
-          card.removeEventListener("mouseenter", () => { });
-          card.removeEventListener("mouseleave", () => { });
+          card.removeEventListener('mouseenter', () => {});
+          card.removeEventListener('mouseleave', () => {});
         }
       });
     };
@@ -143,7 +143,12 @@ const FeedbackCardScroll = () => {
 
   return (
     <section className="scroll-section" ref={sectionRef}>
-      <h1 className="scroll-section-header">What Our Students Say</h1>
+      <h1 className="scroll-section-header">
+        <span role="img" aria-label="speech balloon">
+          💬
+        </span>{' '}
+        What Our Developers Say
+      </h1>
       <div className="scroll-cards-track">
         {feedbackData.map((feedback, index) => (
           <article
@@ -152,7 +157,9 @@ const FeedbackCardScroll = () => {
             ref={(el) => (cardsRef.current[index] = el)}
           >
             <div className="feedback-scroll-card-content">
-              <span className="feedback-scroll-card-number">{index + 1}</span>
+              <span className="feedback-scroll-card-number">
+                {String(index + 1).padStart(2, '0')}
+              </span>
               <div className="feedback-scroll-user-info">
                 <div
                   className="feedback-scroll-user-avatar"
@@ -160,19 +167,14 @@ const FeedbackCardScroll = () => {
                 />
                 <div className="feedback-scroll-user-details">
                   <div className="feedback-scroll-user-name">
-                    {feedback.name}
+                    👨‍💻 {feedback.name}
                     {feedback.country && (
-                      <span className="feedback-scroll-user-country">
-                        {" "}
-                        ({feedback.country})
-                      </span>
+                      <span className="feedback-scroll-user-country"> 📍 {feedback.country}</span>
                     )}
                   </div>
                   <div className="feedback-scroll-rating">{feedback.rating}</div>
                   {feedback.courseName && (
-                    <div className="feedback-scroll-course">
-                      {feedback.courseName}
-                    </div>
+                    <div className="feedback-scroll-course">📚 {feedback.courseName}</div>
                   )}
                 </div>
               </div>

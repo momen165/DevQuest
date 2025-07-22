@@ -10,64 +10,82 @@
 }
 
 /* Base styles */
+.scroll-section {
+  
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  pointer-events: none;
+}
+
+.scroll-section::after {
+  content: 'Student Testimonials';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(6rem, 12vw, 16rem);
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.02);
+  font-family: 'Courier New', monospace;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .scroll-section-header {
   position: sticky;
   top: 2rem;
-  font-size: 2em; /* Corrected font-size value */
-  margin: 0 0 2em; /* Corrected margin value */
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  color: white;
+  font-size: 3rem;
+  margin: 0 0 3rem;
+  font-weight: 800;
+  color: #ffffff;
   text-align: center;
   z-index: 10;
+  background: linear-gradient(135deg, #7F7FD3, #91EAE4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
 }
 
 .feedback-scroll-user-name {
-  font-weight: bold;
-  font-size: 1.1rem;
-  background: linear-gradient(45deg, #16213e, #1a1a2e);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 1px;
-  /* Added properties from duplicate definition below */
-  font-weight: 700; /* Changed from bold to 700 for consistency */
-  color: #1a1a2e; /* Note: background clip overrides this unless gradient fails */
-  margin-bottom: 0.2em;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #ffffff;
+  margin-bottom: 0.3rem;
   display: flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 0.5rem;
 }
 
 .feedback-scroll-rating {
-  color: #f1c40f;
-  font-size: 1.2rem;
-  margin: 5px 0;
-}
-
-.testimonial {
-  /* Removed stray semicolon */
-  font-size: 1.25em;
-  line-height: 1.6;
-  color: #445;
-  margin-top: 1em;
-  /* Removed extra closing brace */
+  color: #91EAE4;
+  font-size: 1.3rem;
+  margin: 0.2rem 0;
+  filter: drop-shadow(0 2px 4px rgba(145, 234, 228, 0.3));
 }
 
 .testimonial-text {
-  font-size: 1.1rem; /* Corrected font-size, consolidated from duplicate */
-  line-height: 1.7; /* Corrected line-height, consolidated from duplicate */
-  color: #2d3748; /* Corrected color, consolidated from duplicate */
-  margin: 1em 0; /* Corrected margin, consolidated from duplicate */
-  padding: 0 1em; /* Corrected padding, consolidated from duplicate */
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #e0e0e0;
+  margin: 1rem 0;
+  padding: 0 0.5rem;
   flex-grow: 1;
   position: relative;
-  overflow-y: auto; /* Changed from hidden to auto for scroll */
-  text-overflow: ellipsis; /* Note: ellipsis might not work well with overflow-y: auto */
-  /* Removed webkit box properties for standard scroll */
-  max-height: 250px; /* Added from later definition */
-  scrollbar-width: thin; /* Added from later definition */
-  scrollbar-color: rgba(0, 0, 0, 0.1) transparent; /* Added from later definition */
+  overflow-y: auto;
+  max-height: 200px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(127, 127, 211, 0.3) transparent;
 }
 
 /* Custom scrollbar for testimonial text */
@@ -78,19 +96,19 @@
   background: transparent;
 }
 .testimonial-text::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(127, 127, 211, 0.3);
   border-radius: 10px;
 }
 
 .testimonial-text::before {
   content: '"';
   position: absolute;
-  top: -0.5em;
-  left: 0;
-  font-size: 3em;
-  color: rgba(233, 69, 96, 0.1); /* Corrected color value */
+  top: -0.5rem;
+  left: -0.5rem;
+  font-size: 4rem;
+  color: rgba(127, 127, 211, 0.2);
   font-family: Georgia, serif;
-  /* Removed extra closing brace */
+  z-index: -1;
 }
 
 .sticky-container {
@@ -165,43 +183,26 @@
 
 .scroll-container {
   min-height: 100vh;
-  padding: 2rem; /* Removed extra 0% */
+  padding: 2rem;
   overflow: hidden;
-  /* Removed stray closing brace */
-}
-
-.scroll-title {
-  /* Removed stray box-shadow */
-  position: sticky; /* Corrected property value */
-  top: 2rem;
-  font-size: 2.5em;
-  text-align: center;
-  color: white;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  margin-bottom: 4rem;
-  z-index: 1;
-}
-
-.scroll-cards-track {
-  position: relative; /* Changed from fixed based on later rules */
-  min-height: 100vh; /* Added from first definition */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Removed properties moved to media query */
-  gap: 2rem; /* Added from second definition */
-  /* Removed duplicate fixed positioning properties */
+  background: inherit;
 }
 
 .scroll-section {
   position: relative;
-  height: 100vh; /* Reduced from 100vh */
+  height: 100vh;
   padding: 0;
   overflow: hidden;
-  perspective: 2500px; /* Corrected property value */
-  /* Removed duplicate hover rule content */
+  perspective: 2500px;
+}
+
+.scroll-cards-track {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
 }
 
 .scroll-feedback-card {
@@ -215,55 +216,50 @@
 }
 
 .feedback-scroll-card-content {
-  padding: 2.5em 2em;
-  background: linear-gradient(
-    /* Corrected background value */ 135deg,
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(247, 250, 255, 0.95) 100%
-  );
-  border-radius: 24px;
-  box-shadow: /* Corrected box-shadow value */ 0 20px 40px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 0 80px rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(4px);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Corrected transition value */
-  min-height: 400px; /* Increased from 350px */
-  max-height: 400px; /* Increased from 350px */
+  padding: 2rem;
+  background: rgba(15, 15, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 2px solid rgba(127, 127, 211, 0.2);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 0 60px rgba(127, 127, 211, 0.05);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  min-height: 420px;
+  max-height: 420px;
   display: flex;
-  flex-direction: column; /* Corrected property value */
+  flex-direction: column;
   justify-content: space-between;
-  position: relative; /* Corrected property value */
+  position: relative;
   overflow: hidden;
-  border: 1px solid rgba(209, 213, 219, 0.3); /* Added border */
 }
 
 .feedback-scroll-user-info {
   position: relative;
   display: flex;
   align-items: center;
-  padding: 1.5em; /* Corrected padding value */
-  margin: -1em -1em 1em -1em; /* Corrected margin value */
-  background: linear-gradient(
-    /* Corrected background value */ to right,
-    rgba(255, 255, 255, 0.95),
-    rgba(255, 255, 255, 0.8)
-  );
-  border-bottom: 2px solid rgba(0, 0, 0, 0.05); /* Corrected border value */
-  backdrop-filter: blur(2px);
-  z-index: 2; /* Added from later definition */
-  /* Removed extra closing brace */
+  padding: 1.5rem;
+  margin: -1rem -1rem 1rem -1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(127, 127, 211, 0.2);
+  border-radius: 20px 20px 0 0;
+  z-index: 2;
 }
 
 .feedback-scroll-user-avatar {
-  width: 65px; /* Corrected width value */
-  height: 65px; /* Corrected height value */
-  border-radius: 50%; /* Corrected border-radius value */
-  margin-right: 1.2em; /* Corrected margin-right value */
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  margin-right: 1.2rem;
   background-size: cover;
-  background-position: center; /* Corrected background-position value */
-  border: 4px solid #fff; /* Corrected border value */
-  box-shadow: /* Corrected box-shadow value */ 0 4px 12px rgba(0, 0, 0, 0.1),
-    0 0 0 3px rgba(233, 69, 96, 0.2);
-  transition: transform 0.3s ease; /* Corrected transition value */
+  background-position: center;
+  border: 3px solid rgba(127, 127, 211, 0.5);
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.2),
+    0 0 0 2px rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
 }
 
 .feedback-scroll-user-avatar:hover {
@@ -279,86 +275,84 @@
 /* .feedback-scroll-user-name properties were merged into the definition near the top */
 
 .feedback-scroll-user-country {
-  font-size: 0.85em; /* Corrected font-size value */
-  color: #666; /* Corrected color value */
-  font-weight: 500; /* Corrected font-weight value */
+  font-size: 0.9rem;
+  color: #a0a0a0;
+  font-weight: 400;
 }
 
 .feedback-scroll-course {
-  font-size: 0.9rem; /* Corrected font-size value */
-  color: #555;
-  margin-top: 0.3em; /* Corrected margin-top value */
-  padding: 0.2em 0.8em; /* Corrected padding value */
-  background: rgba(0, 0, 0, 0.05); /* Corrected background value */
-  border-radius: 12px; /* Corrected border-radius value */
-  display: inline-block; /* Corrected display value */
+  font-size: 0.85rem;
+  color: #91EAE4;
+  margin-top: 0.3rem;
+  padding: 0.3rem 0.8rem;
+  background: rgba(145, 234, 228, 0.1);
+  border: 1px solid rgba(145, 234, 228, 0.3);
+  border-radius: 12px;
+  display: inline-block;
+  font-weight: 500;
 }
 
 .feedback-scroll-card-number {
   position: absolute;
-  top: -0.8rem; /* Corrected top value */
-  right: 0.5rem; /* Corrected right value */
-  font-size: 8em; /* Corrected font-size value */
-  font-weight: 900; /* Corrected font-weight value */
-  background: linear-gradient(
-    135deg,
-    rgba(233, 69, 96, 0.2),
-    rgba(255, 46, 99, 0.1)
-  ); /* Corrected background value */
-  -webkit-background-clip: text; /* Corrected property */
-  -webkit-text-fill-color: transparent; /* Corrected property */
-  opacity: 0.15; /* Corrected opacity value */
-  line-height: 1; /* Corrected line-height value */
-  z-index: 0; /* Corrected z-index value */
-  /* Removed duplicate definition below */
+  top: -0.5rem;
+  right: 0.5rem;
+  font-size: 6rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, rgba(127, 127, 211, 0.3), rgba(145, 234, 228, 0.2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0.15;
+  line-height: 1;
+  z-index: 0;
 }
 
 /* Card color variations with modern gradients */
 .scroll-feedback-card:nth-child(3n + 1) .feedback-scroll-card-content {
-  background: linear-gradient(
-    /* Corrected background value */ 135deg,
-    rgba(236, 252, 255, 0.98) 0%,
-    rgba(231, 241, 255, 0.95) 100%
-  );
-  border-left: 5px solid #60a5fa; /* Corrected border value */
+  border: 2px solid rgba(96, 165, 250, 0.3);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(96, 165, 250, 0.2),
+    inset 0 0 60px rgba(96, 165, 250, 0.05);
 }
 
 .scroll-feedback-card:nth-child(3n + 2) .feedback-scroll-card-content {
-  background: linear-gradient(
-    /* Corrected background value */ 135deg,
-    rgba(255, 247, 237, 0.98) 0%,
-    rgba(255, 241, 235, 0.95) 100%
-  );
-  border-left: 5px solid #f97316; /* Corrected border value */
+  border: 2px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(249, 115, 22, 0.2),
+    inset 0 0 60px rgba(249, 115, 22, 0.05);
 }
 
 .scroll-feedback-card:nth-child(3n + 3) .feedback-scroll-card-content {
-  background: linear-gradient(
-    /* Corrected background value */ 135deg,
-    rgba(236, 253, 245, 0.98) 0%,
-    rgba(231, 255, 241, 0.95) 100%
-  );
-  border-left: 5px solid #34d399; /* Corrected border value */
+  border: 2px solid rgba(52, 211, 153, 0.3);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(52, 211, 153, 0.2),
+    inset 0 0 60px rgba(52, 211, 153, 0.05);
 }
 
 /* Enhanced hover effects */
 .feedback-scroll-card-content:hover {
-  transform: translateY(-5px) scale(1.02); /* Corrected transform value */
-  box-shadow: /* Corrected box-shadow value */ 0 25px 50px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgba(255, 255, 255, 0.5), inset 0 0 80px rgba(255, 255, 255, 0.7);
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(127, 127, 211, 0.5);
+  box-shadow: 
+    0 35px 70px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(127, 127, 211, 0.4),
+    inset 0 0 80px rgba(127, 127, 211, 0.1);
 }
 
 /* Enhance rating stars color based on card variation */
 .scroll-feedback-card:nth-child(3n + 1) .feedback-scroll-rating {
-  color: #60a5fa; /* Corrected color value */
+  color: #60a5fa;
 }
 
 .scroll-feedback-card:nth-child(3n + 2) .feedback-scroll-rating {
-  color: #f97316; /* Corrected color value */
+  color: #f97316;
 }
 
 .scroll-feedback-card:nth-child(3n + 3) .feedback-scroll-rating {
-  color: #34d399; /* Corrected color value */
+  color: #34d399;
 }
 
 /* Add subtle background patterns */
@@ -369,12 +363,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(
-    /* Corrected background value */ circle at 100% 100%,
-    rgba(255, 255, 255, 0.2) 0%,
-    transparent 50%
-  );
-  pointer-events: none; /* Corrected property value */
+  background: linear-gradient(135deg, rgba(127, 127, 211, 0.1) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 /* Responsive styles */

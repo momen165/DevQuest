@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import "../../styles/AuthPages.css";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../AuthContext";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import '../../styles/AuthPages.css';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../AuthContext';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -10,15 +10,15 @@ const SignupPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/");
+      navigate('/');
     }
   }, [isAuthenticated, navigate]);
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    country: "Palestine", // Set default country
+    name: '',
+    email: '',
+    password: '',
+    country: 'Palestine', // Set default country
   });
 
   const handleChange = (e) => {
@@ -32,15 +32,14 @@ const SignupPage = () => {
   const validateForm = () => {
     const { name, email, password } = formData;
     if (!name || !email || !password) {
-      alert("Name, email and password are required");
+      alert('Name, email and password are required');
       return false;
     }
 
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
       alert(
-        "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)",
+        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)'
       );
       return false;
     }
@@ -52,20 +51,20 @@ const SignupPage = () => {
     if (!validateForm()) return;
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/signup`, formData);
-      alert("Signup successful! Check your email for verification.");
-      console.log("Signup successful:", response.data);
+      alert('Signup successful! Check your email for verification.');
+      console.log('Signup successful:', response.data);
 
       // You could redirect to login page here
-      navigate("/LoginPage");
+      navigate('/LoginPage');
     } catch (error) {
       if (error.response) {
-        console.error("Signup failed:", error.response.data.error);
+        console.error('Signup failed:', error.response.data.error);
       } else if (error.request) {
         // No response received from server
-        console.error("No response from server:", error.request);
+        console.error('No response from server:', error.request);
       } else {
         // Other errors
-        console.error("Error:", error.message);
+        console.error('Error:', error.message);
       }
     }
   };
@@ -73,13 +72,13 @@ const SignupPage = () => {
   return (
     <div className="Auth_container">
       <div className="form-container">
-        <h1>Create an account</h1>
+        <h1>Start Your Quest</h1>
         <p>
           Already have an account? <a href="/LoginPage">Log in</a>
         </p>
         <form onSubmit={handleSubmit} className="form">
           <label>
-            Name
+            Full Name
             <input
               type="text"
               name="name"
@@ -89,6 +88,7 @@ const SignupPage = () => {
               required
               className="input"
               autoComplete="name"
+              placeholder="Enter your full name"
             />
           </label>
           <label>
@@ -102,6 +102,7 @@ const SignupPage = () => {
               required
               className="input"
               autoComplete="email"
+              placeholder="Enter your email address"
             />
           </label>
           <label>
@@ -115,10 +116,10 @@ const SignupPage = () => {
               required
               className="input"
               autoComplete="new-password"
+              placeholder="Create a strong password"
             />
             <p className="hint">
-              Password must be at least 8 characters long and contain at least
-              one uppercase letter, one lowercase letter, one number, and one
+              🔒 Password requirements: At least 8 characters with uppercase, lowercase, number, and
               special character (@$!%*?&)
             </p>
           </label>
@@ -132,32 +133,33 @@ const SignupPage = () => {
               className="select"
               autoComplete="country"
             >
-              <option value="Palestine">Palestine</option>
-              <option value="Jordan">Jordan</option>
-              <option value="USA">USA</option>
-              <option value="UK">UK</option>
-              <option value="Other">Other</option>
+              <option value="Palestine">🇵🇸 Palestine</option>
+              <option value="Jordan">🇯🇴 Jordan</option>
+              <option value="USA">🇺🇸 USA</option>
+              <option value="UK">🇬🇧 UK</option>
+              <option value="Other">🌍 Other</option>
             </select>
           </label>
           <div className="captcha">
-            <input type="checkbox" required /> I'm not a robot
+            <input type="checkbox" required id="robot-check" />
+            <label htmlFor="robot-check">I'm not a robot 🤖</label>
           </div>
           <button type="submit" className="button">
-            Create account
+            Begin Your Journey
           </button>
         </form>
         <p>
-          By creating an account, you agree to our{" "}
-          <a href="/terms">Terms of use</a> and{" "}
+          By creating an account, you agree to our <a href="/terms">Terms of Service</a> and{' '}
           <a href="/privacy">Privacy Policy</a>
         </p>
       </div>
       <div className="welcome-container">
-        <h2>Welcome!</h2>
+        <h2>Join the Developer Community!</h2>
         <p>
-          Create your account to embark on your programming journey with us.
-          Whether you're a beginner or looking to sharpen your skills, we're
-          here to help you every step of the way. Let's start coding together!
+          Ready to embark on an epic coding adventure? DevQuest is your gateway to mastering
+          programming skills through interactive challenges, real-world projects, and a supportive
+          community of developers. From beginner to expert, we'll guide you every step of the way.
+          Let's code the future together!
         </p>
       </div>
     </div>

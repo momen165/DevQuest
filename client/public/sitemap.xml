@@ -38,10 +38,23 @@
 
   <!-- Registration Page - Medium Priority -->
   <url>
-    <loc>https://www.dev-quest.tech//RegistrationPage</loc>
+    <loc>https://www.dev-quest.tech/RegistrationPage</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-
+  <!-- Terms Page - Medium Priority -->
+  <url>
+    <loc>https://www.dev-quest.tech/terms</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <!-- Privacy Page - Medium Priority -->
+  <url>
+    <loc>https://www.dev-quest.tech/privacy</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>

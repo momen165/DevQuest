@@ -91,6 +91,9 @@ const Footer = () => {
                 <li>
                   <Link to="/privacy">Privacy Policy</Link>
                 </li>
+                <li>
+                  <Link to="/terms">Terms of Service</Link>
+                </li>
               </ul>
             </div>
 
@@ -108,13 +111,16 @@ const Footer = () => {
 
       <div className="footer__bottom">
         <div className="footer__social">
-          <a href="https://www.linkedin.com/in/momen-aabed/" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://www.linkedin.com/in/momen-aabed/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FaLinkedin />
           </a>
           <a href="https://github.com/momen165" target="_blank" rel="noopener noreferrer">
             <FaGithub />
           </a>
-         
         </div>
         <p className="footer__copyright">
           &copy; {new Date().getFullYear()} DevQuest. All rights reserved.

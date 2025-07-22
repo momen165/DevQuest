@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import "../../styles/AuthPages.css";
-import { useAuth } from "../../AuthContext";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-hot-toast";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import '../../styles/AuthPages.css';
+import { useAuth } from '../../AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -14,7 +14,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/");
+      navigate('/');
     }
   }, [isAuthenticated, navigate]);
 
@@ -28,12 +28,13 @@ const LoginPage = () => {
 
     try {
       setLoading(true);
-      await axios.post(`${import.meta.env.VITE_API_URL}/resend-verification`, { email: formData.email });
-      toast.success("Verification email sent! Please check your inbox.");
+      await axios.post(`${import.meta.env.VITE_API_URL}/resend-verification`, {
+        email: formData.email,
+      });
+      toast.success('Verification email sent! Please check your inbox.');
     } catch (err) {
       toast.error(
-        err.response?.data?.error ||
-        "Failed to resend verification email. Please try again."
+        err.response?.data?.error || 'Failed to resend verification email. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -46,13 +47,10 @@ const LoginPage = () => {
     setNeedsVerification(false);
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/login`,
-        {
-          email: formData.email,
-          password: formData.password,
-        }
-      );
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/login`, {
+        email: formData.email,
+        password: formData.password,
+      });
 
       const { token, refreshToken, user } = response.data;
 
@@ -60,20 +58,19 @@ const LoginPage = () => {
       const success = await login(token, refreshToken, user);
 
       if (success) {
-        toast.success("Login successful!");
-        navigate("/");
+        toast.success('Login successful!');
+        navigate('/');
       } else {
-        toast.error("Failed to process login information.");
+        toast.error('Failed to process login information.');
       }
     } catch (err) {
       // Handle verification-specific error
       if (err.response?.data?.needsVerification) {
         setNeedsVerification(true);
-        toast.error("Please verify your email before logging in");
+        toast.error('Please verify your email before logging in');
       } else {
         toast.error(
-          err.response?.data?.error ||
-          "Login failed. Please check your email and password."
+          err.response?.data?.error || 'Login failed. Please check your email and password.'
         );
       }
     } finally {
@@ -84,7 +81,7 @@ const LoginPage = () => {
   return (
     <div className="Auth_container">
       <div className="form-container">
-        <h1>Log in</h1>
+        <h1>Welcome Back</h1>
         <p>
           Don't have an account? <a href="/RegistrationPage">Sign up</a>
         </p>
@@ -99,6 +96,7 @@ const LoginPage = () => {
               required
               className="input"
               autoComplete="email"
+              placeholder="Enter your email"
             />
           </label>
           <label>
@@ -111,22 +109,19 @@ const LoginPage = () => {
               required
               className="input"
               autoComplete="current-password"
+              placeholder="Enter your password"
             />
           </label>
 
           <button type="submit" className="button" disabled={loading}>
-            {loading ? "Processing..." : "Log in"}
+            {loading ? 'Authenticating...' : 'Log in'}
           </button>
         </form>
 
         {needsVerification && (
           <div className="verification-message">
             <p>Your email address has not been verified yet.</p>
-            <button
-              onClick={handleResendVerification}
-              className="resend-button"
-              disabled={loading}
-            >
+            <button onClick={handleResendVerification} className="resend-button" disabled={loading}>
               Resend Verification Email
             </button>
           </div>
@@ -137,11 +132,11 @@ const LoginPage = () => {
         </p>
       </div>
       <div className="welcome-container">
-        <h2>Welcome Back!</h2>
+        <h2>Continue Your Coding Journey!</h2>
         <p>
-          Log in to continue your programming journey with us. We're here to
-          support your learning every step of the way. Let's keep coding
-          together!
+          Welcome back to DevQuest! Ready to dive back into your programming adventure? Your next
+          coding challenge awaits. Let's build something amazing together and level up your
+          development skills one line of code at a time.
         </p>
       </div>
     </div>
