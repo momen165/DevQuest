@@ -221,8 +221,8 @@ const HomePage = () => {
         <FAQSection />
       </section>
 
-      {/* Conditional Support Form */}
-      {hasToken && <SupportForm />}
+      {/* Support Form for all users */}
+      <SupportForm />
 
       {/* Footer */}
       <Footer />

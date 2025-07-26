@@ -437,6 +437,206 @@ const getRecentTickets = async (req, res) => {
   }
 };
 
+/**
+ * Submits a new anonymous support ticket.
+ * @param {object} req - The request object.
+ * @param {string} req.body.message - The user's message for the ticket.
+ * @param {string} req.body.email - The user's email address.
+ * @param {string} req.body.name - The user's name.
+ * @param {object} res - The response object.
+ * @returns {Promise<object>} - A promise that resolves with the response.
+ */
+const submitAnonymousTicket = async (req, res) => {
+  const { message, email, name } = req.body;
+
+  if (!email || !message || !name) {
+    return res.status(400).json({ error: "Email, name, and message are required." });
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: "Please provide a valid email address." });
+  }
+
+  try {
+    // Check if there is an open support ticket for this email
+    const checkQuery = `
+      SELECT ticket_id
+      FROM support
+      WHERE user_email = $1
+      AND status = 'open'
+      ORDER BY time_opened DESC
+      LIMIT 1;
+    `;
+    const checkResult = await db.query(checkQuery, [email]);
+
+    if (checkResult.rows.length > 0) {
+      // Update the existing open support ticket with a new message
+      const existingTicketId = checkResult.rows[0].ticket_id;
+
+      // Update expiration time to 24 hours from now
+      const updateExpirationQuery = `
+        UPDATE support
+        SET expiration_time = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '24 hours'
+        WHERE ticket_id = $1
+        RETURNING *;
+      `;
+      await db.query(updateExpirationQuery, [existingTicketId]);
+
+      // Then insert the new message
+      const insertMessageQuery = `
+        INSERT INTO ticket_messages (ticket_id, sender_type, message_content)
+        VALUES ($1, 'user', $2)
+        RETURNING *;
+      `;
+      const insertMessageValues = [existingTicketId, message];
+      const insertMessageResult = await db.query(
+        insertMessageQuery,
+        insertMessageValues,
+      );
+
+      console.log("Anonymous support ticket message added:", insertMessageResult.rows[0]);
+      return res.status(200).json({
+        message: "Support ticket message added successfully!",
+        ticket: insertMessageResult.rows[0],
+      });
+    } else {
+      // Create a new support ticket with 24 hour expiration
+      const insertTicketQuery = `
+        INSERT INTO support (user_message, user_email, time_opened, expiration_time, status)
+        VALUES ($1, $2, 
+                (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), 
+                (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '24 hours', 
+                'open')
+        RETURNING *;
+      `;
+      const insertTicketValues = [message, email];
+      const insertTicketResult = await db.query(
+        insertTicketQuery,
+        insertTicketValues,
+      );
+      const newTicketId = insertTicketResult.rows[0].ticket_id;
+
+      // Add the user's initial message
+      const insertMessageQuery = `
+        INSERT INTO ticket_messages (ticket_id, sender_type, message_content)
+        VALUES ($1, 'user', $2)
+        RETURNING *;
+      `;
+      const insertMessageValues = [newTicketId, message];
+      await db.query(insertMessageQuery, insertMessageValues);
+
+      // Add the automatic response
+      const autoReplyMessage = `Hello ${name}!
+
+Thank you for contacting DevQuest Support. This is an automated message to confirm we've received your inquiry.
+
+Your Support Ticket ID is: #${newTicketId}
+
+One of our administrators will review your message and respond as soon as possible. Please note that our typical response time is within 24 hours.
+
+If you don't receive a response within 24 hours, please contact us at Support@dev-quest.tech and include your Support Ticket ID (#${newTicketId}) in your email.
+
+We appreciate your patience!
+
+Best regards,
+DevQuest Support Team`;
+
+      const insertAutoReplyQuery = `
+        INSERT INTO ticket_messages (ticket_id, sender_type, message_content)
+        VALUES ($1, 'admin', $2)
+        RETURNING *;
+      `;
+      await db.query(insertAutoReplyQuery, [newTicketId, autoReplyMessage]);
+
+      // Fetch the complete ticket with all messages
+      const getTicketQuery = `
+        SELECT * FROM support WHERE ticket_id = $1;
+      `;
+      const getMessagesQuery = `
+        SELECT * FROM ticket_messages WHERE ticket_id = $1 ORDER BY sent_at ASC;
+      `;
+      const ticketResult = await db.query(getTicketQuery, [newTicketId]);
+      const messagesResult = await db.query(getMessagesQuery, [newTicketId]);
+
+      const ticket = {
+        ...ticketResult.rows[0],
+        messages: messagesResult.rows,
+      };
+
+      return res.status(201).json({
+        message: "Support ticket submitted successfully!",
+        ticket: ticket,
+      });
+    }
+  } catch (err) {
+    console.error("Error submitting anonymous support ticket:", err);
+    res.status(500).json({ error: "Failed to submit support ticket." });
+  }
+};
+
+/**
+ * Fetches open support tickets for a specific email (anonymous users).
+ * @param {object} req - The request object.
+ * @param {string} req.params.email - The email address to fetch tickets for.
+ * @param {object} res - The response object.
+ * @returns {Promise<object>} - A promise that resolves with the response.
+ */
+const getAnonymousTicketsByEmail = async (req, res) => {
+  const { email } = req.params;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email is required." });
+  }
+
+  try {
+    const query = `
+      SELECT support.ticket_id, support.user_email, support.time_opened, support.expiration_time, support.status,
+             ticket_messages.message_content, ticket_messages.sender_type, ticket_messages.sent_at
+      FROM support
+      LEFT JOIN ticket_messages ON support.ticket_id = ticket_messages.ticket_id
+      WHERE support.user_email = $1
+      AND support.status = 'open'
+      ORDER BY support.time_opened DESC, ticket_messages.sent_at ASC;
+    `;
+    const values = [email];
+    const result = await db.query(query, values);
+
+    const tickets = result.rows.reduce((acc, row) => {
+      const {
+        ticket_id,
+        user_email,
+        time_opened,
+        expiration_time,
+        status,
+        message_content,
+        sender_type,
+        sent_at,
+      } = row;
+      if (!acc[ticket_id]) {
+        acc[ticket_id] = {
+          ticket_id,
+          user_email,
+          time_opened,
+          expiration_time,
+          status,
+          messages: [],
+        };
+      }
+      if (message_content) {
+        acc[ticket_id].messages.push({ message_content, sender_type, sent_at });
+      }
+      return acc;
+    }, {});
+
+    res.status(200).json(Object.values(tickets));
+  } catch (err) {
+    console.error("Error fetching anonymous support tickets:", err);
+    res.status(500).json({ error: "Failed to fetch support tickets." });
+  }
+};
+
 module.exports = {
   submitTicket,
   getUserTicketsByUserId,
@@ -446,4 +646,6 @@ module.exports = {
   closeExpiredTickets,
   closeTicket,
   getRecentTickets,
+  submitAnonymousTicket,
+  getAnonymousTicketsByEmail,
 };
