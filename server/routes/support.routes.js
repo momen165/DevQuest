@@ -8,6 +8,8 @@ const {
   deleteTicket,
   closeTicket,
   getRecentTickets,
+  submitAnonymousTicket,
+  getAnonymousTicketsByEmail,
 } = require("../controllers/support.controller");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
@@ -71,6 +73,22 @@ router.get(
   cacheMiddleware("support-tickets/recent", 300),
   performanceMiddleware("user-support-tickets"),
   getRecentTickets
+);
+
+// Public routes for anonymous support
+router.post(
+  "/support/anonymous",
+  sessionTracker,
+  performanceMiddleware("anonymous-support"),
+  submitAnonymousTicket
+);
+
+router.get(
+  "/support/anonymous/:email",
+  sessionTracker,
+  cacheMiddleware("anonymous-support-tickets", 300),
+  performanceMiddleware("anonymous-support-tickets"),
+  getAnonymousTicketsByEmail
 );
 
 module.exports = router;
