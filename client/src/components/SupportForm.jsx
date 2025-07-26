@@ -38,23 +38,27 @@ const SupportForm = () => {
 
   const fetchUserTickets = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/user-support-tickets`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await axios.get(`${apiUrl}/user-support-tickets`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       setTickets(response.data);
     } catch (err) {
       console.error('Failed to fetch support tickets:', err);
+      setTickets([]); // Ensure tickets is always an array
     }
   };
 
   const fetchAnonymousTickets = async (email) => {
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/support/anonymous/${encodeURIComponent(email)}`
+        `${apiUrl}/support/anonymous/${encodeURIComponent(email)}`
       );
       setTickets(response.data);
     } catch (err) {
       console.error('Failed to fetch anonymous support tickets:', err);
+      setTickets([]); // Ensure tickets is always an array
     }
   };
 
@@ -108,15 +112,17 @@ const SupportForm = () => {
             },
           };
 
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
           response = await axios.post(
-            `${import.meta.env.VITE_API_URL}/support`,
+            `${apiUrl}/support`,
             { message },
             config
           );
         } else {
           // Anonymous user
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
           response = await axios.post(
-            `${import.meta.env.VITE_API_URL}/support/anonymous`,
+            `${apiUrl}/support/anonymous`,
             { message, email: userEmail, name: userName }
           );
         }
@@ -149,8 +155,9 @@ const SupportForm = () => {
 
   const handleCloseTicket = async (ticketId) => {
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/support-tickets/${ticketId}/close`,
+        `${apiUrl}/support-tickets/${ticketId}/close`,
         {},
         {
           headers: { Authorization: `Bearer ${user.token}` },
@@ -247,7 +254,7 @@ const SupportForm = () => {
           {(isAuthenticated || (!showUserForm && userEmail)) && (
             <>
               <div className="sf-chat-container" ref={chatContainerRef}>
-                {tickets.length === 0 ? (
+                {!Array.isArray(tickets) || tickets.length === 0 ? (
                   <div className="sf-empty-message">
                     <FaHeadset size={24} />
                     <p>How can we help you today?</p>
@@ -281,7 +288,7 @@ const SupportForm = () => {
                 )}
               </div>
 
-              {isAuthenticated && tickets.length > 0 && tickets.some((ticket) => ticket.status !== 'closed') && (
+              {isAuthenticated && Array.isArray(tickets) && tickets.length > 0 && tickets.some((ticket) => ticket.status !== 'closed') && (
                 <div className="sf-ticket-actions">
                   <button
                     className="sf-close-ticket-button"
