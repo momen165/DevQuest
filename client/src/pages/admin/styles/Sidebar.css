@@ -222,9 +222,13 @@
   flex: 1;
   margin-left: 250px; /* Same as sidebar width */
   padding: 0; /* Remove padding to eliminate gap */
-  min-height: 100vh;
+  height: 100vh; /* Fixed viewport height */
   width: calc(100% - 250px); /* Full width minus sidebar */
   box-sizing: border-box;
+  overflow-y: auto; /* Single scroll container */
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Responsive design */
@@ -237,6 +241,8 @@
     margin-left: 200px;
     width: calc(100% - 200px);
     padding: 0; /* Maintain no padding on mobile */
+    height: 100vh;
+    overflow-y: auto;
   }
 }
 
@@ -269,6 +275,8 @@
   .admin-main-content {
     margin-left: 60px;
     width: calc(100% - 60px);
+    height: 100vh;
+    overflow-y: auto;
   }
 }
 

@@ -1,14 +1,15 @@
-import React , { useState } from 'react';
+import React, { useState } from 'react';
 import {
-  FaMoneyCheckAlt, 
-  FaChalkboardTeacher, 
-  FaHome, 
-  FaUser, 
-  FaComment, 
-  FaCog, 
-  FaSignOutAlt, 
+  FaMoneyCheckAlt,
+  FaChalkboardTeacher,
+  FaHome,
+  FaUser,
+  FaComment,
+  FaCog,
+  FaSignOutAlt,
   FaArrowLeft,
-  FaChartLine // Add chart icon
+  FaChartLine, // Add chart icon
+  FaTachometerAlt, // Add dashboard icon
 } from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom';
 import '../../../pages/admin/styles/Sidebar.css';
@@ -42,7 +43,7 @@ const Sidebar = ({ children }) => {
               <FaHome /> <span>Dashboard</span>
             </li>
           </Link>
-          
+
           <Link to="/Students" className="link">
             <li className={`sidebar-item ${location.pathname === '/Students' ? 'active' : ''}`}>
               <FaUser /> <span>Students</span>
@@ -79,12 +80,26 @@ const Sidebar = ({ children }) => {
             </li>
           </Link>
 
+          <Link to="/SupportDashboard" className="link">
+            <li
+              className={`sidebar-item ${
+                location.pathname === '/SupportDashboard' ? 'active' : ''
+              }`}
+            >
+              <FaTachometerAlt /> <span>Support Analytics</span>
+            </li>
+          </Link>
+
           <Link to="/AdminSettingsPage" className="link">
-            <li className={`sidebar-item ${location.pathname === '/AdminSettingsPage' ? 'active' : ''}`}>
+            <li
+              className={`sidebar-item ${
+                location.pathname === '/AdminSettingsPage' ? 'active' : ''
+              }`}
+            >
               <FaCog /> <span>Settings</span>
             </li>
           </Link>
-         
+
           <li className="sidebar-item logout" onClick={handleLogout}>
             <FaSignOutAlt /> <span>Logout</span>
           </li>
@@ -95,16 +110,18 @@ const Sidebar = ({ children }) => {
           </li>
         </Link>
       </div>
-      <main className="admin-main-content">
-        {children}
-      </main>
+      <main className="admin-main-content">{children}</main>
       {showLogoutConfirm && (
         <div className="logout-confirmation">
           <div className="logout-dialog">
             <p>Are you sure you want to logout?</p>
             <div className="dialog-buttons">
-              <button className="confirm-button" onClick={confirmLogout}>Logout</button>
-              <button className="cancel-button" onClick={cancelLogout}>Cancel</button>
+              <button className="confirm-button" onClick={confirmLogout}>
+                Logout
+              </button>
+              <button className="cancel-button" onClick={cancelLogout}>
+                Cancel
+              </button>
             </div>
           </div>
         </div>

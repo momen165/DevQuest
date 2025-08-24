@@ -11,9 +11,12 @@ const {
   submitAnonymousTicket,
   getAnonymousTicketsByEmail,
 } = require("../controllers/support.controller");
+const {
+  getDashboardAnalytics,
+  getRecentTicketsForDashboard,
+} = require("../controllers/support-analytics.controller");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
-const { cacheMiddleware } = require("../utils/cache.utils");
 const {
   performanceMiddleware,
 } = require("../middleware/performance.middleware");
@@ -31,7 +34,6 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  cacheMiddleware("support-tickets", 300),
   performanceMiddleware("support-tickets"), // Performance monitoring for support tickets
   getTickets
 );
@@ -40,7 +42,6 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  cacheMiddleware("user-support-tickets", 300),
   performanceMiddleware("user-support-tickets"), // Performance monitoring for support tickets
   getUserTicketsByUserId
 ); // Route for user support tickets by user ID
@@ -70,7 +71,6 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  cacheMiddleware("support-tickets/recent", 300),
   performanceMiddleware("user-support-tickets"),
   getRecentTickets
 );
@@ -86,9 +86,27 @@ router.post(
 router.get(
   "/support/anonymous/:email",
   sessionTracker,
-  cacheMiddleware("anonymous-support-tickets", 300),
   performanceMiddleware("anonymous-support-tickets"),
   getAnonymousTicketsByEmail
+);
+
+// Support Dashboard Analytics Routes
+router.get(
+  "/support/analytics/dashboard",
+  authenticateToken,
+  requireAuth,
+  sessionTracker,
+  performanceMiddleware("support-dashboard-analytics"),
+  getDashboardAnalytics
+);
+
+router.get(
+  "/support/tickets/recent",
+  authenticateToken,
+  requireAuth,
+  sessionTracker,
+  performanceMiddleware("support-recent-tickets"),
+  getRecentTicketsForDashboard
 );
 
 module.exports = router;

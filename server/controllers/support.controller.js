@@ -1,4 +1,8 @@
 const db = require("../config/database");
+const {
+  sendSupportReplyNotification,
+  sendSupportTicketConfirmation,
+} = require("../utils/email.utils");
 
 /**
  * Submits a new support ticket or updates an existing open ticket for a user.
@@ -50,7 +54,7 @@ const submitTicket = async (req, res) => {
       const insertMessageValues = [existingTicketId, message];
       const insertMessageResult = await db.query(
         insertMessageQuery,
-        insertMessageValues,
+        insertMessageValues
       );
 
       console.log("Support ticket message added:", insertMessageResult.rows[0]);
@@ -61,17 +65,17 @@ const submitTicket = async (req, res) => {
     } else {
       // Create a new support ticket with 24 hour expiration
       const insertTicketQuery = `
-        INSERT INTO support (user_message, user_email, time_opened, expiration_time, status)
-        VALUES ($1, (SELECT email FROM users WHERE user_id = $2), 
+        INSERT INTO support (user_email, time_opened, expiration_time, status)
+        VALUES ((SELECT email FROM users WHERE user_id = $1), 
                 (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), 
                 (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '24 hours', 
                 'open')
         RETURNING *;
       `;
-      const insertTicketValues = [message, userId];
+      const insertTicketValues = [userId];
       const insertTicketResult = await db.query(
         insertTicketQuery,
-        insertTicketValues,
+        insertTicketValues
       );
       const newTicketId = insertTicketResult.rows[0].ticket_id;
 
@@ -121,6 +125,20 @@ DevQuest Support Team`;
         ...ticketResult.rows[0],
         messages: messagesResult.rows,
       };
+
+      // Send confirmation email to the authenticated user
+      try {
+        // Get user's name and email from the database
+        const userQuery = `SELECT name, email FROM users WHERE user_id = $1`;
+        const userResult = await db.query(userQuery, [userId]);
+        if (userResult.rows.length > 0) {
+          const { name: userName, email: userEmail } = userResult.rows[0];
+          await sendSupportTicketConfirmation(userEmail, userName, newTicketId);
+        }
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+        // Don't fail the entire request if email fails
+      }
 
       return res.status(201).json({
         message: "Support ticket submitted successfully!",
@@ -274,6 +292,18 @@ const replyToTicket = async (req, res) => {
   const sender_type = isAdmin ? "admin" : "user";
 
   try {
+    // First, get the ticket details including user email
+    const ticketQuery = `
+      SELECT user_email FROM support WHERE ticket_id = $1;
+    `;
+    const ticketResult = await db.query(ticketQuery, [ticketId]);
+
+    if (ticketResult.rows.length === 0) {
+      return res.status(404).json({ error: "Support ticket not found." });
+    }
+
+    const userEmail = ticketResult.rows[0].user_email;
+
     // Insert the reply
     const messageQuery = `
       INSERT INTO ticket_messages (ticket_id, sender_type, message_content)
@@ -292,6 +322,14 @@ const replyToTicket = async (req, res) => {
         RETURNING *;
       `;
       await db.query(updateExpirationQuery, [ticketId]);
+    } else {
+      // If the reply is from admin, send email notification to user
+      try {
+        await sendSupportReplyNotification(userEmail, ticketId, reply);
+      } catch (emailError) {
+        console.error("Failed to send email notification:", emailError);
+        // Don't fail the entire request if email fails
+      }
     }
 
     res.status(200).json(messageResult.rows[0]);
@@ -324,11 +362,9 @@ const deleteTicket = async (req, res) => {
       return res.status(404).json({ error: "Support ticket not found." });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Support ticket and associated messages deleted successfully.",
-      });
+    res.status(200).json({
+      message: "Support ticket and associated messages deleted successfully.",
+    });
   } catch (err) {
     console.error("Error deleting support ticket:", err);
     res.status(500).json({ error: "Failed to delete support ticket." });
@@ -450,13 +486,17 @@ const submitAnonymousTicket = async (req, res) => {
   const { message, email, name } = req.body;
 
   if (!email || !message || !name) {
-    return res.status(400).json({ error: "Email, name, and message are required." });
+    return res
+      .status(400)
+      .json({ error: "Email, name, and message are required." });
   }
 
   // Basic email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return res.status(400).json({ error: "Please provide a valid email address." });
+    return res
+      .status(400)
+      .json({ error: "Please provide a valid email address." });
   }
 
   try {
@@ -493,10 +533,13 @@ const submitAnonymousTicket = async (req, res) => {
       const insertMessageValues = [existingTicketId, message];
       const insertMessageResult = await db.query(
         insertMessageQuery,
-        insertMessageValues,
+        insertMessageValues
       );
 
-      console.log("Anonymous support ticket message added:", insertMessageResult.rows[0]);
+      console.log(
+        "Anonymous support ticket message added:",
+        insertMessageResult.rows[0]
+      );
       return res.status(200).json({
         message: "Support ticket message added successfully!",
         ticket: insertMessageResult.rows[0],
@@ -504,17 +547,17 @@ const submitAnonymousTicket = async (req, res) => {
     } else {
       // Create a new support ticket with 24 hour expiration
       const insertTicketQuery = `
-        INSERT INTO support (user_message, user_email, time_opened, expiration_time, status)
-        VALUES ($1, $2, 
+        INSERT INTO support (user_email, time_opened, expiration_time, status)
+        VALUES ($1, 
                 (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), 
                 (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '24 hours', 
                 'open')
         RETURNING *;
       `;
-      const insertTicketValues = [message, email];
+      const insertTicketValues = [email];
       const insertTicketResult = await db.query(
         insertTicketQuery,
-        insertTicketValues,
+        insertTicketValues
       );
       const newTicketId = insertTicketResult.rows[0].ticket_id;
 
@@ -564,6 +607,14 @@ DevQuest Support Team`;
         ...ticketResult.rows[0],
         messages: messagesResult.rows,
       };
+
+      // Send confirmation email to the anonymous user
+      try {
+        await sendSupportTicketConfirmation(email, name, newTicketId);
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+        // Don't fail the entire request if email fails
+      }
 
       return res.status(201).json({
         message: "Support ticket submitted successfully!",

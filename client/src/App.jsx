@@ -62,6 +62,8 @@ const AdminSettingsPage = React.lazy(() => import('./pages/admin/AdminSettingsPa
 
 const Support = React.lazy(() => import('./pages/admin/Support'));
 
+const SupportDashboard = React.lazy(() => import('./pages/admin/components/SupportDashboard'));
+
 const ChangePassword = React.lazy(() => import('./pages/user/ChangePassword'));
 
 const Billing = React.lazy(() => import('./pages/user/Billing'));
@@ -310,6 +312,16 @@ function AppContent() {
           <WithMaintenance>
             <ProtectedRoute adminRequired={true}>
               <Support />
+            </ProtectedRoute>
+          </WithMaintenance>
+        }
+      />
+      <Route
+        path="/SupportDashboard"
+        element={
+          <WithMaintenance>
+            <ProtectedRoute adminRequired={true}>
+              <SupportDashboard />
             </ProtectedRoute>
           </WithMaintenance>
         }

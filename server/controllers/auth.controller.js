@@ -3,7 +3,8 @@ const jwt = require("jsonwebtoken");
 const db = require("../config/database");
 const { validationResult } = require("express-validator");
 const logActivity = require("../utils/logger");
-const mailjet = require("node-mailjet");
+const Mailgun = require("mailgun.js");
+const formData = require("form-data");
 const crypto = require("crypto");
 const NodeCache = require("node-cache"); // Import NodeCache
 require("dotenv").config();
@@ -24,11 +25,13 @@ const CONFIG = {
   },
 };
 
-// Initialize email client
-const mailjetClient = mailjet.apiConnect(
-  process.env.MAILJET_API_KEY,
-  process.env.MAILJET_SECRET_KEY
-);
+// Initialize Mailgun client
+const mailgun = new Mailgun(formData);
+const mg = mailgun.client({
+  username: "api",
+  key: process.env.MAILGUN_API_KEY,
+  url: process.env.MAILGUN_API_URL || "https://api.mailgun.net",
+});
 
 // Define styles for reusability
 const emailStyles = {
@@ -123,32 +126,29 @@ const helpers = {
 
     if (
       !senderEmail ||
-      !process.env.MAILJET_API_KEY ||
-      !process.env.MAILJET_SECRET_KEY
+      !process.env.MAILGUN_API_KEY ||
+      !process.env.MAILGUN_DOMAIN
     ) {
-      throw new Error("Missing required email configuration");
+      throw new Error("Missing required Mailgun configuration");
     }
 
-    const response = await mailjetClient
-      .post("send", { version: "v3.1" })
-      .request({
-        Messages: [
-          {
-            From: { Email: senderEmail, Name: senderName },
-            To: [{ Email: recipient, Name: recipient.split("@")[0] }],
-            Subject: subject,
-            HTMLPart: htmlContent,
-            CustomID: `${options.customId || "email"}-${Date.now()}`,
-          },
-        ],
-      });
+    const messageData = {
+      from: `${senderName} <${senderEmail}>`,
+      to: `${recipient.split("@")[0]} <${recipient}>`,
+      subject: subject,
+      html: htmlContent,
+      "o:tag": [`auth-email`, options.customId || "general"],
+      "h:X-Email-Type": options.customId || "auth",
+    };
 
-    if (response.response.status !== 200) {
-      throw new Error(
-        `Email sending failed with status: ${response.response.status}`
-      );
-    }
+    const response = await mg.messages.create(
+      process.env.MAILGUN_DOMAIN,
+      messageData
+    );
 
+    console.log(
+      `Email sent successfully to ${recipient}. Message ID: ${response.id}`
+    );
     return true;
   },
 };
@@ -734,7 +734,7 @@ const sendFeedbackReplyEmail = async ({
   reply,
 }) => {
   try {
-    if (!process.env.MAILJET_API_KEY || !process.env.MAILJET_SECRET_KEY) {
+    if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
       throw new Error("Missing required email configuration");
     }
 
@@ -767,33 +767,23 @@ const sendFeedbackReplyEmail = async ({
       </p>
     `);
 
-    const response = await mailjetClient
-      .post("send", { version: "v3.1" })
-      .request({
-        Messages: [
-          {
-            From: {
-              Email: process.env.SENDER_EMAIL_SUPPORT,
-              Name: "Devquest Support",
-            },
-            To: [
-              {
-                Email: email,
-                Name: name,
-              },
-            ],
-            Subject: "We've Responded to Your Feedback",
-            HTMLPart: emailContent,
-          },
-        ],
-      });
+    const messageData = {
+      from: `Devquest Support <${process.env.SENDER_EMAIL_SUPPORT}>`,
+      to: `${name} <${email}>`,
+      subject: "We've Responded to Your Feedback",
+      html: emailContent,
+      "o:tag": ["feedback-reply", "auth-email"],
+      "h:X-Email-Type": "feedback-reply",
+    };
 
-    if (response.response.status !== 200) {
-      throw new Error(
-        `Email sending failed with status: ${response.response.status}`
-      );
-    }
+    const response = await mg.messages.create(
+      process.env.MAILGUN_DOMAIN,
+      messageData
+    );
 
+    console.log(
+      `Feedback reply email sent successfully to ${email}. Message ID: ${response.id}`
+    );
     return true;
   } catch (error) {
     console.error("Error sending feedback reply email:", error);

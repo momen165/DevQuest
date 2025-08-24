@@ -10,6 +10,8 @@ const publicRoutes = [
   "getCoursesWithRatings",
   "feedback/public",
   "health",
+  "support/anonymous",
+  "email-webhook",
 ];
 
 const authenticateToken = async (req, res, next) => {
@@ -78,7 +80,7 @@ const requireAuth = (req, res, next) => {
       return req.path.includes(route) || lastPathPart === route;
     })
   ) {
-   // console.log(`Public route skipping auth check: ${req.path}`);
+    // console.log(`Public route skipping auth check: ${req.path}`);
     return next();
   }
 

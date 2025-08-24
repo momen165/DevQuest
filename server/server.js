@@ -162,6 +162,7 @@ const adminRoutes = require("./routes/admin.routes");
 const pageviewRoutes = require("./routes/pageview.routes");
 const performanceRoutes = require("./routes/performance.routes");
 const badgeRoutes = require("./routes/badge.routes");
+const emailWebhookRoutes = require("./routes/email-webhook.routes");
 
 // Import controllers for public endpoints
 const {
@@ -244,6 +245,7 @@ app.use("/api", codeExecutionRoutes);
 app.use("/api", uploadRoutes);
 app.use("/api", supportRoutes);
 app.use("/api", paymentRouter);
+app.use("/api", emailWebhookRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", performanceRoutes);
 app.use("/api/badges", badgeRoutes);
@@ -289,7 +291,6 @@ app.use((req, res, next) => {
 app.get("/", (req, res) => {
   res.send("API is alive!");
 });
-
 
 // Error handling middleware
 app.use((err, req, res, next) => {
