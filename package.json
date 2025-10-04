@@ -25,5 +25,8 @@
     "concurrently": "^8.0.1",
     "eslint": "^8.41.0",
     "eslint-plugin-react": "^7.32.2"
+  },
+  "dependencies": {
+    "cloc": "^2.6.0-cloc"
   }
 }
