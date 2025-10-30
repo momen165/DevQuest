@@ -1,0 +1,16 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    - cron: "*/14 * * * *"  # runs every 14 minutes
+  workflow_dispatch:          # lets you trigger manually if you want
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Render health endpoint
+        run: |
+          echo "Pinging Render app..."
+          curl -s -o /dev/null -w "%{http_code}\n" https://api.dev-quest.tech/api/health
