@@ -50,9 +50,10 @@ db.query("SELECT NOW()", (err, result) => {
 app.set("trust proxy", 1);
 
 // Middleware for CORS
+// Use CLIENT_URL for consistency (FRONTEND_URL is deprecated - use CLIENT_URL)
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL],
+    origin: [process.env.CLIENT_URL || process.env.FRONTEND_URL],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     credentials: true,
     allowedHeaders: [
@@ -250,12 +251,29 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/admin", performanceRoutes);
 app.use("/api/badges", badgeRoutes);
 
-// Checkout session endpoint - requires auth but handled in its route
-app.get("/api/checkout-session/:sessionId", async (req, res) => {
+// Checkout session endpoint - secured with authentication and returns minimal payload
+app.get("/api/checkout-session/:sessionId", authenticateToken, async (req, res) => {
   const { sessionId } = req.params;
+  const userId = req.user.userId;
+  
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    res.json(session);
+    
+    // Verify the session belongs to the authenticated user
+    if (session.client_reference_id !== userId.toString()) {
+      return res.status(403).json({ error: "Access denied to this session" });
+    }
+    
+    // Return minimal payload instead of full session object
+    res.json({
+      id: session.id,
+      status: session.status,
+      payment_status: session.payment_status,
+      customer_email: session.customer_email,
+      amount_total: session.amount_total,
+      currency: session.currency,
+      subscription: session.subscription,
+    });
   } catch (error) {
     console.error("Error retrieving checkout session:", error);
     res.status(404).json({ error: "Session not found" });

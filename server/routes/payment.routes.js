@@ -3,9 +3,13 @@ const {
   createCheckoutSession,
   handleWebhook,
   createPortalSession,
+  getPricingPlans,
 } = require("../controllers/payment.controller");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
 const router = express.Router();
+
+// Public route - pricing plans (no auth required)
+router.get("/pricing-plans", getPricingPlans);
 
 // Regular routes with JSON parsing and authentication
 router.post(

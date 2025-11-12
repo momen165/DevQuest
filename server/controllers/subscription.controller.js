@@ -328,7 +328,7 @@ const checkActiveSubscription = async (req, res) => {
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       WHERE us.user_id = $1 
-      AND s.status = 'active'
+      AND s.status IN ('active', 'trialing')
       AND s.subscription_end_date > CURRENT_TIMESTAMP
       ORDER BY s.subscription_start_date DESC
       LIMIT 1;
@@ -371,7 +371,7 @@ const checkSubscriptionStatusFromDb = async (req, res) => {
         FROM subscription s
         JOIN user_subscription us ON s.subscription_id = us.subscription_id
         WHERE us.user_id = $1 
-        AND s.status = 'active'
+        AND s.status IN ('active', 'trialing')
         AND s.subscription_end_date > CURRENT_TIMESTAMP
         ORDER BY s.subscription_start_date DESC
         LIMIT 1
@@ -425,7 +425,7 @@ const getSubscriptionStatusForUser = async (req, res) => {
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       WHERE us.user_id = $1 
-      AND s.status = 'active'
+      AND s.status IN ('active', 'trialing')
       AND s.subscription_end_date > CURRENT_TIMESTAMP
       ORDER BY s.subscription_start_date DESC
       LIMIT 1;
@@ -470,7 +470,7 @@ const warmSubscriptionCache = async (userId) => {
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       WHERE us.user_id = $1 
-      AND s.status = 'active'
+      AND s.status IN ('active', 'trialing')
       AND s.subscription_end_date > CURRENT_TIMESTAMP
       ORDER BY s.subscription_start_date DESC
       LIMIT 1;
