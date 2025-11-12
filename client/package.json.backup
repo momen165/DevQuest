@@ -15,7 +15,6 @@
     "@monaco-editor/react": "^4.7.0",
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
-    "@sentry/core": "^9.22.0",
     "@sentry/react": "^9.22.0",
     "@sentry/vite-plugin": "^3.5.0",
     "@stripe/stripe-js": "^5.4.0",

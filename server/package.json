@@ -34,6 +34,7 @@
     "sharp": "^0.33.5",
     "stripe": "^17.5.0",
     "ua-parser-js": "^2.0.3",
+    "uuid": "^13.0.0",
     "xss": "^1.0.15"
   },
   "devDependencies": {
