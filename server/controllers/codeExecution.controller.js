@@ -5,7 +5,6 @@ const NodeCache = require("node-cache");
 const rateLimit = require("express-rate-limit");
 const lessonQueries = require("../models/lesson.model");
 const badgeController = require("../controllers/badge.controller");
-//YygtxMr4Uud43e6NrsWjntszH8rUF95n
 // Configuration
 const CONFIG = {
   cache: {
