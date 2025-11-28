@@ -24,7 +24,7 @@ function verifyMailgunWebhook(apiKey, token, timestamp, signature) {
 
 /**
  * Webhook endpoint to handle incoming email replies from Mailgun
- * This endpoint receives emails sent to support@dev-quest.tech and automatically
+ * This endpoint receives emails sent to support@mail.dev-quest.me and automatically
  * adds them as replies to the corresponding support tickets
  */
 router.post("/email-webhook", async (req, res) => {

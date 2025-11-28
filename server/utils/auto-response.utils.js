@@ -21,9 +21,9 @@ const AUTO_RESPONSES = {
 We've received your inquiry and will review your account within 24 hours. For urgent billing matters, please include your subscription email and order number.
 
 Common billing resources:
-• Subscription Management: https://dev-quest.tech/account/subscription
-• Billing FAQ: https://dev-quest.tech/help/billing
-• Refund Policy: https://dev-quest.tech/terms/refund
+• Subscription Management: https://dev-quest.me/account/subscription
+• Billing FAQ: https://dev-quest.me/help/billing
+• Refund Policy: https://dev-quest.me/terms/refund
 
 Best regards,
 DevQuest Support Team`,
@@ -49,7 +49,7 @@ To help us resolve this faster, please include:
 • Steps to reproduce the issue
 • Any error messages you see
 
-You can also check our status page: https://dev-quest.tech/status
+You can also check our status page: https://dev-quest.me/status
 
 DevQuest Technical Support`,
     priority: "medium",
@@ -62,9 +62,9 @@ DevQuest Technical Support`,
 Thank you for your question about DevQuest course content. Our education team will review your inquiry and respond within 24 hours.
 
 Helpful resources while you wait:
-• Course Help Center: https://dev-quest.tech/help/courses
-• Community Forum: https://dev-quest.tech/community
-• Study Tips: https://dev-quest.tech/blog/study-tips
+• Course Help Center: https://dev-quest.me/help/courses
+• Community Forum: https://dev-quest.me/community
+• Study Tips: https://dev-quest.me/blog/study-tips
 
 Happy coding!
 DevQuest Education Team`,
@@ -78,9 +78,9 @@ DevQuest Education Team`,
 We've received your message and will respond within 24-48 hours. 
 
 Quick links that might help:
-• Getting Started Guide: https://dev-quest.tech/help/getting-started
-• FAQ: https://dev-quest.tech/help/faq
-• Course Catalog: https://dev-quest.tech/courses
+• Getting Started Guide: https://dev-quest.me/help/getting-started
+• FAQ: https://dev-quest.me/help/faq
+• Course Catalog: https://dev-quest.me/courses
 
 Thank you for choosing DevQuest!
 Support Team`,
@@ -151,22 +151,22 @@ function routeTicket(category, priority) {
   const routes = {
     billing: {
       department: "billing",
-      assignTo: "billing-team@dev-quest.tech",
+      assignTo: "billing-team@mail.dev-quest.me",
       sla: priority === "high" ? "12h" : "24h",
     },
     technical: {
       department: "technical",
-      assignTo: "tech-support@dev-quest.tech",
+      assignTo: "tech-support@mail.dev-quest.me",
       sla: priority === "high" ? "24h" : "48h",
     },
     course: {
       department: "education",
-      assignTo: "education@dev-quest.tech",
+      assignTo: "education@mail.dev-quest.me",
       sla: priority === "high" ? "12h" : "24h",
     },
     general: {
       department: "general",
-      assignTo: "support@dev-quest.tech",
+      assignTo: "support@mail.dev-quest.me",
       sla: priority === "high" ? "24h" : "48h",
     },
   };

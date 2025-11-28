@@ -32,8 +32,8 @@ async function sendSimpleMessage() {
   try {
     console.log("📧 Sending test email...");
 
-    const data = await mg.messages.create("dev-quest.tech", {
-      from: "DevQuest Support <postmaster@dev-quest.tech>",
+    const data = await mg.messages.create("dev-quest.me", {
+      from: "DevQuest Support <postmaster@mail.dev-quest.me>",
       to: ["Momen Aabed <momendw@gmail.com>"],
       subject: "Hello Momen - Mailgun Test",
       text: "Congratulations Momen! Your Mailgun integration is working correctly. The migration from  has been successful!",

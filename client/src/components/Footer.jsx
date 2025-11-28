@@ -101,7 +101,7 @@ const Footer = () => {
               <h3 className="footer__title">Contact</h3>
               <ul className="footer__contact-list">
                 <li>
-                  <FaEnvelope /> <span>contact@dev-quest.tech</span>
+                  <FaEnvelope /> <span>contact@mail.dev-quest.me</span>
                 </li>
               </ul>
             </div>

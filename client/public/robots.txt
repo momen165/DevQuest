@@ -61,7 +61,7 @@ Disallow: /sentry/
 Disallow: /_vercel/
 
 # Sitemap location
-Sitemap: https://www.dev-quest.tech/sitemap.xml
+Sitemap: https://www.dev-quest.me/sitemap.xml
 
 # Crawl delay (optional, to be respectful)
 Crawl-delay: 1

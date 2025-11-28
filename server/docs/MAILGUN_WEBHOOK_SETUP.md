@@ -11,7 +11,7 @@ This guide explains how to configure Mailgun to forward incoming emails to DevQu
 1. Go to [Mailgun Dashboard](https://app.mailgun.com) → Your Domain → Routes
 2. Create a new route with these settings:
    - **Priority**: 0 (highest)
-   - **Filter Expression**: `match_recipient("support@dev-quest.tech")`
+   - **Filter Expression**: `match_recipient("support@mail.dev-quest.me")`
    - **Actions**: `forward("https://your-server-domain.com/api/email-webhook")`
    - **Description**: "DevQuest Support Email Forwarding"
 
@@ -73,7 +73,7 @@ The webhook receives this data structure from Mailgun:
 ```javascript
 {
   "sender": "user@example.com",           // Who sent the email
-  "recipient": "support@dev-quest.tech",  // Where it was sent
+  "recipient": "support@mail.dev-quest.me",  // Where it was sent
   "subject": "Re: DevQuest Support - Reply to Ticket #123",
   "body-plain": "This is my reply text...",
   "body-html": "<p>This is my reply...</p>",

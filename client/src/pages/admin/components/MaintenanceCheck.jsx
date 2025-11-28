@@ -119,7 +119,7 @@ const MaintenanceCheck = ({ children }) => {
         </div>
         <div className="contact-info">
           <p>Need help? Contact us:</p>
-          <a href="mailto:support@dev-quest.tech">support@dev-quest.tech</a>
+          <a href="mailto:support@mail.dev-quest.me">support@mail.dev-quest.me</a>
         </div>
       </div>
     </div>

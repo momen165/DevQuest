@@ -209,7 +209,7 @@ Most components should work as-is, but check for:
 1. Copy `.env.local.example` to `.env.local`
 2. Add your API URL:
    ```
-   NEXT_PUBLIC_API_URL=https://api.dev-quest.tech/api
+   NEXT_PUBLIC_API_URL=https://api.dev-quest.me/api
    ```
 3. (Optional) Add Sentry configuration if needed
 

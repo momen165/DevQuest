@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
 
   // Image optimization
   images: {
-    domains: ['api.dev-quest.tech', 'www.dev-quest.tech'],
+    domains: ['api.dev-quest.me', 'www.dev-quest.me'],
     formats: ['image/avif', 'image/webp'],
   },
 

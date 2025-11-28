@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   robots: "index, follow",
   openGraph: {
     type: "website",
-    url: "https://www.dev-quest.tech/",
+    url: "https://www.dev-quest.me/",
     title: "DevQuest - Interactive Coding Education Platform",
     description: "Master coding with DevQuest's interactive platform. Learn Python, JavaScript, Java, C++ and more through hands-on exercises, real-time feedback, and gamified learning paths.",
     images: [
       {
-        url: "https://www.dev-quest.tech/websiteicon.ico",
+        url: "https://www.dev-quest.me/websiteicon.ico",
         alt: "DevQuest Logo"
       }
     ],
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "DevQuest - Interactive Coding Education Platform",
     description: "Master coding with DevQuest's interactive platform. Learn Python, JavaScript, Java, C++ and more through hands-on exercises, real-time feedback, and gamified learning paths.",
-    images: ["https://www.dev-quest.tech/websiteicon.ico"],
+    images: ["https://www.dev-quest.me/websiteicon.ico"],
   },
   icons: {
     icon: "/websiteicon.ico",
@@ -45,7 +45,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="//api.dev-quest.tech" />
+        <link rel="dns-prefetch" href="//api.dev-quest.me" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -54,8 +54,8 @@ export default function RootLayout({
               "@type": "EducationalOrganization",
               "name": "DevQuest",
               "description": "Interactive coding education platform offering courses in Python, JavaScript, Java, C++ and more",
-              "url": "https://www.dev-quest.tech",
-              "logo": "https://www.dev-quest.tech/websiteicon.ico",
+              "url": "https://www.dev-quest.me",
+              "logo": "https://www.dev-quest.me/websiteicon.ico",
               "sameAs": [],
               "contactPoint": {
                 "@type": "ContactPoint",

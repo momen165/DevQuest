@@ -12,7 +12,7 @@ const testEmailData = {
   // Test 1: New support ticket (no ticket ID in subject)
   newTicket: {
     sender: "test-user@example.com",
-    recipient: "support@dev-quest.tech",
+    recipient: "support@mail.dev-quest.me",
     subject: "I need help with my account",
     "body-plain":
       "Hello, I am having trouble logging into my account. Can you please help me?",
@@ -26,7 +26,7 @@ const testEmailData = {
   // Test 2: Reply to existing ticket (with ticket ID)
   replyToTicket: {
     sender: "test-user@example.com",
-    recipient: "support@dev-quest.tech",
+    recipient: "support@mail.dev-quest.me",
     subject: "Re: DevQuest Support - New Reply to Ticket #123",
     "body-plain": "Thank you for your help! This solved my problem.",
     "stripped-text": "Thank you for your help! This solved my problem.",

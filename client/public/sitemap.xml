@@ -6,7 +6,7 @@
 
   <!-- Homepage - Most Important -->
   <url>
-    <loc>https://www.dev-quest.tech/</loc>
+    <loc>https://www.dev-quest.me/</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -14,7 +14,7 @@
 
   <!-- Courses Page - High Priority -->
   <url>
-    <loc>https://www.dev-quest.tech/CoursesPage</loc>
+    <loc>https://www.dev-quest.me/CoursesPage</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -22,7 +22,7 @@
 
   <!-- Pricing Page - High Priority -->
   <url>
-    <loc>https://www.dev-quest.tech/pricing</loc>
+    <loc>https://www.dev-quest.me/pricing</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -30,7 +30,7 @@
 
   <!-- FAQ Page - Medium Priority -->
   <url>
-    <loc>https://www.dev-quest.tech/faq</loc>
+    <loc>https://www.dev-quest.me/faq</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -38,21 +38,21 @@
 
   <!-- Registration Page - Medium Priority -->
   <url>
-    <loc>https://www.dev-quest.tech/RegistrationPage</loc>
+    <loc>https://www.dev-quest.me/RegistrationPage</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <!-- Terms Page - Medium Priority -->
   <url>
-    <loc>https://www.dev-quest.tech/terms</loc>
+    <loc>https://www.dev-quest.me/terms</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <!-- Privacy Page - Medium Priority -->
   <url>
-    <loc>https://www.dev-quest.tech/privacy</loc>
+    <loc>https://www.dev-quest.me/privacy</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

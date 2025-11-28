@@ -59,7 +59,7 @@ import logo from '@/public/assets/logo.svg';
 cp .env.local.example .env.local
 
 # Edit .env.local and add your API URL
-# NEXT_PUBLIC_API_URL=https://api.dev-quest.tech/api
+# NEXT_PUBLIC_API_URL=https://api.dev-quest.me/api
 ```
 
 ### 2. Update Components (Critical Step)

@@ -163,16 +163,16 @@ function generateWelcomeTemplate(ticketId, category, userMessage) {
   }</em>
           </div>
           
-          <a href="https://dev-quest.tech/support/ticket/${ticketId}" class="button">
+          <a href="https://dev-quest.me/support/ticket/${ticketId}" class="button">
             View Ticket Status
           </a>
           
           <div class="help-links">
             <h4>Quick Help Resources</h4>
-            <a href="https://dev-quest.tech/help/faq">📋 Frequently Asked Questions</a>
-            <a href="https://dev-quest.tech/help/getting-started">🚀 Getting Started Guide</a>
-            <a href="https://dev-quest.tech/community">💬 Community Forum</a>
-            <a href="https://dev-quest.tech/help/contact">📧 Contact Options</a>
+            <a href="https://dev-quest.me/help/faq">📋 Frequently Asked Questions</a>
+            <a href="https://dev-quest.me/help/getting-started">🚀 Getting Started Guide</a>
+            <a href="https://dev-quest.me/community">💬 Community Forum</a>
+            <a href="https://dev-quest.me/help/contact">📧 Contact Options</a>
           </div>
           
           <p><strong>Need urgent help?</strong> If this is a critical issue affecting your learning, please reply to this email with "URGENT" in the subject line.</p>
@@ -184,7 +184,7 @@ function generateWelcomeTemplate(ticketId, category, userMessage) {
         <div class="footer">
           <p>DevQuest - Empowering developers worldwide</p>
           <p>This email was sent regarding ticket #${ticketId}. Please keep this number for reference.</p>
-          <p><a href="https://dev-quest.tech/unsubscribe">Unsubscribe</a> | <a href="https://dev-quest.tech/privacy">Privacy Policy</a></p>
+          <p><a href="https://dev-quest.me/unsubscribe">Unsubscribe</a> | <a href="https://dev-quest.me/privacy">Privacy Policy</a></p>
         </div>
       </div>
     </body>
@@ -234,7 +234,7 @@ function generateAdminResponseTemplate(
             ${responseMessage.replace(/\n/g, "<br>")}
           </div>
           
-          <a href="https://dev-quest.tech/support/ticket/${ticketId}" class="button">
+          <a href="https://dev-quest.me/support/ticket/${ticketId}" class="button">
             View Full Conversation
           </a>
           
@@ -242,9 +242,9 @@ function generateAdminResponseTemplate(
           
           <div class="help-links">
             <h4>Still need help?</h4>
-            <a href="https://dev-quest.tech/help">📚 Help Center</a>
-            <a href="https://dev-quest.tech/community">💬 Community Support</a>
-            <a href="https://dev-quest.tech/support/new">🎫 Create New Ticket</a>
+            <a href="https://dev-quest.me/help">📚 Help Center</a>
+            <a href="https://dev-quest.me/community">💬 Community Support</a>
+            <a href="https://dev-quest.me/support/new">🎫 Create New Ticket</a>
           </div>
           
           <p>Thank you for choosing DevQuest!</p>
@@ -257,7 +257,7 @@ function generateAdminResponseTemplate(
         <div class="footer">
           <p>DevQuest - Your coding education platform</p>
           <p>This email was sent to ${userEmail} regarding ticket #${ticketId}</p>
-          <p><a href="https://dev-quest.tech/unsubscribe">Unsubscribe</a> | <a href="https://dev-quest.tech/privacy">Privacy Policy</a></p>
+          <p><a href="https://dev-quest.me/unsubscribe">Unsubscribe</a> | <a href="https://dev-quest.me/privacy">Privacy Policy</a></p>
         </div>
       </div>
     </body>
@@ -319,10 +319,10 @@ function generateResolvedTemplate(
           
           <div class="help-links">
             <h4>Continue Your Learning Journey</h4>
-            <a href="https://dev-quest.tech/courses">🎓 Browse Courses</a>
-            <a href="https://dev-quest.tech/community">💬 Join Community Discussions</a>
-            <a href="https://dev-quest.tech/blog">📖 Read Latest Articles</a>
-            <a href="https://dev-quest.tech/challenges">🏆 Take Coding Challenges</a>
+            <a href="https://dev-quest.me/courses">🎓 Browse Courses</a>
+            <a href="https://dev-quest.me/community">💬 Join Community Discussions</a>
+            <a href="https://dev-quest.me/blog">📖 Read Latest Articles</a>
+            <a href="https://dev-quest.me/challenges">🏆 Take Coding Challenges</a>
           </div>
           
           <p>Thank you for being part of the DevQuest community!</p>
@@ -334,7 +334,7 @@ function generateResolvedTemplate(
         <div class="footer">
           <p>DevQuest - Empowering your coding journey</p>
           <p>Ticket #${ticketId} has been marked as resolved. You can always contact us for more help!</p>
-          <p><a href="https://dev-quest.tech/unsubscribe">Unsubscribe</a> | <a href="https://dev-quest.tech/privacy">Privacy Policy</a></p>
+          <p><a href="https://dev-quest.me/unsubscribe">Unsubscribe</a> | <a href="https://dev-quest.me/privacy">Privacy Policy</a></p>
         </div>
       </div>
     </body>

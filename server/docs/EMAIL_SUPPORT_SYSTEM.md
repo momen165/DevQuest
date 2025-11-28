@@ -4,7 +4,7 @@
 
 DevQuest has a comprehensive email support system that allows users to:
 
-1. **Send support emails** to `support@dev-quest.tech`
+1. **Send support emails** to `support@mail.dev-quest.me`
 2. **Receive automatic replies** via email
 3. **Continue conversations** by replying to emails
 4. **Admin management** through the web interface
@@ -16,7 +16,7 @@ DevQuest has a comprehensive email support system that allows users to:
 ### 1. **Incoming Email Flow**
 
 ```
-User sends email to support@dev-quest.tech
+User sends email to support@mail.dev-quest.me
            ↓
     Mailgun receives email
            ↓
@@ -64,7 +64,7 @@ POST /api/email-webhook
 ```javascript
 {
   "sender": "user@example.com",
-  "recipient": "support@dev-quest.tech",
+  "recipient": "support@mail.dev-quest.me",
   "subject": "Re: DevQuest Support - New Reply to Ticket #123",
   "body-plain": "Raw email content...",
   "stripped-text": "Clean email content without signatures...",
@@ -92,7 +92,7 @@ POST /api/email-webhook
 
 ```
 Priority: 0
-Filter: match_recipient("support@dev-quest.tech")
+Filter: match_recipient("support@mail.dev-quest.me")
 Action: forward("https://your-server.com/api/email-webhook")
 ```
 
@@ -108,8 +108,8 @@ TXT: "v=spf1 include:mailgun.org ~all"
 
 ```bash
 MAILGUN_API_KEY=key-your-api-key
-MAILGUN_DOMAIN=dev-quest.tech
-SENDER_EMAIL_SUPPORT=support@dev-quest.tech
+MAILGUN_DOMAIN=dev-quest.me
+SENDER_EMAIL_SUPPORT=support@mail.dev-quest.me
 ```
 
 ### **3. Server Requirements**
@@ -133,7 +133,7 @@ node test-email-webhook.js
 
 ### **Manual Testing**
 
-1. Send email to `support@dev-quest.tech`
+1. Send email to `support@mail.dev-quest.me`
 2. Check server logs for webhook processing
 3. Verify ticket creation in admin dashboard
 4. Reply to confirmation email
@@ -169,7 +169,7 @@ node test-email-webhook.js
 
 ### **🎯 User Experience**
 
-1. User emails `support@dev-quest.tech`
+1. User emails `support@mail.dev-quest.me`
 2. Gets immediate auto-reply with ticket ID
 3. Can reply to emails to continue conversation
 4. Admin replies via web interface

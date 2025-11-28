@@ -105,7 +105,7 @@ const LessonPage = () => {
   };
 
   const getBadgeImagePath = (badgeType) => {
-    return `https://cdn.dev-quest.tech/badges/${badgeType}.png`;
+    return `https://cdn.dev-quest.me/badges/${badgeType}.png`;
   };
 
   const handleCloseBadgeNotification = () => {

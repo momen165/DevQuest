@@ -205,7 +205,7 @@ const CoursesPage: React.FC = () => {
     "provider": {
       "@type": "EducationalOrganization",
       "name": "DevQuest",
-      "url": "https://www.dev-quest.tech"
+      "url": "https://www.dev-quest.me"
     },
     "courseMode": "online",
     "educationalLevel": "beginner to advanced",
@@ -228,7 +228,7 @@ const CoursesPage: React.FC = () => {
     "provider": {
       "@type": "EducationalOrganization",
       "name": "DevQuest",
-      "url": "https://www.dev-quest.tech"
+      "url": "https://www.dev-quest.me"
     },
     "hasCourseInstance": [{
       "@type": "CourseInstance",
@@ -242,13 +242,13 @@ const CoursesPage: React.FC = () => {
       "courseWorkload": "PT20H",
       "location": {
         "@type": "VirtualLocation",
-        "url": "https://www.dev-quest.tech"
+        "url": "https://www.dev-quest.me"
       }
     }],
     "offers": {
       "@type": "Offer",
       "category": "Education",
-      "url": `https://www.dev-quest.tech/courses/${course.course_id}`,
+      "url": `https://www.dev-quest.me/courses/${course.course_id}`,
       "price": course.price ?? "0",
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock"

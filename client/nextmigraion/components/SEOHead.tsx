@@ -15,11 +15,11 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   description = "Master coding with DevQuest's interactive platform. Learn Python, JavaScript, Java, C++ and more through hands-on exercises, real-time feedback, and gamified learning paths.",
   keywords = "coding education, programming courses, learn to code, Python, JavaScript, Java, C++, interactive coding, programming tutorial, coding platform, developer education",
   canonical = "",
-  image = "https://www.dev-quest.tech/websiteicon.ico",
+  image = "https://www.dev-quest.me/websiteicon.ico",
   type = "website",
   structuredData = null
 }) => {
-  const baseUrl = "https://www.dev-quest.tech";
+  const baseUrl = "https://www.dev-quest.me";
   const fullUrl = canonical ? `${baseUrl}${canonical}` : baseUrl;
   
   return (

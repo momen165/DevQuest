@@ -121,7 +121,7 @@ const RatingForm = ({ courseId }) => {
               <p>
                 You've already submitted feedback for this course. Complete the
                 entire course to provide additional feedback, or contact us at
-                support@dev-quest.tech for any other thoughts.
+                support@email.dev-quest.me for any other thoughts.
               </p>
             )}
             <p className="progress-info">Current Progress: {courseProgress}%</p>

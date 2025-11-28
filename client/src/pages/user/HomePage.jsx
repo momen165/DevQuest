@@ -36,8 +36,8 @@ const HomePage = () => {
     "@type": "EducationalOrganization",
     "name": "DevQuest",
     "description": "Interactive coding education platform offering comprehensive programming courses",
-    "url": "https://www.dev-quest.tech",
-    "logo": "https://www.dev-quest.tech/websiteicon.ico",
+    "url": "https://www.dev-quest.me",
+    "logo": "https://www.dev-quest.me/websiteicon.ico",
     "sameAs": [],
     "contactPoint": {
       "@type": "ContactPoint",
@@ -55,7 +55,7 @@ const HomePage = () => {
           "provider": {
             "@type": "EducationalOrganization",
             "name": "DevQuest",
-            "url": "https://www.dev-quest.tech"
+            "url": "https://www.dev-quest.me"
           },
           "hasCourseInstance": [{
             "@type": "CourseInstance",
@@ -69,13 +69,13 @@ const HomePage = () => {
             "courseWorkload": "PT20H",
             "location": {
               "@type": "VirtualLocation",
-              "url": "https://www.dev-quest.tech"
+              "url": "https://www.dev-quest.me"
             }
           }],
           "offers": {
             "@type": "Offer",
             "category": "Education",
-            "url": "https://www.dev-quest.tech/courses",
+            "url": "https://www.dev-quest.me/courses",
             "price": "0",
             "priceCurrency": "USD",
             "availability": "https://schema.org/InStock"
@@ -88,7 +88,7 @@ const HomePage = () => {
           "provider": {
             "@type": "EducationalOrganization",
             "name": "DevQuest",
-            "url": "https://www.dev-quest.tech"
+            "url": "https://www.dev-quest.me"
           },
           "hasCourseInstance": [{
             "@type": "CourseInstance",
@@ -102,13 +102,13 @@ const HomePage = () => {
             "courseWorkload": "PT25H",
             "location": {
               "@type": "VirtualLocation",
-              "url": "https://www.dev-quest.tech"
+              "url": "https://www.dev-quest.me"
             }
           }],
           "offers": {
             "@type": "Offer",
             "category": "Education",
-            "url": "https://www.dev-quest.tech/courses",
+            "url": "https://www.dev-quest.me/courses",
             "price": "0",
             "priceCurrency": "USD",
             "availability": "https://schema.org/InStock"
@@ -121,7 +121,7 @@ const HomePage = () => {
           "provider": {
             "@type": "EducationalOrganization",
             "name": "DevQuest",
-            "url": "https://www.dev-quest.tech"
+            "url": "https://www.dev-quest.me"
           },
           "hasCourseInstance": [{
             "@type": "CourseInstance",
@@ -135,13 +135,13 @@ const HomePage = () => {
             "courseWorkload": "PT30H",
             "location": {
               "@type": "VirtualLocation",
-              "url": "https://www.dev-quest.tech"
+              "url": "https://www.dev-quest.me"
             }
           }],
           "offers": {
             "@type": "Offer",
             "category": "Education",
-            "url": "https://www.dev-quest.tech/courses",
+            "url": "https://www.dev-quest.me/courses",
             "price": "0",
             "priceCurrency": "USD",
             "availability": "https://schema.org/InStock"
