@@ -1,0 +1,162 @@
+/* EditCourseForm.css */
+
+.edit-course-form {
+  background: linear-gradient(180deg, #1a2942 0%, #2c3e50 100%);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  max-width: 600px;
+  margin: 20px auto;
+  color: #ffffff;
+}
+
+.edit-course-form h2 {
+  color: #ffffff;
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
+}
+
+.edit-course-form label {
+  display: block;
+  color: #ffffff;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.edit-course-form input[type="text"],
+.edit-course-form textarea,
+.edit-course-form select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.5);
+  border-radius: 4px;
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.edit-course-form select {
+  color: #000 !important;
+}
+
+.edit-course-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.edit-course-form button {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: all 0.3s ease;
+}
+
+.edit-course-form button:first-of-type {
+  background-color: rgba(52, 152, 219, 0.8);
+  color: #ffffff;
+}
+
+.edit-course-form button:last-of-type {
+  background-color: rgba(231, 76, 60, 0.8);
+  color: #ffffff;
+}
+
+.edit-course-form button:hover {
+  transform: translateY(-2px);
+  opacity: 1;
+}
+
+.Course-Image-uploadBtn {
+  display: block;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+  background-color: rgba(52, 152, 219, 0.8);
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.Course-Image-uploadBtn:hover {
+  background-color: rgba(52, 152, 219, 1);
+  transform: translateY(-2px);
+}
+
+.file-upload-container-isolated {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.upload-button-isolated {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #007bff;
+  color: white;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  gap: 10px; /* Space between icon and text */
+  transition:
+    background-color 0.3s,
+    transform 0.2s;
+  text-transform: uppercase;
+}
+
+.upload-button-isolated:hover {
+  background-color: #0056b3;
+  transform: scale(1.05); /* Slight zoom effect */
+}
+
+.upload-button-isolated:active {
+  background-color: #003f8c;
+  transform: scale(0.98); /* Pressed effect */
+}
+
+.upload-icon-isolated {
+  font-size: 20px;
+}
+
+.upload-button-isolated span {
+  font-size: 14px;
+}
+
+.upload-button-isolated:focus {
+  outline: 2px solid #80bdff;
+  outline-offset: 2px;
+}
+
+/* Explicitly set color for .upload-button-isolated */
+.edit-course-form .upload-button-isolated {
+  color: white; /* Ensure this rule is stronger */
+}
+
+.close-button {
+  margin-top: 25px;
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}

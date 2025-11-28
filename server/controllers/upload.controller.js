@@ -31,7 +31,7 @@ const testRoute = async (req, res) => {
     const response = await s3Client.send(command);
     res.send(
       "S3 is connected! Buckets: " +
-        response.Buckets.map((b) => b.Name).join(", ")
+        response.Buckets.map((b) => b.Name).join(", "),
     );
   } catch (error) {
     res.status(500).send("S3 connection failed: " + error.message);
@@ -70,7 +70,7 @@ const uploadFile = [
         await s3Client.send(command);
 
         // Use the CDN URL directly
-        const fileUrl = `https://cdn.dev-quest.tech/${fileKey}`;
+        const fileUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fileKey}`;
 
         // Send success response
         res.status(200).json({
@@ -134,7 +134,7 @@ const uploadProfilePic = [
       await s3Client.send(command);
 
       // Direct CDN URL
-      const profileimage = `https://cdn.dev-quest.tech/${fullKey}`;
+      const profileimage = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
 
       // Save the URL in the database
       const query = "UPDATE users SET profileimage = $1 WHERE user_id = $2";
@@ -250,7 +250,7 @@ const uploadEditorImage = [
         await s3Client.send(command);
 
         // Use the CDN URL directly
-        const fileUrl = `https://cdn.dev-quest.tech/${fileKey}`;
+        const fileUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fileKey}`;
 
         res.status(200).json({
           uploaded: 1,
@@ -316,16 +316,17 @@ const uploadBadgeImage = [
       await s3Client.send(command);
 
       // Direct CDN URL
-      const badgeUrl = `https://cdn.dev-quest.tech/${fullKey}`;
+      const badgeUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
 
       // Update the badge image in the database if it exists
-      const updateQuery = "UPDATE badges SET image_path = $1 WHERE badge_type = $2";
+      const updateQuery =
+        "UPDATE badges SET image_path = $1 WHERE badge_type = $2";
       await db.query(updateQuery, [badgeUrl, badgeType]);
 
       res.status(200).json({
         message: "Badge image uploaded successfully",
         badgeUrl,
-        badgeType
+        badgeType,
       });
     } catch (error) {
       console.error("Error uploading badge image:", error);
@@ -359,7 +360,7 @@ const uploadCourseImage = [
 
       // Process the image for courses
       const processedBuffer = await sharp(req.file.buffer)
-        .resize(800, 450, { fit: 'cover' }) // 16:9 ratio for courses
+        .resize(800, 450, { fit: "cover" }) // 16:9 ratio for courses
         .toFormat("png", { quality: 90 })
         .toBuffer();
 
@@ -376,16 +377,17 @@ const uploadCourseImage = [
       await s3Client.send(command);
 
       // Direct CDN URL
-      const imageUrl = `https://cdn.dev-quest.tech/${fullKey}`;
+      const imageUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
 
       // Update the course image in the database
-      const updateQuery = "UPDATE course SET image_url = $1 WHERE course_id = $2";
+      const updateQuery =
+        "UPDATE course SET image_url = $1 WHERE course_id = $2";
       await db.query(updateQuery, [imageUrl, courseId]);
 
       res.status(200).json({
         message: "Course image uploaded successfully",
         imageUrl,
-        courseId
+        courseId,
       });
     } catch (error) {
       console.error("Error uploading course image:", error);
@@ -401,7 +403,9 @@ const uploadProfileImage = [
       const userId = req.user.userId;
 
       if (!userId) {
-        return res.status(400).json({ error: "User ID is missing from the token" });
+        return res
+          .status(400)
+          .json({ error: "User ID is missing from the token" });
       }
 
       if (!req.file) {
@@ -414,7 +418,7 @@ const uploadProfileImage = [
       const fullKey = `${folderPath}${filename}`;
 
       const processedBuffer = await sharp(req.file.buffer)
-        .resize(400, 400, { fit: 'cover' }) // Square profile images
+        .resize(400, 400, { fit: "cover" }) // Square profile images
         .toFormat("png", { quality: 90 })
         .toBuffer();
 
@@ -431,7 +435,7 @@ const uploadProfileImage = [
       await s3Client.send(command);
 
       // Direct CDN URL
-      const profileImage = `https://cdn.dev-quest.tech/${fullKey}`;
+      const profileImage = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
 
       // Save the URL in the database
       const query = "UPDATE users SET profileimage = $1 WHERE user_id = $2";
@@ -439,7 +443,7 @@ const uploadProfileImage = [
 
       res.status(200).json({
         message: "Profile image uploaded successfully",
-        profileImage
+        profileImage,
       });
     } catch (error) {
       console.error("Error uploading profile image:", error);

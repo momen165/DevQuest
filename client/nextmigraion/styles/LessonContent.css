@@ -1,0 +1,765 @@
+﻿/* Critical fonts loaded synchronously, others loaded asynchronously */
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+.lesson-content {
+  /* Performance optimizations */
+  contain: layout style;
+  will-change: contents;
+  color: white;
+  font-size: 17px;
+  line-height: 1.6;
+  font-family: 'Lato', sans-serif;
+  width: 100%;
+  margin: 0;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.lesson-content p {
+  padding: 0 10px;
+  line-height: 1.6;
+  margin: 1em 0;
+}
+
+/* Updated heading styles */
+.lesson-content h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 1.2em 0 0.8em;
+  letter-spacing: -0.02em;
+  padding: 0 10px;
+}
+
+.lesson-content h2 {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  padding: 15px 10px;
+  margin: 0;
+
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.3s ease;
+
+  border-radius: 4px;
+}
+
+.lesson-content h2 + div {
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s ease-out;
+  background: #1a1b26;
+  border-top: 1px solid #2d2d2d;
+  opacity: 0;
+  padding: 0 10px;
+}
+
+.lesson-content h2 + div.show {
+  max-height: 500px; /* Adjust based on your content */
+  opacity: 1;
+  padding: 1em 10px;
+}
+
+.code-block {
+  position: relative;
+  margin: 1em 10px;
+  width: calc(100% - 20px);
+  box-sizing: border-box;
+  /* Performance optimizations */
+  contain: layout style paint;
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+.lesson-content h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin: 1em 0 0.6em;
+  padding: 0 10px;
+}
+
+/* Info box style */
+.lesson-content p.editor-info-box {
+  --background-size: 20px;
+  --background-color: #e91e63;
+  padding: 15px;
+  border: 1px solid var(--background-color);
+  background: linear-gradient(
+      135deg,
+      var(--background-color) 0%,
+      var(--background-color) var(--background-size),
+      transparent var(--background-size)
+    ),
+    linear-gradient(
+      135deg,
+      transparent calc(100% - var(--background-size)),
+      var(--background-color) calc(100% - var(--background-size)),
+      var(--background-color)
+    );
+  border-radius: 8px;
+  margin: 1.2em 10px;
+  box-shadow: 3px 3px 0 rgba(233, 30, 99, 0.2);
+}
+
+/* Side quote styles - adjusted for responsive layout */
+.lesson-content blockquote.editor-side-quote {
+  font-family: 'Oswald', sans-serif;
+  font-style: normal;
+  float: right;
+  width: 35%;
+  position: relative;
+  border: 0;
+  overflow: visible;
+  z-index: 1;
+  margin-left: 1em;
+  margin-right: 10px;
+}
+
+.lesson-content h1.editor-green-background,
+.lesson-content h2.editor-green-background,
+.lesson-content h3.editor-green-background {
+  background-color: #1a362a;
+  padding: 12px 10px;
+  margin: 1em 0;
+  color: white;
+  border-radius: 4px;
+}
+
+/* Code block styles */
+.lesson-content pre.editor-code {
+  border: 0;
+  margin: 1em 10px;
+  border-radius: 8px;
+  width: calc(100% - 20px);
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.lesson-content pre.editor-code--dark {
+  background: #272822;
+  color: #fff;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.lesson-content pre.editor-code--light {
+  background: #dddfe0;
+  color: #000;
+  box-shadow: 3px 3px 0 rgba(179, 179, 179, 0.5);
+}
+
+/* Text size classes - adjusted for better readability on mobile */
+.lesson-content .text-tiny {
+  font-size: 12px;
+}
+.lesson-content .text-small {
+  font-size: 14px;
+}
+
+/* Table styling */
+.lesson-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  background-color: #1e1e2e;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: #fff;
+}
+
+.lesson-table th,
+.lesson-table-th {
+  background-color: #2c2e40;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid #3d3d5b;
+}
+
+.lesson-table td,
+.lesson-table-td {
+  padding: 10px 15px;
+  border-bottom: 1px solid #3d3d5b;
+}
+
+/* Remove bottom border from last row */
+.lesson-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Zebra striping */
+.lesson-table tbody tr:nth-child(even) {
+  background-color: #23233d;
+}
+
+/* Hover effect */
+.lesson-table tbody tr:hover {
+  background-color: #2a2a48;
+}
+
+.lesson-content .text-big {
+  font-size: 18px;
+}
+.lesson-content .text-huge {
+  font-size: 22px;
+}
+
+/* Special styles */
+.lesson-content span.editor-marker {
+  background: yellow;
+}
+
+.lesson-content span.editor-spoiler {
+  background: #000;
+  color: #000;
+}
+
+.lesson-content span.editor-spoiler:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* Copy button styles */
+.copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  --button-bg: rgba(255, 255, 255, 0.1);
+  --button-hover-bg: rgba(255, 255, 255, 0.2);
+  --button-text-color: #ffffff;
+  --button-hover-text-color: #ffffff;
+  --button-border-radius: 4px;
+  --button-diameter: 32px;
+  --button-outline-width: 1px;
+  --button-outline-color: rgba(141, 141, 141, 0.5);
+  box-sizing: border-box;
+  width: var(--button-diameter);
+  height: var(--button-diameter);
+  border-radius: var(--button-border-radius);
+  background-color: var(--button-bg);
+  color: var(--button-text-color);
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.copy:hover {
+  background-color: var(--button-hover-bg);
+}
+
+/* Tooltip styling */
+.tooltip {
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  color: white;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 4px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Adjust icon sizes */
+.copy .clipboard,
+.copy .checkmark {
+  font-size: 16px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.copy .checkmark {
+  display: none;
+}
+
+.copy:focus:not(:focus-visible) .clipboard {
+  display: none;
+}
+
+.copy:focus:not(:focus-visible) .checkmark {
+  display: block;
+}
+
+/* Pre element styling */
+.code-block pre {
+  margin: 0;
+  overflow-x: auto;
+  background: #272822;
+  border-radius: 4px;
+  padding: 12px;
+  /* Performance optimizations */
+  will-change: contents;
+  transform: translateZ(0);
+}
+
+/* Code element styling */
+.code-block code {
+  font-family: 'Fira Code', Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  display: block;
+}
+
+/* Hint and Solution containers */
+.hint-container,
+.solution-container {
+  background: #1a1b26;
+  border-radius: 8px;
+  margin: 1em 10px;
+  overflow: hidden;
+  border: 1px solid #2d2d2d;
+  width: calc(100% - 20px);
+  box-sizing: border-box;
+}
+
+/* Title styling */
+.hint-title,
+.solution-title {
+  padding: 12px;
+  background: #1a2636;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 16px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.hint-title:hover,
+.solution-title:hover {
+  background: #233043;
+}
+
+/* Remove default arrow */
+.hint-container summary::-webkit-details-marker,
+.solution-container summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Content styling */
+.hint-content,
+.solution-content {
+  padding: 12px;
+  background: #1a1b26;
+  border-top: 1px solid #2d2d2d;
+}
+
+/* Animation for opening/closing */
+.hint-container[open] .hint-content,
+.solution-container[open] .solution-content {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom arrow indicator */
+.hint-title::after,
+.solution-title::after {
+  content: '▼';
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.hint-container[open] .hint-title::after,
+.solution-container[open] .solution-title::after {
+  transform: rotate(180deg);
+}
+
+/* Template-specific styles */
+.lesson-template {
+  color: white;
+  font-size: 16px;
+  line-height: 1.6;
+  font-family: 'Lato', sans-serif;
+}
+
+.lesson-template-heading {
+  background-color: #2d2d2d;
+  padding: 12px;
+  margin: 1em 0;
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  border-radius: 4px;
+}
+
+.lesson-template-text {
+  padding: 0 12px;
+  line-height: 1.6;
+  margin: 1em 0;
+}
+
+.lesson-template-code {
+  border: 0;
+  margin: 1em 10px;
+  border-radius: 8px;
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 12px;
+  width: calc(100% - 20px);
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.lesson-template-code--dark {
+  background: #272822;
+  color: #fff;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Image handling */
+.lesson-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1em auto;
+  border-radius: 4px;
+}
+
+.lesson-content figure {
+  margin: 1em 10px;
+  text-align: center;
+  width: calc(100% - 20px);
+  box-sizing: border-box;
+}
+
+.lesson-content figure.image_resized {
+  max-width: 100%;
+  display: block;
+  box-sizing: border-box;
+}
+
+.lesson-content figure.image-style-side {
+  float: right;
+  margin-left: 1em;
+  max-width: 40%;
+}
+
+.lesson-content figure.image-style-align-left {
+  float: left;
+  margin-right: 1em;
+  max-width: 40%;
+}
+
+.lesson-content figure.image-style-align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lesson-content figure.image-style-align-right {
+  float: right;
+  margin-left: 1em;
+  max-width: 40%;
+}
+
+.lesson-content figcaption {
+  background-color: rgba(26, 27, 38, 0.7);
+  color: #ffffff;
+  padding: 8px;
+  font-size: 13px;
+  margin-top: 5px;
+  border-radius: 0 0 4px 4px;
+}
+
+/* Help Section Styles */
+.help-section {
+  margin: 1.5rem 0;
+  padding: 0 10px;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hint-section,
+.solution-section {
+  margin-bottom: 1rem;
+  background: #1e293b;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #2d3748;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hint-section:hover,
+.solution-section:hover {
+  border-color: #3182ce;
+}
+
+/* Button Styles */
+.hint-button,
+.solution-button {
+  width: 100%;
+  padding: 12px;
+  background: #2d3748;
+  border: none;
+  color: #a0aec0;
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+/* Available State */
+.hint-button.available,
+.solution-button.available {
+  background: #2c5282;
+  color: #ebf8ff;
+}
+
+.hint-button.available:hover,
+.solution-button.available:hover {
+  background: #2b6cb0;
+}
+
+/* Disabled State */
+.hint-button:disabled,
+.solution-button:disabled {
+  background: #2d3748;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Attempts Counter */
+.attempts-needed {
+  margin-left: auto;
+  font-size: 13px;
+  color: #a0aec0;
+  background: #1a202c;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #2d3748;
+  white-space: nowrap;
+}
+
+/* Content Styles */
+.hint-content,
+.solution-content {
+  padding: 15px;
+  background: #1a202c;
+  color: #e2e8f0;
+  font-size: 15px;
+  line-height: 1.6;
+  border-top: 1px solid #2d3748;
+}
+
+/* Code Blocks within Hint/Solution */
+.hint-content pre,
+.solution-content pre {
+  background: #2d3748;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 1rem 0;
+  overflow-x: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hint-content code,
+.solution-content code {
+  font-family: 'Fira Code', Consolas, monospace;
+  font-size: 14px;
+}
+
+/* Animations */
+.hint-content,
+.solution-content {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile-first responsive adjustments */
+@media (max-width: 960px) {
+  .lesson-content {
+    font-size: 16px;
+  }
+
+  .lesson-content h1 {
+    font-size: 24px;
+  }
+
+  .lesson-content h2 {
+    font-size: 20px;
+    padding: 12px 10px;
+  }
+
+  .lesson-content h3 {
+    font-size: 18px;
+  }
+
+  .code-block code {
+    font-size: 13px;
+  }
+
+  .lesson-content blockquote.editor-side-quote {
+    width: 45%;
+  }
+}
+
+/* Smaller tablets */
+@media (max-width: 768px) {
+  .lesson-content {
+    font-size: 15px;
+    padding: 0 8px;
+  }
+
+  .lesson-content p {
+    padding: 0 5px;
+  }
+
+  .lesson-content h1 {
+    font-size: 22px;
+    padding: 0 5px;
+  }
+
+  .lesson-content h2 {
+    font-size: 18px;
+    padding: 10px 8px;
+  }
+
+  .lesson-content h3 {
+    font-size: 16px;
+    padding: 0 5px;
+  }
+
+  .help-section {
+    padding: 0 5px;
+    margin: 1rem 0;
+  }
+
+  .hint-button,
+  .solution-button {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .attempts-needed {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+
+  .hint-content,
+  .solution-content {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .lesson-content blockquote.editor-side-quote {
+    float: none;
+    width: auto;
+    margin: 1em 5px;
+  }
+
+  .lesson-content figure.image-style-side,
+  .lesson-content figure.image-style-align-left,
+  .lesson-content figure.image-style-align-right {
+    float: none;
+    max-width: 100%;
+    margin: 1em auto;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  .lesson-content {
+    font-size: 14px;
+    padding: 0 5px;
+  }
+
+  .lesson-content h1 {
+    font-size: 20px;
+    margin: 0.8em 0 0.6em;
+  }
+
+  .lesson-content h2 {
+    font-size: 16px;
+    padding: 8px 5px;
+  }
+
+  .lesson-content h3 {
+    font-size: 15px;
+    margin: 0.8em 0 0.4em;
+  }
+
+  .code-block {
+    margin: 0.8em 5px;
+    width: calc(100% - 10px);
+  }
+
+  .code-block pre {
+    padding: 8px;
+  }
+
+  .code-block code {
+    font-size: 12px;
+  }
+
+  .copy {
+    --button-diameter: 28px;
+  }
+
+  .hint-button,
+  .solution-button {
+    padding: 8px;
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .hint-content,
+  .solution-content {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .attempts-needed {
+    font-size: 11px;
+    padding: 2px 5px;
+  }
+
+  .lesson-content p.editor-info-box {
+    --background-size: 15px;
+    padding: 10px;
+    margin: 1em 5px;
+  }
+
+  .lesson-content pre.editor-code {
+    margin: 0.8em 5px;
+    width: calc(100% - 10px);
+  }
+}

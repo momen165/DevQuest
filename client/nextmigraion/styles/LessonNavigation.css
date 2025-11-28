@@ -1,0 +1,511 @@
+.lesson-navigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: #1e2130;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 16px;
+  height: 64px;
+  box-sizing: border-box;
+  z-index: 20;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.nav-button {
+  font-size: 0.95rem;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  background-color: #377ef0;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 0 1 auto;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.nav-button:disabled {
+  background-color: #2c3144;
+  color: #6c7293;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.nav-button:hover:not(:disabled) {
+  background-color: #2461d4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.nav-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.complete-button {
+  background-color: #2ecc71;
+}
+
+.complete-button:hover:not(:disabled) {
+  background-color: #27ae60;
+}
+
+.prev-button {
+  background-color: #4a5568;
+}
+
+.prev-button:hover:not(:disabled) {
+  background-color: #2d3748;
+}
+
+.next-button {
+  background-color: #4299e1;
+}
+
+.next-button:hover:not(:disabled) {
+  background-color: #3182ce;
+}
+
+/* Lesson Menu Styles */
+.lesson-menu-toggle {
+  z-index: 101; /* Even higher z-index than the menu */
+  background: #4a5568;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  height: 40px;
+
+  transition: all 0.2s ease;
+  min-width: 40px;
+  height: 40px;
+  position: relative;
+}
+
+.lesson-menu-toggle:hover {
+  background-color: #2d3748;
+}
+
+/* Active state for the menu toggle button */
+.lesson-menu-toggle.active {
+  background-color: #3182ce;
+}
+
+/* Add a wrapper for the navigation buttons */
+.nav-buttons-wrapper {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex: 1;
+}
+
+/* Floating message notification */
+.floating-message {
+  position: fixed;
+  top: 90px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
+  padding: 16px 24px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  z-index: 30;
+  animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 280px;
+  max-width: 90%;
+  text-align: center;
+  justify-content: center;
+  pointer-events: none;
+  background-color: rgba(30, 33, 48, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease-out;
+}
+
+.floating-message.success {
+  background-color: rgba(45, 55, 72, 0.95);
+  border-left: 4px solid #4299e1;
+}
+
+.floating-message.error {
+  background-color: rgba(45, 55, 72, 0.95);
+  border-left: 4px solid #f56565;
+}
+
+.message-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.4;
+}
+
+.success-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.xp-gained {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #4299e1;
+  animation: pulseXP 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+  display: inline-block;
+  opacity: 0;
+}
+
+/* Lesson navigation menu */
+/* Update lesson navigation menu z-index */
+.lesson-nav-menu {
+  position: fixed;
+  left: 0;
+  top: 100px; /* Match the navbar height (100px) */
+  bottom: 64px;
+  width: 300px;
+  background-color: #1a1b26;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-y: auto;
+  z-index: 999; /* Just below navbar but above other content */
+  padding: 0;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: none;
+  visibility: visible;
+}
+
+.lesson-nav-menu.open {
+  transform: translateX(0);
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.lesson-nav-course-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #1e2130;
+  cursor: pointer;
+}
+
+.lesson-nav-course-header h2 {
+  color: #ffffff;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: color 0.2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lesson-nav-course-header:hover h2 {
+  color: #4299e1;
+}
+
+.lesson-nav-section {
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.lesson-nav-section:last-child {
+  border-bottom: none;
+}
+
+.lesson-nav-section-title {
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #a0aec0;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.lesson-nav-section-title:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+}
+
+.lesson-nav-section-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out;
+  opacity: 0;
+}
+
+.lesson-nav-section-content.open {
+  max-height: 500px; /* This should be enough for most section contents */
+  opacity: 1;
+}
+
+.lesson-nav-item {
+  padding: 10px 20px 10px 30px;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-left 0.2s ease;
+  font-size: 0.9rem;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+
+.lesson-nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.lesson-nav-item.active {
+  background-color: rgba(66, 153, 225, 0.1);
+  border-left-color: #4299e1;
+  color: #4299e1;
+}
+
+.lesson-nav-item .completion-icon {
+  margin-left: auto;
+  color: #2ecc71;
+  font-size: 0.85rem;
+}
+
+.lesson-nav-item.locked {
+  cursor: not-allowed;
+  color: #6c7293;
+  opacity: 0.7;
+}
+
+.lesson-nav-item.locked:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: #6c7293;
+}
+
+.lesson-nav-item .lock-icon {
+  margin-left: auto;
+  color: #6c7293;
+  font-size: 0.85rem;
+}
+
+.lesson-nav-item.completed .lock-icon {
+  display: none;
+}
+
+/* Add space when both completion and lock icons exist */
+.lesson-nav-item .completion-icon + .lock-icon {
+  margin-left: 8px;
+}
+
+.arrow {
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+  color: #718096;
+  display: inline-block; /* Ensure proper transformation */
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Animations */
+@keyframes slideDown {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseXP {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.floating-message.exit {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .lesson-nav-menu {
+    width: 280px;
+  }
+
+  .lesson-nav-course-header h2 {
+    font-size: 1rem;
+  }
+
+  .lesson-nav-section-title {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  .lesson-nav-item {
+    padding: 8px 16px 8px 26px;
+    font-size: 0.85rem;
+  }
+
+  .nav-button {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
+}
+
+/* Tablet styles */
+@media (max-width: 768px) {
+  .lesson-navigation {
+    padding: 10px 16px;
+    height: 56px;
+    gap: 10px;
+  }
+
+  .lesson-nav-menu {
+    top: 90px;
+    bottom: 56px;
+    width: 260px;
+  }
+
+  .nav-button {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    min-width: 80px;
+  }
+
+  .nav-buttons-wrapper {
+    gap: 10px;
+  }
+
+  .floating-message {
+    width: 85%;
+    min-width: unset;
+    font-size: 1rem;
+    padding: 14px 20px;
+    top: 70px;
+  }
+
+  .xp-gained {
+    font-size: 1.2rem;
+  }
+
+  .lesson-menu-toggle {
+    min-width: 36px;
+    height: 36px;
+    padding: 8px;
+  }
+}
+
+/* Mobile styles */
+@media (max-width: 480px) {
+  .lesson-navigation {
+    padding: 8px 12px;
+    height: 50px;
+    gap: 8px;
+  }
+
+  .lesson-nav-menu {
+    top: 90px;
+    bottom: 50px;
+    width: 100%;
+  }
+
+  .lesson-menu-toggle {
+    min-width: 32px;
+    height: 32px;
+    padding: 6px;
+  }
+
+  .nav-button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+
+  .nav-buttons-wrapper {
+    gap: 8px;
+  }
+
+  .floating-message {
+    font-size: 0.9rem;
+    padding: 12px 16px;
+    min-width: 240px;
+    top: 60px;
+  }
+
+  .xp-gained {
+    font-size: 1.1rem;
+  }
+
+  .message-content {
+    gap: 8px;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .lesson-navigation {
+    padding: 6px 8px;
+  }
+
+  .nav-buttons-wrapper {
+    gap: 6px;
+  }
+
+  .nav-button {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    min-width: 65px;
+  }
+
+  .lesson-nav-course-header h2 {
+    font-size: 0.9rem;
+  }
+
+  .lesson-nav-section-title {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  .lesson-nav-item {
+    padding: 8px 12px 8px 20px;
+    font-size: 0.8rem;
+  }
+}

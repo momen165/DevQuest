@@ -13,7 +13,8 @@ const s3Client = new S3Client({
   forcePathStyle: true, // Added to potentially support custom domain endpoint
 });
 
-const uploadImageToS3 = async (file) => { // Removed unused courseName parameter
+const uploadImageToS3 = async (file) => {
+  // Removed unused courseName parameter
   const filename = `course_${uuidv4()}.png`;
   const processedBuffer = await sharp(file.buffer)
     .resize(800)
@@ -33,7 +34,7 @@ const uploadImageToS3 = async (file) => { // Removed unused courseName parameter
   await s3Client.send(command);
 
   // 👇 This is now correct
-  const url = `https://cdn.dev-quest.tech/${key}`;
+  const url = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${key}`;
 
   return url;
 };

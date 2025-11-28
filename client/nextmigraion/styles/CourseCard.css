@@ -1,0 +1,237 @@
+.course-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--language-color);
+  color: #fff;
+  padding: 16px;
+  border-radius: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 490px;
+  justify-content: center;
+  height: 400px !important;
+  position: relative;
+  overflow: hidden;
+  /* Optimize heavy CSS properties */
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Simplified transition */
+  margin: 0;
+  /* Use hardware acceleration */
+  will-change: transform;
+  /* Optimize rendering */
+  contain: layout style paint;
+}
+
+/* Optimize the animated background for better performance */
+.course-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--language-color) 20%, transparent) 0%,
+    color-mix(in srgb, var(--language-color) 10%, transparent) 50%,
+    transparent 100%
+  );
+  /* Reduce animation intensity for better performance */
+  animation: rotate 30s linear infinite;
+  z-index: 0;
+  /* Only animate when hovered for better performance */
+  animation-play-state: paused;
+}
+
+.course-card:hover::before {
+  animation-play-state: running;
+}
+
+.course-head {
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 82px;
+}
+.course-info {
+  width: 100%;
+  margin-top: 5px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  /* Optimize backdrop-filter usage */
+  backdrop-filter: blur(5px);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+  /* Add performance optimizations */
+  contain: layout style;
+}
+
+.enroll-btn {
+  display: flex;
+  justify-content: right;
+  align-items: center; /* Align items vertically */
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  margin-right: auto; /* Push the container to the leftmost side */
+}
+
+.course-icon {
+  height: 50px; /* Reduced from 50px */
+  width: auto; /* Maintain aspect ratio */
+  margin-bottom: 10px;
+  object-fit: contain; /* Ensures image isn't distorted */
+  display: flex;
+  align-self: flex-start; /* Maintains left alignment */
+  margin-right: 10px;
+}
+
+.course-rating,
+.course-level,
+.course-students {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.course-students {
+  display: flex;
+  align-self: flex-start;
+  padding: 20px 10px;
+}
+
+.enroll-button {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 200px;
+  margin-right: 30px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+}
+
+.enroll-button:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+}
+.course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px var(--hover-color);
+  border: 1px solid color-mix(in srgb, white 20%, transparent);
+  background: var(--hover-color);
+  /* Add performance hint */
+  will-change: transform;
+}
+.progress-circle {
+  position: relative;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  /* Optimize backdrop-filter for mobile performance */
+  backdrop-filter: blur(5px);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* Add performance optimizations */
+  contain: layout style;
+  will-change: background;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.circle-mid {
+  position: relative;
+  width: 25px; /* Adjust size as needed */
+  height: 25px; /* Adjust size as needed */
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progress-text {
+  color: #ffffff;
+  font-size: 14px; /* Adjust size as needed */
+}
+
+/* Add these media queries at the end of the file */
+@media screen and (max-width: 768px) {
+  .course-card {
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.05); /* Slightly visible background instead of blur */
+    width: 100%; /* Make card responsive */
+  }
+
+  .course-info {
+    backdrop-filter: none;
+    background: color-mix(in srgb, var(--language-color) 40%, transparent);
+  }
+
+  .progress-circle,
+  .circle-mid {
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* For very low-end devices */
+@media screen and (max-width: 480px) {
+  .course-card {
+    backdrop-filter: blur(0px); /* Minimal blur for low-end devices */
+  }
+
+  .course-info {
+    backdrop-filter: blur(0px); /* Minimal blur for low-end devices */
+  }
+
+  .progress-circle {
+    backdrop-filter: none; /* Remove blur completely for low-end devices */
+    background: rgba(255, 255, 255, 0.15); /* Use simple background instead */
+  }
+}
+
+/* Specific optimization for 430x932 phones */
+@media screen and (max-width: 430px) {
+  .course-card {
+    padding: 12px;
+    height: auto !important; /* Allow height to be flexible */
+    min-height: 350px;
+  }
+
+  .course-info {
+    padding: 15px;
+  }
+
+  /* Disable animation to improve performance */
+  .course-card::before {
+    animation: none;
+  }
+}

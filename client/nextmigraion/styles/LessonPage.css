@@ -1,0 +1,399 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+/* Improved Custom gutter for manual split */
+.custom-gutter {
+  flex: none;
+  background-color: #23263a;
+  transition: background-color 0.2s;
+  z-index: 20; /* Increased z-index to ensure it's always clickable */
+  position: relative;
+}
+.custom-gutter:hover {
+  background-color: #2d4677;
+}
+.custom-gutter:active,
+.custom-gutter.dragging {
+  background-color: #377ef0;
+}
+
+/* Reset minimum heights for proper flexbox behavior */
+.lesson-split {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.lesson-instructions {
+  overflow: auto;
+  background-color: #1a1b26;
+}
+
+.lesson-code-area {
+  overflow: hidden;
+  background-color: #0d1117;
+}
+
+/* Fix editor container sizing */
+.code-editor {
+  position: relative;
+  min-height: 100px;
+}
+/* lessonpage.css */
+
+/* Add these font imports at the top of the file */
+
+
+/* Base layout */
+
+/* Remove duplicate .lesson-split styles */
+.lesson-split.gutter {
+  display: none;
+}
+.lesson-page {
+  position: fixed;
+  top: 100px; /* Adjusted to account for navbar height */
+  left: 0;
+  right: 0;
+  bottom: 64px;
+  background-color: #1a1b26;
+  color: white;
+  overflow: hidden;
+  box-sizing: border-box;
+  z-index: 100;
+  width: 100vw;
+  height: calc(100vh - 100px - 64px);
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Old split styles removed */
+
+/* Left section - Instructions */
+.lesson-instructions {
+  font-family: 'Lato', sans-serif;
+  color: white;
+  padding: 0 10px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lesson-instructions h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  padding: 15px 10px;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+
+/* Right section - Code area */
+/* Code area is styled inline in component now */
+
+/* Code editor */
+.code-editor {
+  flex: 6;
+  min-height: 200px;
+  border-radius: 0 !important;
+}
+
+/* Also target the Monaco Editor container directly */
+.code-editor .monaco-editor {
+  border-radius: 0 !important;
+  padding: 0;
+  margin: 0;
+}
+
+/* Console section */
+.console {
+  flex: 3.5;
+  background-color: #161925;
+  display: flex;
+  flex-direction: column;
+  min-height: 140px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.console-header {
+  background-color: #2d2d2d;
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.console h3 {
+  font-size: 0.95rem;
+  padding: 10px 0;
+  margin: 0;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+/* Reset all pre tags in console */
+.console pre {
+  margin: 0 !important;
+}
+
+.console-output {
+  flex: 1;
+  background-color: #0a0a0a;
+  color: #e0e0e0;
+  padding: 10px 15px;
+  font-family: 'Fira Code', Consolas, monospace;
+  overflow: auto;
+  white-space: pre-wrap;
+  border-radius: 0;
+  font-size: 14px;
+  line-height: 1.4 !important;
+  letter-spacing: normal !important;
+}
+
+.console-output pre {
+  white-space: pre !important;
+  overflow-x: auto !important;
+  margin: 0 0 8px 0 !important;
+  padding: 8px !important;
+  background-color: #1e1e1e !important;
+  border-radius: 4px !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1b26;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #377ef0;
+  border-radius: 10px;
+  border: 1px solid #1a1b26;
+}
+
+/* Large Screen Optimization */
+@media (min-width: 1600px) {
+  .lesson-instructions {
+    flex: 0.9;
+  }
+
+  .lesson-code-area {
+    flex: 1.1;
+  }
+
+  .lesson-instructions h1 {
+    font-size: 2rem;
+    padding: 20px 15px;
+  }
+
+  .console-output {
+    font-size: 15px;
+  }
+}
+
+/* Standard Desktop */
+@media (max-width: 1366px) {
+  .lesson-page {
+    top: 64px;
+    height: calc(100vh - 128px);
+  }
+
+  .lesson-instructions {
+    max-height: calc(100vh - 128px);
+    max-width: none;
+    flex: 0.9;
+  }
+
+  .lesson-code-area {
+    flex: 1.1;
+    max-height: calc(100vh - 128px);
+  }
+
+  .code-editor {
+    flex: 7;
+  }
+
+  .console {
+    flex: 3;
+  }
+
+  .lesson-instructions h1 {
+    font-size: 1.5rem;
+    padding: 12px 10px;
+    margin-top: 50px;
+  }
+  .console h3 {
+    font-size: 1rem;
+    padding: 10px 0;
+  }
+ 
+
+  
+}
+
+/* Tablet View */
+@media (max-width: 1024px) {
+  .lesson-page {
+    top: 60px;
+    height: calc(100vh - 60px - 64px);
+  }
+  
+  .custom-gutter {
+    cursor: row-resize !important;
+    height: 8px !important;
+    width: 100% !important;
+  }
+  
+  .lesson-instructions {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .lesson-instructions h1 {
+    font-size: 1.4rem;
+    padding: 10px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .console h3 {
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile View */
+@media (max-width: 768px) {
+  .lesson-page {
+    position: fixed;
+    top: 56px;
+    bottom: 56px;
+    height: calc(100% - 112px);
+  }
+
+  .lesson-instructions {
+    padding: 0 8px;
+    height: 38%;
+  }
+
+  .lesson-code-area {
+    height: 62%;
+  }
+
+  .code-editor {
+    height: 65%;
+    min-height: 0;
+  }
+
+  .console {
+    height: 35%;
+    min-height: 0;
+  }
+
+  .console-header {
+    padding-left: 10px;
+  }
+
+  .console-output {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .lesson-instructions h1 {
+    font-size: 1.2rem;
+    padding: 8px;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Small Mobile View */
+@media (max-width: 480px) {
+  .lesson-page {
+    top: 50px;
+    bottom: 50px;
+    height: calc(100% - 100px);
+  }
+
+  .lesson-instructions {
+    height: 35%;
+    padding: 0 5px;
+  }
+
+  .lesson-code-area {
+    height: 65%;
+  }
+
+  .code-editor {
+    height: 60%;
+  }
+
+  .console {
+    height: 40%;
+  }
+
+  .lesson-instructions h1 {
+    font-size: 1.1rem;
+    padding: 8px 5px;
+    margin-bottom: 0.25rem;
+  }
+
+  .console-output {
+    font-size: 12px;
+    line-height: 1.3 !important;
+  }
+}
+
+/* Landscape Mode Handling */
+@media (max-height: 600px) and (orientation: landscape) {
+  .lesson-page {
+    flex-direction: row;
+ 
+    bottom: 48px;
+  }
+
+  .lesson-instructions {
+    flex: 0.8;
+    height: 100%;
+    
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: none;
+  }
+
+  .lesson-code-area {
+    flex: 1.2;
+    height: 100%;
+  }
+
+  .code-editor {
+    min-height: 0;
+    flex: 7;
+  }
+
+  .console {
+    min-height: 0;
+    flex: 3;
+  }
+}
+
+/* Very Small Height Screens */
+@media (max-height: 500px) {
+  .console {
+    flex: 2.5;
+  }
+
+  .code-editor {
+    flex: 7.5;
+  }
+
+  .lesson-instructions h1 {
+    font-size: 1rem;
+    padding: 5px;
+  }
+
+  .console h3 {
+    padding: 5px 0;
+  }
+}

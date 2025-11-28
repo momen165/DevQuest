@@ -1,0 +1,247 @@
+.editor-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+}
+
+.editor-controls {
+  position: absolute;
+  bottom: 5px;
+  left: 15px;
+  display: flex;
+  gap: 2px;
+  z-index: 5;
+}
+
+.editor-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  backdrop-filter: blur(8px);
+}
+
+.run-btn {
+  background-color: #2ecc71;
+}
+
+.run-btn:hover {
+  background-color: #27ae60;
+  transform: translateY(-1px);
+}
+
+.copy-btn {
+  background-color: #3498db;
+  padding: 10px 12px;
+  max-width: 35%;
+}
+
+.copy-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+}
+
+.editor-button svg {
+  font-size: 16px;
+}
+
+.editor-button:active {
+  transform: translateY(1px);
+}
+
+.editor-settings-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #858585;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  width: 28px;
+  height: 28px;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 5;
+}
+
+.editor-settings-button:hover {
+  color: #ffffff;
+  background-color: #2d2d2d;
+}
+
+.editor-settings-button:active {
+  transform: translateY(1px);
+}
+
+.editor-settings-menu {
+  position: absolute;
+  top: 60px;
+  right: 15px;
+  background-color: #252526;
+  border: 1px solid #2d2d2d;
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-group {
+  margin-bottom: 16px;
+}
+
+.settings-group:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  display: block;
+  color: #cccccc;
+  font-size: 14px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.settings-select {
+  width: 100%;
+  padding: 8px;
+  background-color: #3c3c3c;
+  border: 1px solid #3c3c3c;
+  color: #cccccc;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.settings-select:hover {
+  border-color: #4d4d4d;
+  background-color: #444444;
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: #007acc;
+  box-shadow: 0 0 0 1px #007acc;
+}
+
+.font-size-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.font-size-button {
+  background-color: #3c3c3c;
+  border: 1px solid #3c3c3c;
+  color: #cccccc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.font-size-button:hover {
+  border-color: #4d4d4d;
+  background-color: #444444;
+}
+
+.font-size-value {
+  color: #cccccc;
+  min-width: 24px;
+  text-align: center;
+}
+
+.editor-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: #1e1e1e;
+}
+
+.run-btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.console-output {
+    white-space: pre;
+    word-wrap: normal;
+    font-family: 'Consolas', 'Monaco', monospace;
+    padding: 10px 8px;
+    line-height: 1.2;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 4px;
+    overflow: auto;
+    max-height: 300px;
+    font-size: 14px;
+}
+
+.console-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+.console-output::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+.console-output::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.console-output::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+.reset-button {
+  width: 100%;
+  padding: 8px;
+  background-color: #3c3c3c;
+  border: 1px solid #3c3c3c;
+  color: #cccccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.reset-button:hover {
+  border-color: #4d4d4d;
+  background-color: #444444;
+}
+
+.reset-button:active {
+  transform: translateY(1px);
+}
+
