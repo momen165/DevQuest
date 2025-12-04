@@ -20,25 +20,47 @@ This guide explains how to configure Mailgun to forward incoming emails to DevQu
 Add webhook verification to ensure emails come from Mailgun:
 
 ```javascript
-// Add to email-webhook.routes.js
+// Already implemented in email-webhook.routes.js
 const crypto = require("crypto");
 
-function verifyMailgunWebhook(apiKey, token, timestamp, signature) {
+function verifyMailgunWebhook(signingKey, token, timestamp, signature) {
   const value = timestamp + token;
-  const hash = crypto.createHmac("sha256", apiKey).update(value).digest("hex");
+  const hash = crypto.createHmac("sha256", signingKey).update(value).digest("hex");
   return hash === signature;
 }
 
 // Use in webhook endpoint:
 const isValid = verifyMailgunWebhook(
-  process.env.MAILGUN_API_KEY,
+  process.env.MAILGUN_WEBHOOK_SIGNING_KEY,  // NOT MAILGUN_API_KEY!
   req.body.token,
   req.body.timestamp,
   req.body.signature
 );
 ```
 
-## 2. DNS Configuration
+**Important**: Use `MAILGUN_WEBHOOK_SIGNING_KEY`, not `MAILGUN_API_KEY` for webhook verification!
+
+## 2. Environment Variables
+
+Add these to your `server/.env` file:
+
+```env
+# Mailgun API configuration (for sending emails)
+MAILGUN_API_KEY=your-api-key-here
+MAILGUN_DOMAIN=mail.dev-quest.me
+MAILGUN_API_URL=https://api.eu.mailgun.net
+
+# Mailgun webhook security (for receiving emails)
+MAILGUN_WEBHOOK_SIGNING_KEY=your-webhook-signing-key-here
+```
+
+**Where to find these values:**
+- `MAILGUN_API_KEY`: Mailgun Dashboard → Settings → API Keys → Private API key
+- `MAILGUN_WEBHOOK_SIGNING_KEY`: Mailgun Dashboard → Settings → Webhooks → HTTP webhook signing key
+- `MAILGUN_DOMAIN`: Your verified domain in Mailgun
+- `MAILGUN_API_URL`: Use `https://api.eu.mailgun.net` for EU region, `https://api.mailgun.net` for US
+
+## 3. DNS Configuration
 
 ### MX Records
 
@@ -133,7 +155,7 @@ curl -X POST https://your-server.com/api/email-webhook \
 - Verify DNS records are properly configured
 - Test webhook endpoint directly with curl
 
-## 8. Production Checklist
+## 9. Production Checklist
 
 - [ ] Mailgun routes configured
 - [ ] DNS MX records set up

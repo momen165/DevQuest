@@ -37,11 +37,10 @@ router.post("/email-webhook", async (req, res) => {
       token &&
       timestamp &&
       signature &&
-      process.env.MAILGUN_API_KEY &&
-      process.env.NODE_ENV === "production"
+      process.env.MAILGUN_WEBHOOK_SIGNING_KEY
     ) {
       const isValid = verifyMailgunWebhook(
-        process.env.MAILGUN_API_KEY,
+        process.env.MAILGUN_WEBHOOK_SIGNING_KEY,
         token,
         timestamp,
         signature
@@ -50,8 +49,9 @@ router.post("/email-webhook", async (req, res) => {
         console.warn("Invalid Mailgun webhook signature");
         return res.status(401).json({ error: "Invalid webhook signature" });
       }
-    } else if (process.env.NODE_ENV !== "production") {
-      console.log("Development mode: Skipping webhook signature verification");
+      console.log("Webhook signature verified successfully");
+    } else {
+      console.log("Webhook signature verification skipped (no signing key configured)");
     }
 
     // Mailgun sends individual message data directly in the body
