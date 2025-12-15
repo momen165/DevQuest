@@ -423,18 +423,16 @@ const deleteStudentAccount = async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // Delete data in the correct order based on foreign key dependencies
-    // Execute all deletes in parallel where possible for better performance
-    await Promise.all([
-      client.query("DELETE FROM recent_activity WHERE user_id = $1", [userId]),
-      client.query("DELETE FROM lesson_progress WHERE user_id = $1", [userId]),
-      client.query("DELETE FROM enrollment WHERE user_id = $1", [userId]),
-      client.query("DELETE FROM feedback WHERE user_id = $1", [userId]),
-      client.query("DELETE FROM admin_activity WHERE admin_id = $1", [userId]),
-      client.query("DELETE FROM payment WHERE user_id = $1", [userId]),
-    ]);
+    // Delete data sequentially to avoid deadlocks during concurrent operations
+    // Follow foreign key dependency order
+    await client.query("DELETE FROM recent_activity WHERE user_id = $1", [userId]);
+    await client.query("DELETE FROM lesson_progress WHERE user_id = $1", [userId]);
+    await client.query("DELETE FROM enrollment WHERE user_id = $1", [userId]);
+    await client.query("DELETE FROM feedback WHERE user_id = $1", [userId]);
+    await client.query("DELETE FROM admin_activity WHERE admin_id = $1", [userId]);
+    await client.query("DELETE FROM payment WHERE user_id = $1", [userId]);
 
-    // Delete subscription-related data (has dependencies on above)
+    // Delete subscription-related data
     await client.query("DELETE FROM user_subscription WHERE user_id = $1", [userId]);
     await client.query("DELETE FROM subscription WHERE user_id = $1", [userId]);
 
@@ -444,7 +442,7 @@ const deleteStudentAccount = async (req, res) => {
       [userId]
     );
     
-    const deleteResult = await client.query("DELETE FROM users WHERE user_id = $1", [userId]);
+    await client.query("DELETE FROM users WHERE user_id = $1", [userId]);
 
     await client.query("COMMIT");
 

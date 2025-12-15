@@ -267,15 +267,12 @@ const trackDatabaseQuery = (queryType, queryTime, success, queryText = "") => {
     metrics.failedQueries++;
   }
 
-  // Log slow queries - only in production if > 500ms, in dev if > 100ms
-  const threshold = process.env.NODE_ENV === "production" ? 500 : 100;
+  // Log slow queries with environment-specific thresholds
+  const threshold = process.env.NODE_ENV === "production" ? 1000 : 100;
   if (queryTime > threshold) {
-    // Only log in development or if extremely slow in production
-    if (process.env.NODE_ENV === "development" || queryTime > 1000) {
-      console.warn(
-        `🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms`
-      );
-    }
+    console.warn(
+      `🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms`
+    );
   }
 };
 

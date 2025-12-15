@@ -153,9 +153,9 @@ module.exports = async function sessionTracker(req, res, next) {
         session.page_views = newPageViews;
         sessionCache.set(sessionCacheKey, session);
 
-        // Flush if buffer is full - use setTimeout for better timing control
+        // Flush immediately if buffer is full for backpressure control
         if (updateBuffer.size >= BATCH_SIZE_LIMIT) {
-          setTimeout(() => flushSessionUpdates().catch(() => {}), 50);
+          flushSessionUpdates().catch(() => {});
         }
       } else if (gap > MAX_ACTIVE_GAP) {
         // Gap too long: close previous session and start a new one (immediate write)
@@ -189,9 +189,9 @@ module.exports = async function sessionTracker(req, res, next) {
         session.page_views = newPageViews;
         sessionCache.set(sessionCacheKey, session);
 
-        // Flush if buffer is full - use setTimeout for better timing control
+        // Flush immediately if buffer is full for backpressure control
         if (updateBuffer.size >= BATCH_SIZE_LIMIT) {
-          setTimeout(() => flushSessionUpdates().catch(() => {}), 50);
+          flushSessionUpdates().catch(() => {});
         }
       }
     }
