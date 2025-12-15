@@ -113,7 +113,7 @@ DevQuest Support Team`;
 
       // Fetch the complete ticket with all messages
       const getTicketQuery = `
-        SELECT ticket_id, user_email, subject, status, priority, category, created_at, updated_at FROM support WHERE ticket_id = $1;
+        SELECT ticket_id, user_email, subject, status, priority, category, time_opened, updated_at FROM support WHERE ticket_id = $1;
       `;
       const getMessagesQuery = `
         SELECT message_id, ticket_id, sender_type, sender_name, message_content, sent_at, is_auto_reply FROM ticket_messages WHERE ticket_id = $1 ORDER BY sent_at ASC;
@@ -595,7 +595,7 @@ DevQuest Support Team`;
 
       // Fetch the complete ticket with all messages
       const getTicketQuery = `
-        SELECT ticket_id, user_email, subject, status, priority, category, created_at, updated_at FROM support WHERE ticket_id = $1;
+        SELECT ticket_id, user_email, subject, status, priority, category, time_opened, updated_at FROM support WHERE ticket_id = $1;
       `;
       const getMessagesQuery = `
         SELECT message_id, ticket_id, sender_type, sender_name, message_content, sent_at, is_auto_reply FROM ticket_messages WHERE ticket_id = $1 ORDER BY sent_at ASC;
