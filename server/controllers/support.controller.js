@@ -113,10 +113,10 @@ DevQuest Support Team`;
 
       // Fetch the complete ticket with all messages
       const getTicketQuery = `
-        SELECT * FROM support WHERE ticket_id = $1;
+        SELECT ticket_id, user_email, subject, status, priority, category, created_at, updated_at FROM support WHERE ticket_id = $1;
       `;
       const getMessagesQuery = `
-        SELECT * FROM ticket_messages WHERE ticket_id = $1 ORDER BY sent_at ASC;
+        SELECT message_id, ticket_id, sender_type, sender_name, message_content, sent_at, is_auto_reply FROM ticket_messages WHERE ticket_id = $1 ORDER BY sent_at ASC;
       `;
       const ticketResult = await db.query(getTicketQuery, [newTicketId]);
       const messagesResult = await db.query(getMessagesQuery, [newTicketId]);
@@ -595,10 +595,10 @@ DevQuest Support Team`;
 
       // Fetch the complete ticket with all messages
       const getTicketQuery = `
-        SELECT * FROM support WHERE ticket_id = $1;
+        SELECT ticket_id, user_email, subject, status, priority, category, created_at, updated_at FROM support WHERE ticket_id = $1;
       `;
       const getMessagesQuery = `
-        SELECT * FROM ticket_messages WHERE ticket_id = $1 ORDER BY sent_at ASC;
+        SELECT message_id, ticket_id, sender_type, sender_name, message_content, sent_at, is_auto_reply FROM ticket_messages WHERE ticket_id = $1 ORDER BY sent_at ASC;
       `;
       const ticketResult = await db.query(getTicketQuery, [newTicketId]);
       const messagesResult = await db.query(getMessagesQuery, [newTicketId]);

@@ -1,6 +1,10 @@
 ﻿const db = require("../config/database");
 const badgeController = require("../controllers/badge.controller");
 
+// Cache to track users already updated today - reduces unnecessary DB checks
+const NodeCache = require("node-cache");
+const streakUpdateCache = new NodeCache({ stdTTL: 86400 }); // 24 hour TTL
+
 const updateUserStreak = async (req, res, next) => {
   // console.log("[Streak Debug] updateUserStreak middleware called");
   if (!req.user) {
@@ -9,6 +13,13 @@ const updateUserStreak = async (req, res, next) => {
   }
 
   const userId = req.user.user_id;
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+  const cacheKey = `streak_${userId}_${today}`;
+
+  // Check cache first to avoid DB transaction if already updated today
+  if (streakUpdateCache.get(cacheKey)) {
+    return next();
+  }
 
   try {
     const client = await db.connect();
@@ -42,9 +53,10 @@ const updateUserStreak = async (req, res, next) => {
       // console.log(
       //   `[Streak Debug] nowUTC: ${nowUTC}, lastUpdate: ${lastUpdate}, lastVisit: ${lastVisit}`
       // );
-      // If already updated today (UTC), skip
+      // If already updated today (UTC), skip and cache the result
       if (lastUpdate && nowUTC.getTime() === lastUpdate.getTime()) {
         // console.log(`[Streak Debug] Already updated today for user ${userId}`);
+        streakUpdateCache.set(cacheKey, true);
         await client.query("ROLLBACK");
         client.release();
         return next();
@@ -81,6 +93,8 @@ const updateUserStreak = async (req, res, next) => {
       if (process.env.NODE_ENV === "development") {
         console.log(updateResult.rows[0]);
       }
+      // Cache that this user was updated today
+      streakUpdateCache.set(cacheKey, true);
       await client.query("COMMIT");
       client.release();
     } catch (txnErr) {

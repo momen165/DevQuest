@@ -3,6 +3,19 @@ const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
 
+// Cache SSL certificate to avoid repeated file reads
+let cachedCA = null;
+const certPath = path.join(__dirname, "../certs/ca.pem");
+
+// Read certificate synchronously only once at startup
+if (fs.existsSync(certPath)) {
+  try {
+    cachedCA = fs.readFileSync(certPath).toString();
+  } catch (err) {
+    console.error("Failed to read SSL certificate:", err);
+  }
+}
+
 // Configure database connection
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -12,9 +25,7 @@ const pool = new Pool({
   port: process.env.DB_PORT || 10732,
   ssl: {
     rejectUnauthorized: true,
-    ...(fs.existsSync(path.join(__dirname, "../certs/ca.pem")) && {
-      ca: fs.readFileSync(path.join(__dirname, "../certs/ca.pem")).toString(),
-    }),
+    ...(cachedCA && { ca: cachedCA }),
   },
 
   max: parseInt(process.env.DB_CONNECTION_LIMIT) || 20,
