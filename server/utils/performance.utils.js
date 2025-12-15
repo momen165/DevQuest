@@ -123,8 +123,9 @@ const performanceMiddleware = (req, res, next) => {
   const originalEnd = res.end;
   res.end = function (...args) {
     const metric = performanceMonitor.endTimer(timerKey);
-    if (metric && metric.duration > 1000) {
-      // Log slow requests (> 1 second)
+    // Only log slow requests - different thresholds for production
+    const threshold = process.env.NODE_ENV === "production" ? 2000 : 1000;
+    if (metric && metric.duration > threshold) {
       console.warn(
         `Slow API request detected: ${metric.operation} took ${metric.duration}ms`
       );
@@ -136,6 +137,11 @@ const performanceMiddleware = (req, res, next) => {
 
 // Log performance summary
 const logPerformanceSummary = () => {
+  // Skip logging in production unless explicitly enabled
+  if (process.env.NODE_ENV === "production" && !process.env.ENABLE_PERFORMANCE_LOGS) {
+    return;
+  }
+
   const stats = performanceMonitor.getAllStats();
   console.log("\n=== Performance Summary ===");
 
@@ -168,8 +174,10 @@ const logPerformanceSummary = () => {
   console.log("========================\n");
 };
 
-// Log performance summary every 5 minutes
-setInterval(logPerformanceSummary, 5 * 60 * 1000);
+// Log performance summary every 5 minutes (only in dev or if explicitly enabled)
+if (process.env.NODE_ENV === "development" || process.env.ENABLE_PERFORMANCE_LOGS) {
+  setInterval(logPerformanceSummary, 5 * 60 * 1000);
+}
 
 // API Performance tracking functions for middleware
 const apiMetrics = {
@@ -218,8 +226,9 @@ const trackAPIPerformance = (
   }
   metrics.statusCodes.set(statusCode, metrics.statusCodes.get(statusCode) + 1);
 
-  // Log slow requests
-  if (responseTime > 1000) {
+  // Log slow requests - only in production if > 2s, in dev if > 1s
+  const threshold = process.env.NODE_ENV === "production" ? 2000 : 1000;
+  if (responseTime > threshold) {
     console.warn(
       `🐌 Slow API request: ${key} took ${responseTime.toFixed(2)}ms`
     );
@@ -258,11 +267,15 @@ const trackDatabaseQuery = (queryType, queryTime, success, queryText = "") => {
     metrics.failedQueries++;
   }
 
-  // Log slow queries
-  if (queryTime > 100) {
-    console.warn(
-      //`🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms\nQuery: ${queryText}`
-    );
+  // Log slow queries - only in production if > 500ms, in dev if > 100ms
+  const threshold = process.env.NODE_ENV === "production" ? 500 : 100;
+  if (queryTime > threshold) {
+    // Only log in development or if extremely slow in production
+    if (process.env.NODE_ENV === "development" || queryTime > 1000) {
+      console.warn(
+        `🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms`
+      );
+    }
   }
 };
 
