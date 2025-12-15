@@ -33,19 +33,26 @@ async function flushSessionUpdates() {
   updateBuffer.clear();
 
   try {
-    // Batch update all sessions in a single query
-    const values = updates.map((u) => `(${u.sessionId}, NOW(), ${u.duration}, ${u.pageViews})`).join(',');
-    
+    // Batch update using parameterized query with UNNEST for safety
     if (updates.length > 0) {
+      const sessionIds = updates.map(u => u.sessionId);
+      const durations = updates.map(u => u.duration);
+      const pageViews = updates.map(u => u.pageViews);
+      
       const updateQuery = `
         UPDATE user_sessions AS us SET
-          session_end = v.session_end,
+          session_end = NOW(),
           session_duration = v.session_duration,
           page_views = v.page_views
-        FROM (VALUES ${values}) AS v(session_id, session_end, session_duration, page_views)
+        FROM (
+          SELECT 
+            UNNEST($1::int[]) AS session_id,
+            UNNEST($2::int[]) AS session_duration,
+            UNNEST($3::int[]) AS page_views
+        ) AS v
         WHERE us.session_id = v.session_id
       `;
-      await db.query(updateQuery);
+      await db.query(updateQuery, [sessionIds, durations, pageViews]);
     }
   } catch (err) {
     console.error("[SessionTracker] Batch update error:", err);
@@ -73,11 +80,12 @@ module.exports = async function sessionTracker(req, res, next) {
     if (deviceType.length > 50) deviceType = deviceType.slice(0, 50);
 
     // Start subscription cache warming in background (non-blocking)
-    setImmediate(() => {
+    // Use setTimeout with small delay to avoid execution during high-traffic periods
+    setTimeout(() => {
       warmSubscriptionCache(userId).catch(() => {
         // Silently fail - don't block request
       });
-    });
+    }, 100);
 
     const sessionCacheKey = SESSION_CACHE_KEY_PREFIX + userId;
     let session = sessionCache.get(sessionCacheKey);
@@ -145,9 +153,9 @@ module.exports = async function sessionTracker(req, res, next) {
         session.page_views = newPageViews;
         sessionCache.set(sessionCacheKey, session);
 
-        // Flush if buffer is full
+        // Flush if buffer is full - use setTimeout for better timing control
         if (updateBuffer.size >= BATCH_SIZE_LIMIT) {
-          setImmediate(() => flushSessionUpdates().catch(() => {}));
+          setTimeout(() => flushSessionUpdates().catch(() => {}), 50);
         }
       } else if (gap > MAX_ACTIVE_GAP) {
         // Gap too long: close previous session and start a new one (immediate write)
@@ -181,9 +189,9 @@ module.exports = async function sessionTracker(req, res, next) {
         session.page_views = newPageViews;
         sessionCache.set(sessionCacheKey, session);
 
-        // Flush if buffer is full
+        // Flush if buffer is full - use setTimeout for better timing control
         if (updateBuffer.size >= BATCH_SIZE_LIMIT) {
-          setImmediate(() => flushSessionUpdates().catch(() => {}));
+          setTimeout(() => flushSessionUpdates().catch(() => {}), 50);
         }
       }
     }

@@ -2,7 +2,6 @@ const db = require("../config/database");
 
 // Environment-aware logger to reduce console overhead in production
 const isDevelopment = process.env.NODE_ENV === "development";
-const isProduction = process.env.NODE_ENV === "production";
 
 /**
  * Enhanced logger with environment awareness

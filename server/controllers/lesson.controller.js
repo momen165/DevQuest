@@ -127,19 +127,22 @@ const fixLessonOrders = asyncHandler(async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // Build batch update query
-    const values = lessonsToUpdate.rows.map((lesson) => 
-      `(${lesson.lesson_id}, ${lesson.new_order})`
-    ).join(',');
+    // Build batch update query with parameterized arrays for safety
+    const lessonIds = lessonsToUpdate.rows.map((lesson) => lesson.lesson_id);
+    const newOrders = lessonsToUpdate.rows.map((lesson) => lesson.new_order);
 
     const batchUpdateQuery = `
       UPDATE lesson AS l SET
         lesson_order = v.new_order
-      FROM (VALUES ${values}) AS v(lesson_id, new_order)
+      FROM (
+        SELECT 
+          UNNEST($1::int[]) AS lesson_id,
+          UNNEST($2::int[]) AS new_order
+      ) AS v
       WHERE l.lesson_id = v.lesson_id
     `;
 
-    await client.query(batchUpdateQuery);
+    await client.query(batchUpdateQuery, [lessonIds, newOrders]);
     await client.query("COMMIT");
 
     // Count unique sections affected

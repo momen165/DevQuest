@@ -483,20 +483,22 @@ const reorderSections = async (req, res) => {
     const client = await db.connect();
     await client.query("BEGIN");
 
-    // Use a single batch update query instead of multiple individual updates
-    // Build the VALUES clause for batch update
-    const values = sections.map(({ section_id, order }) => 
-      `(${section_id}, ${order})`
-    ).join(',');
+    // Use a single batch update query with parameterized arrays for safety
+    const sectionIds = sections.map(({ section_id }) => section_id);
+    const orders = sections.map(({ order }) => order);
     
     const batchUpdateQuery = `
       UPDATE section AS s SET
         section_order = v.new_order
-      FROM (VALUES ${values}) AS v(section_id, new_order)
+      FROM (
+        SELECT 
+          UNNEST($1::int[]) AS section_id,
+          UNNEST($2::int[]) AS new_order
+      ) AS v
       WHERE s.section_id = v.section_id
     `;
     
-    await client.query(batchUpdateQuery);
+    await client.query(batchUpdateQuery, [sectionIds, orders]);
     await client.query("COMMIT");
     client.release();
 
