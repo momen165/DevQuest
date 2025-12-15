@@ -26,9 +26,6 @@ const addSection = async (req, res) => {
 
   const { course_id, name, description } = req.body;
 
-  // Clear cache before making changes
-  clearSectionCache(course_id);
-
   try {
     // Validate required fields
     if (!course_id || !name) {
@@ -66,7 +63,7 @@ const addSection = async (req, res) => {
       req.user.userId
     );
 
-    // Update cache
+    // Clear cache once after all changes
     clearSectionCache(course_id);
 
     res.status(201).json(result.rows[0]);
@@ -400,19 +397,6 @@ const deleteSection = async (req, res) => {
 
   const { section_id } = req.params;
 
-  // Get course_id to clear cache
-  let course_id;
-  try {
-    const sectionQuery = "SELECT course_id FROM section WHERE section_id = $1";
-    const result = await db.query(sectionQuery, [section_id]);
-    if (result.rows.length > 0) {
-      course_id = result.rows[0].course_id;
-      clearSectionCache(course_id);
-    }
-  } catch (err) {
-    console.error("Error fetching course_id:", err);
-  }
-
   try {
     // Validate section_id
     if (!section_id || isNaN(section_id)) {
@@ -423,8 +407,8 @@ const deleteSection = async (req, res) => {
     const client = await db.connect();
     await client.query("BEGIN");
 
-    // Get section name for logging
-    const sectionQuery = "SELECT name FROM section WHERE section_id = $1";
+    // Get section name and course_id in one query
+    const sectionQuery = "SELECT name, course_id FROM section WHERE section_id = $1";
     const sectionResult = await client.query(sectionQuery, [section_id]);
 
     if (sectionResult.rowCount === 0) {
@@ -434,6 +418,7 @@ const deleteSection = async (req, res) => {
     }
 
     const sectionName = sectionResult.rows[0].name;
+    const course_id = sectionResult.rows[0].course_id;
 
     // First, get all lesson IDs in this section
     const lessonIdsQuery = "SELECT lesson_id FROM lesson WHERE section_id = $1";
@@ -466,8 +451,8 @@ const deleteSection = async (req, res) => {
       req.user.userId
     );
 
-    // Update cache
-    clearSectionCache(section_id);
+    // Clear cache once after all changes with the correct course_id
+    clearSectionCache(course_id);
 
     res.status(200).json({
       message: "Section and associated lessons deleted successfully.",
@@ -498,22 +483,36 @@ const reorderSections = async (req, res) => {
     const client = await db.connect();
     await client.query("BEGIN");
 
-    // Update section order for each section
-    const updatePromises = sections.map(({ section_id, order }) => {
-      return client.query(
-        "UPDATE section SET section_order = $1 WHERE section_id = $2",
-        [order, section_id]
-      );
-    });
-
-    await Promise.all(updatePromises);
+    // Use a single batch update query with parameterized arrays for safety
+    const sectionIds = sections.map(({ section_id }) => section_id);
+    const orders = sections.map(({ order }) => order);
+    
+    const batchUpdateQuery = `
+      UPDATE section AS s SET
+        section_order = v.new_order
+      FROM (
+        SELECT 
+          UNNEST($1::int[]) AS section_id,
+          UNNEST($2::int[]) AS new_order
+      ) AS v
+      WHERE s.section_id = v.section_id
+    `;
+    
+    await client.query(batchUpdateQuery, [sectionIds, orders]);
     await client.query("COMMIT");
     client.release();
 
-    // Update cache
-    sections.forEach(({ section_id }) => {
-      clearSectionCache(section_id);
-    });
+    // Clear cache once for the course (all sections belong to same course)
+    // Get course_id from first section
+    if (sections.length > 0) {
+      const firstSectionResult = await db.query(
+        "SELECT course_id FROM section WHERE section_id = $1",
+        [sections[0].section_id]
+      );
+      if (firstSectionResult.rows.length > 0) {
+        clearSectionCache(firstSectionResult.rows[0].course_id);
+      }
+    }
 
     res.status(200).json({ message: "Sections reordered successfully." });
   } catch (err) {

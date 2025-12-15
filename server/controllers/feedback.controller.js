@@ -116,7 +116,7 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
   }
 
   const [courses, userscount] = await Promise.all([
-    db.query("SELECT * FROM course WHERE status = 'Published'"),
+    db.query("SELECT course_id, name, description, status, image, difficulty, created_at FROM course WHERE status = 'Published'"),
     db.query(
       "SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id"
     ),

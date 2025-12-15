@@ -90,38 +90,78 @@ const addLesson = asyncHandler(async (req, res) => {
   res.status(201).json(result.rows[0]);
 });
 
-// Fix existing lesson orders
+// Fix existing lesson orders - optimized to use batch updates
 const fixLessonOrders = asyncHandler(async (req, res) => {
-  const sections = await lessonQueries.getAllSections();
-  let fixedCount = 0;
-
-  // Get all sections ordered by section_order
-  const orderedSectionsQuery = `
-    SELECT section_id, name
-    FROM section
-    ORDER BY section_order ASC
+  // Get all sections and their lessons in a single query with proper ordering
+  const query = `
+    WITH ranked_lessons AS (
+      SELECT 
+        l.lesson_id,
+        l.section_id,
+        ROW_NUMBER() OVER (PARTITION BY l.section_id ORDER BY l.lesson_order, l.lesson_id) - 1 AS new_order
+      FROM lesson l
+      JOIN section s ON l.section_id = s.section_id
+      ORDER BY s.section_order, l.lesson_order
+    )
+    SELECT lesson_id, section_id, new_order
+    FROM ranked_lessons
+    WHERE lesson_id IN (
+      SELECT lesson_id FROM lesson WHERE lesson_order IS NULL OR lesson_order != (
+        SELECT new_order FROM ranked_lessons rl WHERE rl.lesson_id = lesson.lesson_id
+      )
+    )
   `;
-  const orderedSections = await db.query(orderedSectionsQuery);
 
-  for (const section of orderedSections.rows) {
-    const lessons = await lessonQueries.getLessonsBySectionForOrdering(
-      section.section_id
-    );
+  const lessonsToUpdate = await db.query(query);
 
-    for (let i = 0; i < lessons.rows.length; i++) {
-      await lessonQueries.updateLessonOrder(lessons.rows[i].lesson_id, i);
-      fixedCount++;
-    }
+  if (lessonsToUpdate.rows.length === 0) {
+    return res.status(200).json({
+      message: "All lesson orders are already correct",
+      fixedCount: 0,
+      sectionsProcessed: 0,
+    });
   }
 
-  // Invalidate all lesson caches after fixing orders
-  lessonsCache.flushAll();
+  // Batch update all lessons in a single transaction
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
 
-  res.status(200).json({
-    message: "Lesson orders fixed successfully",
-    fixedCount: fixedCount,
-    sectionsProcessed: orderedSections.rows.length,
-  });
+    // Build batch update query with parameterized arrays for safety
+    const lessonIds = lessonsToUpdate.rows.map((lesson) => lesson.lesson_id);
+    const newOrders = lessonsToUpdate.rows.map((lesson) => lesson.new_order);
+
+    const batchUpdateQuery = `
+      UPDATE lesson AS l SET
+        lesson_order = v.new_order
+      FROM (
+        SELECT 
+          UNNEST($1::int[]) AS lesson_id,
+          UNNEST($2::int[]) AS new_order
+      ) AS v
+      WHERE l.lesson_id = v.lesson_id
+    `;
+
+    await client.query(batchUpdateQuery, [lessonIds, newOrders]);
+    await client.query("COMMIT");
+
+    // Count unique sections affected
+    const sectionsProcessed = new Set(lessonsToUpdate.rows.map(l => l.section_id)).size;
+
+    // Invalidate all lesson caches after fixing orders
+    lessonsCache.flushAll();
+
+    res.status(200).json({
+      message: "Lesson orders fixed successfully",
+      fixedCount: lessonsToUpdate.rows.length,
+      sectionsProcessed: sectionsProcessed,
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 });
 
 // Get all lessons for a specific section
