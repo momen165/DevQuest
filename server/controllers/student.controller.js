@@ -418,58 +418,54 @@ const getCourseStats = async (req, res) => {
 
 const deleteStudentAccount = async (req, res) => {
   const userId = req.user.user_id;
-  console.log("Attempting to delete account for user:", userId);
-
+  
+  const client = await db.connect();
   try {
-    await db.query("BEGIN");
-    console.log("Transaction started");
+    await client.query("BEGIN");
 
     // Delete data in the correct order based on foreign key dependencies
-    const deleteQueries = [
-      // First, delete records from tables that reference the user
-      "DELETE FROM recent_activity WHERE user_id = $1",
-      "DELETE FROM lesson_progress WHERE user_id = $1",
-      "DELETE FROM enrollment WHERE user_id = $1",
-      "DELETE FROM feedback WHERE user_id = $1",
-      "DELETE FROM admin_activity WHERE admin_id = $1",
-      "DELETE FROM payment WHERE user_id = $1",
-      "DELETE FROM user_subscription WHERE user_id = $1",
-      "DELETE FROM subscription WHERE user_id = $1",
+    // Execute all deletes in parallel where possible for better performance
+    await Promise.all([
+      client.query("DELETE FROM recent_activity WHERE user_id = $1", [userId]),
+      client.query("DELETE FROM lesson_progress WHERE user_id = $1", [userId]),
+      client.query("DELETE FROM enrollment WHERE user_id = $1", [userId]),
+      client.query("DELETE FROM feedback WHERE user_id = $1", [userId]),
+      client.query("DELETE FROM admin_activity WHERE admin_id = $1", [userId]),
+      client.query("DELETE FROM payment WHERE user_id = $1", [userId]),
+    ]);
+
+    // Delete subscription-related data (has dependencies on above)
+    await client.query("DELETE FROM user_subscription WHERE user_id = $1", [userId]);
+    await client.query("DELETE FROM subscription WHERE user_id = $1", [userId]);
+
+    // Delete support tickets and user record
+    await client.query(
       "DELETE FROM support WHERE user_email = (SELECT email FROM users WHERE user_id = $1)",
-      "DELETE FROM users WHERE user_id = $1",
-    ];
+      [userId]
+    );
+    
+    const deleteResult = await client.query("DELETE FROM users WHERE user_id = $1", [userId]);
 
-    // Execute all delete queries in sequence with logging
-    for (const query of deleteQueries) {
-      try {
-        const result = await db.query(query, [userId]);
-        console.log(
-          `Query executed:`,
-          query.split(" ")[2],
-          `Rows affected:`,
-          result.rowCount
-        );
-      } catch (err) {
-        console.error(`Error executing query: ${query}`, err);
-        throw err;
-      }
+    await client.query("COMMIT");
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Account deletion successful for user ${userId}`);
     }
-
-    await db.query("COMMIT");
-    console.log("Account deletion successful - all data removed");
 
     res.status(200).json({
       success: true,
       message: "Account successfully deleted",
     });
   } catch (error) {
-    await db.query("ROLLBACK");
+    await client.query("ROLLBACK");
     console.error("Error in deleteStudentAccount:", error);
     res.status(500).json({
       success: false,
       message: "Failed to delete account",
       error: error.message,
     });
+  } finally {
+    client.release();
   }
 };
 

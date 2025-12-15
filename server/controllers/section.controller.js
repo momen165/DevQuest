@@ -483,22 +483,34 @@ const reorderSections = async (req, res) => {
     const client = await db.connect();
     await client.query("BEGIN");
 
-    // Update section order for each section
-    const updatePromises = sections.map(({ section_id, order }) => {
-      return client.query(
-        "UPDATE section SET section_order = $1 WHERE section_id = $2",
-        [order, section_id]
-      );
-    });
-
-    await Promise.all(updatePromises);
+    // Use a single batch update query instead of multiple individual updates
+    // Build the VALUES clause for batch update
+    const values = sections.map(({ section_id, order }) => 
+      `(${section_id}, ${order})`
+    ).join(',');
+    
+    const batchUpdateQuery = `
+      UPDATE section AS s SET
+        section_order = v.new_order
+      FROM (VALUES ${values}) AS v(section_id, new_order)
+      WHERE s.section_id = v.section_id
+    `;
+    
+    await client.query(batchUpdateQuery);
     await client.query("COMMIT");
     client.release();
 
-    // Update cache
-    sections.forEach(({ section_id }) => {
-      clearSectionCache(section_id);
-    });
+    // Clear cache once for the course (all sections belong to same course)
+    // Get course_id from first section
+    if (sections.length > 0) {
+      const firstSectionResult = await db.query(
+        "SELECT course_id FROM section WHERE section_id = $1",
+        [sections[0].section_id]
+      );
+      if (firstSectionResult.rows.length > 0) {
+        clearSectionCache(firstSectionResult.rows[0].course_id);
+      }
+    }
 
     res.status(200).json({ message: "Sections reordered successfully." });
   } catch (err) {
