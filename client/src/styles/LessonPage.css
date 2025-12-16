@@ -1,19 +1,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* ============================================
+   Lesson Page - Modern Redesign
+   ============================================ */
+
+/* Wrapper for navbar background */
+.lesson-page-wrapper {
+  background: #0a0f1c;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
 /* Improved Custom gutter for manual split */
 .custom-gutter {
   flex: none;
-  background-color: #23263a;
+  background-color: rgba(99, 102, 241, 0.2);
   transition: background-color 0.2s;
-  z-index: 20; /* Increased z-index to ensure it's always clickable */
+  z-index: 20;
   position: relative;
 }
 .custom-gutter:hover {
-  background-color: #2d4677;
+  background-color: rgba(99, 102, 241, 0.4);
 }
 .custom-gutter:active,
 .custom-gutter.dragging {
-  background-color: #377ef0;
+  background-color: #6366f1;
 }
 
 /* Reset minimum heights for proper flexbox behavior */
@@ -27,7 +44,7 @@
 
 .lesson-instructions {
   overflow: auto;
-  background-color: #1a1b26;
+  background-color: #0a0f1c;
 }
 
 .lesson-code-area {
@@ -53,29 +70,28 @@
 }
 .lesson-page {
   position: fixed;
-  top: 100px; /* Adjusted to account for navbar height */
+  top: 80px;
   left: 0;
   right: 0;
   bottom: 64px;
-  background-color: #1a1b26;
+  background-color: #0a0f1c;
   color: white;
   overflow: hidden;
   box-sizing: border-box;
   z-index: 100;
   width: 100vw;
-  height: calc(100vh - 100px - 64px);
+  height: calc(100vh - 80px - 64px);
   min-width: 0;
   min-height: 0;
 }
-
-/* Old split styles removed */
 
 /* Left section - Instructions */
 .lesson-instructions {
   font-family: 'Lato', sans-serif;
   color: white;
   padding: 0 10px;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(99, 102, 241, 0.15);
+  background: #0a0f1c;
 }
 
 .lesson-instructions h1 {
@@ -84,7 +100,11 @@
   margin-bottom: 1rem;
   padding: 15px 10px;
   color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 
@@ -109,19 +129,19 @@
 /* Console section */
 .console {
   flex: 3.5;
-  background-color: #161925;
+  background-color: rgba(10, 15, 28, 0.95);
   display: flex;
   flex-direction: column;
   min-height: 140px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(99, 102, 241, 0.15);
 }
 
 .console-header {
-  background-color: #2d2d2d;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
   display: flex;
   align-items: center;
   padding-left: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.15);
 }
 
 .console h3 {
@@ -129,7 +149,7 @@
   padding: 10px 0;
   margin: 0;
   font-weight: 600;
-  color: #e0e0e0;
+  color: #a5b4fc;
 }
 
 /* Reset all pre tags in console */
@@ -139,8 +159,8 @@
 
 .console-output {
   flex: 1;
-  background-color: #0a0a0a;
-  color: #e0e0e0;
+  background-color: rgba(5, 8, 18, 0.95);
+  color: #e2e8f0;
   padding: 10px 15px;
   font-family: 'Fira Code', Consolas, monospace;
   overflow: auto;
@@ -156,8 +176,9 @@
   overflow-x: auto !important;
   margin: 0 0 8px 0 !important;
   padding: 8px !important;
-  background-color: #1e1e1e !important;
+  background-color: rgba(99, 102, 241, 0.05) !important;
   border-radius: 4px !important;
+  border: 1px solid rgba(99, 102, 241, 0.1) !important;
 }
 
 /* Scrollbar styling */
@@ -167,13 +188,13 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1b26;
+  background: #0a0f1c;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #377ef0;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border-radius: 10px;
-  border: 1px solid #1a1b26;
+  border: 1px solid #0a0f1c;
 }
 
 /* Large Screen Optimization */
@@ -199,19 +220,19 @@
 /* Standard Desktop */
 @media (max-width: 1366px) {
   .lesson-page {
-    top: 64px;
-    height: calc(100vh - 128px);
+    top: 80px;
+    height: calc(100vh - 144px);
   }
 
   .lesson-instructions {
-    max-height: calc(100vh - 128px);
+    max-height: calc(100vh - 144px);
     max-width: none;
     flex: 0.9;
   }
 
   .lesson-code-area {
     flex: 1.1;
-    max-height: calc(100vh - 128px);
+    max-height: calc(100vh - 144px);
   }
 
   .code-editor {
@@ -225,7 +246,7 @@
   .lesson-instructions h1 {
     font-size: 1.5rem;
     padding: 12px 10px;
-    margin-top: 50px;
+    margin-top: 20px;
   }
   .console h3 {
     font-size: 1rem;
@@ -239,8 +260,8 @@
 /* Tablet View */
 @media (max-width: 1024px) {
   .lesson-page {
-    top: 60px;
-    height: calc(100vh - 60px - 64px);
+    top: 80px;
+    height: calc(100vh - 80px - 64px);
   }
   
   .custom-gutter {
@@ -251,7 +272,7 @@
   
   .lesson-instructions {
     border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(99, 102, 241, 0.15);
   }
   
   .lesson-instructions h1 {

@@ -1,14 +1,48 @@
 /* ProfilePage.module.css */
 
+/* ============================================
+   Profile Page - Modern Redesign
+   ============================================ */
+
+.profilePage {
+  background: #0a0f1c;
+  min-height: 100vh;
+}
+
 .profilePageContainer {
   display: flex;
   justify-content: center;
-  padding: 90px 20px 20px 20px;
+  padding: 100px 20px 60px 20px;
   margin: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom, #0a1128, #091236, #1a2a6c);
+  background: #0a0f1c;
   color: white;
   min-height: 100vh;
+  position: relative;
+}
+
+.profilePageContainer::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: -15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.profilePageContainer::after {
+  content: '';
+  position: absolute;
+  bottom: 20%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
 }
 
 .profileContentContainer {
@@ -40,14 +74,18 @@
 }
 
 .skillsSection {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 16px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   margin-top: 20px;
 }
 .skillsSection .sectionTitle {
   margin-top: 5px;
+  background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .skillsList {
@@ -59,19 +97,32 @@
 }
 
 .skillTag {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(99, 102, 241, 0.15);
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  transition: all 0.3s ease;
+}
+
+.skillTag:hover {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 .achievementsSection {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 16px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.achievementsSection .sectionTitle {
+  background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .achievementsPlaceholder {
@@ -79,19 +130,21 @@
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(99, 102, 241, 0.05);
   border-radius: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .profileHeader {
   width: 100%;
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .profileAvatar {
@@ -99,16 +152,25 @@
   height: 120px;
   border-radius: 50%;
   margin-bottom: 10px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
+  border: 3px solid rgba(99, 102, 241, 0.3);
   padding: 3px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(99, 102, 241, 0.1);
+  transition: all 0.3s ease;
+}
+
+.profileAvatar:hover {
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
 }
 
 .profileName {
   font-size: 2em;
   font-weight: bold;
   margin: 10px 0;
-  color: #fff;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .bioTitle {
@@ -122,12 +184,12 @@
 .bioText {
   max-width: 100%;
   padding: 20px;
-  background: linear-gradient(135deg, rgba(29, 29, 29, 0.95), rgba(25, 25, 25, 0.95));
-  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.7);
   border-radius: 16px;
   text-align: center;
   margin-top: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   font-size: 0.95em;
   line-height: 1.6;
@@ -136,34 +198,40 @@
 
 .bioText:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, rgba(35, 35, 35, 0.95), rgba(30, 30, 30, 0.95));
+  background: rgba(99, 102, 241, 0.05);
+  border-color: rgba(99, 102, 241, 0.15);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .statusSection {
-  background: linear-gradient(135deg, rgba(29, 29, 29, 0.95), rgba(25, 25, 25, 0.95));
+  background: rgba(255, 255, 255, 0.02);
   padding: 30px;
   border-radius: 24px;
   margin-top: 20px;
   max-width: 420px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   margin-top: 25px;
   padding: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 24px;
-  background: linear-gradient(135deg, rgba(29, 29, 29, 0.95), rgba(25, 25, 25, 0.95));
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s ease;
 }
 
 .statusSection:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.25);
+  border-color: rgba(99, 102, 241, 0.15);
 }
 
 .statusTitle {
   font-size: 1.5em;
   margin-bottom: 25px;
-  color: #fff;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-weight: 600;
   letter-spacing: 0.5px;
   padding-left: 5px;
@@ -187,14 +255,15 @@
 
 .levelCard {
   width: calc(100% - 45px) !important;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(99, 102, 241, 0.08);
   padding: 25px;
   text-align: center;
+  border: 1px solid rgba(99, 102, 241, 0.15);
 }
 
 .levelCard .statusNumber {
   font-size: 3em;
-  background: linear-gradient(45deg, #64b5f6, #2196f3);
+  background: linear-gradient(45deg, #a5b4fc, #6366f1);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -251,7 +320,7 @@
 }
 
 .statusCard {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.02);
   padding: 20px;
   border-radius: 18px;
   transition: all 0.3s ease;
@@ -273,14 +342,15 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03));
+  background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.03));
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .statusCard:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.2);
 }
 
 .statusCard:hover::before {
@@ -291,14 +361,14 @@
   font-size: 2em;
   font-weight: 700;
   margin-bottom: 8px;
-  background: linear-gradient(45deg, #4caf50, #76ff03);
+  background: linear-gradient(45deg, #34d399, #10b981);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .statusCard.xpCard .statusNumber {
-  background: linear-gradient(45deg, #ffd700, #ffa500);
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -306,7 +376,7 @@
 
 .statusCard p:not(.statusNumber) {
   font-size: 0.8em;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.6);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -361,7 +431,7 @@
 .xpProgressBar {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   overflow: hidden;
   position: relative;
@@ -369,7 +439,7 @@
 
 .xpProgressFill {
   height: 100%;
-  background: linear-gradient(90deg, #4caf50, #76ff03);
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
   border-radius: 6px;
   transition: width 0.5s ease;
   position: relative;
@@ -382,13 +452,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   animation: shimmer 1.5s infinite;
 }
 
 .xpProgressText {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   margin-top: 8px;
   text-align: center;
   font-weight: 500;
@@ -405,12 +475,12 @@
 
 .courseCardprofile {
   display: flex;
-  background: linear-gradient(135deg, rgba(26, 32, 77, 0.95), rgba(10, 17, 40, 0.95));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
   padding: 2rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   position: relative;
   min-height: 200px;
@@ -419,9 +489,9 @@
 
 .courseCardprofile:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, rgba(31, 38, 89, 0.95), rgba(13, 20, 48, 0.95));
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(99, 102, 241, 0.05);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(99, 102, 241, 0.15);
 }
 
 .leftsectionCourseCard {
@@ -430,7 +500,7 @@
 }
 
 .courseProgcardtext {
-  color: #64b5f6; /* Brighter blue for better contrast */
+  color: #a5b4fc;
   font-size: 1rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -461,7 +531,7 @@
 .ViewProgCardLessons {
   display: flex;
   align-items: center;
-  color: #90caf9; /* Light blue that's easy to read */
+  color: #a5b4fc;
   font-size: 1rem;
   font-weight: 500;
   gap: 0.75rem;
@@ -471,7 +541,7 @@
 }
 
 .ViewProgCardLessons:hover {
-  color: #ffd700;
+  color: #c4b5fd;
   transform: translateX(5px);
 }
 
@@ -485,7 +555,7 @@
 }
 
 .sectionNameProgCard {
-  color: #e3f2fd; /* Very light blue for good contrast */
+  color: #c4b5fd;
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
@@ -498,19 +568,19 @@
 }
 
 .progressbarbackground {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.08);
   height: 10px;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .progressbarfill {
   height: 100%;
-  background: linear-gradient(90deg, #64b5f6 0%, #2196f3 50%, #1976d2 100%);
+  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
   border-radius: 6px;
   transition: width 0.5s ease;
-  box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
 }
 
 .lessontitleProgCard {
@@ -525,24 +595,24 @@
 .continuebuttonProgCard {
   position: absolute;
   right: 2rem;
-  background: linear-gradient(135deg, #2196f3, #1976d2);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   padding: 1rem 2rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 1rem;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .continuebuttonProgCard:hover {
-  background: linear-gradient(135deg, #1e88e5, #1565c0);
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
 }
 
 /**old style from here and down**/
@@ -553,21 +623,21 @@
   margin-bottom: 0.5rem;
 }
 
-/* In website/client/src/styles/ProfilePage.module.css */
+/* Completed course styles */
 
 .progressbarfill.completed {
-  background: linear-gradient(90deg, #4caf50, #45a049);
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+  background: linear-gradient(90deg, #10b981, #34d399);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
 }
 
 .reviewButton {
-  background: linear-gradient(135deg, #4caf50, #45a049) !important;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4) !important;
+  background: linear-gradient(135deg, #10b981, #34d399) !important;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important;
 }
 
 .reviewButton:hover {
-  background: linear-gradient(135deg, #45a049, #388e3c) !important;
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6) !important;
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
 }
 
 /* Add a completion badge */
@@ -582,7 +652,7 @@
   right: -10px;
   width: 40px;
   height: 40px;
-  background: #4caf50;
+  background: linear-gradient(135deg, #10b981, #34d399);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -596,11 +666,11 @@
 
 /* Style adjustments for completed courses */
 .courseCardprofile[data-completed='true'] .courseProgcardtext {
-  color: #4caf50;
+  color: #34d399;
 }
 
 .courseCardprofile[data-completed='true'] .sectionNameProgCard {
-  color: #a5d6a7;
+  color: #6ee7b7;
 }
 
 /* Add a completion banner */
@@ -613,7 +683,7 @@
   position: absolute;
   top: 20px;
   right: -35px;
-  background: #4caf50;
+  background: linear-gradient(135deg, #10b981, #34d399);
   color: white;
   padding: 5px 40px;
   transform: rotate(45deg);

@@ -9,6 +9,17 @@ const sharp = require("sharp");
 const db = require("../config/database"); // Adjust as per your project
 const { s3Client } = require("../utils/s3.utils"); // Import the shared S3 client
 
+const R2_PUBLIC_BASE_URL =
+  "https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev";
+
+const getR2KeyFromPublicUrl = (url) => {
+  if (!url || typeof url !== "string") return null;
+  const prefix = `${R2_PUBLIC_BASE_URL}/`;
+  if (!url.startsWith(prefix)) return null;
+  const key = url.slice(prefix.length);
+  return key || null;
+};
+
 // Set up Multer with file validation
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -111,9 +122,30 @@ const uploadProfilePic = [
         return res.status(400).json({ error: "No file uploaded." });
       }
 
+      // Delete previous profile image (best-effort) to avoid orphaned files
+      const querySelect = "SELECT profileimage FROM users WHERE user_id = $1";
+      const { rows } = await db.query(querySelect, [userId]);
+      const previousProfileUrl = rows?.[0]?.profileimage;
+      const previousKey = getR2KeyFromPublicUrl(previousProfileUrl);
+      if (previousKey) {
+        try {
+          const deleteCommand = new DeleteObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: previousKey,
+          });
+          await s3Client.send(deleteCommand);
+        } catch (deleteError) {
+          console.warn(
+            "[uploadProfilePic] Failed to delete previous profile image:",
+            deleteError?.message || deleteError,
+          );
+        }
+      }
+
       // Set the folder path and filename
       const folderPath = `user_images/`;
-      const filename = `profile_${userId}.png`;
+      // Use a unique key per upload to avoid CDN/browser caching old content.
+      const filename = `profile_${userId}_${Date.now()}_${uuidv4()}.png`;
       const fullKey = `${folderPath}${filename}`; // Reverted: Removed base path prepend
 
       const processedBuffer = await sharp(req.file.buffer)
@@ -134,7 +166,7 @@ const uploadProfilePic = [
       await s3Client.send(command);
 
       // Direct CDN URL
-      const profileimage = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
+      const profileimage = `${R2_PUBLIC_BASE_URL}/${fullKey}`;
 
       // Save the URL in the database
       const query = "UPDATE users SET profileimage = $1 WHERE user_id = $2";
@@ -176,8 +208,13 @@ const removeProfilePic = async (req, res) => {
     const profileimage = rows[0].profileimage;
 
     if (profileimage) {
-      // Extract the object key from the URL (Reverted: Removed base path prepend)
-      const key = `user_images/profile_${userId}.png`;
+      // Extract the object key from the stored URL
+      const key = getR2KeyFromPublicUrl(profileimage);
+      if (!key) {
+        return res.status(400).json({
+          error: "Invalid profile picture URL stored for this user",
+        });
+      }
 
       try {
         const command = new DeleteObjectCommand({

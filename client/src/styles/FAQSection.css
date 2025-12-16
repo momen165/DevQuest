@@ -1,51 +1,72 @@
+/* ============================================
+   FAQ Section - Modern Redesign
+   ============================================ */
+
 .faq {
-  margin: 0px;
+  margin: 0;
   text-align: center;
-  margin-bottom: 60px;
-  background-color:transparent;
+  padding: 80px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   color: white;
   display: flex;
   width: 100%;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.faq::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .faq__heading {
-  margin-top: 10px;
-  font-size: 44px;
-  font-weight: bold;
-  color: whitesmoke;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  margin: 0 0 16px;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  z-index: 1;
 }
 
 .faq__text {
-  margin-top: 10px;
-  margin-bottom: 20px;
-  font-size: 28px;
-  color: whitesmoke;
-  font-family: 'Chivo Thin Italic', sans-serif;
+  margin: 0 0 32px;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 500px;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
 }
 
 .faq-btn {
-  margin: 20px 0;
-  padding: 5px 25px;
-  background: linear-gradient(135deg, #3d5a80 , #3d5a80 );
+  padding: 14px 36px;
+  background: transparent;
   color: white;
-  border: none;
-  border-radius: 5px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 26px;
-  transition: all 0.4s ease;
+  font-size: 1.05rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1.2;
-  letter-spacing: 0.5px;
+  z-index: 1;
 }
 
-/* Shine effect */
 .faq-btn::before {
   content: '';
   position: absolute;
@@ -56,63 +77,61 @@
   background: linear-gradient(
     120deg,
     transparent,
-    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.1),
     transparent
   );
-  transition: 0.6s;
+  transition: 0.5s;
 }
 
 .faq-btn:hover::before {
   left: 100%;
 }
 
-/* Scale effect when clicked */
-.faq-btn:active {
-  transform: scale(0.95) translateY(-3px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-  }
-  50% {
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
-  }
-  100% {
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-  }
-}
-
 .faq-btn:hover {
-  animation: pulse 1.5s infinite;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(99, 102, 241, 0.5);
   transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+}
+
+.faq-btn:active {
+  transform: scale(0.98) translateY(-1px);
 }
 
 @media (max-width: 768px) {
+  .faq {
+    padding: 60px 20px;
+  }
+
   .faq__heading {
-    font-size: 36px;
+    font-size: 1.75rem;
   }
 
   .faq__text {
-    font-size: 24px;
+    font-size: 1rem;
   }
 
   .faq-btn {
-    font-size: 22px;
+    font-size: 1rem;
+    padding: 12px 28px;
   }
 }
 
 @media (max-width: 480px) {
+  .faq {
+    padding: 48px 16px;
+  }
+
   .faq__heading {
-    font-size: 28px;
+    font-size: 1.5rem;
   }
 
   .faq__text {
-    font-size: 18px;
+    font-size: 0.95rem;
   }
 
   .faq-btn {
-    font-size: 18px;
+    font-size: 0.95rem;
+    padding: 12px 24px;
   }
 }

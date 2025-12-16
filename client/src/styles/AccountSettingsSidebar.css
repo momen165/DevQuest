@@ -1,14 +1,31 @@
+/* ============================================
+   Account Settings Sidebar - Modern Redesign
+   ============================================ */
+
 .account-settings-sidebar {
-  width: 250px;
-  background: linear-gradient(165deg, rgba(45, 50, 80, 0.95), rgba(35, 39, 63, 0.98));
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  width: 280px;
+  background: rgba(10, 15, 28, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   padding: 2rem 1rem;
   margin-top: 80px;
-  border-radius: 12px;
+  margin-left: 20px;
+  border-radius: 16px;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.account-settings-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
 }
 
 .account-settings-sidebar-list {
@@ -19,7 +36,7 @@
 
 .account-settings-sidebar-link {
   text-decoration: none;
-  color: rgba(165, 180, 252, 0.7);
+  color: #a5b4fc;
   display: block;
   margin-bottom: 0.5rem;
 }
@@ -27,25 +44,32 @@
 .account-settings-sidebar-item {
   padding: 1rem 1.25rem;
   margin-bottom: 0.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid transparent;
   display: flex;
   align-items: center;
+  font-weight: 500;
+  color: #a5b4fc;
 }
 
 .account-settings-sidebar-item-active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(79, 70, 229, 0.9)) !important;
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  color: #e0e7ff !important;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  color: #ffffff !important;
+  border-color: transparent;
 }
 
 .account-settings-sidebar-link:hover .account-settings-sidebar-item {
-  background: rgba(99, 102, 241, 0.12);
+  background: rgba(99, 102, 241, 0.1);
   border-color: rgba(99, 102, 241, 0.2);
-  transform: translateX(4px);
+  transform: translateX(6px);
+  color: #c4b5fd;
+}
+
+.account-settings-sidebar-link:hover .account-settings-sidebar-item-active {
+  transform: translateX(6px);
+  background: linear-gradient(135deg, #7c7ff5, #9d7ff7) !important;
 }
 
 .account-settings-sidebar-icon {
@@ -55,8 +79,8 @@
 }
 
 .account-settings-sidebar-link:hover .account-settings-sidebar-icon {
-  transform: scale(1.1) rotate(5deg);
-  color: #a5b4fc;
+  transform: scale(1.15);
+  color: #c4b5fd;
 }
 
 .account-settings-sidebar-item-active .account-settings-sidebar-icon {
@@ -69,10 +93,23 @@
     margin: 1rem;
     margin-top: 80px;
     padding: 1rem;
+    position: relative;
+    top: 0;
   }
 
   .account-settings-sidebar-item {
     padding: 0.75rem 1rem;
     justify-content: center;
+  }
+
+  .account-settings-sidebar-list {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .account-settings-sidebar-link {
+    flex: 1;
+    margin-bottom: 0;
   }
 }

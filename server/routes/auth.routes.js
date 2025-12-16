@@ -6,6 +6,8 @@ const { cacheMiddleware } = require("../utils/cache.utils");
 const {
   performanceMiddleware,
 } = require("../middleware/performance.middleware");
+const trackVisit = require("../middleware/trackVisits");
+const sessionTracker = require("../middleware/sessionTracker");
 
 // Create router instance
 const router = express.Router();
@@ -53,23 +55,39 @@ router.get(
 ); // Only needs token, no force requirement
 
 // Protected routes - require valid authentication
-router.use(authenticateToken);
-router.use(requireAuth);
-
-// Track visits and sessions for all authenticated actions
-const trackVisit = require("../middleware/trackVisits");
-const sessionTracker = require("../middleware/sessionTracker");
-router.use(trackVisit);
-router.use(sessionTracker);
-
-router.put("/update-profile", authController.updateProfile);
+router.put(
+  "/update-profile",
+  authenticateToken,
+  requireAuth,
+  trackVisit,
+  sessionTracker,
+  authController.updateProfile
+);
 router.post(
   "/change-password",
+  authenticateToken,
+  requireAuth,
+  trackVisit,
+  sessionTracker,
   validatePasswordChange,
   authController.changePassword
 );
-router.post("/requestEmailChange", authController.requestEmailChange);
-router.post("/confirmEmailChange", authController.confirmEmailChange);
+router.post(
+  "/requestEmailChange",
+  authenticateToken,
+  requireAuth,
+  trackVisit,
+  sessionTracker,
+  authController.requestEmailChange
+);
+router.post(
+  "/confirmEmailChange",
+  authenticateToken,
+  requireAuth,
+  trackVisit,
+  sessionTracker,
+  authController.confirmEmailChange
+);
 
 // Export the router as a CommonJS module
 module.exports = router;

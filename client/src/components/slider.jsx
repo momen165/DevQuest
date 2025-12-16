@@ -87,7 +87,7 @@ const CoursesSlider = () => {
   useEffect(() => {
     const fetchCoursesData = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/getCoursesWithRatings`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/optimized-courses`);
         const { courses, userscount } = response.data;
 
         const topCourses = [...courses]
@@ -223,7 +223,7 @@ const CoursesSlider = () => {
                           </div>
                           <div className="home-slider__enrolled">
                             <span className="home-slider__enrolled-count">
-                              {userscount[course.course_id] || 0}
+                              {course.userscount || 0}
                             </span>
                             <span className="home-slider__enrolled-text">
                               students enrolled

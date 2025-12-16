@@ -192,7 +192,7 @@ const CourseSection = () => {
     }  }, [location]);
 
   return (
-    <>
+    <div className="course-section-wrapper">
       <Navbar />
       <div className="Page">
         <div className="Section">
@@ -311,7 +311,7 @@ const CourseSection = () => {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 

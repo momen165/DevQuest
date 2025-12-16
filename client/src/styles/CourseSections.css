@@ -1,31 +1,79 @@
+/* ============================================
+   Course Sections Page - Modern Redesign
+   ============================================ */
+
+.course-section-wrapper {
+  background: #0a0f1c;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .Page {
-  background: linear-gradient(135deg, #0f1d3d, #142850);
+  background: #0a0f1c;
   min-height: 100vh;
   display: flex;
   flex-direction: row;
-  margin: 70px 0 0; /* Add top margin to account for navbar */
-  color: #ecdfe7;
+  padding-top: 80px;
+  color: #ffffff;
   font-family: Inter, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+.Page::before {
+  content: '';
+  position: fixed;
+  top: 10%;
+  left: -15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.Page::after {
+  content: '';
+  position: fixed;
+  bottom: 10%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .Section {
   width: 100%;
   max-width: 1240px;
-  padding: 30px; /* Increased padding */
-  margin: 0 auto; /* Adjusted margin */
-  border-radius: 10px;
-  background: rgba(12, 12, 12, 0.1);
+  padding: 30px;
+  margin: 0 auto;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 .lesson-list {
-  background: #0a0a0a; /* Darker background */
+  background: rgba(255, 255, 255, 0.02);
   color: white;
   width: 100%;
-  border-radius: 10px;
-  padding: 10px; /* Increased padding */
+  border-radius: 12px;
+  padding: 10px;
 }
 
 .lesson-list h3 {
@@ -38,10 +86,10 @@
 }
 
 .lesson-list li {
-  background: #080809; /* Darker background */
+  background: rgba(255, 255, 255, 0.03);
   margin-bottom: 10px;
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -49,6 +97,8 @@
 
 .rating {
   margin: 100px 50px 0px 0px;
+  position: relative;
+  z-index: 1;
 }
 
 .user-sidebar {
@@ -56,22 +106,29 @@
   flex-direction: column;
   width: 400px;
   padding: 25px;
-  background: linear-gradient(145deg, #0c0c0e, #151518); /* Darker gradient */
-  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
   color: white;
   font-family: 'Inter', sans-serif;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .user-sidebar:hover {
   transform: translateY(-5px);
+  border-color: rgba(99, 102, 241, 0.15);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
 .status-title {
   font-size: 1.2em;
   font-weight: bold;
   margin-bottom: 15px;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .user-info {
@@ -88,6 +145,7 @@
   background: url('assets/icons/user-icon.svg');
   margin-right: 15px;
   overflow: hidden;
+  border: 2px solid rgba(99, 102, 241, 0.3);
 }
 
 .profile-image {
@@ -99,7 +157,7 @@
 .default-avatar {
   width: 100%;
   height: 100%;
-  background-color: #2196f3;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   display: flex;
   align-items: center;
@@ -115,7 +173,7 @@
 
 .user-details .user-level {
   font-size: 0.9em;
-  color: #aaa;
+  color: #a5b4fc;
 }
 
 .user-progress {
@@ -127,22 +185,25 @@
 
 .progress-box {
   text-align: center;
-  background: linear-gradient(145deg, #151518, #1d1d20); /* Darker gradient */
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
   padding: 20px;
   width: 90px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .progress-box:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .progress-value {
   font-size: 1.4em;
   font-weight: bold;
-  background: linear-gradient(90deg, #7cff78, #4caf50);
+  background: linear-gradient(90deg, #34d399, #10b981);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
@@ -150,7 +211,7 @@
 
 .progress-label {
   font-size: 0.8em;
-  color: #ccc;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .xp-progress {
@@ -161,7 +222,7 @@
 .xp-progress-bar {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   overflow: hidden;
   position: relative;
@@ -169,7 +230,7 @@
 
 .xp-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4caf50, #76ff03);
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
   border-radius: 6px;
   transition: width 0.5s ease;
   position: relative;
@@ -177,7 +238,7 @@
 
 .xp-progress-text {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   margin-top: 8px;
   text-align: center;
   font-weight: 500;
@@ -193,24 +254,24 @@
 }
 .section-completed {
   position: relative;
-  border-left: 4px solid #4caf50;
+  border-left: 4px solid #10b981;
 }
 
 .section-completed.content-open::after {
-  background-color: #4caf50;
+  background-color: #10b981;
   opacity: 0.8;
 }
 .course-header {
   margin-bottom: 30px;
-  padding: 20px 0; /* Added vertical padding */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .course-header h1 {
   font-size: 2.5em;
   font-weight: 700;
   margin-bottom: 10px;
-  background: linear-gradient(45deg, #fff, #e0e0e0);
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #c4b5fd 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -218,31 +279,32 @@
 
 .course-breadcrumb {
   font-size: 0.9em;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .course-breadcrumb .separator {
   margin: 0 10px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .course-breadcrumb .current {
-  color: rgba(255, 255, 255, 0.9);
+  color: #a5b4fc;
   font-weight: 500;
 }
 
 .lesson-section {
-  background: rgba(0, 0, 0, 0.4); /* Darker lesson section */
-  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
   padding: 25px;
   margin-bottom: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.03); /* More subtle border */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
 }
 
 .lesson-section:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* Darker shadow */
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  border-color: rgba(99, 102, 241, 0.15);
 }
 
 .lesson-section h2 {
@@ -264,10 +326,10 @@
 }
 
 .lesson-item {
-  background: rgba(5, 5, 5, 0.95); /* Darker item background */
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 20px 25px; /* Increased padding */
-  margin: 12px 0; /* Add some vertical spacing */
+  padding: 20px 25px;
+  margin: 12px 0;
   border-radius: 12px;
   display: flex;
   justify-content: space-between;
@@ -279,14 +341,15 @@
 }
 
 .lesson-item:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(99, 102, 241, 0.08);
   transform: translateX(5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: rgba(99, 102, 241, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .lesson-item.completed {
-  border-left: 4px solid #4caf50;
-  background: rgba(76, 175, 80, 0.05);
+  border-left: 4px solid #10b981;
+  background: rgba(16, 185, 129, 0.05);
 }
 
 .lesson-item span {

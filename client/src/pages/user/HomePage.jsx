@@ -152,7 +152,7 @@ const HomePage = () => {
   };
 
   return (
-    <>
+    <div className="home-page">
       <SEOHead
         title="DevQuest - Master Coding with Interactive Programming Courses"
         description="Unlock your coding potential with DevQuest's interactive platform. Learn Python, JavaScript, Java, C++ and more through hands-on exercises, real-time feedback, and gamified learning experience. Start your programming journey today!"
@@ -164,12 +164,24 @@ const HomePage = () => {
       {/* Navigation */}
       <Navbar />
 
+      {/* Decorative background elements */}
+      <div className="home-bg-decoration">
+        <div className="home-orb home-orb--1"></div>
+        <div className="home-orb home-orb--2"></div>
+        <div className="home-orb home-orb--3"></div>
+        <div className="home-orb home-orb--4"></div>
+        <div className="home-grid-pattern"></div>
+      </div>
+
       {/* Main Content */}
       <section className="hero">
         {/* Hero Section */}
         <div className="hero-arrange">
           <div className="hero-content">
-            <h1 className="hero-header">Unlock Your Coding Potential</h1>
+            <span className="hero-badge">Start Learning Today</span>
+            <h1 className="hero-header">
+              Unlock Your <span className="hero-gradient-text">Coding Potential</span>
+            </h1>
             <p className="hero-section-para">
               Explore our wide range of courses and take your skills to the next
               level.
@@ -178,7 +190,10 @@ const HomePage = () => {
             {/* Action Buttons */}
             <div className="hero-buttons">
               <button className="btn browse-btn" onClick={handleBrowseCourses}>
-                Browse courses
+                <span>Browse courses</span>
+                <svg className="btn-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </button>
 
               {!hasToken && (
@@ -203,6 +218,7 @@ const HomePage = () => {
 
           {/* Hero Image */}
           <div className="hero-image">
+            <div className="hero-image-glow"></div>
             <img src={heroimg} alt="DevQuest interactive coding platform illustration showing programming interface and learning elements" />
           </div>
         </div>
@@ -226,7 +242,7 @@ const HomePage = () => {
 
       {/* Footer */}
       <Footer />
-    </>
+    </div>
   );
 };
 

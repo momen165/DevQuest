@@ -142,7 +142,7 @@ const LessonPage = () => {
   };
 
   return (
-    <>
+    <div className="lesson-page-wrapper">
       <Navbar />
       <div
         className="lesson-page"
@@ -223,7 +223,7 @@ const LessonPage = () => {
           onClose={handleCloseBadgeNotification} 
         />
       )}
-    </>
+    </div>
   );
 };
 

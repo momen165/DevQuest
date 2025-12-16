@@ -244,7 +244,7 @@ const login = handleAsync(async (req, res) => {
   }
 
   const [userResult, adminResult] = await Promise.all([
-    db.query("SELECT user_id, name, email, password, is_verified, created_at FROM users WHERE email = $1", [email.toLowerCase()]),
+    db.query("SELECT user_id, name, email, password, is_verified, created_at, profileimage, country, bio, skills FROM users WHERE email = $1", [email.toLowerCase()]),
     db.query(
       "SELECT 1 FROM admins WHERE admin_id = (SELECT user_id FROM users WHERE email = $1)",
       [email.toLowerCase()],

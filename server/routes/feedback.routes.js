@@ -53,8 +53,8 @@ router.get(
 );
 router.get(
   "/optimized-courses",
+  authenticateToken,
   performanceMiddleware("optimized-courses"),
-
   getOptimizedCoursesData
 ); // New optimized endpoint with performance monitoring
 router.get(

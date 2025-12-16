@@ -48,6 +48,7 @@ const MonacoEditorComponent = ({
   const editorRef = useRef(null);
   const initialCommentSet = useRef(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [editorSettings, setEditorSettings] = useState(() => {
     try {
       const savedSettings = localStorage.getItem('editorSettings');
@@ -328,19 +329,43 @@ const MonacoEditorComponent = ({
   };
 
   const resetToTemplate = () => {
-    if (
-      window.confirm(
-        'Are you sure you want to reset your code to the template? This will erase your current changes.'
-      )
-    ) {
-      setCode(templateCode || languageCommentMappings[language] || '// Write code below\n');
-      setConsoleOutput('Output will appear here...');
-      setIsAnswerCorrect(false);
-    }
+    setShowResetModal(true);
+  };
+
+  const confirmReset = () => {
+    setCode(templateCode || languageCommentMappings[language] || '// Write code below\n');
+    setConsoleOutput('Output will appear here...');
+    setIsAnswerCorrect(false);
+    setShowResetModal(false);
+  };
+
+  const cancelReset = () => {
+    setShowResetModal(false);
   };
 
   return (
     <div className="editor-container">
+      {/* Reset Confirmation Modal */}
+      {showResetModal && (
+        <div className="reset-modal-overlay">
+          <div className="reset-modal">
+            <div className="reset-modal-icon">⚠️</div>
+            <h3 className="reset-modal-title">Reset Code?</h3>
+            <p className="reset-modal-message">
+              Are you sure you want to reset your code to the template? This will erase your current changes.
+            </p>
+            <div className="reset-modal-buttons">
+              <button className="reset-modal-btn cancel-btn" onClick={cancelReset}>
+                Cancel
+              </button>
+              <button className="reset-modal-btn confirm-btn" onClick={confirmReset}>
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <button className="editor-settings-button" onClick={() => setShowSettings(!showSettings)}>
         <FaCog />
       </button>

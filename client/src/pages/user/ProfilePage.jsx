@@ -77,11 +77,10 @@ function ProfilePage() {
   }
 
   return (
-    <>
+    <div className={styles.profilePage}>
       <Navbar />
-      <div className={styles.profilePage}>
-        <div className={styles.profilePageContainer}>
-          <div className={styles.profileContentContainer}>
+      <div className={styles.profilePageContainer}>
+        <div className={styles.profileContentContainer}>
             {/* Profile Header */}
             <div className={styles.profileHeader}>
               <img
@@ -270,9 +269,8 @@ function ProfilePage() {
             </div>
           </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
-    </>
   );
 }
 
