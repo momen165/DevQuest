@@ -2,28 +2,25 @@ import React, { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Component Imports
-import Navbar from "../../components/Navbar";
-import FAQSection from "../../components/FAQSection";
-import CoursesSlider from "../../components/slider";
-import SupportForm from "../../components/SupportForm";
-import Footer from "../../components/Footer";
-import FeedbackCardScroll from "../../components/FeedbackCardScroll";
-import SEOHead from "../../components/SEOHead";
+import Navbar from "components/Navbar";
+import FAQSection from "components/FAQSection";
+import CoursesSlider from "components/slider";
+import SupportForm from "components/SupportForm";
+import Footer from "components/Footer";
+import FeedbackCardScroll from "components/FeedbackCardScroll";
+import SEOHead from "components/SEOHead";
+import { useAuth } from "AuthContext";
 
 // Asset Imports
-import heroimg from "../../assets/images/logo-noText.svg";
+import heroimg from "assets/images/logo-noText.svg";
 
 // Style Imports
-import "../../styles/HomePage.css";
+import "styles/HomePage.css";
 
 const HomePage = () => {
   // Hooks
   const navigate = useNavigate();
-
-  // Auth State
-  const user = localStorage.getItem("user");
-  const parsedUser = user ? JSON.parse(user) : null;
-  const hasToken = parsedUser && parsedUser.token;
+  const { user, isAuthenticated } = useAuth();
 
   // Navigation Handlers
   const handleBrowseCourses = () => navigate("/CoursesPage");
@@ -196,7 +193,7 @@ const HomePage = () => {
                 </svg>
               </button>
 
-              {!hasToken && (
+              {!isAuthenticated && (
                 <button
                   className="btn create-btn"
                   onClick={handleCreateAccount}
@@ -205,7 +202,7 @@ const HomePage = () => {
                 </button>
               )}
 
-              {hasToken && (
+              {isAuthenticated && (
                 <button
                   className="btn continue-btn"
                   onClick={handleContinueLearning}

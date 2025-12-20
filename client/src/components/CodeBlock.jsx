@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { FaRegCopy, FaCheck } from 'react-icons/fa';
 
-const CodeBlock = ({ codeText, language }) => {
+const CodeBlock = memo(({ codeText, language }) => {
   const copyCodeToClipboard = (code, event) => {
     const button = event.currentTarget;
 
@@ -36,6 +36,8 @@ const CodeBlock = ({ codeText, language }) => {
       </pre>
     </div>
   );
-};
+});
+
+CodeBlock.displayName = 'CodeBlock';
 
 export default CodeBlock;

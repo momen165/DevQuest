@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import '../../../pages/admin/styles/SectionEditComponent.css';
+import 'pages/admin/styles/SectionEditComponent.css';
 import ErrorAlert from './ErrorAlert';
 
-const AddEditSectionComponent = ({ section, courseId, onSave, onCancel }) => {
+const SectionForm = ({ section, courseId, onSave, onCancel }) => {
   const [sectionName, setSectionName] = useState(section?.name || '');
   const [sectionDescription, setSectionDescription] = useState(section?.description || '');
   const [error, setError] = useState('');
@@ -50,4 +50,4 @@ const AddEditSectionComponent = ({ section, courseId, onSave, onCancel }) => {
   );
 };
 
-export default AddEditSectionComponent;
+export default SectionForm;

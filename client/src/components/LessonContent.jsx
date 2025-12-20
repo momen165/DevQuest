@@ -1,12 +1,12 @@
 // LessonContent.js
 import React, { useEffect, useState, memo } from 'react';
 import parse, { domToReact } from 'html-react-parser';
-import '../styles/LessonContent.css';
+import 'styles/LessonContent.css';
 
-import { getFontClass } from '../utils/editorUtils';
-import { useOptimizedHighlighting } from '../hooks/useOptimizedHighlighting';
-import { loadCSSAsync } from '../utils/performanceUtils';
-import { loadAdditionalFonts } from '../utils/fontLoader';
+import { getFontClass } from 'utils/editorUtils';
+import { useOptimizedHighlighting } from 'hooks/useOptimizedHighlighting';
+import { loadCSSAsync } from 'utils/performanceUtils';
+import { loadAdditionalFonts } from 'utils/fontLoader';
 
 import CodeBlock from './CodeBlock'; // Import the new CodeBlock component
 import HelpSection from './HelpSection'; // Import the new HelpSection component

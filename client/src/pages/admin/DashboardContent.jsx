@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FaUserGraduate, FaUserPlus, FaBook } from "react-icons/fa";
-import "../../pages/admin/styles/DashboardContent.css";
+import "pages/admin/styles/DashboardContent.css";
 import axios from "axios";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "AuthContext";
 import { Link } from "react-router-dom";
-import ActivityWindow from "../../pages/admin/components/ActivityWindow";
+import ActivityWindow from "pages/admin/components/ActivityWindow";
 
 const DashboardContent = () => {
   const [studentsCount, setStudentsCount] = useState(0);

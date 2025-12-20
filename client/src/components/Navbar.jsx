@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../AuthContext";
-import defaultProfilePic from "../assets/images/default-profile-pic.png";
-import Logo from "../assets/images/logo-noText.svg";
+import { useAuth } from "AuthContext";
+import defaultProfilePic from "assets/images/default-profile-pic.png";
+import Logo from "assets/images/logo-noText.svg";
 import "../styles/Navbar.css";
 
-const Navbar = () => {
+const Navbar = memo(() => {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -288,6 +288,8 @@ const Navbar = () => {
       </div>
     </nav>
   );
-};
+});
+
+Navbar.displayName = 'Navbar';
 
 export default Navbar;

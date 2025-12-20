@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import parse from 'html-react-parser';
-import { useAuth } from '../AuthContext';
+import { useAuth } from 'AuthContext';
 import { useParams } from 'react-router-dom';
-import apiClient from '../utils/apiClient';
-import '../../src/styles/LessonHelp.css';
+import apiClient from 'utils/apiClient';
+import 'styles/LessonHelp.css';
 
 const HINT_THRESHOLD = 2;
 const SOLUTION_THRESHOLD = 4;
 
-const HelpSection = ({ hint, solution, failedAttempts = 0, currentLessonProgress, onRequestProgressRefresh }) => {
+const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonProgress, onRequestProgressRefresh }) => {
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [dynamicHint, setDynamicHint] = useState(hint);
@@ -166,6 +166,8 @@ const HelpSection = ({ hint, solution, failedAttempts = 0, currentLessonProgress
       </div>
     </div>
   );
-};
+});
+
+HelpSection.displayName = 'HelpSection';
 
 export default HelpSection;

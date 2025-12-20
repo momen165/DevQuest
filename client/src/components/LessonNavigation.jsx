@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaCheck, FaBars, FaLock } from 'react-icons/fa';
 import '../styles/LessonNavigation.css'; // Assuming this file exists and contains necessary styles
 import axios from 'axios';
-import { useAuth } from '../AuthContext'; // Assuming this context provides user and token
+import { useAuth } from 'AuthContext'; // Assuming this context provides user and token
 import SuccessNotification from './SuccessNotification'; // Import the SuccessNotification component
 
 const LessonNavigation = ({

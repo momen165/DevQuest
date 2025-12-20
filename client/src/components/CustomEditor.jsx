@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import {
   ClassicEditor,
@@ -62,8 +62,8 @@ import 'ckeditor5/ckeditor5.css';
 
 import '../styles/CustomEditor.css';
 
-// Removed unused import: import { getFontClass } from "../utils/editorUtils";
-import { useAuth } from '../AuthContext';
+// Removed unused import: import { getFontClass } from "utils/editorUtils";
+import { useAuth } from 'AuthContext';
 import { FaQuestionCircle } from 'react-icons/fa';
 
 // const LICENSE_KEY =

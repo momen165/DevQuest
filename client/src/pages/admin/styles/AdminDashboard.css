@@ -1,0 +1,478 @@
+/* ============================================
+   ADMIN DASHBOARD - MODERN DESIGN SYSTEM
+   Clean, minimal, card-based layout
+   ============================================ */
+
+/* CSS Variables for Theme */
+:root {
+  --admin-bg-primary: #0f172a;
+  --admin-bg-secondary: #1e293b;
+  --admin-bg-card: #1e293b;
+  --admin-bg-card-hover: #334155;
+  --admin-border: #334155;
+  --admin-border-hover: #475569;
+  --admin-text-primary: #f1f5f9;
+  --admin-text-secondary: #94a3b8;
+  --admin-text-muted: #64748b;
+  --admin-accent: #6366f1;
+  --admin-accent-hover: #818cf8;
+  --admin-success: #22c55e;
+  --admin-warning: #f59e0b;
+  --admin-danger: #ef4444;
+  --admin-info: #3b82f6;
+  --admin-radius-sm: 6px;
+  --admin-radius-md: 10px;
+  --admin-radius-lg: 16px;
+  --admin-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --admin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --admin-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --admin-transition: 0.2s ease;
+}
+
+/* ============================================
+   PAGE LAYOUT
+   ============================================ */
+.admin-page {
+  display: flex;
+  min-height: 100vh;
+  background: var(--admin-bg-primary);
+}
+
+.admin-main {
+  flex: 1;
+  padding: 32px;
+  overflow-x: auto;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--admin-text-primary);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.admin-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--admin-text-muted);
+}
+
+.admin-breadcrumb-separator {
+  color: var(--admin-text-muted);
+}
+
+.admin-breadcrumb-link {
+  color: var(--admin-text-secondary);
+  text-decoration: none;
+  transition: color var(--admin-transition);
+}
+
+.admin-breadcrumb-link:hover {
+  color: var(--admin-accent);
+}
+
+.admin-breadcrumb-current {
+  color: var(--admin-text-primary);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--admin-radius-md);
+  cursor: pointer;
+  transition: all var(--admin-transition);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--admin-accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--admin-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--admin-text-secondary);
+  border: 1px solid var(--admin-border);
+}
+
+.btn-secondary:hover {
+  background: var(--admin-bg-card-hover);
+  border-color: var(--admin-border-hover);
+  color: var(--admin-text-primary);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--admin-danger);
+  border: 1px solid transparent;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-icon {
+  padding: 8px;
+  min-width: 36px;
+  height: 36px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 16px;
+}
+
+/* ============================================
+   CARDS & CONTAINERS
+   ============================================ */
+.admin-card {
+  background: var(--admin-bg-card);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  padding: 24px;
+}
+
+.admin-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin: 0;
+}
+
+/* ============================================
+   DATA TABLE
+   ============================================ */
+.admin-table-wrapper {
+  overflow-x: auto;
+  margin: -24px;
+  margin-top: 0;
+  padding: 0 24px 24px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 14px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--admin-border);
+  background: var(--admin-bg-secondary);
+  position: sticky;
+  top: 0;
+}
+
+.admin-table th:first-child {
+  padding-left: 24px;
+}
+
+.admin-table th:last-child {
+  padding-right: 24px;
+  text-align: right;
+}
+
+.admin-table td {
+  padding: 16px;
+  color: var(--admin-text-primary);
+  border-bottom: 1px solid var(--admin-border);
+  vertical-align: middle;
+}
+
+.admin-table td:first-child {
+  padding-left: 24px;
+}
+
+.admin-table td:last-child {
+  padding-right: 24px;
+}
+
+.admin-table tbody tr {
+  transition: background var(--admin-transition);
+}
+
+.admin-table tbody tr:hover {
+  background: var(--admin-bg-card-hover);
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Table Cell Variants */
+.table-cell-name {
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--admin-transition);
+}
+
+.table-cell-name:hover {
+  color: var(--admin-accent);
+}
+
+.table-cell-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--admin-accent);
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.table-cell-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+/* ============================================
+   RATING DISPLAY
+   ============================================ */
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.rating-star {
+  color: var(--admin-warning);
+  font-size: 14px;
+}
+
+.rating-star-empty {
+  color: var(--admin-border);
+  font-size: 14px;
+}
+
+.rating-value {
+  font-size: 13px;
+  color: var(--admin-text-secondary);
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--admin-radius-sm);
+  background: transparent;
+  color: var(--admin-text-secondary);
+  cursor: pointer;
+  transition: all var(--admin-transition);
+}
+
+.action-btn:hover {
+  background: var(--admin-bg-card-hover);
+  color: var(--admin-text-primary);
+}
+
+.action-btn-edit:hover {
+  color: var(--admin-accent);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.action-btn-sections:hover {
+  color: var(--admin-info);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.action-btn-delete:hover {
+  color: var(--admin-danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+.admin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.admin-loading-spinner {
+  color: var(--admin-accent);
+}
+
+/* ============================================
+   ERROR STATE
+   ============================================ */
+.admin-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-danger);
+  margin-bottom: 24px;
+}
+
+.admin-error-icon {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.admin-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  text-align: center;
+}
+
+.admin-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: var(--admin-text-muted);
+}
+
+.admin-empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin: 0 0 8px;
+}
+
+.admin-empty-text {
+  font-size: 14px;
+  color: var(--admin-text-secondary);
+  margin: 0 0 24px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+  .admin-main {
+    padding: 24px;
+  }
+  
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-main {
+    padding: 16px;
+  }
+  
+  .admin-title {
+    font-size: 24px;
+  }
+  
+  .admin-table th,
+  .admin-table td {
+    padding: 12px;
+  }
+  
+  .admin-table th:first-child,
+  .admin-table td:first-child {
+    padding-left: 16px;
+  }
+  
+  .admin-table th:last-child,
+  .admin-table td:last-child {
+    padding-right: 16px;
+  }
+  
+  .table-cell-actions {
+    gap: 2px;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-table-wrapper {
+    margin: 0 -16px;
+    padding: 0 16px 16px;
+  }
+  
+  .rating-display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

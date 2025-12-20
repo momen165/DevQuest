@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../../styles/AuthPages.css';
-import { useAuth } from '../../AuthContext';
+import 'styles/AuthPages.css';
+import { useAuth } from 'AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 

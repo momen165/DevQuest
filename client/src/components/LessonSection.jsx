@@ -5,7 +5,7 @@ import 'react-circular-progressbar/dist/styles.css';
 import '../styles/LessonSection.css';
 import '../styles/CourseSections.css';
 import axios from 'axios';
-import { useAuth } from '../AuthContext';
+import { useAuth } from 'AuthContext';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import { FaLock } from 'react-icons/fa'; // Import lock icon
 

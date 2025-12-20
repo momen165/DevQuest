@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo } from "react";
 import axios from "axios";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "AuthContext";
 import "../styles/RatingForm.css";
 
-const RatingForm = ({ courseId }) => {
+const RatingForm = memo(({ courseId }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [message, setMessage] = useState("");
@@ -173,6 +173,8 @@ const RatingForm = ({ courseId }) => {
       {renderForm()}
     </>
   );
-};
+});
+
+RatingForm.displayName = 'RatingForm';
 
 export default RatingForm;

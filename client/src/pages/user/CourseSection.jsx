@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
-import LessonList from '../../components/LessonSection';
-import RatingForm from '../../components/RatingForm';
+import Navbar from 'components/Navbar';
+import LessonList from 'components/LessonSection';
+import RatingForm from 'components/RatingForm';
 import axios from 'axios';
-import '../../styles/CourseSections.css';
-import { useAuth } from '../../AuthContext';
-import SupportForm from '../../components/SupportForm';
-import { calculateLevel, calculateLevelProgress, getXPForLevel } from '../../utils/xpCalculator';
+import 'styles/CourseSections.css';
+import { useAuth } from 'AuthContext';
+import SupportForm from 'components/SupportForm';
+import { calculateLevel, calculateLevelProgress, getXPForLevel } from 'utils/xpCalculator';
 
 // Create axios instance with default config
 const api = axios.create({

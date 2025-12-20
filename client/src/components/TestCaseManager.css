@@ -1,0 +1,173 @@
+/* ============================================
+   TEST CASE MANAGER STYLES
+   ============================================ */
+
+.test-cases {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Test Case Card */
+.test-case-card {
+  background: var(--admin-bg-secondary, #1e293b);
+  border: 1px solid var(--admin-border, #334155);
+  border-radius: 10px;
+  padding: 20px;
+  transition: border-color 0.2s ease;
+}
+
+.test-case-card:hover {
+  border-color: var(--admin-border-hover, #475569);
+}
+
+/* Header */
+.test-case-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--admin-border, #334155);
+}
+
+.test-case-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--admin-text-primary, #f1f5f9);
+}
+
+.test-case-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--admin-text-muted, #64748b);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-case-remove:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--admin-danger, #ef4444);
+}
+
+/* Options (Checkboxes) */
+.test-case-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.test-case-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.test-case-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--admin-accent, #6366f1);
+  cursor: pointer;
+}
+
+.checkbox-label {
+  font-size: 13px;
+  color: var(--admin-text-secondary, #94a3b8);
+  user-select: none;
+}
+
+/* Fields */
+.test-case-field {
+  margin-bottom: 16px;
+}
+
+.test-case-field:last-child {
+  margin-bottom: 0;
+}
+
+.test-case-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--admin-text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+
+.test-case-input,
+.test-case-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  color: var(--admin-text-primary, #f1f5f9);
+  background: var(--admin-bg-primary, #0f172a);
+  border: 1px solid var(--admin-border, #334155);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.test-case-input:focus,
+.test-case-textarea:focus {
+  outline: none;
+  border-color: var(--admin-accent, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.test-case-input::placeholder,
+.test-case-textarea::placeholder {
+  color: var(--admin-text-muted, #64748b);
+}
+
+.test-case-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Add Button */
+.test-case-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--admin-accent, #6366f1);
+  background: transparent;
+  border: 2px dashed var(--admin-border, #334155);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.test-case-add:hover {
+  background: rgba(99, 102, 241, 0.05);
+  border-color: var(--admin-accent, #6366f1);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .test-case-card {
+    padding: 16px;
+  }
+  
+  .test-case-options {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

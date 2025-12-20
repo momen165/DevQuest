@@ -1,84 +1,38 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import Sidebar from '../admin/components/Sidebar';
-import '../admin/styles/Support.css';
-import { useAuth } from '../../AuthContext';
+import React, { useState } from 'react';
+import Sidebar from 'pages/admin/components/Sidebar';
+import 'pages/admin/styles/Support.css';
 import CircularProgress from '@mui/material/CircularProgress';
+import useSupportTickets from 'hooks/useSupportTickets';
 
 const Support = () => {
-  const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { user } = useAuth();
-  const [reply, setReply] = useState({}); // State to hold replies for each ticket
   const [sortOrder, setSortOrder] = useState('desc');
   const [expandedTickets, setExpandedTickets] = useState(new Set());
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'open', 'closed'
   const [filterSource, setFilterSource] = useState('all'); // 'all', 'email', 'direct'
 
-  useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/support-tickets`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: 5000,
-        });
-        setTickets(response.data);
-        setError(null);
-      } catch (err) {
-        console.error('Error details:', err);
-        if (err.code === 'ECONNREFUSED') {
-          setError('Unable to connect to server. Please check if the server is running.');
-        } else {
-          setError('Failed to load support tickets. Please try again later.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTickets();
-  }, [user.token]);
+  const { 
+    tickets, 
+    loading, 
+    error, 
+    reply, 
+    setReply,
+    handleReply,
+    handleStatusChange,
+    deleteTicket 
+  } = useSupportTickets();
 
   const handleReplyChange = (ticketId, value) => {
     setReply({ ...reply, [ticketId]: value });
   };
 
-  const handleReply = async (ticketId) => {
+  const handleReplySubmit = async (ticketId) => {
     if (!reply[ticketId] || reply[ticketId].trim() === '') {
       alert('Please enter a reply message.');
       return;
     }
 
     try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/support-tickets/${ticketId}/reply`,
-        { reply: reply[ticketId] },
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: 5000,
-        }
-      );
-
-      // Clear the reply input field immediately
-      setReply({ ...reply, [ticketId]: '' });
-
-      // Refetch tickets to ensure we have the latest data
-      const ticketsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/support-tickets`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 5000,
-      });
-      setTickets(ticketsResponse.data);
+      await handleReply(ticketId, reply[ticketId]);
     } catch (err) {
       console.error('Failed to send reply:', err);
       alert('Failed to send reply. Please try again.');
@@ -91,10 +45,7 @@ const Support = () => {
     }
 
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/support-tickets/${ticketId}`, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      setTickets(tickets.filter((ticket) => ticket.ticket_id !== ticketId));
+      await deleteTicket(ticketId);
     } catch (err) {
       console.error('Failed to delete ticket:', err);
       alert('Failed to delete ticket. Please try again.');
@@ -336,7 +287,7 @@ const Support = () => {
                           <div className="reply-actions">
                             <button
                               className="reply-btn"
-                              onClick={() => handleReply(ticket.ticket_id)}
+                              onClick={() => handleReplySubmit(ticket.ticket_id)}
                               disabled={!reply[ticket.ticket_id]?.trim()}
                             >
                               📧 Send Reply

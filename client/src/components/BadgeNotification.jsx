@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styles from '../styles/BadgeNotification.module.css';
+import styles from 'styles/BadgeNotification.module.css';
 
 /**
  * Component to display a notification when a user earns a badge

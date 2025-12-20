@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Slider.css";
@@ -266,4 +266,7 @@ const CoursesSlider = () => {
   );
 };
 
-export default CoursesSlider;
+const MemoizedCoursesSlider = memo(CoursesSlider);
+MemoizedCoursesSlider.displayName = 'CoursesSlider';
+
+export default MemoizedCoursesSlider;

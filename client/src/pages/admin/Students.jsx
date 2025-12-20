@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import LoadingSpinner from '../user/CircularProgress';
-import Sidebar from '../admin/components/Sidebar';
-import StudentDetailTable from '../admin/components/StudentDetailTable';
-import axios from 'axios';
-import '../admin/styles/Students.css';
+import React, { useState } from 'react';
+import LoadingSpinner from 'components/LoadingSpinner';
+import Sidebar from 'pages/admin/components/Sidebar';
+import StudentDetailTable from 'pages/admin/components/StudentDetailTable';
+import 'pages/admin/styles/Students.css';
+import useStudents from 'hooks/useStudents';
 
 const deduplicateStudents = (students) => {
   const seen = new Set();
@@ -19,38 +19,9 @@ const deduplicateStudents = (students) => {
 const StudentSubscriptionTable = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [students, setStudents] = useState([]); // Ensure it's always an array
-  const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      setLoading(true);
-      try {
-        const userData = JSON.parse(localStorage.getItem('user'));
-        const token = userData ? userData.token : null;
-
-        if (!token) {
-          throw new Error('No token found. Please log in again.');
-        }
-
-        const headers = { Authorization: `Bearer ${token}` };
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/students`, { headers });
-
-        const uniqueStudents = deduplicateStudents(response.data.students || []);
-        setStudents(uniqueStudents); // Set deduplicated data
-      } catch (err) {
-        console.error('Error fetching students:', err.response?.data || err.message);
-        setError(err.response?.data?.error || 'Failed to fetch students.');
-        setStudents([]); // Fallback to empty array
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStudents();
-  }, []);
+  const { students, loading, error } = useStudents();
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);

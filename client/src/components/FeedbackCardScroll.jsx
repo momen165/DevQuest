@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import axios from 'axios';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import defaultProfilePic from '../assets/images/default-profile-pic.png';
-import '../styles/FeedbackCardScroll.css'; // Ensure you have the correct path to your CSS file
+import defaultProfilePic from 'assets/images/default-profile-pic.png';
+import 'styles/FeedbackCardScroll.css'; // Ensure you have the correct path to your CSS file
 
-const FeedbackCardScroll = () => {
+const FeedbackCardScroll = memo(() => {
   const sectionRef = useRef(null);
   const cardsRef = useRef([]);
   const [feedbackData, setFeedbackData] = useState([]);
@@ -185,6 +185,8 @@ const FeedbackCardScroll = () => {
       </div>
     </section>
   );
-};
+});
+
+FeedbackCardScroll.displayName = 'FeedbackCardScroll';
 
 export default FeedbackCardScroll;

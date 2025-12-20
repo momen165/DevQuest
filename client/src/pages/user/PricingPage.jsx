@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../../styles/PricingPage.css";
-import Navbar from "../../components/Navbar";
-import SEOHead from "../../components/SEOHead";
-import { useAuth } from "../../AuthContext";
+import "styles/PricingPage.css";
+import Navbar from "components/Navbar";
+import SEOHead from "components/SEOHead";
+import { useAuth } from "AuthContext";
 import { loadStripe } from "@stripe/stripe-js";
-import SupportForm from "../../components/SupportForm";
-import Footer from "../../components/Footer";
+import SupportForm from "components/SupportForm";
+import Footer from "components/Footer";
 import { useNavigate } from "react-router-dom";
 import { 
   HiOutlineBookOpen, 

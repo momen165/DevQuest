@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import '../styles/FilterTabs.css';
+import React, { useState, useEffect, memo } from 'react';
+import 'styles/FilterTabs.css';
 
-import AnimatedLogoMain from '../assets/icons/Dev.svg';
-import AnimatedLogoSecond from '../assets/icons/Quest.svg';
+import AnimatedLogoMain from 'assets/icons/Dev.svg';
+import AnimatedLogoSecond from 'assets/icons/Quest.svg';
 
-const FilterTabs = ({ onFilterChange, onSearch, searchTerm }) => {
+const FilterTabs = memo(({ onFilterChange, onSearch, searchTerm }) => {
   const [activeTab, setActiveTab] = useState('All Courses');
   const [animate, setAnimate] = useState(false);
 
@@ -86,6 +86,8 @@ const FilterTabs = ({ onFilterChange, onSearch, searchTerm }) => {
       </div>
     </>
   );
-};
+});
+
+FilterTabs.displayName = 'FilterTabs';
 
 export default FilterTabs;

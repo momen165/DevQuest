@@ -1,9 +1,9 @@
 // /src/pages/FAQPage.js
 import React, { useState } from "react";
-import "../../styles/FAQPage.css";
-import Navbar from "../../components/Navbar";
-import SEOHead from "../../components/SEOHead";
-import faqImage from "../../assets/images/faq-illustration.png";
+import "styles/FAQPage.css";
+import Navbar from "components/Navbar";
+import SEOHead from "components/SEOHead";
+import Footer from "components/Footer";
 
 const FAQPage = () => {
   const [activeIndex, setActiveIndex] = useState(null);
@@ -80,29 +80,60 @@ const FAQPage = () => {
       />
       <Navbar />
       <div className="faq-page">
-        <div className="faq-header">
-          <img src={faqImage} alt="Frequently Asked Questions illustration with question mark and information symbols" className="faq-image" />
-          <h1>Frequently Asked Questions</h1>
+        {/* Background decorations */}
+        <div className="faq-bg-decoration">
+          <div className="faq-orb faq-orb--1"></div>
+          <div className="faq-orb faq-orb--2"></div>
+          <div className="faq-grid-pattern"></div>
         </div>
-        <div className="faq-content">
-          {faqs.map((faq, index) => (
-            <div
-              key={index}
-              className={`faq-item ${activeIndex === index ? "active" : ""}`}
-              onClick={() => toggleFAQ(index)}
-            >
-              <h3 className="faq-question">
-                {faq.question}
-                <span>{activeIndex === index ? "–" : "+"}</span>
-              </h3>
-              {activeIndex === index && (
-                <p className="faq-answer">{faq.answer}</p>
-              )}
-            </div>
-          ))}
+
+        <div className="faq-container">
+          <div className="faq-header">
+            <span className="faq-badge">Help Center</span>
+            <h1>Frequently Asked <span className="hero-gradient-text">Questions</span></h1>
+            <p className="faq-subtitle">
+              Everything you need to know about DevQuest. Can't find the answer you're looking for? 
+              Feel free to contact our support team.
+            </p>
+          </div>
+
+          <div className="faq-content">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className={`faq-item ${activeIndex === index ? "active" : ""}`}
+                onClick={() => toggleFAQ(index)}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="faq-question">
+                  {faq.question}
+                  <div className="faq-icon-wrapper">
+                    <svg 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 14 14" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path 
+                        d="M1 4L7 10L13 4" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="faq-answer-wrapper">
+                  <p className="faq-answer">{faq.answer}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+        <Footer />
       </div>
-      <footer />
     </>
   );
 };

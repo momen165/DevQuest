@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../../styles/AuthPages.css';
+import 'styles/AuthPages.css';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from 'AuthContext';
+import { toast } from 'react-hot-toast';
+import { validateEmail, validatePassword, validateName } from 'utils/formValidation';
 
 const SignupPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -31,41 +34,45 @@ const SignupPage = () => {
 
   const validateForm = () => {
     const { name, email, password } = formData;
-    if (!name || !email || !password) {
-      alert('Name, email and password are required');
+    
+    const nameValid = validateName(name);
+    if (!nameValid.isValid) {
+      toast.error(nameValid.error);
       return false;
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      alert(
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)'
-      );
+    const emailValid = validateEmail(email);
+    if (!emailValid.isValid) {
+      toast.error(emailValid.error);
       return false;
     }
+
+    const passwordValid = validatePassword(password);
+    if (!passwordValid.isValid) {
+      toast.error(passwordValid.error);
+      return false;
+    }
+
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    
+    setLoading(true);
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/signup`, formData);
-      alert('Signup successful! Check your email for verification.');
+      toast.success('Signup successful! Check your email for verification.');
       console.log('Signup successful:', response.data);
 
-      // You could redirect to login page here
       navigate('/LoginPage');
     } catch (error) {
-      if (error.response) {
-        console.error('Signup failed:', error.response.data.error);
-      } else if (error.request) {
-        // No response received from server
-        console.error('No response from server:', error.request);
-      } else {
-        // Other errors
-        console.error('Error:', error.message);
-      }
+      const errorMsg = error.response?.data?.error || 'Signup failed. Please try again.';
+      toast.error(errorMsg);
+      console.error('Signup failed:', errorMsg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,7 +127,7 @@ const SignupPage = () => {
             />
             <p className="hint">
               🔒 Password requirements: At least 8 characters with uppercase, lowercase, number, and
-              special character (@$!%*?&)
+              special character
             </p>
           </label>
           <label>
@@ -144,8 +151,8 @@ const SignupPage = () => {
             <input type="checkbox" required id="robot-check" />
             <label htmlFor="robot-check">I'm not a robot 🤖</label>
           </div>
-          <button type="submit" className="button">
-            Begin Your Journey
+          <button type="submit" className="button" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Begin Your Journey'}
           </button>
         </form>
         <p>

@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../AuthContext';
-import '../styles/Footer.css';
-import footerLogo from '../assets/icons/layer1.svg';
+import { useAuth } from 'AuthContext';
+import 'styles/Footer.css';
+import footerLogo from 'assets/icons/layer1.svg';
 import { FaLinkedin, FaGithub, FaTwitter, FaEnvelope } from 'react-icons/fa';
 
-const Footer = () => {
+const Footer = memo(() => {
   const [courses, setCourses] = useState([]);
   const [enrollments, setEnrollments] = useState({});
   const navigate = useNavigate();
@@ -128,6 +128,8 @@ const Footer = () => {
       </div>
     </footer>
   );
-};
+});
+
+Footer.displayName = 'Footer';
 
 export default Footer;

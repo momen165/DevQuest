@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import axios from 'axios';
-import '../../../pages/admin/styles/AddEditCourseComponent.css';
+import 'pages/admin/styles/AddEditCourseComponent.css';
 import { FaUpload } from 'react-icons/fa';
 import ErrorAlert from './ErrorAlert';
 
-const EditCourseForm = ({
+const CourseForm = ({
   course,
   onClose,
   onSave,
@@ -245,4 +245,4 @@ const EditCourseForm = ({
   );
 };
 
-export default EditCourseForm;
+export default CourseForm;

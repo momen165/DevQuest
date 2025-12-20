@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState, useCallback } from 'react';
+﻿import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
 import { Editor } from '@monaco-editor/react';
 import axios from 'axios';
 import { FaPlay, FaCopy, FaCog } from 'react-icons/fa';
@@ -483,4 +483,7 @@ const MonacoEditorComponent = ({
   );
 };
 
-export default MonacoEditorComponent;
+const MemoizedMonacoEditor = memo(MonacoEditorComponent);
+MemoizedMonacoEditor.displayName = 'MonacoEditorComponent';
+
+export default MemoizedMonacoEditor;

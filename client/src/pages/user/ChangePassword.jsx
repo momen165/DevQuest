@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import "../../styles/ChangePassword.css";
-import Navbar from "../../components/Navbar";
-import Sidebar from "../../components/AccountSettingsSidebar";
+import "styles/ChangePassword.css";
+import Navbar from "components/Navbar";
+import Sidebar from "components/AccountSettingsSidebar";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "AuthContext";
 import { useNavigate } from "react-router-dom";
 
 function ChangePassword() {

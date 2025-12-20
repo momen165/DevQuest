@@ -1,17 +1,18 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../AuthContext';
-import Navbar from '../../components/Navbar';
-import LessonNavigation from '../../components/LessonNavigation';
-import LessonContent from '../../components/LessonContent';
-import MonacoEditorComponent from '../../components/MonacoEditorComponent';
-import LoadingSpinner from './CircularProgress';
-import CopyNotification from '../../components/CopyNotification';
-import BadgeNotification from '../../components/BadgeNotification';
-import { languageMappings as LSLanguageMappings } from '../../utils/lessonConstants';
-import { useLessonData } from '../../hooks/useLessonData';
-import { useResizablePanes } from '../../hooks/useResizablePanes';
-import '../../styles/LessonPage.css';
+import { useAuth } from 'AuthContext';
+import Navbar from 'components/Navbar';
+import LessonNavigation from 'components/LessonNavigation';
+import LessonContent from 'components/LessonContent';
+import MonacoEditorComponent from 'components/MonacoEditorComponent';
+import LoadingSpinner from 'components/LoadingSpinner';
+import CopyNotification from 'components/CopyNotification';
+import BadgeNotification from 'components/BadgeNotification';
+import { languageMappings as LSLanguageMappings } from 'utils/lessonConstants';
+import { formatBadge } from 'utils/badgeUtils';
+import { useLessonData } from 'hooks/useLessonData';
+import { useResizablePanes } from 'hooks/useResizablePanes';
+import 'styles/LessonPage.css';
 
 const LessonPage = () => {
   const { lessonId } = useParams();
@@ -66,14 +67,7 @@ const LessonPage = () => {
     if (!success) {
       setFailedAttempts((prev) => prev + 1);
     } else if (resultData?.badge_awarded) {
-      // Use backend badge fields if available, fallback to helpers
-      const badge = resultData.badge_awarded;
-      setEarnedBadge({
-        badge_type: badge.badge_type,
-        name: badge.name || getBadgeName(badge.badge_type),
-        description: badge.description || getBadgeDescription(badge.badge_type),
-        image_path: badge.image_path || getBadgeImagePath(badge.badge_type)
-      });
+      setEarnedBadge(formatBadge(resultData.badge_awarded));
     }
   };  
   
@@ -81,43 +75,12 @@ const LessonPage = () => {
     setLessonDataRefreshTrigger(prev => prev + 1);
   };
 
-  // Helper functions to get badge info
-  const getBadgeName = (badgeType) => {
-    const badgeNames = {
-      'code_novice': 'Code Novice',
-      'lesson_smasher': 'Lesson Smasher',
-      'language_explorer': 'Language Explorer',
-      'streak_master': 'Streak Master',
-      'xp_achiever': '100 XP Achieved'
-    };
-    return badgeNames[badgeType] || 'Achievement';
-  };
-
-  const getBadgeDescription = (badgeType) => {
-    const badgeDescriptions = {
-      'code_novice': 'Unlocked after submitting your first code',
-      'lesson_smasher': 'Unlocked after completing 10 lessons successfully',
-      'language_explorer': 'Unlocked after using 3 different programming languages',
-      'streak_master': 'Unlocked after maintaining a 7-day learning streak',
-      'xp_achiever': 'Unlocked after reaching 100 XP'
-    };
-    return badgeDescriptions[badgeType] || 'You achieved something special!';
-  };
-
-  const getBadgeImagePath = (badgeType) => {
-    return `https://cdn.dev-quest.me/badges/${badgeType}.png`;
-  };
-
   const handleCloseBadgeNotification = () => {
     setEarnedBadge(null);
   };
   
   if (authLoading || lessonLoading) {
-    return (
-      <div className="centered-loader">
-        <LoadingSpinner />
-      </div>
-    );
+    return <LoadingSpinner fullScreen message="Loading lesson..." />;
   }
 
   if (!user) {

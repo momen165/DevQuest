@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { FaComments, FaPaperPlane, FaUser, FaHeadset } from 'react-icons/fa';
-import { useAuth } from '../AuthContext';
+import { useAuth } from 'AuthContext';
 import '../styles/SupportForm.css';
 
 const SupportForm = () => {
