@@ -4,6 +4,7 @@ import CourseCard from 'components/CourseCard';
 import FilterTabs from 'components/FilterTabs';
 import Navbar from 'components/Navbar';
 import SEOHead from 'components/SEOHead';
+import AdSense from 'components/AdSense';
 import { useAuth } from 'AuthContext';
 import LoadingSpinner from 'components/LoadingSpinner';
 import Footer from 'components/Footer';
@@ -125,6 +126,12 @@ const CoursesPage = () => {
       <header className="courses-header">
         <FilterTabs onFilterChange={handleFilter} onSearch={handleSearch} searchTerm={searchTerm} />
       </header>
+
+      {/* Ad Unit - Below header, above courses */}
+      <div style={{ margin: '30px auto', maxWidth: '1200px', textAlign: 'center' }}>
+        <AdSense />
+      </div>
+
       <section className="courses-grid">
         {filteredCourses.length > 0 ? (
           filteredCourses.map((course) => (

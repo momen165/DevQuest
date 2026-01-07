@@ -9,6 +9,7 @@ import SupportForm from "components/SupportForm";
 import Footer from "components/Footer";
 import FeedbackCardScroll from "components/FeedbackCardScroll";
 import SEOHead from "components/SEOHead";
+import AdSense from "components/AdSense";
 import { useAuth } from "AuthContext";
 
 // Asset Imports
@@ -225,6 +226,11 @@ const HomePage = () => {
 
         <div className="CourseSlider-section">
           <CoursesSlider />
+        </div>
+
+        {/* Ad Unit - Between course slider and feedback */}
+        <div style={{ margin: '40px auto', maxWidth: '1200px', textAlign: 'center' }}>
+          <AdSense />
         </div>
 
         <div className="feedback-wrapper">
