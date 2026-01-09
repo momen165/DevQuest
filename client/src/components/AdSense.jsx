@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+const MAX_RETRIES = 50; // Maximum 5 seconds of retries (50 * 100ms)
+
 const AdSense = ({ 
   adSlot = '7973755487', 
   adFormat = 'auto',
@@ -11,7 +13,7 @@ const AdSense = ({
   const [hasError, setHasError] = useState(false);
   const timeoutIdsRef = useRef([]);
   const retryCountRef = useRef(0);
-  const MAX_RETRIES = 50; // Maximum 5 seconds of retries (50 * 100ms)
+  const observerRef = useRef(null);
 
   useEffect(() => {
     // Ensure ad is only loaded once
@@ -66,14 +68,16 @@ const AdSense = ({
     };
 
     // Use IntersectionObserver to lazy-load ads only when visible
-    const observer = new IntersectionObserver(
+    observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !isLoaded) {
+          if (entry.isIntersecting) {
             // Add a small delay to ensure layout is stable
             const timeoutId = setTimeout(loadAd, 100);
             timeoutIdsRef.current.push(timeoutId);
-            observer.disconnect();
+            if (observerRef.current) {
+              observerRef.current.disconnect();
+            }
           }
         });
       },
@@ -81,7 +85,7 @@ const AdSense = ({
     );
 
     if (adRef.current) {
-      observer.observe(adRef.current);
+      observerRef.current.observe(adRef.current);
     }
 
     return () => {
@@ -90,8 +94,8 @@ const AdSense = ({
       timeoutIdsRef.current = [];
       
       // Clean up observer
-      if (observer) {
-        observer.disconnect();
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
     };
   }, [isLoaded, hasError]);
