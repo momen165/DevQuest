@@ -128,7 +128,7 @@ const CoursesPage = () => {
       </header>
 
       {/* Ad Unit - Below header, above courses */}
-      <div style={{ margin: '30px auto', maxWidth: '1200px', textAlign: 'center' }}>
+      <div style={{ margin: '30px auto', maxWidth: '1200px', minWidth: '300px', width: '100%', textAlign: 'center' }}>
         <AdSense />
       </div>
 
