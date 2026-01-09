@@ -229,7 +229,7 @@ const HomePage = () => {
         </div>
 
         {/* Ad Unit - Between course slider and feedback */}
-        <div style={{ margin: '40px auto', maxWidth: '1200px', textAlign: 'center' }}>
+        <div style={{ margin: '40px auto', maxWidth: '1200px', minWidth: '300px', width: '100%', textAlign: 'center' }}>
           <AdSense />
         </div>
 
