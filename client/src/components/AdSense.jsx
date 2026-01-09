@@ -71,10 +71,11 @@ const AdSense = ({
     observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
+          if (entry.isIntersecting && !isLoaded && !hasError) {
             // Add a small delay to ensure layout is stable
             const timeoutId = setTimeout(loadAd, 100);
             timeoutIdsRef.current.push(timeoutId);
+            // Disconnect immediately to prevent multiple triggers
             if (observerRef.current) {
               observerRef.current.disconnect();
             }
