@@ -9,6 +9,9 @@ const AdSense = ({
   const adRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const timeoutIdsRef = useRef([]);
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 50; // Maximum 5 seconds of retries (50 * 100ms)
 
   useEffect(() => {
     // Ensure ad is only loaded once
@@ -26,16 +29,30 @@ const AdSense = ({
         
         // Only load the ad if container has a proper width
         if (rect.width === 0) {
-          console.warn('AdSense: Container has zero width, retrying...');
+          if (retryCountRef.current >= MAX_RETRIES) {
+            console.warn('AdSense: Max retries reached, container still has zero width');
+            setHasError(true);
+            return;
+          }
+          retryCountRef.current += 1;
+          console.warn(`AdSense: Container has zero width, retrying... (${retryCountRef.current}/${MAX_RETRIES})`);
           // Retry after a short delay to allow layout to complete
-          setTimeout(loadAd, 100);
+          const timeoutId = setTimeout(loadAd, 100);
+          timeoutIdsRef.current.push(timeoutId);
           return;
         }
 
         // Check if adsbygoogle script is loaded
         if (typeof window.adsbygoogle === 'undefined') {
-          console.warn('AdSense: Script not loaded yet, retrying...');
-          setTimeout(loadAd, 100);
+          if (retryCountRef.current >= MAX_RETRIES) {
+            console.warn('AdSense: Max retries reached, script not loaded');
+            setHasError(true);
+            return;
+          }
+          retryCountRef.current += 1;
+          console.warn(`AdSense: Script not loaded yet, retrying... (${retryCountRef.current}/${MAX_RETRIES})`);
+          const timeoutId = setTimeout(loadAd, 100);
+          timeoutIdsRef.current.push(timeoutId);
           return;
         }
 
@@ -54,7 +71,8 @@ const AdSense = ({
         entries.forEach((entry) => {
           if (entry.isIntersecting && !isLoaded) {
             // Add a small delay to ensure layout is stable
-            setTimeout(loadAd, 100);
+            const timeoutId = setTimeout(loadAd, 100);
+            timeoutIdsRef.current.push(timeoutId);
             observer.disconnect();
           }
         });
@@ -67,7 +85,12 @@ const AdSense = ({
     }
 
     return () => {
-      if (observer && adRef.current) {
+      // Clean up all pending timeouts
+      timeoutIdsRef.current.forEach(timeoutId => clearTimeout(timeoutId));
+      timeoutIdsRef.current = [];
+      
+      // Clean up observer
+      if (observer) {
         observer.disconnect();
       }
     };
