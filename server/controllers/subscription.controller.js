@@ -297,8 +297,8 @@ const listSubscriptions = async (req, res) => {
     }
 
     if (status) {
-      // Convert string status to boolean
-      const boolStatus = status === 'true' || status === true;
+      // Convert string status to boolean, handling various input formats
+      const boolStatus = status === 'true' || status === true || status === 1;
       query += queryParams.length ? " AND status = $2" : " WHERE status = $1";
       queryParams.push(boolStatus);
     }

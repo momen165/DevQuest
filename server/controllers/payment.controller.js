@@ -1,6 +1,15 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const db = require("../config/database"); // Adjust path to your DB connection
 
+/**
+ * Maps Stripe subscription status to boolean database status
+ * @param {string} stripeStatus - The status from Stripe (active, trialing, etc.)
+ * @returns {boolean} true for active/trialing, false for all other statuses
+ */
+const mapStripeStatusToBoolean = (stripeStatus) => {
+  return stripeStatus === 'active' || stripeStatus === 'trialing';
+};
+
 const createCheckoutSession = async (req, res) => {
   const { priceId } = req.body;
   const userId = req.user.userId;
@@ -151,7 +160,7 @@ const handleWebhook = async (req, res) => {
       const stripeStatus = subscription.status;
       
       // Map Stripe status to boolean (true for active/trialing, false for others)
-      const dbStatus = stripeStatus === 'active' || stripeStatus === 'trialing';
+      const dbStatus = mapStripeStatusToBoolean(stripeStatus);
 
       const userQuery = "SELECT email, stripe_customer_id FROM users WHERE user_id = $1";
       const { rows: userRows } = await client.query(userQuery, [userId]);
@@ -248,7 +257,7 @@ const handleWebhook = async (req, res) => {
 
       // Map Stripe statuses to boolean (true for active/trialing, false for others)
       const stripeStatus = subscription.status;
-      const dbStatus = stripeStatus === 'active' || stripeStatus === 'trialing';
+      const dbStatus = mapStripeStatusToBoolean(stripeStatus);
 
       console.log("Update values:", {
         startDate,
