@@ -277,7 +277,7 @@ const getOptimizedCourseSectionData = handleAsync(async (req, res) => {
       ),
       subscription_info AS (        SELECT 
           CASE 
-            WHEN s.status = 'active' AND s.subscription_end_date > NOW() THEN true 
+            WHEN s.status = true AND s.subscription_end_date > NOW() THEN true 
             ELSE false 
           END as has_active_subscription,
           COALESCE(

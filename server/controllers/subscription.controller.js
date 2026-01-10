@@ -79,7 +79,7 @@ const addSubscription = async (req, res) => {
           END,
           $2,
           $3,
-          'Completed',
+          true,
           $4,
           $5
         )
@@ -185,7 +185,7 @@ const handleStripeWebhook = async (req, res) => {
             $3,
             $4,
             $5,
-            'Completed'
+            true
           )
           RETURNING subscription_id;
         `;
@@ -243,7 +243,7 @@ const handleStripeWebhook = async (req, res) => {
         await client.query("BEGIN");
         const updateSubscriptionQuery = `
           UPDATE subscription
-          SET amount_paid = $1, status = 'Completed'
+          SET amount_paid = $1, status = true
           WHERE subscription_id = $2;
         `;
         await client.query(updateSubscriptionQuery, [
@@ -297,8 +297,10 @@ const listSubscriptions = async (req, res) => {
     }
 
     if (status) {
+      // Convert string status to boolean
+      const boolStatus = status === 'true' || status === true;
       query += queryParams.length ? " AND status = $2" : " WHERE status = $1";
-      queryParams.push(status);
+      queryParams.push(boolStatus);
     }
 
     if (limit) {
@@ -328,7 +330,7 @@ const checkActiveSubscription = async (req, res) => {
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       WHERE us.user_id = $1 
-      AND s.status IN ('active', 'trialing')
+      AND s.status = true
       AND s.subscription_end_date > CURRENT_TIMESTAMP
       ORDER BY s.subscription_start_date DESC
       LIMIT 1;
@@ -371,7 +373,7 @@ const checkSubscriptionStatusFromDb = async (req, res) => {
         FROM subscription s
         JOIN user_subscription us ON s.subscription_id = us.subscription_id
         WHERE us.user_id = $1 
-        AND s.status IN ('active', 'trialing')
+        AND s.status = true
         AND s.subscription_end_date > CURRENT_TIMESTAMP
         ORDER BY s.subscription_start_date DESC
         LIMIT 1
@@ -425,7 +427,7 @@ const getSubscriptionStatusForUser = async (req, res) => {
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       WHERE us.user_id = $1 
-      AND s.status IN ('active', 'trialing')
+      AND s.status = true
       AND s.subscription_end_date > CURRENT_TIMESTAMP
       ORDER BY s.subscription_start_date DESC
       LIMIT 1;
@@ -470,7 +472,7 @@ const warmSubscriptionCache = async (userId) => {
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       WHERE us.user_id = $1 
-      AND s.status IN ('active', 'trialing')
+      AND s.status = true
       AND s.subscription_end_date > CURRENT_TIMESTAMP
       ORDER BY s.subscription_start_date DESC
       LIMIT 1;

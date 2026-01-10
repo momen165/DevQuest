@@ -24,13 +24,13 @@ const createCheckoutSession = async (req, res) => {
       return res.status(500).json({ error: "Pricing configuration error." });
     }
 
-    // Check for active subscription first (check for 'active' and 'trialing' statuses)
+    // Check for active subscription first (check for active status)
     const activeSubQuery = `
       SELECT s.*
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       WHERE us.user_id = $1
-      AND s.status IN ('active', 'trialing')
+      AND s.status = true
       AND s.subscription_end_date > CURRENT_DATE;
     `;
     const { rows } = await db.query(activeSubQuery, [userId]);
