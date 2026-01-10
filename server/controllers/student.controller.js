@@ -27,7 +27,7 @@ const getAllStudents = async (req, res) => {
           s.subscription_end_date,
           s.status as subscription_status,
           CASE 
-            WHEN s.subscription_id IS NOT NULL AND s.status = 'active' AND s.subscription_end_date > CURRENT_TIMESTAMP THEN true
+            WHEN s.subscription_id IS NOT NULL AND s.status = true AND s.subscription_end_date > CURRENT_TIMESTAMP THEN true
             ELSE false
           END AS has_active_subscription
         FROM users u

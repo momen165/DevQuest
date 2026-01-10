@@ -21,7 +21,7 @@ const grantFreeSubscription = async (req, res) => {
     const freeEndDate = "2099-12-31";
     const subscriptionType = "Free";
     const amountPaid = 0;
-    const status = "active";
+    const status = true; // Boolean status: true for active subscription
 
     const { userName, userEmail } = await AdminModel.grantFreeSubscriptionDB(
       userId,

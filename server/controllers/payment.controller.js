@@ -1,6 +1,15 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const db = require("../config/database"); // Adjust path to your DB connection
 
+/**
+ * Maps Stripe subscription status to boolean database status
+ * @param {string} stripeStatus - The status from Stripe (active, trialing, etc.)
+ * @returns {boolean} true for active/trialing, false for all other statuses
+ */
+const mapStripeStatusToBoolean = (stripeStatus) => {
+  return stripeStatus === 'active' || stripeStatus === 'trialing';
+};
+
 const createCheckoutSession = async (req, res) => {
   const { priceId } = req.body;
   const userId = req.user.userId;
@@ -24,13 +33,13 @@ const createCheckoutSession = async (req, res) => {
       return res.status(500).json({ error: "Pricing configuration error." });
     }
 
-    // Check for active subscription first (check for 'active' and 'trialing' statuses)
+    // Check for active subscription first (check for active status)
     const activeSubQuery = `
       SELECT s.*
       FROM subscription s
       JOIN user_subscription us ON s.subscription_id = us.subscription_id
       WHERE us.user_id = $1
-      AND s.status IN ('active', 'trialing')
+      AND s.status = true
       AND s.subscription_end_date > CURRENT_DATE;
     `;
     const { rows } = await db.query(activeSubQuery, [userId]);
@@ -149,6 +158,9 @@ const handleWebhook = async (req, res) => {
       const endDate = new Date(subscription.current_period_end * 1000);
       const paymentId = subscription.latest_invoice.payment_intent.id;
       const stripeStatus = subscription.status;
+      
+      // Map Stripe status to boolean (true for active/trialing, false for others)
+      const dbStatus = mapStripeStatusToBoolean(stripeStatus);
 
       const userQuery = "SELECT email, stripe_customer_id FROM users WHERE user_id = $1";
       const { rows: userRows } = await client.query(userQuery, [userId]);
@@ -191,7 +203,7 @@ const handleWebhook = async (req, res) => {
           endDate,
           subscriptionType,
           amountPaid,
-          stripeStatus, // Use actual Stripe status (active, trialing, etc.)
+          dbStatus, // Use boolean status (true for active/trialing)
           userEmail,
           userId,
           subscriptionId,
@@ -243,26 +255,9 @@ const handleWebhook = async (req, res) => {
           ? "Monthly"
           : "Yearly";
 
-      // Map Stripe statuses to our status values
+      // Map Stripe statuses to boolean (true for active/trialing, false for others)
       const stripeStatus = subscription.status;
-      let dbStatus;
-      switch (stripeStatus) {
-        case "active":
-        case "trialing":
-          dbStatus = stripeStatus;
-          break;
-        case "past_due":
-        case "unpaid":
-          dbStatus = "past_due";
-          break;
-        case "canceled":
-        case "incomplete":
-        case "incomplete_expired":
-          dbStatus = "cancelled";
-          break;
-        default:
-          dbStatus = "inactive";
-      }
+      const dbStatus = mapStripeStatusToBoolean(stripeStatus);
 
       console.log("Update values:", {
         startDate,
@@ -329,7 +324,7 @@ const handleWebhook = async (req, res) => {
 
       const updateQuery = `
         UPDATE subscription 
-        SET status = 'cancelled',
+        SET status = false,
             updated_at = CURRENT_TIMESTAMP
         WHERE stripe_subscription_id = $1
         RETURNING *;
