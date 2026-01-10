@@ -296,9 +296,15 @@ const listSubscriptions = async (req, res) => {
       queryParams.push(customerId);
     }
 
-    if (status) {
-      // Convert string status to boolean, handling various input formats
-      const boolStatus = status === 'true' || status === true || status === 1;
+    if (status !== undefined && status !== null && status !== '') {
+      // Convert status parameter to boolean
+      // Handle string 'true'/'false', boolean true/false, and numeric 1/0
+      let boolStatus;
+      if (status === true || status === 'true' || status === 1 || status === '1') {
+        boolStatus = true;
+      } else {
+        boolStatus = false;
+      }
       query += queryParams.length ? " AND status = $2" : " WHERE status = $1";
       queryParams.push(boolStatus);
     }
