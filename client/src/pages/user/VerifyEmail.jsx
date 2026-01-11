@@ -64,9 +64,48 @@ const VerifyEmail = () => {
     navigate("/loginPage");
   };
 
+  const [showResendInput, setShowResendInput] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendStatus, setResendStatus] = useState("");
+
   const handleResendVerification = async () => {
-    // TODO: Implement resend verification email functionality
-    console.log("Resend verification clicked");
+    const token = searchParams.get("token");
+    setResendStatus("sending");
+
+    try {
+      // Attempt to resend using the token first
+      await axios.post(`${import.meta.env.VITE_API_URL}/resend-verification`, {
+        token,
+      });
+      setResendStatus("sent");
+      setMessage("A new verification email has been sent. Please check your inbox.");
+      setStatus("success");
+    } catch (error) {
+      console.error("Resend with token failed:", error);
+      // If token-based resend fails, show email input
+      setShowResendInput(true);
+      setResendStatus("");
+    }
+  };
+
+  const handleManualResend = async (e) => {
+    e.preventDefault();
+    if (!resendEmail) return;
+
+    setResendStatus("sending");
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/resend-verification`, {
+        email: resendEmail,
+      });
+      setResendStatus("sent");
+      setMessage("A new verification email has been sent to " + resendEmail + ". Please check your inbox.");
+      setStatus("success");
+      setShowResendInput(false);
+    } catch (error) {
+      setResendStatus("error");
+      const errorMsg = error.response?.data?.error || "Failed to resend email.";
+      alert(errorMsg); // Simple feedback for now inside the error view
+    }
   };
 
   return (
@@ -108,15 +147,37 @@ const VerifyEmail = () => {
                 ? "Go to Login Now"
                 : "Back to Sign Up"}
             </button>
-            {!message.includes("already verified") &&
-              !message.includes("expired") && (
+            {!message.includes("already verified") && !showResendInput && (
+              <button
+                onClick={handleResendVerification}
+                style={styles.secondaryButton}
+                disabled={resendStatus === "sending"}
+              >
+                {resendStatus === "sending"
+                  ? "Sending..."
+                  : "Resend Verification Email"}
+              </button>
+            )}
+
+            {showResendInput && (
+              <form onSubmit={handleManualResend} style={styles.form}>
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={resendEmail}
+                  onChange={(e) => setResendEmail(e.target.value)}
+                  style={styles.input}
+                  required
+                />
                 <button
-                  onClick={handleResendVerification}
+                  type="submit"
                   style={styles.secondaryButton}
+                  disabled={resendStatus === "sending"}
                 >
-                  Resend Verification Email
+                  {resendStatus === "sending" ? "Sending..." : "Send Link"}
                 </button>
-              )}
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -185,6 +246,18 @@ const styles = {
     ":hover": {
       backgroundColor: "#EEF2FF",
     },
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    width: "100%",
+  },
+  input: {
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #D1D5DB",
+    fontSize: "16px",
   },
 };
 
