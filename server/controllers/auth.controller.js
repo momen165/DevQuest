@@ -662,7 +662,28 @@ const verifyEmail = handleAsync(async (req, res) => {
 });
 
 const resendVerificationEmail = handleAsync(async (req, res) => {
-  const { email } = req.body;
+  let { email } = req.body;
+  const { token } = req.body;
+
+  // If email is not provided but token is, try to extract email from token
+  if (!email && token) {
+    try {
+      const decoded = jwt.decode(token);
+      if (decoded && (decoded.userId || decoded.id)) {
+        const userId = decoded.userId || decoded.id;
+        const userResult = await db.query(
+          "SELECT email FROM users WHERE user_id = $1",
+          [userId],
+        );
+        if (userResult.rows.length > 0) {
+          email = userResult.rows[0].email;
+        }
+      }
+    } catch (error) {
+      console.error("Error decoding token for resend:", error);
+      // Continue to validation which will fail if email is still missing
+    }
+  }
 
   if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
     return res.status(400).json({ error: "Valid email is required" });
