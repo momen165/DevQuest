@@ -65,9 +65,8 @@
   z-index: 1;
 }
 
-
-.courses-grid > div {
-  height: auto; /* Ensure no fixed height on the container */
+.courses-grid > .no-courses-found {
+  height: auto;
 }
 
 /* For tablet-sized screens and smaller */
@@ -77,19 +76,17 @@
     gap: 30px;
     padding: clamp(15px, 4vw, 40px);
   }
-  
+
   .courses-header {
     height: 450px; /* Reduced height for tablets */
     margin-top: 80px; /* Adjusted margin */
   }
-  
-  
-  
+
   .hero-para {
     font-size: 22px;
     padding-bottom: 30px;
   }
-  
+
   .search-container {
     max-width: 350px;
     margin: 15px auto 30px;
@@ -103,26 +100,22 @@
     gap: 20px;
     padding: 15px;
   }
-  
+
   .courses-header {
     height: 350px; /* Further reduced height for phones */
     margin-top: 70px;
   }
-  
- 
-  
+
   .hero-para {
     font-size: 18px; /* Smaller text for mobile */
     width: 90%;
     max-width: 100%;
     padding: 0 15px 20px;
   }
-  
+
   .search-container {
     max-width: 300px;
     padding: 0 15px;
     margin: 10px auto 20px;
   }
-  
- 
 }

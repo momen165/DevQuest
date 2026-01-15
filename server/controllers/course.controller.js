@@ -63,8 +63,10 @@ const addCourse = asyncHandler(async (req, res) => {
     throw new AppError("Failed to add course", 400);
   }
 
+  const createdCourse = result.rows[0];
+
   // Clear courses cache after adding new course
-  clearCoursesCache();
+  clearCoursesCache(createdCourse.course_id);
 
   // Log activity
   await logActivity(
@@ -73,7 +75,7 @@ const addCourse = asyncHandler(async (req, res) => {
     req.user.userId
   );
 
-  res.status(201).json(result.rows[0]);
+  res.status(201).json(createdCourse);
 });
 
 const editCourse = asyncHandler(async (req, res) => {
@@ -103,15 +105,17 @@ const editCourse = asyncHandler(async (req, res) => {
     throw new AppError("Course not found", 404);
   }
 
+  const updatedCourse = result.rows[0];
+
   // Clear courses cache after editing course
-  clearCoursesCache();
+  clearCoursesCache(course_id);
 
   await logActivity(
     "Course",
     `Course updated: ${title} by user ID ${req.user.userId}`,
     req.user.userId
   );
-  res.status(200).json(result.rows[0]);
+  res.status(200).json(updatedCourse);
 });
 
 const deleteCourse = asyncHandler(async (req, res) => {
@@ -122,7 +126,7 @@ const deleteCourse = asyncHandler(async (req, res) => {
   await courseQueries.deleteCourseData(course_id);
 
   // Clear courses cache after deleting course
-  clearCoursesCache();
+  clearCoursesCache(course_id);
 
   await logActivity(
     "Course",

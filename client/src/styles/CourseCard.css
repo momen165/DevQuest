@@ -1,237 +1,354 @@
-.course-card {
-  display: flex;
-  flex-direction: column;
-  background: var(--language-color);
-  color: #fff;
-  padding: 16px;
-  border-radius: 25px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  width: 490px;
-  justify-content: center;
-  height: 400px !important;
+.dq-course-card {
+  --accent-rgb: 0, 172, 215;
   position: relative;
+  width: 100%;
+  max-width: 580px;
+  height: 410px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #0d1b3e 0%, #0a1428 50%, #0d1b3e 100%);
   overflow: hidden;
-  /* Optimize heavy CSS properties */
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Simplified transition */
-  margin: 0;
-  /* Use hardware acceleration */
-  will-change: transform;
-  /* Optimize rendering */
-  contain: layout style paint;
+  color: #ffffff;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Optimize the animated background for better performance */
-.course-card::before {
+.dq-course-card::before {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  inset: 0;
   background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--language-color) 20%, transparent) 0%,
-    color-mix(in srgb, var(--language-color) 10%, transparent) 50%,
-    transparent 100%
+    ellipse at 60% 30%,
+    rgba(var(--accent-rgb), 0.15) 0%,
+    transparent 50%
   );
-  /* Reduce animation intensity for better performance */
-  animation: rotate 30s linear infinite;
+  pointer-events: none;
   z-index: 0;
-  /* Only animate when hovered for better performance */
-  animation-play-state: paused;
 }
 
-.course-card:hover::before {
-  animation-play-state: running;
+.dq-course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
-.course-head {
-  padding: 10px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  height: 82px;
-}
-.course-info {
+.dq-course-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  margin-top: 5px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  /* Optimize backdrop-filter usage */
-  backdrop-filter: blur(5px);
-  border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-  /* Add performance optimizations */
-  contain: layout style;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
 }
 
-.enroll-btn {
-  display: flex;
-  justify-content: right;
-  align-items: center; /* Align items vertically */
+.dq-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 60%,
+    rgba(10, 20, 40, 0.6) 80%,
+    rgba(10, 20, 40, 0.9) 100%
+  );
+  z-index: 2;
 }
 
-.progress-container {
-  display: flex;
-  align-items: center;
-  margin-right: auto; /* Push the container to the leftmost side */
-}
-
-.course-icon {
-  height: 50px; /* Reduced from 50px */
-  width: auto; /* Maintain aspect ratio */
-  margin-bottom: 10px;
-  object-fit: contain; /* Ensures image isn't distorted */
-  display: flex;
-  align-self: flex-start; /* Maintains left alignment */
-  margin-right: 10px;
-}
-
-.course-rating,
-.course-level,
-.course-students {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
+/* Hover description modal */
+.dq-description-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(10, 15, 30, 0.95);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
-  gap: 5px;
-}
-.course-students {
-  display: flex;
-  align-self: flex-start;
-  padding: 20px 10px;
+  justify-content: center;
+  padding: 32px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-.enroll-button {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+.dq-course-card:hover .dq-description-modal {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dq-description-content {
+  text-align: center;
+  max-width: 90%;
+}
+
+.dq-description-title {
+  font-size: 28px;
+  font-weight: 700;
   color: #ffffff;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  margin-top: 10px;
-  width: 200px;
-  margin-right: 30px;
-  transition: all 0.3s ease;
+  margin: 0 0 16px 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dq-description-text {
+  font-size: 16px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.dq-description-meta {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.dq-description-level,
+.dq-description-lang {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
 }
 
-.enroll-button:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+.dq-description-level {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
 }
-.course-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 40px var(--hover-color);
-  border: 1px solid color-mix(in srgb, white 20%, transparent);
-  background: var(--hover-color);
-  /* Add performance hint */
-  will-change: transform;
+
+.dq-description-lang {
+  background: rgba(var(--accent-rgb), 0.2);
+  color: rgb(var(--accent-rgb));
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
 }
-.progress-circle {
-  position: relative;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
+
+.dq-modal-actions {
   display: flex;
-  justify-content: center;
   align-items: center;
-  margin-right: 10px;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.dq-modal-actions .dq-enroll-btn {
+  padding: 14px 36px;
+  font-size: 17px;
+}
+
+.dq-modal-actions .dq-progress-container {
   background: rgba(255, 255, 255, 0.1);
-  /* Optimize backdrop-filter for mobile performance */
-  backdrop-filter: blur(5px);
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
-  /* Add performance optimizations */
-  contain: layout style;
-  will-change: background;
+  padding: 8px 16px;
+  border-radius: 30px;
 }
 
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.dq-card-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
 }
 
-.circle-mid {
+.dq-bottom-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.dq-left-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dq-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dq-star {
+  color: #ffc107;
+  font-size: 14px;
+}
+
+.dq-students {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dq-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.dq-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dq-progress-circle {
   position: relative;
-  width: 25px; /* Adjust size as needed */
-  height: 25px; /* Adjust size as needed */
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.progress-text {
+.dq-circle-mid {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.dq-progress-text {
   color: #ffffff;
-  font-size: 14px; /* Adjust size as needed */
+  font-size: 13px;
+  font-weight: 600;
 }
 
-/* Add these media queries at the end of the file */
+.dq-enroll-btn {
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0a1428;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--accent-rgb), 1) 0%,
+    rgba(var(--accent-rgb), 0.85) 50%,
+    rgba(var(--accent-rgb), 0.7) 100%
+  );
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.dq-enroll-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--accent-rgb), 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+.dq-enroll-btn:active {
+  transform: translateY(0);
+}
+
+.dq-decorative-star {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 16px;
+  height: 16px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.dq-decorative-star::before,
+.dq-decorative-star::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.dq-decorative-star::before {
+  width: 2px;
+  height: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dq-decorative-star::after {
+  width: 16px;
+  height: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Tablet */
 @media screen and (max-width: 768px) {
-  .course-card {
-    backdrop-filter: none;
-    background: rgba(255, 255, 255, 0.05); /* Slightly visible background instead of blur */
-    width: 100%; /* Make card responsive */
+  .dq-course-card {
+    max-width: 100%;
+    height: 420px;
   }
 
-  .course-info {
-    backdrop-filter: none;
-    background: color-mix(in srgb, var(--language-color) 40%, transparent);
+  .dq-card-content {
+    padding: 20px;
   }
 
-  .progress-circle,
-  .circle-mid {
-    backdrop-filter: none;
-    background: rgba(255, 255, 255, 0.15);
+  .dq-enroll-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .dq-description-modal {
+    padding: 24px;
+  }
+
+  .dq-description-title {
+    font-size: 24px;
+  }
+
+  .dq-description-text {
+    font-size: 14px;
   }
 }
 
-/* For very low-end devices */
+/* Mobile */
 @media screen and (max-width: 480px) {
-  .course-card {
-    backdrop-filter: blur(0px); /* Minimal blur for low-end devices */
+  .dq-course-card {
+    height: 380px;
   }
 
-  .course-info {
-    backdrop-filter: blur(0px); /* Minimal blur for low-end devices */
+  .dq-card-content {
+    padding: 16px;
   }
 
-  .progress-circle {
-    backdrop-filter: none; /* Remove blur completely for low-end devices */
-    background: rgba(255, 255, 255, 0.15); /* Use simple background instead */
-  }
-}
-
-/* Specific optimization for 430x932 phones */
-@media screen and (max-width: 430px) {
-  .course-card {
-    padding: 12px;
-    height: auto !important; /* Allow height to be flexible */
-    min-height: 350px;
+  .dq-bottom-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .course-info {
-    padding: 15px;
+  .dq-card-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
-  /* Disable animation to improve performance */
-  .course-card::before {
-    animation: none;
+  .dq-enroll-btn {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+
+  .dq-description-modal {
+    padding: 20px;
+  }
+
+  .dq-description-title {
+    font-size: 20px;
+  }
+
+  .dq-description-text {
+    font-size: 13px;
+  }
+
+  .dq-description-meta {
+    flex-direction: column;
+    gap: 8px;
   }
 }

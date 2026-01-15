@@ -22,30 +22,30 @@ const CoursesPage = () => {
     progress,
     searchTerm,
     handleFilter,
-    handleSearch
+    handleSearch,
   } = useCourses(user);
 
   // Structured data for courses page
   const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Course",
-    "name": "Programming Courses",
-    "description": "Comprehensive collection of interactive programming courses",
-    "provider": {
-      "@type": "EducationalOrganization",
-      "name": "DevQuest",
-      "url": "https://www.dev-quest.me"
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: 'Programming Courses',
+    description: 'Comprehensive collection of interactive programming courses',
+    provider: {
+      '@type': 'EducationalOrganization',
+      name: 'DevQuest',
+      url: 'https://www.dev-quest.me',
     },
-    "courseMode": "online",
-    "educationalLevel": "beginner to advanced",
-    "teaches": [
-      "Python Programming",
-      "JavaScript Development", 
-      "Java Programming",
-      "C++ Programming",
-      "Web Development",
-      "Software Engineering"
-    ]
+    courseMode: 'online',
+    educationalLevel: 'beginner to advanced',
+    teaches: [
+      'Python Programming',
+      'JavaScript Development',
+      'Java Programming',
+      'C++ Programming',
+      'Web Development',
+      'Software Engineering',
+    ],
   };
 
   if (loading) {
@@ -69,39 +69,41 @@ const CoursesPage = () => {
   }
 
   // Structured data for each course (JSON-LD)
-  const courseStructuredDataList = filteredCourses.map(course => ({
-    "@context": "https://schema.org",
-    "@type": "Course",
-    "name": course.name,
-    "description": course.description,
-    "provider": {
-      "@type": "EducationalOrganization",
-      "name": "DevQuest",
-      "url": "https://www.dev-quest.me"
+  const courseStructuredDataList = filteredCourses.map((course) => ({
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: course.name,
+    description: course.description,
+    provider: {
+      '@type': 'EducationalOrganization',
+      name: 'DevQuest',
+      url: 'https://www.dev-quest.me',
     },
-    "hasCourseInstance": [{
-      "@type": "CourseInstance",
-      "courseMode": "online",
-      "instructor": {
-        "@type": "Person",
-        "name": "DevQuest Team"
+    hasCourseInstance: [
+      {
+        '@type': 'CourseInstance',
+        courseMode: 'online',
+        instructor: {
+          '@type': 'Person',
+          name: 'DevQuest Team',
+        },
+        startDate: '2025-01-01',
+        endDate: '2025-12-31',
+        courseWorkload: 'PT20H',
+        location: {
+          '@type': 'VirtualLocation',
+          url: 'https://www.dev-quest.me',
+        },
       },
-      "startDate": "2025-01-01",
-      "endDate": "2025-12-31",
-      "courseWorkload": "PT20H",
-      "location": {
-        "@type": "VirtualLocation",
-        "url": "https://www.dev-quest.me"
-      }
-    }],
-    "offers": {
-      "@type": "Offer",
-      "category": "Education",
-      "url": `https://www.dev-quest.me/courses/${course.course_id}`,
-      "price": course.price ?? "0",
-      "priceCurrency": "USD",
-      "availability": "https://schema.org/InStock"
-    }
+    ],
+    offers: {
+      '@type': 'Offer',
+      category: 'Education',
+      url: `https://www.dev-quest.me/courses/${course.course_id}`,
+      price: course.price ?? '0',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+    },
   }));
 
   return (
@@ -128,7 +130,15 @@ const CoursesPage = () => {
       </header>
 
       {/* Ad Unit - Below header, above courses */}
-      <div style={{ margin: '30px auto', maxWidth: '1200px', minWidth: '300px', width: '100%', textAlign: 'center' }}>
+      <div
+        style={{
+          margin: '30px auto',
+          maxWidth: '1220px',
+          minWidth: '300px',
+          width: '100%',
+          textAlign: 'center',
+        }}
+      >
         <AdSense />
       </div>
 

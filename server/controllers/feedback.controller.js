@@ -6,12 +6,31 @@ const { AppError } = require("../utils/error.utils");
 // Initialize cache with 5 minutes TTL
 const cache = new NodeCache({ stdTTL: 300 });
 
-// Cache key for courses data
+// Cache keys for courses data
 const COURSES_CACHE_KEY = "courses_with_ratings";
+const OPTIMIZED_COURSES_CACHE_PREFIX = "optimized_courses_";
+const OPTIMIZED_COURSE_SECTION_CACHE_PREFIX = "optimized_course_section_";
 
 // Function to clear courses cache
-const clearCoursesCache = () => {
-  cache.del(COURSES_CACHE_KEY);
+const clearCoursesCache = (courseId = null) => {
+  const keysToDelete = new Set([COURSES_CACHE_KEY]);
+
+  for (const key of cache.keys()) {
+    if (key.startsWith(OPTIMIZED_COURSES_CACHE_PREFIX)) {
+      keysToDelete.add(key);
+      continue;
+    }
+
+    if (
+      key.startsWith(OPTIMIZED_COURSE_SECTION_CACHE_PREFIX) &&
+      (!courseId ||
+        key.startsWith(`${OPTIMIZED_COURSE_SECTION_CACHE_PREFIX}${courseId}_`))
+    ) {
+      keysToDelete.add(key);
+    }
+  }
+
+  cache.del([...keysToDelete]);
 };
 
 // SQL Queries
@@ -116,7 +135,9 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
   }
 
   const [courses, userscount] = await Promise.all([
-    db.query("SELECT course_id, name, description, status, image, difficulty, created_at FROM course WHERE status = 'Published'"),
+    db.query(
+      "SELECT course_id, name, description, status, image, difficulty, created_at FROM course WHERE status = 'Published'"
+    ),
     db.query(
       "SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id"
     ),
@@ -525,7 +546,7 @@ const submitFeedback = handleAsync(async (req, res) => {
     );
 
     await db.query("COMMIT");
-    clearCoursesCache();
+    clearCoursesCache(course_id);
     res
       .status(201)
       .json({ message: "Feedback submitted successfully!", feedback: rows[0] });
