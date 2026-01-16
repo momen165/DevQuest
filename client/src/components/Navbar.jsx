@@ -22,13 +22,31 @@ const Navbar = memo(() => {
   // Handle body scroll
   useEffect(() => {
     if (isMobileMenuOpen) {
+      // Save scroll position
+      const scrollY = window.scrollY;
+      
+      // Lock body scroll
       document.body.classList.add("menu-open");
+      document.body.style.top = `-${scrollY}px`;
+      
+      // Prevent touchmove on body
+      const preventScroll = (e) => {
+        if (!e.target.closest('.navbar-mobile-panel-content')) {
+          e.preventDefault();
+        }
+      };
+      document.body.addEventListener('touchmove', preventScroll, { passive: false });
+      
+      return () => {
+        document.body.classList.remove("menu-open");
+        document.body.style.top = '';
+        window.scrollTo(0, scrollY);
+        document.body.removeEventListener('touchmove', preventScroll);
+      };
     } else {
       document.body.classList.remove("menu-open");
+      document.body.style.top = '';
     }
-    return () => {
-      document.body.classList.remove("menu-open");
-    };
   }, [isMobileMenuOpen]);
 
   // Close profile dropdown when clicking outside
@@ -48,6 +66,32 @@ const Navbar = memo(() => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const mobileMenu = document.getElementById('navbar-mobile-panel');
+      const menuButton = document.querySelector('.navbar-mobile-toggle-btn');
+      
+      if (
+        isMobileMenuOpen &&
+        mobileMenu &&
+        !mobileMenu.contains(event.target) &&
+        menuButton &&
+        !menuButton.contains(event.target)
+      ) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMobileMenuOpen]);
 
   const handleLogout = () => {
     logout();
@@ -170,14 +214,14 @@ const Navbar = memo(() => {
 
         {/* Mobile Menu Button */}
         <button
-          className="mobile-menu-button"
+          className="navbar-mobile-toggle-btn"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-expanded={isMobileMenuOpen}
-          aria-controls="mobile-menu"
+          aria-controls="navbar-mobile-panel"
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
         >
           <span className="sr-only">Open main menu</span>
-          <div className={`hamburger ${isMobileMenuOpen ? "active" : ""}`}>
+          <div className={`navbar-hamburger-icon ${isMobileMenuOpen ? "is-active" : ""}`}>
             <span></span>
             <span></span>
             <span></span>
@@ -187,13 +231,27 @@ const Navbar = memo(() => {
 
       {/* Mobile Menu */}
       <div
-        className={`mobile-menu ${isMobileMenuOpen ? "active" : ""}`}
-        id="mobile-menu"
+        className={`navbar-mobile-panel ${isMobileMenuOpen ? "is-open" : ""}`}
+        id="navbar-mobile-panel"
         aria-hidden={!isMobileMenuOpen}
+        style={{
+          position: 'fixed',
+          top: '70px',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 'calc(100vh - 70px)',
+          zIndex: 999999,
+          visibility: isMobileMenuOpen ? 'visible' : 'hidden',
+          opacity: isMobileMenuOpen ? 1 : 0,
+          pointerEvents: isMobileMenuOpen ? 'auto' : 'none',
+          transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(100%)',
+          display: isMobileMenuOpen ? 'block' : 'none'
+        }}
       >
-        <div className="mobile-menu-content">
+        <div className="navbar-mobile-panel-content">
           {user && (
-            <div className="mobile-user-info">
+            <div className="navbar-mobile-user-info">
               <img
                 src={user.profileimage || defaultProfilePic}
                 alt={`${user.name || 'User'}'s profile`}
@@ -212,7 +270,7 @@ const Navbar = memo(() => {
 
           <Link
             to="/"
-            className={`mobile-nav-link ${isActive("/") ? "active" : ""}`}
+            className={`navbar-mobile-link ${isActive("/") ? "is-active" : ""}`}
             onClick={() => setIsMobileMenuOpen(false)}
             aria-current={isActive("/") ? "page" : undefined}
           >
@@ -220,7 +278,7 @@ const Navbar = memo(() => {
           </Link>
           <Link
             to="/CoursesPage"
-            className={`mobile-nav-link ${isActive("/CoursesPage") ? "active" : ""}`}
+            className={`navbar-mobile-link ${isActive("/CoursesPage") ? "is-active" : ""}`}
             onClick={() => setIsMobileMenuOpen(false)}
             aria-current={isActive("/CoursesPage") ? "page" : undefined}
           >
@@ -228,7 +286,7 @@ const Navbar = memo(() => {
           </Link>
           <Link
             to="/pricing"
-            className={`mobile-nav-link ${isActive("/pricing") ? "active" : ""}`}
+            className={`navbar-mobile-link ${isActive("/pricing") ? "is-active" : ""}`}
             onClick={() => setIsMobileMenuOpen(false)}
             aria-current={isActive("/pricing") ? "page" : undefined}
           >
@@ -237,17 +295,17 @@ const Navbar = memo(() => {
 
           {user ? (
             <>
-              <div className="mobile-divider" />
+              <div className="navbar-mobile-divider" />
               <Link
                 to="/ProfilePage"
-                className="mobile-nav-link"
+                className="navbar-mobile-link"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Profile
               </Link>
               <Link
                 to="/AccountSettings"
-                className="mobile-nav-link"
+                className="navbar-mobile-link"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Settings
@@ -255,29 +313,29 @@ const Navbar = memo(() => {
               {user.admin && (
                 <Link
                   to="/dashboard"
-                  className="mobile-nav-link"
+                  className="navbar-mobile-link"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
               )}
-              <button onClick={handleLogout} className="mobile-logout-button">
+              <button onClick={handleLogout} className="navbar-mobile-logout-btn">
                 Logout
               </button>
             </>
           ) : (
             <>
-              <div className="mobile-divider" />
+              <div className="navbar-mobile-divider" />
               <Link
                 to="/LoginPage"
-                className="mobile-nav-link"
+                className="navbar-mobile-link"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Log in
               </Link>
               <Link
                 to="/RegistrationPage"
-                className="mobile-nav-link"
+                className="navbar-mobile-link"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Sign up
