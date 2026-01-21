@@ -1,0 +1,53 @@
+/* ============================================
+   Dashboard Layout - Base Styles
+   ============================================ */
+
+.dashboard-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #0a0f1c;
+}
+
+.account-settings-profile-page {
+  display: flex;
+  flex: 1;
+  min-height: 100vh;
+  background: #0a0f1c;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Animated background orbs */
+.account-settings-profile-page::before {
+  content: '';
+  position: fixed;
+  top: 10%;
+  left: -15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.account-settings-profile-page::after {
+  content: '';
+  position: fixed;
+  bottom: 10%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .account-settings-profile-page {
+    flex-direction: column;
+  }
+}

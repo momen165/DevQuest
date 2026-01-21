@@ -8,7 +8,7 @@ import ErrorAlert from './ErrorAlert';
 import { useAuth } from 'app/AuthContext';
 import { useSections } from 'features/course/hooks/useSections';
 
-const SectionManager = ({ sections, courseId, onSectionUpdate, onDeleteSection, onClose }) => {
+const SectionManager = ({ sections, courseId, languageId, onSectionUpdate, onDeleteSection, onClose }) => {
   const [editingSection, setEditingSection] = useState(null);
   const [viewingSection, setViewingSection] = useState(null);
   const { user } = useAuth();
@@ -47,7 +47,7 @@ const SectionManager = ({ sections, courseId, onSectionUpdate, onDeleteSection, 
   };
 
   return viewingSection ? (
-    <LessonList section={viewingSection} onClose={() => setViewingSection(null)} />
+    <LessonList section={viewingSection} languageId={languageId} onClose={() => setViewingSection(null)} />
   ) : editingSection ? (
     <SectionForm
       section={editingSection}

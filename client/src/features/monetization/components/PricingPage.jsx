@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./PricingPage.css";
-import Navbar from "shared/ui/Navbar";
 import SEOHead from "shared/seo/SEOHead";
 import { useAuth } from "app/AuthContext";
 import { loadStripe } from "@stripe/stripe-js";
-import SupportForm from "features/support/components/SupportForm";
-import Footer from "shared/ui/Footer";
 import { useNavigate } from "react-router-dom";
 import { 
   HiOutlineBookOpen, 
@@ -195,7 +192,6 @@ const PricingPage = () => {
         canonical="/pricing"
         structuredData={structuredData}
       />
-      <Navbar />
       
       {/* Decorative background elements */}
       <div className="pricing-bg-decoration">
@@ -412,8 +408,6 @@ const PricingPage = () => {
           </div>
         </div>
       )}
-      <SupportForm />
-      <Footer />
     </div>
   );
 };

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import Navbar from 'shared/ui/Navbar';
 import LessonList from 'features/lesson/components/LessonSection';
 import RatingForm from 'features/feedback/components/RatingForm';
 import axios from 'axios';
 import './CourseSections.css';
 import { useAuth } from 'app/AuthContext';
-import SupportForm from 'features/support/components/SupportForm';
 import { calculateLevel, calculateLevelProgress, getXPForLevel } from 'features/profile/hooks/xpCalculator';
 
 // Create axios instance with default config
@@ -193,7 +191,6 @@ const CourseSection = () => {
 
   return (
     <div className="course-section-wrapper">
-      <Navbar />
       <div className="Page">
         <div className="Section">
           <div className="course-header">
@@ -303,7 +300,6 @@ const CourseSection = () => {
           </div>
           <RatingForm courseId={courseId} />
         </div>
-        <SupportForm />
         {showErrorMessage && (
           <div className="error-message">
             <p>{errorMessage}</p>

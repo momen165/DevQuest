@@ -8,7 +8,7 @@ import { useAuth } from 'app/AuthContext';
 import { useLessons } from 'features/lesson/hooks/useLessons';
 import CircularProgress from '@mui/material/CircularProgress';
 
-const LessonList = ({ section, onClose }) => {
+const LessonList = ({ section, languageId, onClose }) => {
   const [editingLesson, setEditingLesson] = useState(null);
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const { user } = useAuth();
@@ -42,7 +42,7 @@ const LessonList = ({ section, onClose }) => {
   };
 
   return (
-    <div className="manage-container">
+    <div className={`manage-container ${isAddingLesson || editingLesson ? 'manage-container-wide' : ''}`}>
       {error && <ErrorAlert message={error} onClose={() => {}} />}
 
       <div className="manage-header">
@@ -69,6 +69,7 @@ const LessonList = ({ section, onClose }) => {
         <LessonForm
           section={section}
           lesson={editingLesson}
+          languageId={languageId}
           onSave={handleSaveLesson}
           onDelete={handleDeleteLesson}
           onCancel={() => {

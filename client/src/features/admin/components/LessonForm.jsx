@@ -30,7 +30,7 @@ const DEFAULT_LESSON_TEMPLATE = `<div class="lesson-template">
 ... [truncated for brevity, keep existing constant]
 </div>`;
 
-const LessonForm = ({ section, lesson = null, onSave, onCancel, onDelete }) => {
+const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDelete }) => {
   const { user } = useAuth();
 
   // Helper function for default test case
@@ -58,7 +58,6 @@ const LessonForm = ({ section, lesson = null, onSave, onCancel, onDelete }) => {
   // UI state
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [languageId, setLanguageId] = useState(null);
 
   // Test cases state
   const [test_cases, setTestCases] = useState(() => {
@@ -81,35 +80,6 @@ const LessonForm = ({ section, lesson = null, onSave, onCancel, onDelete }) => {
     }
     return [getDefaultTestCase()];
   });
-
-  useEffect(() => {
-    const fetchCourseLanguage = async () => {
-      if (!section?.section_id) return;
-
-      try {
-        const sectionResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/sections/${section.section_id}`,
-          { headers: { Authorization: `Bearer ${user.token}` } }
-        );
-
-        if (!sectionResponse.data?.course_id) return;
-
-        const courseResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/courses/${sectionResponse.data.course_id}`,
-          { headers: { Authorization: `Bearer ${user.token}` } }
-        );
-
-        if (courseResponse.data?.language_id) {
-          setLanguageId(courseResponse.data.language_id);
-        }
-      } catch (err) {
-        console.error('Error fetching course language:', err);
-        setError('Failed to fetch course language');
-      }
-    };
-
-    fetchCourseLanguage();
-  }, [section, user.token]);
 
   // Validation function
   const validate = () => {

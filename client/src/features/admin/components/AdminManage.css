@@ -8,8 +8,15 @@
    MANAGEMENT CONTAINER
    ============================================ */
 .manage-container {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.manage-container.manage-container-wide {
+  max-width: 1600px;
 }
 
 .manage-header {
@@ -242,8 +249,9 @@
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-lg);
   padding: 32px;
-  max-width: 700px;
+  width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .form-header {
@@ -274,7 +282,7 @@
 }
 
 .form-input {
-  width: 100%;
+  width: 97%;
   padding: 12px 16px;
   font-size: 15px;
   color: var(--admin-text-primary);

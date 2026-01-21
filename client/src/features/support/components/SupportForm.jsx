@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaComments, FaPaperPlane, FaUser, FaHeadset } from 'react-icons/fa';
+import { FaComments, FaPaperPlane, FaUser, FaHeadset, FaTimes } from 'react-icons/fa';
 import { useAuth } from 'app/AuthContext';
 import './SupportForm.css';
 
@@ -215,7 +215,7 @@ const SupportForm = () => {
               onClick={toggleForm}
               aria-label="Close support chat"
             >
-              ×
+              <FaTimes />
             </button>
           </div>
 
@@ -256,7 +256,7 @@ const SupportForm = () => {
               <div className="sf-chat-container" ref={chatContainerRef}>
                 {!Array.isArray(tickets) || tickets.length === 0 ? (
                   <div className="sf-empty-message">
-                    <FaHeadset size={24} />
+                    <FaHeadset />
                     <p>How can we help you today?</p>
                   </div>
                 ) : (

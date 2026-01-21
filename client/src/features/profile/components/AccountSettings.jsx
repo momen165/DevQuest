@@ -1,16 +1,14 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "shared/ui/Navbar";
-import Sidebar from "features/profile/components/AccountSettingsSidebar";
 import { useAuth } from "app/AuthContext";
-import "./AccountSettings.css";
 import BadgeNotification from "features/badge/components/BadgeNotification";
 import ProfileAvatar from "features/profile/components/ProfileAvatar";
 import CountrySelect from "shared/ui/CountrySelect";
 import SkillsManager from "features/course/components/SkillsManager";
 import { useAccountSettings } from "features/profile/hooks/useAccountSettings";
+import "./AccountSettings.css";
 
-function ProfilePage() {
+function AccountSettings() {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
@@ -39,17 +37,13 @@ function ProfilePage() {
 
   return (
     <>
-      <Navbar />
       {showBadgeNotification && profileCompleteBadge && (
         <BadgeNotification
           badge={profileCompleteBadge}
           onClose={() => setShowBadgeNotification(false)}
         />
       )}
-      <div className="account-settings-profile-page">
-        <Sidebar activeLink="profile" />
-
-        <div className="account-settings-profile-content">
+      <div className="account-settings-profile-content">
           <h2>{name ? `Welcome, ${name}!` : "Loading..."}</h2>
           <div className="account-settings-profile-header">
             <ProfileAvatar 
@@ -110,9 +104,8 @@ function ProfilePage() {
             </div>
           </form>
         </div>
-      </div>
     </>
   );
 }
 
-export default ProfilePage;
+export default AccountSettings;

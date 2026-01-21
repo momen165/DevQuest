@@ -5,9 +5,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Chivo:wght@300;400;700;900&display=swap');
 
 .footer {
-    background: linear-gradient(180deg, transparent 0%, rgba(10, 15, 28, 0.5) 20%, #0a0f1c 100%);
+    background: #0a0f1c;
     color: #fff;
-    padding: 80px 24px 24px;
+    padding: 60px 24px 32px;
     position: relative;
     overflow: hidden;
 }
@@ -39,7 +39,7 @@
 }
 
 .footer__logo {
-    width: 280px;
+    width: 220px;
     height: auto;
     margin-bottom: 16px;
     filter: drop-shadow(0 4px 20px rgba(99, 102, 241, 0.2));

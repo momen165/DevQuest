@@ -4,7 +4,7 @@ import "./AccountSettingsSidebar.css";
 import { FaCreditCard } from "react-icons/fa";
 import { FaRightToBracket, FaUser } from "react-icons/fa6";
 
-function Sidebar({ activeLink }) {
+function AccountSettingsSidebar({ activeLink }) {
 	return (
 		<div className="account-settings-sidebar">
 			<ul className="account-settings-sidebar-list">
@@ -49,4 +49,4 @@ function Sidebar({ activeLink }) {
 	);
 }
 
-export default Sidebar;
+export default AccountSettingsSidebar;

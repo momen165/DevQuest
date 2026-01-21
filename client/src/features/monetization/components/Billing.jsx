@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Navbar from "shared/ui/Navbar";
-import Sidebar from "features/profile/components/AccountSettingsSidebar";
 import { useAuth } from "app/AuthContext";
 import "./Billing.css";
 
@@ -75,10 +73,7 @@ function Billing() {
 
   return (
     <>
-      <Navbar />
-      <div className="billing-container">
-        <Sidebar activeLink="billing" />
-        <div className="billing-main">
+      <div className="billing-main">
           <h1 className="billing-main-title">Billing & Subscription</h1>
 
           {error && <div className="billing-error-message">{error}</div>}
@@ -153,7 +148,6 @@ function Billing() {
             </div>
           )}
         </div>
-      </div>
     </>
   );
 }

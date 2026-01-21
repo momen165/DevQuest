@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import axios from 'axios';
 import { useAuth } from 'app/AuthContext';
-import Sidebar from 'features/admin/components/Sidebar';
 import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import './EnhancedAnalytics.css';
@@ -175,7 +174,6 @@ const Analytics = () => {
   if (loading) {
     return (
       <div className="admin-analytics-page">
-        <Sidebar />
         <div className="analytics-loading">
           <CircularProgress />
           <p>Loading analytics data...</p>
@@ -187,7 +185,6 @@ const Analytics = () => {
   if (error) {
     return (
       <div className="admin-analytics-page">
-        <Sidebar />
         <div className="analytics-error">
           <h2>Error Loading Analytics</h2>
           <p>{error}</p>
@@ -198,7 +195,6 @@ const Analytics = () => {
 
   return (
     <div className="admin-analytics-page">
-      <Sidebar />
       <div className="analytics-content">
         <header className="analytics-header">
           <h1>Site Analytics</h1>

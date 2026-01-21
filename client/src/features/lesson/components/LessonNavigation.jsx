@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaCheck, FaBars, FaLock } from 'react-icons/fa';
 import './LessonNavigation.css'; // Assuming this file exists and contains necessary styles
@@ -19,6 +19,7 @@ const LessonNavigation = ({
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth(); // Get user from AuthContext
+  const messageTimerRef = useRef(null); // Use ref instead of window global for timer
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCompleted, setIsCompleted] = useState(currentLessonProgress?.completed || false); // Use prop for initial value
   const [showSuccessMessage, setShowSuccessMessage] = useState(false); // Controls visibility of SuccessNotification
@@ -29,6 +30,42 @@ const LessonNavigation = ({
   const [courseId, setCourseId] = useState(null);
   const [openSectionId, setOpenSectionId] = useState(currentSectionId); // Tracks which section is expanded in the menu
   const [loadingMenu, setLoadingMenu] = useState(false); // Loading state for menu data
+
+  // Define showNotification early so it can be used in useEffects
+  const showNotification = useCallback((type, text) => {
+    if (type === 'success') {
+      setShowSuccessMessage(true);
+      setShowErrorMessage(false);
+    } else {
+      setErrorMessageText(text);
+      setShowErrorMessage(true);
+      setShowSuccessMessage(false);
+    }
+
+    // Use ref instead of window global to prevent memory leak
+    if (messageTimerRef.current) {
+      clearTimeout(messageTimerRef.current);
+    }
+
+    messageTimerRef.current = setTimeout(() => {
+      setShowSuccessMessage(false);
+      setShowErrorMessage(false);
+    }, 4000);
+  }, []);
+
+  // Sync isCompleted state when currentLessonProgress prop changes (e.g., when navigating between lessons)
+  useEffect(() => {
+    setIsCompleted(currentLessonProgress?.completed || false);
+  }, [currentLessonProgress?.completed, currentLessonId]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (messageTimerRef.current) {
+        clearTimeout(messageTimerRef.current);
+      }
+    };
+  }, []);
 
   // Effect to fetch data for the navigation menu (course name, sections, lessons)
   useEffect(() => {
@@ -118,8 +155,25 @@ const LessonNavigation = ({
 
     if (lessonIndex === -1) return; // Lesson not found
 
-    // Check if this lesson is accessible
-    const accessible = isLessonAccessible(sectionIndex, lessonIndex);
+    // Inline accessibility check to avoid hoisting issues
+    const checkAccessible = () => {
+      // First lesson in first section is always accessible
+      if (sectionIndex === 0 && lessonIndex === 0) return true;
+
+      // First lesson of a new section - check if ALL lessons in previous section are completed
+      if (lessonIndex === 0 && sectionIndex > 0) {
+        const previousSection = menuSections[sectionIndex - 1];
+        if (!previousSection?.lessons?.length) return false;
+        return previousSection.lessons.every((lesson) => lesson.completed === true);
+      }
+
+      // Not the first lesson - check if previous lesson in this section is completed
+      const prevLesson = section.lessons[lessonIndex - 1];
+      if (!prevLesson) return false;
+      return prevLesson.completed;
+    };
+
+    const accessible = checkAccessible();
 
     // If not accessible and not the first lesson of first section, redirect
     if (!accessible && !(sectionIndex === 0 && lessonIndex === 0)) {
@@ -156,7 +210,7 @@ const LessonNavigation = ({
       showNotification('error', 'You need to complete previous lessons first.');
       navigate(`/lesson/${redirectLessonId}`);
     }
-  }, [menuSections, currentLessonId, loadingMenu, navigate]); // Added navigate to dependency array
+  }, [menuSections, currentLessonId, loadingMenu, navigate, showNotification]); // Added showNotification to dependency array
 
   // Memoized organization of lessons by section, used for "Prev" and "Next" button logic
   const organizedSections = React.useMemo(() => {
@@ -190,26 +244,6 @@ const LessonNavigation = ({
     () => currentSectionLessonsForNav.findIndex((lesson) => lesson.lesson_id === currentLessonId),
     [currentSectionLessonsForNav, currentLessonId]
   );
-
-  const showNotification = (type, text) => {
-    if (type === 'success') {
-      setShowSuccessMessage(true);
-      setShowErrorMessage(false);
-    } else {
-      setErrorMessageText(text);
-      setShowErrorMessage(true);
-      setShowSuccessMessage(false);
-    }
-
-    if (window._messageTimer) {
-      clearTimeout(window._messageTimer);
-    }
-
-    window._messageTimer = setTimeout(() => {
-      setShowSuccessMessage(false);
-      setShowErrorMessage(false);
-    }, 4000);
-  };
 
   const completeLesson = async () => {
     if (!user) {
@@ -260,14 +294,51 @@ const LessonNavigation = ({
   };
 
   const goToPreviousLesson = () => {
+    // Find current position in menuSections (which has completion data)
+    const menuSectionIndex = menuSections.findIndex((section) =>
+      section.lessons.some((lesson) => lesson.lesson_id === currentLessonId)
+    );
+    
+    if (menuSectionIndex !== -1) {
+      const menuSection = menuSections[menuSectionIndex];
+      const menuLessonIndex = menuSection.lessons.findIndex(
+        (lesson) => lesson.lesson_id === currentLessonId
+      );
+
+      if (menuLessonIndex > 0) {
+        // Previous lesson in same section
+        const prevLesson = menuSection.lessons[menuLessonIndex - 1];
+        if (!prevLesson.completed) {
+          showNotification('error', 'Previous lesson is not completed yet.');
+          return;
+        }
+        navigate(`/lesson/${prevLesson.lesson_id}`);
+        return;
+      } else if (menuSectionIndex > 0) {
+        // First lesson - go to last lesson of previous section
+        const previousSection = menuSections[menuSectionIndex - 1];
+        const previousSectionLessons = previousSection?.lessons || [];
+        if (previousSectionLessons.length === 0) {
+          showNotification('error', 'Previous section has no lessons.');
+          return;
+        }
+        const lastLesson = previousSectionLessons[previousSectionLessons.length - 1];
+        if (!lastLesson.completed) {
+          showNotification('error', 'You need to complete the previous section first.');
+          return;
+        }
+        navigate(`/lesson/${lastLesson.lesson_id}`);
+        return;
+      }
+    }
+
+    // Fallback to organizedSections if menuSections not available
     if (lessonIndexInSection > 0) {
       navigate(`/lesson/${currentSectionLessonsForNav[lessonIndexInSection - 1].lesson_id}`);
     } else if (currentSectionIndex > 0) {
       const previousSection = organizedSections[currentSectionIndex - 1];
       const previousSectionLessons = previousSection.lessons || [];
-
       if (previousSectionLessons.length === 0) {
-        console.error('No lessons found in previous section');
         showNotification('error', 'Previous section has no lessons.');
         return;
       }
@@ -276,16 +347,76 @@ const LessonNavigation = ({
     }
   };
 
+  // Check if the previous lesson is accessible (for disabling prev button)
+  const isPrevLessonAccessible = React.useMemo(() => {
+    // First lesson of first section - no previous
+    if (currentSectionIndex === 0 && lessonIndexInSection === 0) {
+      return false;
+    }
+    
+    // If menuSections not loaded yet, allow navigation (will be validated on click)
+    if (!menuSections.length) {
+      return currentSectionIndex > 0 || lessonIndexInSection > 0;
+    }
+
+    // Find current section in menuSections (which has completion data)
+    const menuSectionIndex = menuSections.findIndex((section) =>
+      section.lessons.some((lesson) => lesson.lesson_id === currentLessonId)
+    );
+    
+    if (menuSectionIndex === -1) {
+      return currentSectionIndex > 0 || lessonIndexInSection > 0;
+    }
+
+    const menuSection = menuSections[menuSectionIndex];
+    const menuLessonIndex = menuSection.lessons.findIndex(
+      (lesson) => lesson.lesson_id === currentLessonId
+    );
+
+    if (menuLessonIndex > 0) {
+      // Previous lesson in same section - check if completed
+      const prevLesson = menuSection.lessons[menuLessonIndex - 1];
+      return prevLesson?.completed === true;
+    } else if (menuSectionIndex > 0) {
+      // First lesson in current section - check last lesson of previous section
+      const previousSection = menuSections[menuSectionIndex - 1];
+      const previousSectionLessons = previousSection?.lessons || [];
+      if (previousSectionLessons.length === 0) return false;
+      const lastLesson = previousSectionLessons[previousSectionLessons.length - 1];
+      return lastLesson?.completed === true;
+    }
+    return false;
+  }, [currentSectionIndex, lessonIndexInSection, menuSections, currentLessonId]);
+
   const goToNextLesson = () => {
     if (!isCompleted) {
       showNotification('error', 'Please complete the current lesson before moving to the next.');
       return;
     }
+
+    // Find current position in menuSections to check accessibility
+    const menuSectionIndex = menuSections.findIndex((section) =>
+      section.lessons.some((lesson) => lesson.lesson_id === currentLessonId)
+    );
+
     if (lessonIndexInSection < currentSectionLessonsForNav.length - 1) {
+      // Next lesson in same section - always accessible if current is completed
       const nextLesson = currentSectionLessonsForNav[lessonIndexInSection + 1];
       onNext();
       navigate(`/lesson/${nextLesson.lesson_id}`);
     } else if (currentSectionIndex < organizedSections.length - 1) {
+      // Moving to next section - check if ALL lessons in current section are completed
+      if (menuSectionIndex !== -1) {
+        const currentMenuSection = menuSections[menuSectionIndex];
+        const allCurrentSectionCompleted = currentMenuSection?.lessons?.every(
+          (lesson) => lesson.completed === true
+        );
+        if (!allCurrentSectionCompleted) {
+          showNotification('error', 'Complete all lessons in this section before moving to the next section.');
+          return;
+        }
+      }
+
       const nextSection = organizedSections[currentSectionIndex + 1];
       const nextSectionLessons = nextSection.lessons || [];
 
@@ -309,9 +440,6 @@ const LessonNavigation = ({
   };
 
   const isLessonAccessible = (sectionIndex, lessonIndex) => {
-    // First lesson in any section is always accessible
-    if (lessonIndex === 0) return true;
-
     // Get the section
     const section = menuSections[sectionIndex];
     if (!section || !section.lessons) {
@@ -319,7 +447,18 @@ const LessonNavigation = ({
       return false;
     }
 
-    // Get the previous lesson in this section
+    // First lesson in first section is always accessible
+    if (sectionIndex === 0 && lessonIndex === 0) return true;
+
+    // First lesson of a new section - check if ALL lessons in previous section are completed
+    if (lessonIndex === 0 && sectionIndex > 0) {
+      const previousSection = menuSections[sectionIndex - 1];
+      if (!previousSection?.lessons?.length) return false;
+      // All lessons in previous section must be completed
+      return previousSection.lessons.every((lesson) => lesson.completed === true);
+    }
+
+    // Not the first lesson - check if previous lesson in this section is completed
     const prevLesson = section.lessons[lessonIndex - 1];
     if (!prevLesson) {
       console.error('Previous lesson not found:', {
@@ -330,28 +469,8 @@ const LessonNavigation = ({
       return false;
     }
 
-    // First section's lessons are accessible if previous lesson is completed
-    if (sectionIndex === 0) {
-      return prevLesson.completed;
-    }
-
-    // For other sections, check if previous lesson is completed
-    // If not, check if all lessons in previous section are completed
-    if (!prevLesson.completed) {
-      // Check if all lessons in the previous section are completed
-      // This is a simplified check - the server will do the full validation
-      return false;
-    }
-
-    return prevLesson.completed;
+    return prevLesson.completed === true;
   };
-
-  useEffect(() => {
-    const styleElement = document.getElementById('notification-animation-style');
-    if (styleElement) {
-      styleElement.remove();
-    }
-  }, []);
 
   return (
     <>
@@ -416,7 +535,7 @@ const LessonNavigation = ({
         )}
       </div>
 
-      {showSuccessMessage && lessonXp > 0 && <SuccessNotification xp={lessonXp} />}
+      {showSuccessMessage && <SuccessNotification xp={lessonXp || 0} />}
 
       {showErrorMessage && (
         <div
@@ -453,7 +572,7 @@ const LessonNavigation = ({
           <button
             className="nav-button prev-button"
             onClick={goToPreviousLesson}
-            disabled={currentSectionIndex === 0 && lessonIndexInSection === 0}
+            disabled={!isPrevLessonAccessible}
           >
             Prev
           </button>

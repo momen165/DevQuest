@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Sidebar from 'features/admin/components/Sidebar';
 import './Support.css';
 import CircularProgress from '@mui/material/CircularProgress';
 import useSupportTickets from 'features/support/hooks/useSupportTickets';
@@ -127,7 +126,6 @@ const Support = () => {
   if (loading) {
     return (
       <div className="admin-support-page admin-support-container">
-        <Sidebar />
         <div className="centered-loader">
           <CircularProgress />
         </div>
@@ -137,7 +135,6 @@ const Support = () => {
 
   return (
     <div className="admin-support-page admin-support-container">
-      <Sidebar />
       <div className="admin-support-main-content">
         <div className="support-header">
           <h2 className="admin-support-h2">Support Tickets</h2>

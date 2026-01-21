@@ -14,7 +14,7 @@
   gap: 16px;
   height: 64px;
   box-sizing: border-box;
-  z-index: 20;
+  z-index: 1100;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
 }
 

@@ -8,13 +8,9 @@
 /* Wrapper for navbar background */
 .lesson-page-wrapper {
   background: #0a0f1c;
-  min-height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
+  min-height: calc(100vh - 80px);
+  position: relative;
+  padding-top: 80px;
 }
 
 /* Improved Custom gutter for manual split */
@@ -69,18 +65,14 @@
   display: none;
 }
 .lesson-page {
-  position: fixed;
-  top: 80px;
-  left: 0;
-  right: 0;
-  bottom: 64px;
+  position: relative;
   background-color: #0a0f1c;
   color: white;
   overflow: hidden;
   box-sizing: border-box;
   z-index: 100;
-  width: 100vw;
-  height: calc(100vh - 80px - 64px);
+  width: 100%;
+  height: calc(100vh - 80px);
   min-width: 0;
   min-height: 0;
 }

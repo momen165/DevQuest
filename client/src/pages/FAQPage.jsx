@@ -1,9 +1,7 @@
 // /src/pages/FAQPage.js
 import React, { useState } from "react";
 import "./FAQPage.css";
-import Navbar from "shared/ui/Navbar";
 import SEOHead from "shared/seo/SEOHead";
-import Footer from "shared/ui/Footer";
 
 const FAQPage = () => {
   const [activeIndex, setActiveIndex] = useState(null);
@@ -78,7 +76,6 @@ const FAQPage = () => {
         canonical="/faq"
         structuredData={structuredData}
       />
-      <Navbar />
       <div className="faq-page">
         {/* Background decorations */}
         <div className="faq-bg-decoration">
@@ -132,7 +129,6 @@ const FAQPage = () => {
             ))}
           </div>
         </div>
-        <Footer />
       </div>
     </>
   );

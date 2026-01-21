@@ -7,6 +7,11 @@ import MaintenanceCheck from 'features/admin/components/MaintenanceCheck';
 
 import ProtectedRoute from 'app/ProtectedRoute';
 
+import AppLayout from 'app/AppLayout';
+import AdminLayout from 'app/AdminLayout';
+import DashboardLayout from 'app/DashboardLayout';
+import LoadingSpinner from 'shared/ui/LoadingSpinner';
+
 import './App.css';
 
 import Analytics from 'features/admin/components/EnhancedAnalytics';
@@ -166,243 +171,354 @@ function AppContent() {
   const WithMaintenance = ({ children }) => <MaintenanceCheck>{children}</MaintenanceCheck>;
 
   return (
-    <Routes>
-      {/* Auth routes - No maintenance check */}
+    <Suspense fallback={<LoadingSpinner fullScreen center message="Initialising application..." />}>
+      <Routes>
+        {/* Auth routes - No maintenance check */}
       <Route path="/LoginPage" element={<LoginPage />} />
+      <Route path="/RegistrationPage" element={<RegistrationPage />} />
       <Route path="/ForgotPasswordPage" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
       <Route path="/Unauthorized" element={<Unauthorized />} />
-      {/* Public Routes - With maintenance check */}
-      <Route
-        path="/"
-        element={
-          <WithMaintenance>
-            <HomePage />
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/CoursesPage"
-        element={
-          <WithMaintenance>
-            <CoursesPage />
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/enroll/:courseId"
-        element={
-          <WithMaintenance>
-            <EnrollmentPage />
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/faq"
-        element={
-          <WithMaintenance>
-            <FAQPage />
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/pricing"
-        element={
-          <WithMaintenance>
-            <PricingPage />
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/privacy"
-        element={
-          <WithMaintenance>
-            <PrivacyPage />
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/terms"
-        element={
-          <WithMaintenance>
-            <TermsPage />
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/RegistrationPage"
-        element={
-          <WithMaintenance>
-            <RegistrationPage />
-          </WithMaintenance>
-        }
-      />{' '}
-      <Route
-        path="/success"
-        element={
-          <WithMaintenance>
-            <PaymentSuccessPage />
-          </WithMaintenance>
-        }
-      />
-      {/* Admin Routes - With maintenance check */}
-      <Route
-        path="/Dashboard"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute adminRequired={true}>
-              <Dashboard />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/Students"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute adminRequired={true}>
-              <Students />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/AdminCourses"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute adminRequired={true}>
-              <AdminCourses />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/PaymentInfo"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute adminRequired={true}>
-              <PaymentInfo />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/Feedback"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute adminRequired={true}>
-              <Feedback />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/AdminSettingsPage"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute adminRequired={true}>
-              <AdminSettingsPage />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/Support"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute adminRequired={true}>
-              <Support />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/SupportDashboard"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute adminRequired={true}>
-              <SupportDashboard />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route path="/Analytics" element={<Analytics />} />
-      {/* Protected User Routes - With maintenance check */}
-      <Route
-        path="/AccountSettings"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute>
-              <AccountSettings />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/ChangePassword"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute>
-              <ChangePassword />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/Billing"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute>
-              <Billing />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/ProfilePage"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/CourseSection/:courseId"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute>
-              <CourseSection />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/course/:courseId"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute>
-              <CourseSection />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
-      <Route
-        path="/lesson/:lessonId"
-        element={
-          <WithMaintenance>
-            <ProtectedRoute>
-              <LessonPage />
-            </ProtectedRoute>
-          </WithMaintenance>
-        }
-      />
+
+      {/* Public Routes - Wrapped in AppLayout */}
+      <Route path="/" element={<AppLayout />}>
+        <Route
+          index
+          element={
+            <WithMaintenance>
+              <HomePage />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="confirm-email-change"
+          element={
+            <WithMaintenance>
+              <ConfirmEmailChange />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="CoursesPage"
+          element={
+            <WithMaintenance>
+              <CoursesPage />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="coursespage"
+          element={
+            <WithMaintenance>
+              <CoursesPage />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="enroll/:courseId"
+          element={
+            <WithMaintenance>
+              <EnrollmentPage />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="faq"
+          element={
+            <WithMaintenance>
+              <FAQPage />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="pricing"
+          element={
+            <WithMaintenance>
+              <PricingPage />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="privacy"
+          element={
+            <WithMaintenance>
+              <PrivacyPage />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="terms"
+          element={
+            <WithMaintenance>
+              <TermsPage />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="success"
+          element={
+            <WithMaintenance>
+              <PaymentSuccessPage />
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="ProfilePage"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="CourseSection/:courseId"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute>
+                <CourseSection />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="course/:courseId"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute>
+                <CourseSection />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="lesson/:lessonId"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute>
+                <LessonPage />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+      </Route>
+
+      {/* Admin Routes - Wrapped in AdminLayout */}
+      <Route element={<AdminLayout />}>
+        <Route
+          path="/dashboard"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <Dashboard />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/Dashboard"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <Dashboard />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/Students"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <Students />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/students"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <Students />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/AdminCourses"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <AdminCourses />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/admincourses"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <AdminCourses />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/PaymentInfo"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <PaymentInfo />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/paymentinfo"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <PaymentInfo />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/Feedback"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <Feedback />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/feedback"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <Feedback />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/AdminSettingsPage"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <AdminSettingsPage />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/adminsettingspage"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <AdminSettingsPage />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/Support"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <Support />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/support"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <Support />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/SupportDashboard"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <SupportDashboard />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/supportdashboard"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute adminRequired={true}>
+                <SupportDashboard />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route path="/Analytics" element={<Analytics />} />
+        <Route path="/analytics" element={<Analytics />} />
+      </Route>
+
+      {/* Dashboard Routes - Wrapped in DashboardLayout */}
+      <Route element={<DashboardLayout />}>
+        <Route
+          path="/AccountSettings"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute>
+                <AccountSettings />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/changepassword"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute>
+                <ChangePassword />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+        <Route
+          path="/billing"
+          element={
+            <WithMaintenance>
+              <ProtectedRoute>
+                <Billing />
+              </ProtectedRoute>
+            </WithMaintenance>
+          }
+        />
+      </Route>
+
       {/* Catch-all route for 404 Not Found */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    </Suspense>
   );
 }
 

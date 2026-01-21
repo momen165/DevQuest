@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Sidebar from 'features/admin/components/Sidebar';
 import './PaymentInfo.css';
 import { useAuth } from 'app/AuthContext';
 
@@ -20,7 +19,7 @@ const PaymentDetails = () => {
         }
 
         const response = await axios.get(
-          `${import.meta.env.REACT_APP_API_URL}/api/list-subscriptions`,
+          `${import.meta.env.VITE_API_URL}/list-subscriptions`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -44,7 +43,6 @@ const PaymentDetails = () => {
 
   return (
     <div className="admin-payment-container">
-      <Sidebar />
       <div className="admin-payment-main-content">
         <h2 className="admin-payment-h2">Subscription Details</h2>
         <table className="admin-payment-table">

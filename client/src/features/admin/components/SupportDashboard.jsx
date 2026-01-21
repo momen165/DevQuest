@@ -31,8 +31,7 @@ import {
   Email,
   Warning,
 } from '@mui/icons-material';
-// Sidebar lives in the same folder; previous path 'features/admin/components/Sidebar' was incorrect
-import Sidebar from './Sidebar';
+
 const SupportDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [recentTickets, setRecentTickets] = useState([]);
@@ -119,10 +118,9 @@ const SupportDashboard = () => {
     : '0.0';
 
   return (
-    <Sidebar>
-      <Box
-        sx={{
-          p: 3,
+    <Box
+      sx={{
+        p: 3,
           display: 'flex',
           flexDirection: 'column',
           background: 'linear-gradient(180deg, #1a2942 0%, #2c3e50 100%)',
@@ -361,7 +359,6 @@ const SupportDashboard = () => {
           </CardContent>
         </Card>
       </Box>
-    </Sidebar>
   );
 };
 

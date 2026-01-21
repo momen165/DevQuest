@@ -2,13 +2,10 @@ import React from 'react';
 import './CoursesPage.css';
 import CourseCard from 'features/course/components/CourseCard';
 import FilterTabs from 'shared/ui/FilterTabs';
-import Navbar from 'shared/ui/Navbar';
 import SEOHead from 'shared/seo/SEOHead';
 import AdSense from 'shared/ui/AdSense';
 import { useAuth } from 'app/AuthContext';
 import LoadingSpinner from 'shared/ui/LoadingSpinner';
-import Footer from 'shared/ui/Footer';
-import SupportForm from 'features/support/components/SupportForm';
 import { useCourses } from 'features/course/hooks/useCourses';
 
 const CoursesPage = () => {
@@ -55,7 +52,6 @@ const CoursesPage = () => {
   if (error) {
     return (
       <div className="courses-error-container">
-        <Navbar />
         <div className="error-message">
           <h2>Oops! Something went wrong</h2>
           <p>{error}</p>
@@ -63,7 +59,6 @@ const CoursesPage = () => {
             Try Again
           </button>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -124,7 +119,6 @@ const CoursesPage = () => {
           aria-hidden="true"
         />
       ))}
-      <Navbar />
       <header className="courses-header">
         <FilterTabs onFilterChange={handleFilter} onSearch={handleSearch} searchTerm={searchTerm} />
       </header>
@@ -171,8 +165,6 @@ const CoursesPage = () => {
           </div>
         )}
       </section>
-      <SupportForm />
-      <Footer />
     </div>
   );
 };

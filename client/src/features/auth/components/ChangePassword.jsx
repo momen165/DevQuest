@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import "./ChangePassword.css";
-import Navbar from "shared/ui/Navbar";
-import Sidebar from "features/profile/components/AccountSettingsSidebar";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useAuth } from "app/AuthContext";
@@ -192,10 +190,7 @@ function ChangePassword() {
 
   return (
     <>
-      <Navbar />
-      <div className="change-password-container">
-        <Sidebar activeLink="login" />
-        <div className="change-password-main">
+      <div className="change-password-main">
           <h2 className="change-password-title">Security Settings</h2>
 
           <div className="settings-section">
@@ -375,7 +370,6 @@ function ChangePassword() {
             </div>
           )}
         </div>
-      </div>
     </>
   );
 }

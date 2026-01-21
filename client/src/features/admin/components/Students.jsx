@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import LoadingSpinner from 'shared/ui/LoadingSpinner';
-import Sidebar from 'features/admin/components/Sidebar';
 import StudentDetailTable from 'features/admin/components/StudentDetailTable';
 import './Students.css';
 import useStudents from 'features/admin/hooks/useStudents';
@@ -53,7 +52,6 @@ const StudentSubscriptionTable = () => {
 
   return (
     <div className="student-subscription-page">
-      <Sidebar />
       <div className="student-subscription-content">
         <h2 className="studentPageTitle">Student Management</h2>
 

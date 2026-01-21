@@ -2,11 +2,8 @@ import React, { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Component Imports
-import Navbar from "shared/ui/Navbar";
 import FAQSection from "shared/ui/FAQSection";
 import CoursesSlider from "shared/ui/slider";
-import SupportForm from "features/support/components/SupportForm";
-import Footer from "shared/ui/Footer";
 import FeedbackCardScroll from "features/feedback/components/FeedbackCardScroll";
 import SEOHead from "shared/seo/SEOHead";
 import AdSense from "shared/ui/AdSense";
@@ -159,21 +156,16 @@ const HomePage = () => {
         structuredData={structuredData}
       />
       
-      {/* Navigation */}
-      <Navbar />
-
       {/* Decorative background elements */}
       <div className="home-bg-decoration">
-        <div className="home-orb home-orb--1"></div>
-        <div className="home-orb home-orb--2"></div>
-        <div className="home-orb home-orb--3"></div>
-        <div className="home-orb home-orb--4"></div>
-        <div className="home-grid-pattern"></div>
+        <div className="home-grid-pattern" />
+        <div className="home-orb home-orb--1" />
+        <div className="home-orb home-orb--2" />
+        <div className="home-orb home-orb--3" />
+        <div className="home-orb home-orb--4" />
       </div>
 
-      {/* Main Content */}
-      <section className="hero">
-        {/* Hero Section */}
+      <div className="hero">
         <div className="hero-arrange">
           <div className="hero-content">
             <span className="hero-badge">Start Learning Today</span>
@@ -220,31 +212,22 @@ const HomePage = () => {
             <img src={heroimg} alt="DevQuest interactive coding platform illustration showing programming interface and learning elements" />
           </div>
         </div>
+      </div>
 
-        {/* Additional Sections */}
-        {/* <AnimatedLogo /> */}
+      <div className="CourseSlider-section">
+        <CoursesSlider />
+      </div>
 
-        <div className="CourseSlider-section">
-          <CoursesSlider />
-        </div>
+      {/* Ad Unit - Between course slider and feedback */}
+      <div style={{ margin: '40px auto', maxWidth: '1200px', minWidth: '300px', width: '100%', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <AdSense />
+      </div>
 
-        {/* Ad Unit - Between course slider and feedback */}
-        <div style={{ margin: '40px auto', maxWidth: '1200px', minWidth: '300px', width: '100%', textAlign: 'center' }}>
-          <AdSense />
-        </div>
+      <div className="feedback-wrapper">
+        <FeedbackCardScroll />
+      </div>
 
-        <div className="feedback-wrapper">
-          <FeedbackCardScroll />
-        </div>
-
-        <FAQSection />
-      </section>
-
-      {/* Support Form for all users */}
-      <SupportForm />
-
-      {/* Footer */}
-      <Footer />
+      <FAQSection />
     </div>
   );
 };

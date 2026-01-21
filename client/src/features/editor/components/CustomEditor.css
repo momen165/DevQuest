@@ -17,9 +17,7 @@
 }
 
 .custom-editor .main-container {
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
 }
 
 .custom-editor .ck-content,
@@ -39,8 +37,8 @@
 }
 
 .custom-editor .editor-container_classic-editor .editor-container__editor {
-  min-width: 795px;
-  max-width: 795px;
+  min-width: 100%;
+  max-width: 100%;
   position: relative;
 }
 

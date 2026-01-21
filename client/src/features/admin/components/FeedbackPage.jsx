@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Sidebar from 'features/admin/components/Sidebar';
 import './FeedbackPage.css';
 import { useAuth } from 'app/AuthContext';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -151,7 +150,6 @@ const FeedbackPage = () => {
   if (loading) {
     return (
       <div className="feedback-page feedback-layout">
-        <Sidebar />
         <div className="centered-loader">
           <CircularProgress />
         </div>
@@ -161,7 +159,6 @@ const FeedbackPage = () => {
 
   return (
     <div className="feedback-page feedback-layout">
-      <Sidebar />
       <div className="feedback-content">
         <h2 className="feedback-title">Feedback</h2>
 

@@ -283,7 +283,6 @@ const listSubscriptions = async (req, res) => {
              amount_paid,
              status,
              stripe_payment_id,
-             renewal_date,
              stripe_subscription_id,
              user_id,
              user_email

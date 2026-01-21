@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from "react";
-import Navbar from "shared/ui/Navbar";
 import styles from "./ProfilePage.module.css";
 import { useAuth } from "app/AuthContext";
-import Footer from "shared/ui/Footer";
 import defaultProfilePic from "assets/images/default-profile-pic.png";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "shared/ui/LoadingSpinner";
@@ -48,7 +46,6 @@ function ProfilePage() {
 
   return (
     <div className={styles.profilePage}>
-      <Navbar />
       <div className={styles.profilePageContainer}>
         <div className={styles.profileContentContainer}>
           {/* Top Row - Profile Card + Status */}
@@ -303,7 +300,6 @@ function ProfilePage() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

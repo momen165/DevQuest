@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from 'features/admin/components/Sidebar';
 import axios from 'axios';
 import { useAuth } from 'app/AuthContext';
 import toast, { Toaster } from 'react-hot-toast';
@@ -281,7 +280,6 @@ const AdminSettingsPage = () => {
   return (
     <div className="admin-settings-container">
       <Toaster />
-      <Sidebar />
       <div className="admin-settings-main">
         <h2 className="admin-settings-title">Admin Settings</h2>
 

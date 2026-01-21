@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Sidebar from 'features/admin/components/Sidebar';
 import {
   FiEdit2,
   FiTrash2,
@@ -109,7 +108,6 @@ const AdminCourses = () => {
 
   return (
     <div className="admin-page">
-      <Sidebar />
       <main className="admin-main">
         <header className="admin-header">
           <div className="admin-header-left">
@@ -139,6 +137,7 @@ const AdminCourses = () => {
           <SectionManager
             sections={sections}
             courseId={editingCourse?.course_id}
+            languageId={editingCourse?.language_id}
             courseName={editingCourse?.title}
             onSectionUpdate={(updatedSections) => {
               const payload = updatedSections.map((section, index) => ({

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import Navbar from 'shared/ui/Navbar';
 import './ChangePassword.css';
 
 function ConfirmEmailChange() {
@@ -46,7 +45,6 @@ function ConfirmEmailChange() {
 
   return (
     <>
-      <Navbar />
       <div className="change-password-container">
         <div className="change-password-main">
           <h2 className="change-password-title">Email Change Confirmation</h2>

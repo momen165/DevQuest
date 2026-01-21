@@ -15,7 +15,7 @@ import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 import { useAuth } from 'app/AuthContext';
 
-const Sidebar = ({ children }) => {
+const AdminSidebar = ({ children }) => {
   const location = useLocation();
   const { logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -130,4 +130,4 @@ const Sidebar = ({ children }) => {
   );
 };
 
-export default Sidebar;
+export default AdminSidebar;

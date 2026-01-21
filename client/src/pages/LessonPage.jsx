@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'app/AuthContext';
-import Navbar from 'shared/ui/Navbar';
 import LessonNavigation from 'features/lesson/components/LessonNavigation';
 import LessonContent from 'features/lesson/components/LessonContent';
 import MonacoEditorComponent from 'features/editor/components/MonacoEditorComponent';
@@ -106,10 +105,9 @@ const LessonPage = () => {
 
   return (
     <div className="lesson-page-wrapper">
-      <Navbar />
       <div
         className="lesson-page"
-        style={containerStyle}
+        style={{ ...containerStyle, height: 'calc(100vh - 144px)' }}
       >
         <div
           className="lesson-instructions"

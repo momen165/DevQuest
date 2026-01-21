@@ -252,24 +252,16 @@ const getLessonById = asyncHandler(async (req, res) => {
   const { lessonId } = req.params;
   const userId = req.user.user_id;
 
-  // Fetch lesson once, check existence and set ETag
+  // Fetch lesson once, check existence
   const lessonResult = await lessonQueries.getLessonById(lessonId);
   if (lessonResult.rows.length === 0) {
+    // Don't cache 404 responses
+    setCacheHeaders(res, { noStore: true });
     return res
       .status(404)
       .json({ status: "not_found", message: "Lesson not found" });
   }
   const originalLesson = lessonResult.rows[0];
-  const etagData = { ...originalLesson };
-  delete etagData.solution;
-  delete etagData.hint;
-  const isNotModified = setCacheHeaders(res, {
-    public: false,
-    maxAge: 86400,
-    staleWhileRevalidate: 3600,
-    data: etagData,
-  });
-  if (isNotModified) return;
 
   // Check subscription status and completed lessons count
   const subscriptionQuery = `
@@ -322,6 +314,8 @@ const getLessonById = asyncHandler(async (req, res) => {
       subscriptionResult.rows[0]?.subscription_id
     );
     if (!hasActiveSubscription && completedLessons >= FREE_LESSON_LIMIT) {
+      // Don't cache subscription-required responses - user can subscribe anytime
+      setCacheHeaders(res, { noStore: true });
       return res.status(403).json({
         status: "subscription_required",
         message:
@@ -342,6 +336,7 @@ const getLessonById = asyncHandler(async (req, res) => {
       lessonData.solution = originalLesson.solution;
     }
     let sectionLessons = sectionLessonsResult;
+    
     // First lesson is always accessible
     if (
       sectionLessons.rows.length > 0 &&
@@ -367,12 +362,6 @@ const getLessonById = asyncHandler(async (req, res) => {
 
         // If the previous lesson is not completed, check if this is the first section
         if (!previousLessonCompleted) {
-          // Add debugging information
-          console.log(
-            `Lesson ${lessonId} access denied: Previous lesson (ID: ${
-              sectionLessons.rows[currentLessonIndex - 1].lesson_id
-            }) not completed`
-          );
 
           const sectionsQuery = `
             SELECT s.section_id, s.section_order 
@@ -425,6 +414,8 @@ const getLessonById = asyncHandler(async (req, res) => {
               );
 
               if (totalLessons > 0 && completedLessons < totalLessons) {
+                // Don't cache locked responses - user can complete lessons anytime
+                setCacheHeaders(res, { noStore: true });
                 return res.status(403).json({
                   status: "locked",
                   message:
@@ -440,9 +431,8 @@ const getLessonById = asyncHandler(async (req, res) => {
                 );
 
               if (!prevSectionCompletion.allCompleted) {
-                console.log(
-                  `Lesson ${lessonId} access denied: Not all lessons in previous section (ID: ${prevSectionId}) are completed. Completed: ${prevSectionCompletion.completed}/${prevSectionCompletion.total}`
-                );
+                // Don't cache locked responses - user can complete lessons anytime
+                setCacheHeaders(res, { noStore: true });
                 return res.status(403).json({
                   status: "locked",
                   message:
@@ -453,6 +443,8 @@ const getLessonById = asyncHandler(async (req, res) => {
           }
 
           // If the previous lesson in this section is not completed
+          // Don't cache locked responses - user can complete lessons anytime
+          setCacheHeaders(res, { noStore: true });
           return res.status(403).json({
             status: "locked",
             message: "You need to complete the previous lesson first.",
@@ -461,11 +453,11 @@ const getLessonById = asyncHandler(async (req, res) => {
       }
     }
 
-    // Cache individual lessons for 1 day with stale-while-revalidate
+    // Only cache successful responses - with shorter TTL since lesson access can change
     setCacheHeaders(res, {
       public: false, // Since this contains user-specific progress
-      maxAge: 86400,
-      staleWhileRevalidate: 3600,
+      maxAge: 300, // 5 minutes instead of 1 day
+      staleWhileRevalidate: 60,
     });
 
     res.json(lessonData);
