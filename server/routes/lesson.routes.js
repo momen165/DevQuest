@@ -8,12 +8,14 @@ const lessonController = require("../controllers/lesson.controller");
 router.post(
   "/lesson/:lessonId/unlock-hint",
   authenticateToken,
+  requireAuth,
   sessionTracker,
   lessonController.unlockHint
 );
 router.post(
   "/lesson/:lessonId/unlock-solution",
   authenticateToken,
+  requireAuth,
   sessionTracker,
   lessonController.unlockSolution
 );
@@ -40,6 +42,7 @@ router.get(
 router.get(
   "/lesson/:lessonId",
   authenticateToken,
+  requireAuth,
   lessonController.getLessonById
 ); // Get a lesson by ID
 router.put(
@@ -70,10 +73,16 @@ router.post(
 router.put(
   "/update-lesson-progress",
   authenticateToken,
+  requireAuth,
   sessionTracker,
   lessonController.updateLessonProgress
 ); // User-specific progress update
-router.get("/lesson-progress", lessonController.getLessonProgress);
+router.get(
+  "/lesson-progress",
+  authenticateToken,
+  requireAuth,
+  lessonController.getLessonProgress
+);
 
 // Add this new route
 router.post(
@@ -95,6 +104,7 @@ router.get(
 router.get(
   "/lessons/section/:sectionId/progress",
   authenticateToken,
+  requireAuth,
   sessionTracker,
   lessonController.getLessonsBySection
 );

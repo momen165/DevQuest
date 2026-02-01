@@ -4,26 +4,32 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 // List of routes that should be publicly accessible without authentication
-const publicRoutes = [
-  "system-settings",
-  "maintenance-status",
-  "getCoursesWithRatings",
-  "feedback/public",
-  "health",
-  "support/anonymous",
-  "email-webhook",
+const publicRoutePatterns = [
+  /\/system-settings$/,
+  /\/maintenance-status$/,
+  /\/getCoursesWithRatings$/,
+  /\/feedback\/public$/,
+  /\/health$/,
+  /\/support\/anonymous(\/|$)/,
+  /\/email-webhook$/,
 ];
+
+const isPublicRequest = (req) => {
+  const pathsToCheck = [];
+  if (req.path) {
+    pathsToCheck.push(req.path);
+  }
+  if (req.originalUrl) {
+    pathsToCheck.push(req.originalUrl.split("?")[0]);
+  }
+  return pathsToCheck.some((path) =>
+    publicRoutePatterns.some((pattern) => pattern.test(path))
+  );
+};
 
 const authenticateToken = async (req, res, next) => {
   // Check if the route is in the public routes list
-  const pathParts = req.path.split("/").filter(Boolean);
-  const lastPathPart = pathParts[pathParts.length - 1];
-
-  if (
-    publicRoutes.some((route) => {
-      return req.path.includes(route) || lastPathPart === route;
-    })
-  ) {
+  if (isPublicRequest(req)) {
     //console.log(`Public route detected: ${req.path}`);
     return next(); // Skip authentication for public routes
   }
@@ -72,14 +78,7 @@ const authenticateToken = async (req, res, next) => {
 // Middleware to require authentication
 const requireAuth = (req, res, next) => {
   // Check if the route is in the public routes list
-  const pathParts = req.path.split("/").filter(Boolean);
-  const lastPathPart = pathParts[pathParts.length - 1];
-
-  if (
-    publicRoutes.some((route) => {
-      return req.path.includes(route) || lastPathPart === route;
-    })
-  ) {
+  if (isPublicRequest(req)) {
     // console.log(`Public route skipping auth check: ${req.path}`);
     return next();
   }

@@ -1,7 +1,13 @@
 const express = require("express");
 const crypto = require("crypto");
+const multer = require("multer");
 const router = express.Router();
 const db = require("../config/database");
+
+// Configure multer to handle multipart/form-data from Mailgun
+// We use any() to accept fields and files (checking attachments later if needed)
+const upload = multer();
+
 const {
   categorizeTicket,
   sendAutoResponse,
@@ -27,7 +33,7 @@ function verifyMailgunWebhook(apiKey, token, timestamp, signature) {
  * This endpoint receives emails sent to support@mail.dev-quest.me and automatically
  * adds them as replies to the corresponding support tickets
  */
-router.post("/email-webhook", async (req, res) => {
+router.post("/email-webhook", upload.any(), async (req, res) => {
   try {
     console.log("Received email webhook:", JSON.stringify(req.body, null, 2));
 
@@ -43,7 +49,7 @@ router.post("/email-webhook", async (req, res) => {
         process.env.MAILGUN_WEBHOOK_SIGNING_KEY,
         token,
         timestamp,
-        signature
+        signature,
       );
       if (!isValid) {
         console.warn("Invalid Mailgun webhook signature");
@@ -51,7 +57,9 @@ router.post("/email-webhook", async (req, res) => {
       }
       console.log("Webhook signature verified successfully");
     } else {
-      console.log("Webhook signature verification skipped (no signing key configured)");
+      console.log(
+        "Webhook signature verification skipped (no signing key configured)",
+      );
     }
 
     // Mailgun sends individual message data directly in the body
@@ -110,7 +118,7 @@ async function processIncomingEmail(message) {
     // Verify the email is from the ticket owner
     if (from.toLowerCase() !== ticket.user_email.toLowerCase()) {
       console.log(
-        `Email from ${from} doesn't match ticket owner ${ticket.user_email}`
+        `Email from ${from} doesn't match ticket owner ${ticket.user_email}`,
       );
       return;
     }
@@ -121,7 +129,7 @@ async function processIncomingEmail(message) {
         `UPDATE support SET status = 'open', 
          expiration_time = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '24 hours'
          WHERE ticket_id = $1`,
-        [ticketId]
+        [ticketId],
       );
     }
 
@@ -141,7 +149,7 @@ async function processIncomingEmail(message) {
     await db.query(
       `UPDATE support SET expiration_time = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + interval '24 hours'
        WHERE ticket_id = $1`,
-      [ticketId]
+      [ticketId],
     );
 
     console.log(`Successfully added email reply to ticket #${ticketId}`);
@@ -168,7 +176,7 @@ async function handleNewSupportEmail(from, subject, content) {
       await db.query(
         `INSERT INTO ticket_messages (ticket_id, sender_type, message_content)
          VALUES ($1, 'user', $2)`,
-        [ticketId, content]
+        [ticketId, content],
       );
 
       console.log(`Added email to existing ticket #${ticketId}`);
@@ -186,7 +194,7 @@ async function handleNewSupportEmail(from, subject, content) {
       await db.query(
         `INSERT INTO ticket_messages (ticket_id, sender_type, message_content)
          VALUES ($1, 'user', $2)`,
-        [newTicketId, content]
+        [newTicketId, content],
       );
 
       // Smart categorization and auto-response for new tickets
@@ -198,7 +206,7 @@ async function handleNewSupportEmail(from, subject, content) {
         `UPDATE support SET 
          category = $1, priority = $2, assigned_to = $3, sla_target = CURRENT_TIMESTAMP + interval '${routing.sla}'
          WHERE ticket_id = $4`,
-        [analysis.category, analysis.priority, routing.assignTo, newTicketId]
+        [analysis.category, analysis.priority, routing.assignTo, newTicketId],
       );
 
       // Send auto-response if confidence is high enough
@@ -207,7 +215,7 @@ async function handleNewSupportEmail(from, subject, content) {
           newTicketId,
           from,
           analysis.category,
-          analysis.autoResponse
+          analysis.autoResponse,
         );
 
         // Log auto-response in ticket messages
@@ -219,12 +227,12 @@ async function handleNewSupportEmail(from, subject, content) {
             `Auto-response sent (${
               analysis.category
             }): ${analysis.autoResponse.substring(0, 100)}...`,
-          ]
+          ],
         );
       }
 
       console.log(
-        `Created new ticket #${newTicketId} from email with category: ${analysis.category} (confidence: ${analysis.confidence})`
+        `Created new ticket #${newTicketId} from email with category: ${analysis.category} (confidence: ${analysis.confidence})`,
       );
     }
   } catch (error) {

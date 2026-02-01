@@ -644,10 +644,19 @@ const reorderLessons = asyncHandler(async (req, res) => {
 });
 
 const updateLessonProgress = asyncHandler(async (req, res) => {
-  const { user_id, lesson_id, completed, submitted_code } = req.body;
+  const { user_id: userIdFromBody, lesson_id, completed, submitted_code } =
+    req.body;
+  const userId = parseInt(req.user.user_id, 10);
 
-  if (!user_id || !lesson_id || completed === undefined) {
+  if (!lesson_id || completed === undefined) {
     throw new AppError("Missing required fields.", 400);
+  }
+
+  if (
+    userIdFromBody !== undefined &&
+    parseInt(userIdFromBody, 10) !== userId
+  ) {
+    throw new AppError("Access denied.", 403);
   }
 
   const courseResult = await lessonQueries.getCourseIdForLesson(lesson_id);
@@ -657,7 +666,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
 
   const courseId = courseResult.rows[0].course_id;
   const checkResult = await lessonQueries.checkLessonProgress(
-    user_id,
+    userId,
     lesson_id
   );
   const sanitizedCode = decodeEntities(submitted_code);
@@ -665,7 +674,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
 
   if (checkResult.rows.length > 0) {
     const updateResult = await lessonQueries.updateLessonProgress(
-      user_id,
+      userId,
       lesson_id,
       completed,
       completedAt,
@@ -677,7 +686,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     }
   } else {
     await lessonQueries.insertLessonProgress(
-      user_id,
+      userId,
       lesson_id,
       completed,
       completedAt,
@@ -690,7 +699,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
   const totalLessons = parseInt(totalLessonsResult.rows[0].total_lessons, 10);
 
   const completedLessonsResult = await lessonQueries.getCompletedLessonsCount(
-    user_id,
+    userId,
     courseId
   );
   const completedLessons = parseInt(
@@ -701,7 +710,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
   const progress = (completedLessons / totalLessons) * 100;
   const updateEnrollmentResult = await lessonQueries.updateEnrollmentProgress(
     progress,
-    user_id,
+    userId,
     courseId
   );
 
@@ -716,12 +725,12 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
        FROM lesson_progress lp
        JOIN lesson l ON lp.lesson_id = l.lesson_id
        WHERE lp.user_id = $1 AND lp.completed = true`,
-      [user_id]
+      [userId]
     );
     const xp = parseInt(totalXPResult.rows[0].total_xp, 10) || 0;
     if (xp >= 100) {
       await require("../controllers/badge.controller").checkAndAwardBadges(
-        user_id,
+        userId,
         "xp_update",
         { totalXp: xp }
       );
@@ -735,7 +744,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     // Check if user completed all lessons in the course (Perfectionist)
     if (completed && completedLessons === totalLessons && totalLessons > 0) {
       await require("../controllers/badge.controller").checkAndAwardBadges(
-        user_id,
+        userId,
         "perfectionist",
         { courseCompleted: true }
       );
@@ -745,7 +754,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
       // Daily Learner: check for 3 consecutive days
       const streakRes = await db.query(
         `SELECT completed_at FROM lesson_progress WHERE user_id = $1 AND completed = true ORDER BY completed_at DESC LIMIT 10`,
-        [user_id]
+        [userId]
       );
       const days = streakRes.rows.map(
         (r) =>
@@ -760,7 +769,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
       }
       if (consecutive >= 3) {
         await require("../controllers/badge.controller").checkAndAwardBadges(
-          user_id,
+          userId,
           "daily_learner",
           { consecutiveDays: consecutive }
         );
@@ -770,7 +779,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
       const todayCount = days.filter((d) => d === today).length;
       if (todayCount >= 5) {
         await require("../controllers/badge.controller").checkAndAwardBadges(
-          user_id,
+          userId,
           "marathoner",
           { lessonsToday: todayCount }
         );
@@ -792,13 +801,21 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
 });
 
 const getLessonProgress = asyncHandler(async (req, res) => {
-  const { user_id, lesson_id } = req.query;
+  const { user_id: userIdFromQuery, lesson_id } = req.query;
+  const userId = parseInt(req.user.user_id, 10);
 
-  if (!user_id || !lesson_id) {
-    throw new AppError("user_id and lesson_id are required.", 400);
+  if (!lesson_id) {
+    throw new AppError("lesson_id is required.", 400);
   }
 
-  const result = await lessonQueries.getLessonProgress(user_id, lesson_id);
+  if (
+    userIdFromQuery !== undefined &&
+    parseInt(userIdFromQuery, 10) !== userId
+  ) {
+    throw new AppError("Access denied.", 403);
+  }
+
+  const result = await lessonQueries.getLessonProgress(userId, lesson_id);
 
   if (result.rows.length === 0) {
     return res

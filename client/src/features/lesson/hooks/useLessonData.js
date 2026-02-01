@@ -31,7 +31,7 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
       const refreshProgress = async () => {
         try {
           const progressResponse = await apiClient.get(`/lesson-progress`, {
-            params: { user_id: user?.user_id, lesson_id: lessonId },
+            params: { lesson_id: lessonId },
             headers: { Authorization: `Bearer ${user?.token}` },
           });
 
@@ -153,7 +153,7 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
             headers: { Authorization: `Bearer ${user?.token}` },
           }),
           apiClient.get(`/lesson-progress`, {
-            params: { user_id: user?.user_id, lesson_id: lessonId },
+            params: { lesson_id: lessonId },
             headers: { Authorization: `Bearer ${user?.token}` },
           }),
         ]);

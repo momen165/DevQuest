@@ -67,3 +67,4 @@ package-lock.json*
 .env.local
 client/.env.sentry-build-plugin
 files_list.txt
+vscode/mcp.json

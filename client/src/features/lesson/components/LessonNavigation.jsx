@@ -157,15 +157,8 @@ const LessonNavigation = ({
 
     // Inline accessibility check to avoid hoisting issues
     const checkAccessible = () => {
-      // First lesson in first section is always accessible
-      if (sectionIndex === 0 && lessonIndex === 0) return true;
-
-      // First lesson of a new section - check if ALL lessons in previous section are completed
-      if (lessonIndex === 0 && sectionIndex > 0) {
-        const previousSection = menuSections[sectionIndex - 1];
-        if (!previousSection?.lessons?.length) return false;
-        return previousSection.lessons.every((lesson) => lesson.completed === true);
-      }
+      // First lesson in any section is always accessible
+      if (lessonIndex === 0) return true;
 
       // Not the first lesson - check if previous lesson in this section is completed
       const prevLesson = section.lessons[lessonIndex - 1];
@@ -176,7 +169,7 @@ const LessonNavigation = ({
     const accessible = checkAccessible();
 
     // If not accessible and not the first lesson of first section, redirect
-    if (!accessible && !(sectionIndex === 0 && lessonIndex === 0)) {
+    if (!accessible && lessonIndex !== 0) {
       // Find the last completed lesson or the first lesson
       let redirectSectionIndex = 0;
       let redirectLessonIndex = 0;
@@ -255,7 +248,6 @@ const LessonNavigation = ({
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/update-lesson-progress`,
         {
-          user_id: user.user_id,
           lesson_id: currentLessonId,
           completed: true,
           submitted_code: code,
@@ -447,16 +439,8 @@ const LessonNavigation = ({
       return false;
     }
 
-    // First lesson in first section is always accessible
-    if (sectionIndex === 0 && lessonIndex === 0) return true;
-
-    // First lesson of a new section - check if ALL lessons in previous section are completed
-    if (lessonIndex === 0 && sectionIndex > 0) {
-      const previousSection = menuSections[sectionIndex - 1];
-      if (!previousSection?.lessons?.length) return false;
-      // All lessons in previous section must be completed
-      return previousSection.lessons.every((lesson) => lesson.completed === true);
-    }
+    // First lesson in any section is always accessible
+    if (lessonIndex === 0) return true;
 
     // Not the first lesson - check if previous lesson in this section is completed
     const prevLesson = section.lessons[lessonIndex - 1];

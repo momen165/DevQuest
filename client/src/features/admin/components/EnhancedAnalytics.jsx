@@ -95,7 +95,9 @@ const Analytics = () => {
   };
 
   useEffect(() => {
-    fetchAnalyticsData();
+    if (user?.token) {
+      fetchAnalyticsData();
+    }
   }, [user, timeRange]);
 
   // Chart data preparation

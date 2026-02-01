@@ -11,6 +11,6 @@ const { authenticateToken, requireAuth } = require("../middleware/auth");
 router.get("/cache-stats", authenticateToken, requireAuth, getCacheStats);
 
 // Code execution endpoint
-router.post("/run", executionLimiter, authenticateToken, runCode);
+router.post("/run", executionLimiter, authenticateToken, requireAuth, runCode);
 
 module.exports = router;
