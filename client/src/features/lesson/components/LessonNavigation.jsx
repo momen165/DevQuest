@@ -30,6 +30,8 @@ const LessonNavigation = ({
   const [courseId, setCourseId] = useState(null);
   const [openSectionId, setOpenSectionId] = useState(currentSectionId); // Tracks which section is expanded in the menu
   const [loadingMenu, setLoadingMenu] = useState(false); // Loading state for menu data
+  const userToken = user?.token;
+  const authUserId = user?.user_id;
 
   // Define showNotification early so it can be used in useEffects
   const showNotification = useCallback((type, text) => {
@@ -70,7 +72,7 @@ const LessonNavigation = ({
   // Effect to fetch data for the navigation menu (course name, sections, lessons)
   useEffect(() => {
     const fetchMenuData = async () => {
-      if (!currentSectionId || !user?.token) {
+      if (!currentSectionId || !userToken || !authUserId) {
         // console.warn('currentSectionId or user token missing for fetching menu data.');
         return;
       }
@@ -82,7 +84,7 @@ const LessonNavigation = ({
           `${import.meta.env.VITE_API_URL}/sections/${currentSectionId}`,
           {
             headers: {
-              Authorization: `Bearer ${user.token}`,
+              Authorization: `Bearer ${userToken}`,
             },
           }
         );
@@ -91,31 +93,25 @@ const LessonNavigation = ({
           const fetchedCourseId = sectionResponse.data.course_id;
           setCourseId(fetchedCourseId);
 
-          // 2. Get course details for the name
-          const courseResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/courses/${fetchedCourseId}`,
-            {
+          const [courseResponse, sectionsResponse] = await Promise.all([
+            axios.get(`${import.meta.env.VITE_API_URL}/courses/${fetchedCourseId}`, {
               headers: {
-                Authorization: `Bearer ${user.token}`,
+                Authorization: `Bearer ${userToken}`,
               },
-            }
-          );
+            }),
+            axios.get(
+              `${import.meta.env.VITE_API_URL}/sections/course/${fetchedCourseId}?user_id=${authUserId}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${userToken}`,
+                },
+              }
+            ),
+          ]);
 
           if (courseResponse.status === 200) {
             setCourseName(courseResponse.data.title);
           }
-
-          // 3. Get all sections for this course with their lessons
-          // It's assumed the backend for `/sections/course/${courseId}` returns sections
-          // with a nested `lessons` array, and each lesson has a `completed` status.
-          const sectionsResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/sections/course/${fetchedCourseId}?user_id=${user.user_id}`, // Pass user_id to get completion status
-            {
-              headers: {
-                Authorization: `Bearer ${user.token}`,
-              },
-            }
-          );
 
           if (sectionsResponse.status === 200) {
             // Ensure lessons within sections are sorted by lesson_order
@@ -137,7 +133,7 @@ const LessonNavigation = ({
     };
 
     fetchMenuData();
-  }, [currentSectionId, user]); // Rerun if currentSectionId or user changes
+  }, [currentSectionId, userToken, authUserId, showNotification]); // Rerun if relevant auth values change
 
   // Effect to check if the current lesson is accessible
   useEffect(() => {

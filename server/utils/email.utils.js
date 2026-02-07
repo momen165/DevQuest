@@ -4,6 +4,9 @@ require("dotenv").config();
 
 // Initialize Mailgun client
 const mailgun = new Mailgun(formData);
+const isMailgunConfigured = Boolean(
+  process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN
+);
 
 // Debug logging for configuration
 console.log("Mailgun Configuration:");
@@ -19,11 +22,13 @@ console.log(
   process.env.MAILGUN_API_URL || "https://api.mailgun.net (default)"
 );
 
-const mg = mailgun.client({
-  username: "api",
-  key: process.env.MAILGUN_API_KEY,
-  url: process.env.MAILGUN_API_URL || "https://api.mailgun.net", // Use EU endpoint if needed
-});
+const mg = isMailgunConfigured
+  ? mailgun.client({
+      username: "api",
+      key: process.env.MAILGUN_API_KEY,
+      url: process.env.MAILGUN_API_URL || "https://api.mailgun.net", // Use EU endpoint if needed
+    })
+  : null;
 
 // Email templates
 const emailStyles = {
@@ -57,7 +62,7 @@ const sendSupportReplyNotification = async (
   ticketId,
   adminReply
 ) => {
-  if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+  if (!isMailgunConfigured || !mg) {
     console.warn("Mailgun configuration missing - skipping email notification");
     return false;
   }
@@ -137,7 +142,7 @@ Alternative contact: ${process.env.SENDER_EMAIL_SUPPORT}`;
 };
 
 const sendSupportTicketConfirmation = async (userEmail, userName, ticketId) => {
-  if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+  if (!isMailgunConfigured || !mg) {
     console.warn("Mailgun configuration missing - skipping email notification");
     return false;
   }
@@ -228,7 +233,52 @@ Contact: ${process.env.SENDER_EMAIL_SUPPORT}`;
   }
 };
 
+const sendSupportAccessCode = async (userEmail, code) => {
+  if (!isMailgunConfigured || !mg) {
+    console.warn("Mailgun configuration missing - skipping access code email");
+    return false;
+  }
+
+  const subject = "DevQuest Support - Verification Code";
+
+  const emailContent = getEmailTemplate(`
+    <h2 style="color: #1F2937; font-size: 20px; margin-bottom: 16px;">Support Ticket Access Verification</h2>
+    <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+      Use the verification code below to access your anonymous support tickets.
+    </p>
+    <div style="${emailStyles.replyBox}; text-align: center;">
+      <p style="color: #4F46E5; font-size: 28px; font-weight: 700; letter-spacing: 4px; margin: 0;">${code}</p>
+    </div>
+    <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin-top: 20px;">
+      This code expires in 10 minutes. If you did not request this code, you can ignore this email.
+    </p>
+  `);
+
+  const textContent = `Your DevQuest support verification code is: ${code}
+
+This code expires in 10 minutes. If you did not request this code, ignore this email.`;
+
+  try {
+    await mg.messages.create(process.env.MAILGUN_DOMAIN, {
+      from: `DevQuest Support <${
+        process.env.SENDER_EMAIL_SUPPORT || process.env.SENDER_EMAIL
+      }>`,
+      to: userEmail,
+      subject,
+      html: emailContent,
+      text: textContent,
+      "o:tag": ["support-access-code"],
+      "h:X-Support-Type": "access-code",
+    });
+    return true;
+  } catch (error) {
+    console.error("Error sending support access code:", error);
+    return false;
+  }
+};
+
 module.exports = {
   sendSupportReplyNotification,
   sendSupportTicketConfirmation,
+  sendSupportAccessCode,
 };

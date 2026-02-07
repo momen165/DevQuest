@@ -159,6 +159,8 @@ const logPerformanceSummary = () => {
     courses: cacheManager.getStats("courses"),
     user: cacheManager.getStats("user"),
     static: cacheManager.getStats("static"),
+    feedback: cacheManager.getStats("feedback"),
+    analytics: cacheManager.getStats("analytics"),
   };
 
   console.log("\n=== Cache Statistics ===");
@@ -326,6 +328,8 @@ const getAPIMetrics = () => {
   return result;
 };
 
+const getPerformanceMetrics = () => getAPIMetrics();
+
 /**
  * Get performance summary
  */
@@ -371,6 +375,13 @@ const getPerformanceSummary = () => {
   return summary;
 };
 
+const clearPerformanceMetrics = () => {
+  performanceMonitor.clear();
+  apiMetrics.endpoints.clear();
+  apiMetrics.database.clear();
+  apiMetrics.cache.clear();
+};
+
 module.exports = {
   performanceMonitor,
   performanceMiddleware,
@@ -378,6 +389,8 @@ module.exports = {
   trackAPIPerformance,
   trackCacheHit,
   trackCacheMiss,
+  getPerformanceMetrics,
+  clearPerformanceMetrics,
   getAPIMetrics,
   getPerformanceSummary,
   logPerformanceSummary,

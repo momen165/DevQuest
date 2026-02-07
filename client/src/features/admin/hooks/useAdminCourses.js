@@ -12,7 +12,13 @@ export const useAdminCourses = (token) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get('/courses');
+      const response = await apiClient.get('/courses', {
+        params: { _ts: Date.now() },
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+      });
       setCourses(response.data);
     } catch (err) {
       console.error('Failed to fetch courses:', err);

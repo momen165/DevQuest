@@ -14,7 +14,6 @@ import LoadingSpinner from 'shared/ui/LoadingSpinner';
 
 import './App.css';
 
-import Analytics from 'features/admin/components/EnhancedAnalytics';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Toaster } from 'react-hot-toast';
 // Lazy load components
@@ -70,6 +69,8 @@ const AdminSettingsPage = React.lazy(() => import('features/admin/components/Adm
 const Support = React.lazy(() => import('features/admin/components/Support'));
 
 const SupportDashboard = React.lazy(() => import('features/admin/components/SupportDashboard'));
+
+const Analytics = React.lazy(() => import('features/admin/components/EnhancedAnalytics'));
 
 const ChangePassword = React.lazy(() => import('features/auth/components/ChangePassword'));
 

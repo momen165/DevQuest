@@ -9,6 +9,11 @@ const {
 const courseQueries = require("../models/course.model");
 const { AppError, asyncHandler } = require("../utils/error.utils");
 const { clearCoursesCache } = require("./feedback.controller");
+const {
+  canAccessUser,
+  getRequesterUserId,
+  toIntId,
+} = require("../utils/authz.utils");
 
 /**
  * Creates a new course in the system
@@ -168,9 +173,23 @@ const getCourseById = asyncHandler(async (req, res) => {
 
 const getUserCourseStats = asyncHandler(async (req, res) => {
   const { course_id, user_id } = req.params;
-  validateCourseId(course_id);
+  const normalizedCourseId = toIntId(course_id);
+  const normalizedUserId = toIntId(user_id);
 
-  const result = await courseQueries.getUserCourseStats(user_id, course_id);
+  validateCourseId(normalizedCourseId);
+
+  if (!normalizedUserId) {
+    throw new AppError("Invalid user ID", 400);
+  }
+
+  if (!canAccessUser(req, normalizedUserId)) {
+    throw new AppError("Access denied", 403);
+  }
+
+  const result = await courseQueries.getUserCourseStats(
+    normalizedUserId,
+    normalizedCourseId
+  );
 
   const stats = {
     name: result.rows[0]?.name || "",
@@ -185,25 +204,66 @@ const getUserCourseStats = asyncHandler(async (req, res) => {
 
 const enrollCourse = asyncHandler(async (req, res) => {
   validateEnrollmentFields(req.body);
-  const { user_id, course_id } = req.body;
+  const requesterId = getRequesterUserId(req);
+  const normalizedCourseId = toIntId(req.body.course_id);
 
-  const result = await courseQueries.enrollUser(user_id, course_id);
-  res
-    .status(200)
-    .json({ message: "Enrollment successful", result: result.rows[0] });
+  if (!requesterId) {
+    throw new AppError("Authentication required", 401);
+  }
+
+  validateCourseId(normalizedCourseId);
+
+  try {
+    const result = await courseQueries.enrollUser(requesterId, normalizedCourseId);
+    res
+      .status(200)
+      .json({ message: "Enrollment successful", result: result.rows[0] });
+  } catch (error) {
+    if (error.code === "23505") {
+      return res.status(200).json({
+        message: "Already enrolled",
+        result: null,
+      });
+    }
+    throw error;
+  }
 });
 
 const checkEnrollmentStatus = asyncHandler(async (req, res) => {
   const { user_id, course_id } = req.params;
-  validateCourseId(course_id);
+  const normalizedCourseId = toIntId(course_id);
+  const normalizedUserId = toIntId(user_id);
 
-  const result = await courseQueries.checkEnrollment(user_id, course_id);
+  validateCourseId(normalizedCourseId);
+
+  if (!normalizedUserId) {
+    throw new AppError("Invalid user ID", 400);
+  }
+
+  if (!canAccessUser(req, normalizedUserId)) {
+    throw new AppError("Access denied", 403);
+  }
+
+  const result = await courseQueries.checkEnrollment(
+    normalizedUserId,
+    normalizedCourseId
+  );
   res.status(200).json({ isEnrolled: result.rowCount > 0 });
 });
 
 const getUserOverallStats = asyncHandler(async (req, res) => {
   const { user_id } = req.params;
-  const result = await courseQueries.getUserOverallStats(user_id);
+  const normalizedUserId = toIntId(user_id);
+
+  if (!normalizedUserId) {
+    throw new AppError("Invalid user ID", 400);
+  }
+
+  if (!canAccessUser(req, normalizedUserId)) {
+    throw new AppError("Access denied", 403);
+  }
+
+  const result = await courseQueries.getUserOverallStats(normalizedUserId);
 
   const stats = {
     name: result.rows[0]?.name || "",

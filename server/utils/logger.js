@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const prisma = require("../config/prisma");
 
 // Environment-aware logger to reduce console overhead in production
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -10,7 +10,7 @@ const isDevelopment = process.env.NODE_ENV === "development";
  */
 const logger = {
   // Log levels: error > warn > info > debug
-  
+
   error: (...args) => {
     // Always log errors regardless of environment
     console.error(`[${new Date().toISOString()}] ERROR:`, ...args);
@@ -50,11 +50,13 @@ const logger = {
  */
 const logActivity = async (actionType, actionDescription, userId = null) => {
   try {
-    const query = `
-      INSERT INTO recent_activity (action_type, action_description, user_id, created_at)
-      VALUES ($1, $2, $3, CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem')
-    `;
-    await db.query(query, [actionType, actionDescription, userId]);
+    await prisma.recent_activity.create({
+      data: {
+        action_type: actionType,
+        action_description: actionDescription,
+        user_id: userId,
+      },
+    });
   } catch (err) {
     logger.error("Error logging activity:", err.message || err);
   }

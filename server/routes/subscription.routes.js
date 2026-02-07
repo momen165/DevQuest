@@ -6,7 +6,11 @@ const {
   getSubscriptionStatusForUser,
   listSubscriptions,
 } = require("../controllers/subscription.controller");
-const { authenticateToken, requireAuth } = require("../middleware/auth");
+const {
+  authenticateToken,
+  requireAuth,
+  requireAdmin,
+} = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
 const { cacheMiddleware } = require("../utils/cache.utils");
 const {
@@ -37,6 +41,7 @@ router.get(
   "/list-subscriptions",
   authenticateToken,
   requireAuth,
+  requireAdmin,
   sessionTracker,
   listSubscriptions
 );
@@ -44,6 +49,7 @@ router.get(
   "/user/:userId",
   authenticateToken,
   requireAuth,
+  requireAdmin,
   sessionTracker,
   getSubscriptionStatusForUser
 ); // Admin route

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/database");
+const prisma = require("../config/prisma");
 const geoip = require("geoip-lite");
 const UAParser = require("ua-parser-js");
 
@@ -29,15 +29,6 @@ router.post("/track-pageview", async (req, res) => {
     if (typeof ip === "string" && ip.startsWith("::ffff:")) {
       ip = ip.replace("::ffff:", "");
     }
-    // Log for debugging
-    // console.log(
-    //   "[Analytics] Tracking pageview:",
-    //   path,
-    //   "| IP:",
-    //   ip,
-    //   "| UA:",
-    //   req.headers["user-agent"]
-    // );
 
     // Get geo-location info from IP (if available)
     const geo = geoip.lookup(ip);
@@ -52,25 +43,19 @@ router.post("/track-pageview", async (req, res) => {
     else if (uaResult.device.type === "tablet") deviceType = "Tablet";
     else if (!uaResult.device.type) deviceType = "Desktop";
 
-    // Insert visit data
-    const query = `
-      INSERT INTO site_visits 
-        (user_id, ip_address, visit_date, page_visited, referrer, device_type, browser, os, country, city)
-      VALUES
-        ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5, $6, $7, $8, $9)
-    `;
-
-    await db.query(query, [
-      req.user?.userId || null,
-      ip,
-      path,
-      req.headers.referer || null,
-      deviceType,
-      uaResult.browser.name || "Unknown",
-      uaResult.os.name || "Unknown",
-      geo && geo.country ? geo.country : null,
-      geo && geo.city ? geo.city : null,
-    ]);
+    await prisma.site_visits.create({
+      data: {
+        user_id: req.user?.userId || null,
+        ip_address: ip,
+        page_visited: path,
+        referrer: req.headers.referer || null,
+        device_type: deviceType,
+        browser: uaResult.browser.name || "Unknown",
+        os: uaResult.os.name || "Unknown",
+        country: geo?.country || null,
+        city: geo?.city || null,
+      },
+    });
 
     res.status(200).json({ success: true });
   } catch (err) {

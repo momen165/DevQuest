@@ -28,12 +28,15 @@ const FeedbackCardScroll = memo(() => {
 
   // Fetch feedback data
   useEffect(() => {
+    let isMounted = true;
+
     const fetchFeedback = async () => {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/feedback/public`);
 
         // Transform the API data to match the card format
         const transformedData = data.map((item) => ({
+          feedbackId: item.feedback_id,
           name: item.name,
           avatar: item.profileimage || defaultProfilePic,
           rating: '★'.repeat(item.rating),
@@ -42,17 +45,27 @@ const FeedbackCardScroll = memo(() => {
           country: item.country,
         }));
 
-        setFeedbackData(transformedData);
+        if (isMounted) {
+          setFeedbackData(transformedData);
+        }
       } catch (error) {
         console.error('Error fetching feedback:', error);
         // Fallback to empty array to prevent layout breaks
-        setFeedbackData([]);
+        if (isMounted) {
+          setFeedbackData([]);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchFeedback();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Animation setup
@@ -60,6 +73,7 @@ const FeedbackCardScroll = memo(() => {
     if (isLoading || !feedbackData.length || isMobile) return;
 
     gsap.registerPlugin(ScrollTrigger);
+    const hoverHandlers = [];
 
     const timeline = gsap.timeline({
       scrollTrigger: {
@@ -74,6 +88,7 @@ const FeedbackCardScroll = memo(() => {
     });
 
     cardsRef.current.forEach((card, i) => {
+      if (!card) return;
       const isCenter = i === Math.floor(cardsRef.current.length / 2);
 
       // Add base z-index to maintain proper stacking
@@ -88,23 +103,27 @@ const FeedbackCardScroll = memo(() => {
       });
 
       // Add hover animations
-      card.addEventListener('mouseenter', () => {
+      const handleMouseEnter = () => {
         gsap.to(card, {
           scale: 1.1,
           zIndex: 100,
           duration: 0.3,
           ease: 'power2.out',
         });
-      });
+      };
 
-      card.addEventListener('mouseleave', () => {
+      const handleMouseLeave = () => {
         gsap.to(card, {
           scale: isCenter ? 1.05 : 0.92,
           zIndex: 1,
           duration: 0.3,
           ease: 'power2.out',
         });
-      });
+      };
+
+      card.addEventListener('mouseenter', handleMouseEnter);
+      card.addEventListener('mouseleave', handleMouseLeave);
+      hoverHandlers.push({ card, handleMouseEnter, handleMouseLeave });
 
       timeline.to(
         card,
@@ -123,12 +142,9 @@ const FeedbackCardScroll = memo(() => {
 
     return () => {
       ScrollTrigger.getAll().forEach((t) => t.kill());
-      // Clean up hover events
-      cardsRef.current.forEach((card) => {
-        if (card) {
-          card.removeEventListener('mouseenter', () => {});
-          card.removeEventListener('mouseleave', () => {});
-        }
+      hoverHandlers.forEach(({ card, handleMouseEnter, handleMouseLeave }) => {
+        card.removeEventListener('mouseenter', handleMouseEnter);
+        card.removeEventListener('mouseleave', handleMouseLeave);
       });
     };
   }, [isLoading, feedbackData, isMobile]);
@@ -152,7 +168,7 @@ const FeedbackCardScroll = memo(() => {
       <div className="scroll-cards-track">
         {feedbackData.map((feedback, index) => (
           <article
-            key={index}
+            key={feedback.feedbackId}
             className="scroll-feedback-card"
             ref={(el) => (cardsRef.current[index] = el)}
           >

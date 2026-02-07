@@ -5,12 +5,17 @@ import { useAuth } from 'app/AuthContext';
 import './SupportForm.css';
 
 const SupportForm = () => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
   const [tickets, setTickets] = useState([]);
   const [userEmail, setUserEmail] = useState('');
   const [userName, setUserName] = useState('');
+  const [anonymousAccessToken, setAnonymousAccessToken] = useState('');
+  const [anonymousRequestId, setAnonymousRequestId] = useState('');
+  const [anonymousVerificationCode, setAnonymousVerificationCode] = useState('');
+  const [isVerifyingAnonymousAccess, setIsVerifyingAnonymousAccess] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
   const { user } = useAuth();
   const chatContainerRef = useRef(null);
@@ -38,7 +43,6 @@ const SupportForm = () => {
 
   const fetchUserTickets = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       const response = await axios.get(`${apiUrl}/user-support-tickets`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
@@ -49,16 +53,65 @@ const SupportForm = () => {
     }
   };
 
-  const fetchAnonymousTickets = async (email) => {
+  const fetchAnonymousTickets = async (email, accessToken = anonymousAccessToken) => {
+    if (!accessToken) {
+      setTickets([]);
+      return;
+    }
+
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       const response = await axios.get(
-        `${apiUrl}/support/anonymous/${encodeURIComponent(email)}`
+        `${apiUrl}/support/anonymous/${encodeURIComponent(email)}`,
+        {
+          params: { token: accessToken },
+        }
       );
       setTickets(response.data);
     } catch (err) {
       console.error('Failed to fetch anonymous support tickets:', err);
       setTickets([]); // Ensure tickets is always an array
+    }
+  };
+
+  const requestAnonymousAccessCode = async (email) => {
+    const response = await axios.post(`${apiUrl}/support/anonymous/access/request`, {
+      email,
+    });
+
+    setAnonymousRequestId(response.data.requestId || '');
+    setResponseMessage('Verification code sent to your email');
+
+    if (response.data.devVerificationCode) {
+      setAnonymousVerificationCode(response.data.devVerificationCode);
+    } else {
+      setAnonymousVerificationCode('');
+    }
+  };
+
+  const verifyAnonymousAccess = async (e) => {
+    e.preventDefault();
+
+    if (!anonymousRequestId || !anonymousVerificationCode.trim()) {
+      setResponseMessage('Enter the verification code first');
+      return;
+    }
+
+    try {
+      setIsVerifyingAnonymousAccess(true);
+      const response = await axios.post(`${apiUrl}/support/anonymous/access/verify`, {
+        requestId: anonymousRequestId,
+        code: anonymousVerificationCode.trim(),
+      });
+
+      const token = response.data.accessToken;
+      setAnonymousAccessToken(token);
+      setResponseMessage('Verification successful');
+      await fetchAnonymousTickets(userEmail, token);
+    } catch (err) {
+      console.error('Failed to verify anonymous access:', err.response?.data || err.message);
+      setResponseMessage('Invalid or expired verification code');
+    } finally {
+      setIsVerifyingAnonymousAccess(false);
     }
   };
 
@@ -70,11 +123,11 @@ const SupportForm = () => {
         fetchUserTickets();
         // Set up polling every 10 seconds
         pollingIntervalRef.current = setInterval(fetchUserTickets, 10000);
-      } else if (userEmail) {
+      } else if (userEmail && anonymousAccessToken) {
         // Initial fetch for anonymous users
-        fetchAnonymousTickets(userEmail);
+        fetchAnonymousTickets(userEmail, anonymousAccessToken);
         // Set up polling every 10 seconds
-        pollingIntervalRef.current = setInterval(() => fetchAnonymousTickets(userEmail), 10000);
+        pollingIntervalRef.current = setInterval(() => fetchAnonymousTickets(userEmail, anonymousAccessToken), 10000);
       }
 
       // Cleanup polling on unmount or when form closes
@@ -85,13 +138,18 @@ const SupportForm = () => {
         }
       };
     }
-  }, [isOpen, isAuthenticated, userEmail]);
+  }, [isOpen, isAuthenticated, userEmail, anonymousAccessToken]);
 
-  const handleUserInfoSubmit = (e) => {
+  const handleUserInfoSubmit = async (e) => {
     e.preventDefault();
     if (userName && userEmail) {
-      setShowUserForm(false);
-      setResponseMessage('');
+      try {
+        await requestAnonymousAccessCode(userEmail);
+        setShowUserForm(false);
+      } catch (err) {
+        console.error('Failed to request anonymous access code:', err.response?.data || err.message);
+        setResponseMessage('Failed to request verification code');
+      }
     }
   };
 
@@ -112,7 +170,6 @@ const SupportForm = () => {
             },
           };
 
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
           response = await axios.post(
             `${apiUrl}/support`,
             { message },
@@ -120,11 +177,14 @@ const SupportForm = () => {
           );
         } else {
           // Anonymous user
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
           response = await axios.post(
             `${apiUrl}/support/anonymous`,
             { message, email: userEmail, name: userName }
           );
+
+          if (!anonymousAccessToken) {
+            await requestAnonymousAccessCode(userEmail);
+          }
         }
 
         setMessage('');
@@ -139,8 +199,8 @@ const SupportForm = () => {
         // Fetch latest messages immediately after sending
         if (isAuthenticated) {
           await fetchUserTickets();
-        } else {
-          await fetchAnonymousTickets(userEmail);
+        } else if (anonymousAccessToken) {
+          await fetchAnonymousTickets(userEmail, anonymousAccessToken);
         }
 
         setTimeout(() => {
@@ -155,7 +215,6 @@ const SupportForm = () => {
 
   const handleCloseTicket = async (ticketId) => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       await axios.post(
         `${apiUrl}/support-tickets/${ticketId}/close`,
         {},
@@ -251,7 +310,32 @@ const SupportForm = () => {
             </div>
           )}
 
-          {(isAuthenticated || (!showUserForm && userEmail)) && (
+          {!isAuthenticated && !showUserForm && userEmail && !anonymousAccessToken && (
+            <div className="sf-user-info-form">
+              <form onSubmit={verifyAnonymousAccess}>
+                <div className="sf-form-group">
+                  <label htmlFor="anonymousVerificationCode">Verification Code:</label>
+                  <input
+                    type="text"
+                    id="anonymousVerificationCode"
+                    value={anonymousVerificationCode}
+                    onChange={(e) => setAnonymousVerificationCode(e.target.value)}
+                    placeholder="Enter the 6-digit code"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="sf-user-info-submit"
+                  disabled={isVerifyingAnonymousAccess}
+                >
+                  {isVerifyingAnonymousAccess ? 'Verifying...' : 'Verify Access'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {(isAuthenticated || (!showUserForm && userEmail && anonymousAccessToken)) && (
             <>
               <div className="sf-chat-container" ref={chatContainerRef}>
                 {!Array.isArray(tickets) || tickets.length === 0 ? (

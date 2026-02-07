@@ -3,12 +3,21 @@ const { decode: decodeEntities } = require("entities");
 const { AppError, asyncHandler } = require("../utils/error.utils");
 const { setCacheHeaders } = require("../utils/cache.utils");
 const lessonQueries = require("../models/lesson.model");
-const db = require("../config/database");
-const NodeCache = require("node-cache"); // Import NodeCache
+const prisma = require("../config/prisma");
+const {
+  buildCourseLessonsCacheKey,
+  buildSectionLessonsCacheKey,
+  getLessonCache,
+  setLessonCache,
+  clearLessonCacheForCourse,
+  clearLessonCacheForSection,
+  clearAllLessonCache,
+} = require("../utils/lesson-cache.utils");
+const {
+  clearSectionCache,
+  clearAllSectionCache,
+} = require("./section.controller");
 
-// Initialize cache for lessons with a short TTL (e.g., 60 seconds)
-const lessonsCache = new NodeCache({ stdTTL: 60 });
-const LESSONS_CACHE_KEY_PREFIX = "lessons_course_";
 
 // Unlock hint for a lesson (POST /lesson/:lessonId/unlock-hint)
 const unlockHint = asyncHandler(async (req, res) => {
@@ -83,8 +92,9 @@ const addLesson = asyncHandler(async (req, res) => {
   await lessonQueries.recalculateProgressForCourse(courseId);
 
   // Invalidate relevant caches after adding a lesson
-  lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `course_${courseId}`);
-  lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `section_${section_id}`);
+  clearLessonCacheForCourse(courseId);
+  clearLessonCacheForSection(section_id);
+  clearSectionCache(courseId);
 
   setCacheHeaders(res, { noStore: true });
   res.status(201).json(result.rows[0]);
@@ -92,29 +102,34 @@ const addLesson = asyncHandler(async (req, res) => {
 
 // Fix existing lesson orders - optimized to use batch updates
 const fixLessonOrders = asyncHandler(async (req, res) => {
-  // Get all sections and their lessons in a single query with proper ordering
-  const query = `
-    WITH ranked_lessons AS (
-      SELECT 
-        l.lesson_id,
-        l.section_id,
-        ROW_NUMBER() OVER (PARTITION BY l.section_id ORDER BY l.lesson_order, l.lesson_id) - 1 AS new_order
-      FROM lesson l
-      JOIN section s ON l.section_id = s.section_id
-      ORDER BY s.section_order, l.lesson_order
-    )
-    SELECT lesson_id, section_id, new_order
-    FROM ranked_lessons
-    WHERE lesson_id IN (
-      SELECT lesson_id FROM lesson WHERE lesson_order IS NULL OR lesson_order != (
-        SELECT new_order FROM ranked_lessons rl WHERE rl.lesson_id = lesson.lesson_id
-      )
-    )
-  `;
+  const sections = await prisma.section.findMany({
+    orderBy: { section_order: "asc" },
+    include: {
+      lesson: {
+        select: {
+          lesson_id: true,
+          section_id: true,
+          lesson_order: true,
+        },
+        orderBy: [{ lesson_order: "asc" }, { lesson_id: "asc" }],
+      },
+    },
+  });
 
-  const lessonsToUpdate = await db.query(query);
+  const lessonsToUpdate = [];
+  for (const section of sections) {
+    section.lesson.forEach((lesson, index) => {
+      if (lesson.lesson_order !== index) {
+        lessonsToUpdate.push({
+          lesson_id: lesson.lesson_id,
+          section_id: lesson.section_id,
+          new_order: index,
+        });
+      }
+    });
+  }
 
-  if (lessonsToUpdate.rows.length === 0) {
+  if (lessonsToUpdate.length === 0) {
     return res.status(200).json({
       message: "All lesson orders are already correct",
       fixedCount: 0,
@@ -122,46 +137,25 @@ const fixLessonOrders = asyncHandler(async (req, res) => {
     });
   }
 
-  // Batch update all lessons in a single transaction
-  const client = await db.connect();
-  try {
-    await client.query("BEGIN");
+  await prisma.$transaction(async (tx) => {
+    for (const lesson of lessonsToUpdate) {
+      await tx.lesson.update({
+        where: { lesson_id: lesson.lesson_id },
+        data: { lesson_order: lesson.new_order },
+      });
+    }
+  });
 
-    // Build batch update query with parameterized arrays for safety
-    const lessonIds = lessonsToUpdate.rows.map((lesson) => lesson.lesson_id);
-    const newOrders = lessonsToUpdate.rows.map((lesson) => lesson.new_order);
+  const sectionsProcessed = new Set(lessonsToUpdate.map((l) => l.section_id))
+    .size;
+  clearAllLessonCache();
+  clearAllSectionCache();
 
-    const batchUpdateQuery = `
-      UPDATE lesson AS l SET
-        lesson_order = v.new_order
-      FROM (
-        SELECT 
-          UNNEST($1::int[]) AS lesson_id,
-          UNNEST($2::int[]) AS new_order
-      ) AS v
-      WHERE l.lesson_id = v.lesson_id
-    `;
-
-    await client.query(batchUpdateQuery, [lessonIds, newOrders]);
-    await client.query("COMMIT");
-
-    // Count unique sections affected
-    const sectionsProcessed = new Set(lessonsToUpdate.rows.map(l => l.section_id)).size;
-
-    // Invalidate all lesson caches after fixing orders
-    lessonsCache.flushAll();
-
-    res.status(200).json({
-      message: "Lesson orders fixed successfully",
-      fixedCount: lessonsToUpdate.rows.length,
-      sectionsProcessed: sectionsProcessed,
-    });
-  } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
-  }
+  res.status(200).json({
+    message: "Lesson orders fixed successfully",
+    fixedCount: lessonsToUpdate.length,
+    sectionsProcessed,
+  });
 });
 
 // Get all lessons for a specific section
@@ -196,12 +190,8 @@ const getAdminLessonsForSection = asyncHandler(async (req, res) => {
   // Use getLessons which returns all lesson fields
   const result = await lessonQueries.getLessons(section_id, null);
 
-  // Cache admin lessons for 1 hour
-  setCacheHeaders(res, {
-    public: false,
-    maxAge: 3600,
-    staleWhileRevalidate: 600,
-  });
+  // Admin lesson management should always read fresh data.
+  setCacheHeaders(res, { noStore: true });
 
   res.status(200).json(result.rows);
 });
@@ -214,15 +204,15 @@ const getLessons = asyncHandler(async (req, res) => {
   let lessons;
 
   if (course_id) {
-    cacheKey = LESSONS_CACHE_KEY_PREFIX + `course_${course_id}`;
+    cacheKey = buildCourseLessonsCacheKey(course_id);
   } else if (section_id) {
-    cacheKey = LESSONS_CACHE_KEY_PREFIX + `section_${section_id}`;
+    cacheKey = buildSectionLessonsCacheKey(section_id);
   } else {
     throw new AppError("Either course_id or section_id is required.", 400);
   }
 
   // Try to get from cache first
-  lessons = lessonsCache.get(cacheKey);
+  lessons = getLessonCache(cacheKey);
 
   if (!lessons) {
     // If not in cache, fetch from DB
@@ -234,7 +224,7 @@ const getLessons = asyncHandler(async (req, res) => {
     lessons = lessons.rows;
 
     // Store in cache
-    lessonsCache.set(cacheKey, lessons);
+    setLessonCache(cacheKey, lessons);
   }
 
   // Add HTTP cache headers for better performance
@@ -263,56 +253,43 @@ const getLessonById = asyncHandler(async (req, res) => {
   }
   const originalLesson = lessonResult.rows[0];
 
-  // Check subscription status and completed lessons count
-  const subscriptionQuery = `
-    WITH completed_lessons AS (
-      SELECT COUNT(*) as lesson_count
-      FROM lesson_progress
-      WHERE user_id = $1 AND completed = true
-    ),
-    subscription_status AS (
-      SELECT s.*
-      FROM subscription s
-      JOIN user_subscription us ON s.subscription_id = us.subscription_id
-      WHERE us.user_id = $1 
-      AND s.status = true
-      AND s.subscription_end_date > CURRENT_TIMESTAMP
-      ORDER BY s.subscription_start_date DESC
-      LIMIT 1
-    )
-    SELECT 
-      cl.lesson_count,
-      s.*
-    FROM completed_lessons cl
-    LEFT JOIN subscription_status s ON true;
-  `;
-
-  const sectionLessonsQuery = `
-    SELECT 
-      l.lesson_id, 
-      l.lesson_order,
-      COALESCE(lp.completed, false) as completed
-    FROM lesson l
-    LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
-    WHERE l.section_id = $2
-    ORDER BY l.lesson_order ASC
-  `;
-
   try {
-    // Run subscription, progress, and section-fetch in parallel
-    const [subscriptionResult, progressResult, sectionLessonsResult] =
+    const [completedLessonsCount, activeSubscription, progressResult, sectionLessons] =
       await Promise.all([
-        db.query(subscriptionQuery, [userId]),
+        prisma.lesson_progress.count({
+          where: {
+            user_id: Number(userId),
+            completed: true,
+          },
+        }),
+        prisma.subscription.findFirst({
+          where: {
+            user_id: Number(userId),
+            status: true,
+            subscription_end_date: { gt: new Date() },
+          },
+          select: { subscription_id: true },
+          orderBy: { subscription_start_date: "desc" },
+        }),
         lessonQueries.getLessonProgress(userId, lessonId),
-        db.query(sectionLessonsQuery, [userId, originalLesson.section_id]),
+        prisma.lesson.findMany({
+          where: { section_id: originalLesson.section_id },
+          orderBy: { lesson_order: "asc" },
+          select: {
+            lesson_id: true,
+            lesson_order: true,
+            lesson_progress: {
+              where: { user_id: Number(userId) },
+              select: { completed: true },
+              take: 1,
+            },
+          },
+        }),
       ]);
 
     // Check subscription limits
-    const completedLessons =
-      parseInt(subscriptionResult.rows[0]?.lesson_count) || 0;
-    const hasActiveSubscription = Boolean(
-      subscriptionResult.rows[0]?.subscription_id
-    );
+    const completedLessons = completedLessonsCount || 0;
+    const hasActiveSubscription = Boolean(activeSubscription?.subscription_id);
     if (!hasActiveSubscription && completedLessons >= FREE_LESSON_LIMIT) {
       // Don't cache subscription-required responses - user can subscribe anytime
       setCacheHeaders(res, { noStore: true });
@@ -335,12 +312,16 @@ const getLessonById = asyncHandler(async (req, res) => {
     if (solutionUnlocked || req.query.showSolution === "true") {
       lessonData.solution = originalLesson.solution;
     }
-    let sectionLessons = sectionLessonsResult;
+    const sectionLessonRows = sectionLessons.map((lesson) => ({
+      lesson_id: lesson.lesson_id,
+      lesson_order: lesson.lesson_order,
+      completed: Boolean(lesson.lesson_progress[0]?.completed),
+    }));
     
     // First lesson is always accessible
     if (
-      sectionLessons.rows.length > 0 &&
-      sectionLessons.rows[0].lesson_id === parseInt(lessonId)
+      sectionLessonRows.length > 0 &&
+      sectionLessonRows[0].lesson_id === parseInt(lessonId, 10)
     ) {
       // This is the first lesson in the section - always allowed
     } else {
@@ -348,8 +329,8 @@ const getLessonById = asyncHandler(async (req, res) => {
       let currentLessonIndex = -1;
       let previousLessonCompleted = false;
 
-      for (let i = 0; i < sectionLessons.rows.length; i++) {
-        if (sectionLessons.rows[i].lesson_id === parseInt(lessonId)) {
+      for (let i = 0; i < sectionLessonRows.length; i++) {
+        if (sectionLessonRows[i].lesson_id === parseInt(lessonId, 10)) {
           currentLessonIndex = i;
           break;
         }
@@ -357,71 +338,36 @@ const getLessonById = asyncHandler(async (req, res) => {
 
       if (currentLessonIndex > 0) {
         previousLessonCompleted = Boolean(
-          sectionLessons.rows[currentLessonIndex - 1].completed
+          sectionLessonRows[currentLessonIndex - 1].completed
         );
 
         // If the previous lesson is not completed, check if this is the first section
         if (!previousLessonCompleted) {
-
-          const sectionsQuery = `
-            SELECT s.section_id, s.section_order 
-            FROM section s
-            WHERE s.course_id = (
-              SELECT course_id FROM section WHERE section_id = $1
-            )
-            ORDER BY s.section_order ASC
-          `;
-
-          const sectionsResult = await db.query(sectionsQuery, [
-            lessonData.section_id,
-          ]);
+          const sectionsResult = await prisma.section.findMany({
+            where: { course_id: lessonData.course_id },
+            orderBy: { section_order: "asc" },
+            select: {
+              section_id: true,
+              section_order: true,
+            },
+          });
 
           // If not the first section, check if all lessons in the previous section are completed
           if (
-            sectionsResult.rows.length > 0 &&
-            sectionsResult.rows[0].section_id !== lessonData.section_id
+            sectionsResult.length > 0 &&
+            sectionsResult[0].section_id !== lessonData.section_id
           ) {
             // Get all lessons from previous section
             let prevSectionIndex = -1;
-            for (let i = 0; i < sectionsResult.rows.length; i++) {
-              if (sectionsResult.rows[i].section_id === lessonData.section_id) {
+            for (let i = 0; i < sectionsResult.length; i++) {
+              if (sectionsResult[i].section_id === lessonData.section_id) {
                 prevSectionIndex = i - 1;
                 break;
               }
             }
 
             if (prevSectionIndex >= 0) {
-              const prevSectionId =
-                sectionsResult.rows[prevSectionIndex].section_id;
-
-              // Check if all lessons in the previous section are completed using the new function
-              const prevSectionLessonsQuery = `
-                SELECT COUNT(*) as total,
-                       SUM(CASE WHEN lp.completed = true THEN 1 ELSE 0 END) as completed
-                FROM lesson l
-                LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
-                WHERE l.section_id = $2
-              `;
-
-              const prevSectionResult = await db.query(
-                prevSectionLessonsQuery,
-                [userId, prevSectionId]
-              );
-
-              const totalLessons = parseInt(prevSectionResult.rows[0].total);
-              const completedLessons = parseInt(
-                prevSectionResult.rows[0].completed || 0
-              );
-
-              if (totalLessons > 0 && completedLessons < totalLessons) {
-                // Don't cache locked responses - user can complete lessons anytime
-                setCacheHeaders(res, { noStore: true });
-                return res.status(403).json({
-                  status: "locked",
-                  message:
-                    "You need to complete all lessons in the previous section first.",
-                });
-              }
+              const prevSectionId = sectionsResult[prevSectionIndex].section_id;
 
               // Check if all lessons in the previous section are completed using the new function
               const prevSectionCompletion =
@@ -453,12 +399,17 @@ const getLessonById = asyncHandler(async (req, res) => {
       }
     }
 
-    // Only cache successful responses - with shorter TTL since lesson access can change
-    setCacheHeaders(res, {
-      public: false, // Since this contains user-specific progress
-      maxAge: 300, // 5 minutes instead of 1 day
-      staleWhileRevalidate: 60,
-    });
+    // Hint/solution reveal responses must never be cached to avoid stale unlock state.
+    if (req.query.showHint === "true" || req.query.showSolution === "true") {
+      setCacheHeaders(res, { noStore: true });
+    } else {
+      // Cache regular lesson responses - shorter TTL since lesson access can change.
+      setCacheHeaders(res, {
+        public: false, // Since this contains user-specific progress
+        maxAge: 300, // 5 minutes instead of 1 day
+        staleWhileRevalidate: 60,
+      });
+    }
 
     res.json(lessonData);
   } catch (err) {
@@ -501,7 +452,9 @@ const updateLesson = asyncHandler(async (req, res) => {
       template_code ? decodeEntities(template_code) : "",
       hint,
       solution,
-      test_cases[0]?.auto_detect || false // Use first test case's auto_detect value
+      Array.isArray(test_cases) && test_cases.length > 0
+        ? Boolean(test_cases[0]?.auto_detect)
+        : Boolean(auto_detect)
     );
 
     if (result.rows.length === 0) {
@@ -524,8 +477,9 @@ const updateLesson = asyncHandler(async (req, res) => {
     );
 
     // Invalidate relevant caches after updating a lesson
-    lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `course_${courseId}`);
-    lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `section_${section_id}`);
+    clearLessonCacheForCourse(courseId);
+    clearLessonCacheForSection(section_id);
+    clearSectionCache(courseId);
 
     setCacheHeaders(res, { noStore: true });
     res.json(result.rows[0]);
@@ -575,10 +529,9 @@ const deleteLesson = asyncHandler(async (req, res) => {
   );
 
   // Invalidate relevant caches after deleting a lesson
-  lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `course_${courseId}`);
-  lessonsCache.del(
-    LESSONS_CACHE_KEY_PREFIX + `section_${lessonResult.rows[0].section_id}`
-  );
+  clearLessonCacheForCourse(courseId);
+  clearLessonCacheForSection(lessonResult.rows[0].section_id);
+  clearSectionCache(courseId);
 
   setCacheHeaders(res, { noStore: true });
   res.status(200).json({ message: "Lesson deleted successfully." });
@@ -595,15 +548,14 @@ const reorderLessons = asyncHandler(async (req, res) => {
     );
   }
 
-  const client = await db.connect();
   try {
-    await client.query("BEGIN");
-    await Promise.all(
-      lessons.map(({ lesson_id, order }) =>
-        lessonQueries.updateLessonOrder(lesson_id, order, client)
-      )
-    );
-    await client.query("COMMIT");
+    await prisma.$transaction(async (tx) => {
+      await Promise.all(
+        lessons.map(({ lesson_id, order }) =>
+          lessonQueries.updateLessonOrder(lesson_id, order, tx)
+        )
+      );
+    });
 
     // Get course_id if not provided but section_id is
     let courseIdToInvalidate = course_id;
@@ -618,12 +570,11 @@ const reorderLessons = asyncHandler(async (req, res) => {
 
     // Invalidate relevant caches after reordering lessons
     if (courseIdToInvalidate) {
-      lessonsCache.del(
-        LESSONS_CACHE_KEY_PREFIX + `course_${courseIdToInvalidate}`
-      );
+      clearLessonCacheForCourse(courseIdToInvalidate);
+      clearSectionCache(courseIdToInvalidate);
     }
     if (section_id) {
-      lessonsCache.del(LESSONS_CACHE_KEY_PREFIX + `section_${section_id}`);
+      clearLessonCacheForSection(section_id);
     }
 
     // Log the reordering action
@@ -636,10 +587,7 @@ const reorderLessons = asyncHandler(async (req, res) => {
     setCacheHeaders(res, { noStore: true });
     res.json({ success: true, lessons_updated: lessons.length });
   } catch (err) {
-    await client.query("ROLLBACK");
     throw err;
-  } finally {
-    client.release();
   }
 });
 
@@ -720,14 +668,23 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
 
   // Check and award XP badge if eligible
   try {
-    const totalXPResult = await db.query(
-      `SELECT COALESCE(SUM(l.xp), 0) as total_xp
-       FROM lesson_progress lp
-       JOIN lesson l ON lp.lesson_id = l.lesson_id
-       WHERE lp.user_id = $1 AND lp.completed = true`,
-      [userId]
+    const completedRows = await prisma.lesson_progress.findMany({
+      where: {
+        user_id: Number(userId),
+        completed: true,
+      },
+      select: {
+        lesson: {
+          select: {
+            xp: true,
+          },
+        },
+      },
+    });
+    const xp = completedRows.reduce(
+      (sum, row) => sum + Number(row.lesson?.xp || 0),
+      0
     );
-    const xp = parseInt(totalXPResult.rows[0].total_xp, 10) || 0;
     if (xp >= 100) {
       await require("../controllers/badge.controller").checkAndAwardBadges(
         userId,
@@ -752,11 +709,17 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     // --- BADGE LOGIC: Daily Learner & Marathoner ---
     if (completed) {
       // Daily Learner: check for 3 consecutive days
-      const streakRes = await db.query(
-        `SELECT completed_at FROM lesson_progress WHERE user_id = $1 AND completed = true ORDER BY completed_at DESC LIMIT 10`,
-        [userId]
-      );
-      const days = streakRes.rows.map(
+      const streakRows = await prisma.lesson_progress.findMany({
+        where: {
+          user_id: Number(userId),
+          completed: true,
+          completed_at: { not: null },
+        },
+        orderBy: { completed_at: "desc" },
+        take: 10,
+        select: { completed_at: true },
+      });
+      const days = streakRows.map(
         (r) =>
           r.completed_at && new Date(r.completed_at).toISOString().slice(0, 10)
       );
@@ -844,41 +807,39 @@ const checkLessonOrderIntegrity = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Get all sections for the course
-    const sectionsQuery = `
-      SELECT section_id, name, section_order
-      FROM section
-      WHERE course_id = $1
-      ORDER BY section_order ASC
-    `;
-    const sections = await db.query(sectionsQuery, [course_id]);
+    const sections = await prisma.section.findMany({
+      where: { course_id: Number(course_id) },
+      orderBy: { section_order: "asc" },
+      include: {
+        lesson: {
+          select: {
+            lesson_id: true,
+            name: true,
+            lesson_order: true,
+          },
+          orderBy: { lesson_order: "asc" },
+        },
+      },
+    });
 
     const result = {
       course_id: parseInt(course_id),
-      sections_count: sections.rows.length,
+      sections_count: sections.length,
       sections: [],
       issues_found: 0,
     };
 
     // Check each section
-    for (const section of sections.rows) {
-      const lessonsQuery = `
-        SELECT lesson_id, name, lesson_order
-        FROM lesson
-        WHERE section_id = $1
-        ORDER BY lesson_order ASC
-      `;
-      const lessons = await db.query(lessonsQuery, [section.section_id]);
-
+    for (const section of sections) {
       const sectionResult = {
         section_id: section.section_id,
         name: section.name,
-        lessons_count: lessons.rows.length,
+        lessons_count: section.lesson.length,
         issues: [],
       };
 
       // Check for gaps or duplicates in lesson_order
-      const orderValues = lessons.rows.map((l) => l.lesson_order);
+      const orderValues = section.lesson.map((l) => l.lesson_order);
 
       if (orderValues.length > 0) {
         const min = Math.min(...orderValues);

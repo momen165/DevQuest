@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './LegalPages.css';
 
 const TermsPage = () => {
@@ -199,9 +200,9 @@ const TermsPage = () => {
             <div className="section-content">
               <p>
                 Your privacy is important to us. Our data practices are detailed in our{' '}
-                <a href="/privacy" style={{ color: '#91EAE4', textDecoration: 'none' }}>
+                <Link to="/privacy" style={{ color: '#91EAE4', textDecoration: 'none' }}>
                   Privacy Policy
-                </a>
+                </Link>
                 .
               </p>
 

@@ -27,15 +27,12 @@ const PreloadCriticalResources = () => {
 
     // Warm up highlight.js with common languages
     const warmUpHighlighting = () => {
-      import('highlight.js').then((hljs) => {
-        const commonLanguages = ['javascript', 'java', 'python', 'html', 'css'];
-        commonLanguages.forEach(lang => {
-          try {
-            hljs.default.getLanguage(lang);
-          } catch {
-            // Language not loaded, that's fine
-          }
-        });
+      import('highlight.js/lib/core').then((hljs) => {
+        try {
+          hljs.default.getLanguage('javascript');
+        } catch {
+          // Optional warm-up only
+        }
       });
     };
 

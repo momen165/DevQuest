@@ -18,9 +18,9 @@ const validateCourseId = (course_id) => {
 };
 
 const validateEnrollmentFields = (fields) => {
-  const { user_id, course_id } = fields;
-  if (!user_id || !course_id) {
-    throw new Error("user_id and course_id are required");
+  const { course_id } = fields;
+  if (!course_id) {
+    throw new Error("course_id is required");
   }
 };
 

@@ -64,7 +64,7 @@ function ProfilePage() {
               </div>
               <button
                 className={styles.editProfileBtn}
-                onClick={() => navigate("/settings")}
+                onClick={() => navigate("/AccountSettings")}
               >
                 Edit Profile
               </button>
@@ -75,7 +75,7 @@ function ProfilePage() {
                 <div className={styles.skillsList}>
                   {profileData?.skills?.length > 0 ? (
                     profileData.skills.map((skill, index) => (
-                      <span key={index} className={styles.skillTag}>
+                      <span key={`${skill}-${index}`} className={styles.skillTag}>
                         {skill}
                       </span>
                     ))

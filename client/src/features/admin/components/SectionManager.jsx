@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FiEye, FiTrash2, FiPlus, FiEdit2, FiArrowLeft, FiMove, FiFolder } from 'react-icons/fi';
-import LessonList from './LessonList';
 import SectionForm from './SectionForm';
 import './AdminManage.css';
 import ErrorAlert from './ErrorAlert';
 import { useSections } from 'features/course/hooks/useSections';
+
+const LessonList = React.lazy(() => import('./LessonList'));
 
 const SectionManager = ({ sections, courseId, languageId, onSectionUpdate, onDeleteSection, onClose }) => {
   const [editingSection, setEditingSection] = useState(null);
@@ -44,7 +45,13 @@ const SectionManager = ({ sections, courseId, languageId, onSectionUpdate, onDel
   };
 
   return viewingSection ? (
-    <LessonList section={viewingSection} languageId={languageId} onClose={() => setViewingSection(null)} />
+    <Suspense fallback={<div className="manage-loading">Loading lessons...</div>}>
+      <LessonList
+        section={viewingSection}
+        languageId={languageId}
+        onClose={() => setViewingSection(null)}
+      />
+    </Suspense>
   ) : editingSection ? (
     <SectionForm
       section={editingSection}

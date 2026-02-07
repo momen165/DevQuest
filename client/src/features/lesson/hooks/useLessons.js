@@ -13,7 +13,11 @@ export const useLessons = (sectionId, token) => {
     setError('');
     try {
       const response = await apiClient.get('/admin/lessons', {
-        params: { section_id: sectionId }
+        params: { section_id: sectionId },
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache'
+        }
       });
 
       const lessonsWithFormattedContent = response.data.map(lesson => ({

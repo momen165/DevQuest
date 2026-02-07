@@ -1,28 +1,27 @@
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiMove, FiFileText } from 'react-icons/fi';
-import LessonForm from './LessonForm';
 import './AdminManage.css';
 import ErrorAlert from './ErrorAlert';
 import { useAuth } from 'app/AuthContext';
 import { useLessons } from 'features/lesson/hooks/useLessons';
 import CircularProgress from '@mui/material/CircularProgress';
 
+const LessonForm = React.lazy(() => import('./LessonForm'));
+
 const LessonList = ({ section, languageId, onClose }) => {
   const [editingLesson, setEditingLesson] = useState(null);
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const { user } = useAuth();
 
-  const { lessons, loading, error, saveLesson, deleteLesson, reorderLessons } = useLessons(
+  const { lessons, loading, error, fetchLessons, deleteLesson, reorderLessons } = useLessons(
     section?.section_id,
     user?.token
   );
-  const handleSaveLesson = async (lessonData) => {
-    const result = await saveLesson(lessonData);
-    if (result.success) {
-      setEditingLesson(null);
-      setIsAddingLesson(false);
-    }
+  const handleSaveLesson = async () => {
+    setEditingLesson(null);
+    setIsAddingLesson(false);
+    await fetchLessons();
   };
 
   const handleDeleteLesson = async (lessonId) => {
@@ -66,17 +65,19 @@ const LessonList = ({ section, languageId, onClose }) => {
           <CircularProgress className="manage-loading-spinner" />
         </div>
       ) : isAddingLesson || editingLesson ? (
-        <LessonForm
-          section={section}
-          lesson={editingLesson}
-          languageId={languageId}
-          onSave={handleSaveLesson}
-          onDelete={handleDeleteLesson}
-          onCancel={() => {
-            setEditingLesson(null);
-            setIsAddingLesson(false);
-          }}
-        />
+        <Suspense fallback={<div className="manage-loading">Loading lesson form...</div>}>
+          <LessonForm
+            section={section}
+            lesson={editingLesson}
+            languageId={languageId}
+            onSave={handleSaveLesson}
+            onDelete={handleDeleteLesson}
+            onCancel={() => {
+              setEditingLesson(null);
+              setIsAddingLesson(false);
+            }}
+          />
+        </Suspense>
       ) : (
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="lessons">

@@ -388,7 +388,7 @@ const Analytics = () => {
                                 !page.page_visited.startsWith('/api')
                             )
                             .map((page, index) => (
-                              <TableRow key={index}>
+                              <TableRow key={`${page.page_visited}-${index}`}>
                                 <TableCell>{page.page_visited}</TableCell>
                                 <TableCell align="right">{page.visits}</TableCell>
                               </TableRow>
@@ -489,7 +489,7 @@ const Analytics = () => {
                         </TableHead>
                         <TableBody>
                           {analytics.userEngagement?.mostAttemptedLessons?.map((lesson, index) => (
-                            <TableRow key={index}>
+                            <TableRow key={`${lesson.lesson_id ?? lesson.lesson_title}-${index}`}>
                               <TableCell>{lesson.lesson_title}</TableCell>
                               <TableCell align="right">{lesson.attempts}</TableCell>
                             </TableRow>
@@ -644,7 +644,7 @@ const Analytics = () => {
                           </TableHead>
                           <TableBody>
                             {analytics.environmentInfo?.topCountries?.map((country, index) => (
-                              <TableRow key={index}>
+                              <TableRow key={`${country.country}-${index}`}>
                                 <TableCell>{country.country}</TableCell>
                                 <TableCell align="right">{country.visits}</TableCell>{' '}
                                 <TableCell align="right">

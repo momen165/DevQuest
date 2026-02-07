@@ -1,6 +1,6 @@
 // server/middleware/sessionTracker.js
-const db = require("../config/database");
-const NodeCache = require("node-cache"); // Import NodeCache
+const prisma = require("../config/prisma");
+const NodeCache = require("node-cache");
 const {
   warmSubscriptionCache,
 } = require("../controllers/subscription.controller");
@@ -33,26 +33,19 @@ async function flushSessionUpdates() {
   updateBuffer.clear();
 
   try {
-    // Batch update using parameterized query with UNNEST for safety
     if (updates.length > 0) {
-      const sessionIds = updates.map(u => u.sessionId);
-      const durations = updates.map(u => u.duration);
-      const pageViews = updates.map(u => u.pageViews);
-      
-      const updateQuery = `
-        UPDATE user_sessions AS us SET
-          session_end = NOW(),
-          session_duration = v.session_duration,
-          page_views = v.page_views
-        FROM (
-          SELECT 
-            UNNEST($1::int[]) AS session_id,
-            UNNEST($2::int[]) AS session_duration,
-            UNNEST($3::int[]) AS page_views
-        ) AS v
-        WHERE us.session_id = v.session_id
-      `;
-      await db.query(updateQuery, [sessionIds, durations, pageViews]);
+      await prisma.$transaction(
+        updates.map((update) =>
+          prisma.user_sessions.update({
+            where: { session_id: update.sessionId },
+            data: {
+              session_end: new Date(),
+              session_duration: update.duration,
+              page_views: update.pageViews,
+            },
+          })
+        )
+      );
     }
   } catch (err) {
     console.error("[SessionTracker] Batch update error:", err);
@@ -61,10 +54,6 @@ async function flushSessionUpdates() {
 
 /**
  * Middleware to track user sessions for analytics (user_sessions table)
- * - Creates a new session on first request or after timeout
- * - Buffers updates to reduce DB calls
- * - Increments page_views in memory
- * - Warms subscription cache in background
  */
 module.exports = async function sessionTracker(req, res, next) {
   const now = new Date();
@@ -79,8 +68,6 @@ module.exports = async function sessionTracker(req, res, next) {
     let deviceType = req.headers["user-agent"] || "Unknown";
     if (deviceType.length > 50) deviceType = deviceType.slice(0, 50);
 
-    // Start subscription cache warming in background (non-blocking)
-    // Use setTimeout with small delay to avoid execution during high-traffic periods
     setTimeout(() => {
       warmSubscriptionCache(userId).catch(() => {
         // Silently fail - don't block request
@@ -91,42 +78,51 @@ module.exports = async function sessionTracker(req, res, next) {
     let session = sessionCache.get(sessionCacheKey);
 
     if (!session) {
-      // Find the most recent session - use specific columns instead of SELECT *
-      const { rows } = await db.query(
-          `SELECT session_id, user_id, session_start, session_end, session_duration, page_views 
-           FROM active_user_sessions
-           WHERE user_id = $1
-           ORDER BY session_start DESC
-           LIMIT 1`,
-          [userId]
-      );
-      session = rows[0];
+      session = await prisma.user_sessions.findFirst({
+        where: { user_id: userId, session_end: null },
+        orderBy: { session_start: "desc" },
+        select: {
+          session_id: true,
+          user_id: true,
+          session_start: true,
+          session_end: true,
+          session_duration: true,
+          page_views: true,
+        },
+      });
+
       if (session) {
-        sessionCache.set(sessionCacheKey, session); // Cache the session
+        sessionCache.set(sessionCacheKey, session);
       }
     }
 
-    // Define the max gap (in ms) between requests to consider as "active" (e.g., 5 min)
     const MAX_ACTIVE_GAP = 5 * 60 * 1000;
 
     if (!session) {
-      // No active session: create new (immediate write for new sessions)
-      const result = await db.query(
-        `INSERT INTO user_sessions (user_id, session_start, ip_address, device_type, page_views) 
-         VALUES ($1, NOW(), $2, $3, 1) RETURNING session_id, session_start, page_views`,
-        [userId, ip, deviceType]
-      );
-      // Cache the new session
+      const created = await prisma.user_sessions.create({
+        data: {
+          user_id: userId,
+          session_start: now,
+          ip_address: ip,
+          device_type: deviceType,
+          page_views: 1,
+        },
+        select: {
+          session_id: true,
+          session_start: true,
+          page_views: true,
+        },
+      });
+
       session = {
-        session_id: result.rows[0].session_id,
-        session_start: result.rows[0].session_start,
+        session_id: created.session_id,
+        session_start: created.session_start,
         page_views: 1,
         session_duration: 0,
-        session_end: null
+        session_end: null,
       };
       sessionCache.set(sessionCacheKey, session);
     } else {
-      // Use session_end as last activity if present, else session_start
       const sessionId = session.session_id;
       const newPageViews = (session.page_views || 0) + 1;
       const sessionStart = new Date(session.session_start);
@@ -137,59 +133,64 @@ module.exports = async function sessionTracker(req, res, next) {
 
       let duration = session.session_duration || 0;
       if (gap > 0 && gap <= MAX_ACTIVE_GAP) {
-        // Only add the gap if it's a positive, reasonable interval
-        duration += Math.floor(gap / 1000); // seconds
+        duration += Math.floor(gap / 1000);
 
-        // Buffer the update instead of immediate DB write
         updateBuffer.set(sessionId, {
           sessionId,
           duration,
-          pageViews: newPageViews
+          pageViews: newPageViews,
         });
 
-        // Update cache immediately for subsequent requests
         session.session_end = now;
         session.session_duration = duration;
         session.page_views = newPageViews;
         sessionCache.set(sessionCacheKey, session);
 
-        // Flush immediately if buffer is full for backpressure control
         if (updateBuffer.size >= BATCH_SIZE_LIMIT) {
           flushSessionUpdates().catch(() => {});
         }
       } else if (gap > MAX_ACTIVE_GAP) {
-        // Gap too long: close previous session and start a new one (immediate write)
-        await db.query(
-          `UPDATE user_sessions SET session_end = NOW(), session_duration = $1 WHERE session_id = $2`,
-          [duration, sessionId]
-        );
-        const result = await db.query(
-          `INSERT INTO user_sessions (user_id, session_start, ip_address, device_type, page_views) 
-           VALUES ($1, NOW(), $2, $3, 1) RETURNING session_id, session_start, page_views`,
-          [userId, ip, deviceType]
-        );
-        // Update cache with new session
+        await prisma.user_sessions.update({
+          where: { session_id: sessionId },
+          data: {
+            session_end: now,
+            session_duration: duration,
+          },
+        });
+
+        const created = await prisma.user_sessions.create({
+          data: {
+            user_id: userId,
+            session_start: now,
+            ip_address: ip,
+            device_type: deviceType,
+            page_views: 1,
+          },
+          select: {
+            session_id: true,
+            session_start: true,
+            page_views: true,
+          },
+        });
+
         session = {
-          session_id: result.rows[0].session_id,
-          session_start: result.rows[0].session_start,
+          session_id: created.session_id,
+          session_start: created.session_start,
           page_views: 1,
           session_duration: 0,
-          session_end: null
+          session_end: null,
         };
         sessionCache.set(sessionCacheKey, session);
       } else {
-        // If gap is 0 (multiple requests in the same ms), buffer the update
         updateBuffer.set(sessionId, {
           sessionId,
           duration,
-          pageViews: newPageViews
+          pageViews: newPageViews,
         });
 
-        // Update cache
         session.page_views = newPageViews;
         sessionCache.set(sessionCacheKey, session);
 
-        // Flush immediately if buffer is full for backpressure control
         if (updateBuffer.size >= BATCH_SIZE_LIMIT) {
           flushSessionUpdates().catch(() => {});
         }

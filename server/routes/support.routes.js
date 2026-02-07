@@ -9,6 +9,8 @@ const {
   closeTicket,
   getRecentTickets,
   submitAnonymousTicket,
+  requestAnonymousTicketAccess,
+  verifyAnonymousTicketAccess,
   getAnonymousTicketsByEmail,
 } = require("../controllers/support.controller");
 const {
@@ -81,6 +83,20 @@ router.post(
   sessionTracker,
   performanceMiddleware("anonymous-support"),
   submitAnonymousTicket
+);
+
+router.post(
+  "/support/anonymous/access/request",
+  sessionTracker,
+  performanceMiddleware("anonymous-support-access-request"),
+  requestAnonymousTicketAccess
+);
+
+router.post(
+  "/support/anonymous/access/verify",
+  sessionTracker,
+  performanceMiddleware("anonymous-support-access-verify"),
+  verifyAnonymousTicketAccess
 );
 
 router.get(

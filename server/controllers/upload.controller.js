@@ -6,7 +6,7 @@ const {
 } = require("@aws-sdk/client-s3"); // Removed unused S3Client and GetObjectCommand imports
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
-const db = require("../config/database"); // Adjust as per your project
+const prisma = require("../config/prisma");
 const { s3Client } = require("../utils/s3.utils"); // Import the shared S3 client
 
 const R2_PUBLIC_BASE_URL =
@@ -123,9 +123,11 @@ const uploadProfilePic = [
       }
 
       // Delete previous profile image (best-effort) to avoid orphaned files
-      const querySelect = "SELECT profileimage FROM users WHERE user_id = $1";
-      const { rows } = await db.query(querySelect, [userId]);
-      const previousProfileUrl = rows?.[0]?.profileimage;
+      const existingUser = await prisma.users.findUnique({
+        where: { user_id: Number(userId) },
+        select: { profileimage: true },
+      });
+      const previousProfileUrl = existingUser?.profileimage;
       const previousKey = getR2KeyFromPublicUrl(previousProfileUrl);
       if (previousKey) {
         try {
@@ -169,8 +171,10 @@ const uploadProfilePic = [
       const profileimage = `${R2_PUBLIC_BASE_URL}/${fullKey}`;
 
       // Save the URL in the database
-      const query = "UPDATE users SET profileimage = $1 WHERE user_id = $2";
-      await db.query(query, [profileimage, userId]);
+      await prisma.users.update({
+        where: { user_id: Number(userId) },
+        data: { profileimage },
+      });
 
       res.status(200).json({
         message: "Profile picture uploaded successfully",
@@ -197,15 +201,17 @@ const removeProfilePic = async (req, res) => {
     const userId = req.user.user_id;
 
     // Fetch the current profile picture URL
-    const querySelect = "SELECT profileimage FROM users WHERE user_id = $1";
-    const { rows } = await db.query(querySelect, [userId]);
+    const user = await prisma.users.findUnique({
+      where: { user_id: Number(userId) },
+      select: { profileimage: true },
+    });
 
-    if (rows.length === 0) {
+    if (!user) {
       console.error("[removeProfilePic] User not found in database");
       return res.status(404).json({ error: "User not found" });
     }
 
-    const profileimage = rows[0].profileimage;
+    const profileimage = user.profileimage;
 
     if (profileimage) {
       // Extract the object key from the stored URL
@@ -231,9 +237,10 @@ const removeProfilePic = async (req, res) => {
       }
 
       // Update database
-      const queryUpdate =
-        "UPDATE users SET profileimage = NULL WHERE user_id = $1";
-      await db.query(queryUpdate, [userId]);
+      await prisma.users.update({
+        where: { user_id: Number(userId) },
+        data: { profileimage: null },
+      });
 
       res.status(200).json({ message: "Profile picture removed successfully" });
     } else {
@@ -356,9 +363,10 @@ const uploadBadgeImage = [
       const badgeUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
 
       // Update the badge image in the database if it exists
-      const updateQuery =
-        "UPDATE badges SET image_path = $1 WHERE badge_type = $2";
-      await db.query(updateQuery, [badgeUrl, badgeType]);
+      await prisma.badges.updateMany({
+        where: { badge_type: badgeType },
+        data: { image_path: badgeUrl },
+      });
 
       res.status(200).json({
         message: "Badge image uploaded successfully",
@@ -417,9 +425,10 @@ const uploadCourseImage = [
       const imageUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
 
       // Update the course image in the database
-      const updateQuery =
-        "UPDATE course SET image_url = $1 WHERE course_id = $2";
-      await db.query(updateQuery, [imageUrl, courseId]);
+      await prisma.course.update({
+        where: { course_id: Number(courseId) },
+        data: { image: imageUrl },
+      });
 
       res.status(200).json({
         message: "Course image uploaded successfully",
@@ -475,8 +484,10 @@ const uploadProfileImage = [
       const profileImage = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
 
       // Save the URL in the database
-      const query = "UPDATE users SET profileimage = $1 WHERE user_id = $2";
-      await db.query(query, [profileImage, userId]);
+      await prisma.users.update({
+        where: { user_id: Number(userId) },
+        data: { profileimage: profileImage },
+      });
 
       res.status(200).json({
         message: "Profile image uploaded successfully",

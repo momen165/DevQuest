@@ -1,16 +1,17 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const db = require("../config/database");
+const prisma = require("../config/prisma");
 const { validationResult } = require("express-validator");
 const logActivity = require("../utils/logger");
 const Mailgun = require("mailgun.js");
 const formData = require("form-data");
 const crypto = require("crypto");
-const NodeCache = require("node-cache"); // Import NodeCache
+const NodeCache = require("node-cache");
+const { setCacheHeaders } = require("../utils/cache.utils");
 require("dotenv").config();
 
 // Initialize cache for user existence checks
-const userExistenceCache = new NodeCache({ stdTTL: 60 }); // Cache for 60 seconds
+const userExistenceCache = new NodeCache({ stdTTL: 60 });
 const USER_EXISTENCE_CACHE_KEY_PREFIX = "user_exists_";
 
 // Configuration
@@ -35,15 +36,21 @@ const mg = mailgun.client({
 
 // Define styles for reusability
 const emailStyles = {
-  container: `font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;`,
-  header: `background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); padding: 40px 20px; text-align: center;`,
-  logo: `max-width: 200px; height: auto; margin-bottom: 20px;`,
-  contentArea: `padding: 40px 30px; background-color: #ffffff;`,
-  footer: `background-color: #F9FAFB; padding: 30px 20px; text-align: center; border-top: 1px solid #e5e7eb;`,
-  footerLinksContainer: `margin-bottom: 20px;`,
-  footerLink: `color: #6B7280; text-decoration: none; margin: 0 15px; font-size: 14px;`,
-  footerCopyright: `color: #9CA3AF; font-size: 12px; margin: 0;`,
+  container:
+    "font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;",
+  header:
+    "background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); padding: 40px 20px; text-align: center;",
+  logo: "max-width: 200px; height: auto; margin-bottom: 20px;",
+  contentArea: "padding: 40px 30px; background-color: #ffffff;",
+  footer:
+    "background-color: #F9FAFB; padding: 30px 20px; text-align: center; border-top: 1px solid #e5e7eb;",
+  footerLinksContainer: "margin-bottom: 20px;",
+  footerLink:
+    "color: #6B7280; text-decoration: none; margin: 0 15px; font-size: 14px;",
+  footerCopyright: "color: #9CA3AF; font-size: 12px; margin: 0;",
 };
+
+const toInt = (value) => Number.parseInt(value, 10);
 
 // Helper functions
 const helpers = {
@@ -53,6 +60,7 @@ const helpers = {
       ...options,
     };
     delete payload.expiresIn;
+
     return jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: options.expiresIn || CONFIG.jwt.accessTokenExpiresIn,
     });
@@ -65,7 +73,7 @@ const helpers = {
         admin: userData.admin || false,
       },
       process.env.JWT_SECRET,
-      { expiresIn: CONFIG.jwt.accessTokenExpiresIn },
+      { expiresIn: CONFIG.jwt.accessTokenExpiresIn }
     );
   },
 
@@ -74,13 +82,19 @@ const helpers = {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    await db.query(
-      `INSERT INTO refresh_tokens (user_id, token, expires_at)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (user_id)
-       DO UPDATE SET token = $2, expires_at = $3, created_at = CURRENT_TIMESTAMP`,
-      [userId, refreshToken, expiresAt],
-    );
+    await prisma.refresh_tokens.upsert({
+      where: { user_id: toInt(userId) },
+      create: {
+        user_id: toInt(userId),
+        token: refreshToken,
+        expires_at: expiresAt,
+      },
+      update: {
+        token: refreshToken,
+        expires_at: expiresAt,
+        created_at: new Date(),
+      },
+    });
 
     return refreshToken;
   },
@@ -94,28 +108,18 @@ const helpers = {
   getEmailTemplate: (content) => `
     <div style="${emailStyles.container}" lang="en">
       <div style="${emailStyles.header}">
-        <img src="https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/logo/logoWithOutText.png" alt="Devquest Logo" style="${
-          emailStyles.logo
-        }">
+        <img src="https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/logo/logoWithOutText.png" alt="Devquest Logo" style="${emailStyles.logo}">
       </div>
       <div style="${emailStyles.contentArea}">
         ${content}
       </div>
       <div style="${emailStyles.footer}">
         <div style="${emailStyles.footerLinksContainer}">
-          <a href="${process.env.FRONTEND_URL}/about" style="${
-            emailStyles.footerLink
-          }">About</a>
-          <a href="${process.env.FRONTEND_URL}/contact" style="${
-            emailStyles.footerLink
-          }">Contact</a>
-          <a href="${process.env.FRONTEND_URL}/privacy" style="${
-            emailStyles.footerLink
-          }">Privacy Policy</a>
+          <a href="${process.env.FRONTEND_URL}/about" style="${emailStyles.footerLink}">About</a>
+          <a href="${process.env.FRONTEND_URL}/contact" style="${emailStyles.footerLink}">Contact</a>
+          <a href="${process.env.FRONTEND_URL}/privacy" style="${emailStyles.footerLink}">Privacy Policy</a>
         </div>
-        <p style="${
-          emailStyles.footerCopyright
-        }">${new Date().getFullYear()} Devquest. All rights reserved.</p>
+        <p style="${emailStyles.footerCopyright}">${new Date().getFullYear()} Devquest. All rights reserved.</p>
       </div>
     </div>
   `,
@@ -135,32 +139,40 @@ const helpers = {
     const messageData = {
       from: `${senderName} <${senderEmail}>`,
       to: `${recipient.split("@")[0]} <${recipient}>`,
-      subject: subject,
+      subject,
       html: htmlContent,
-      "o:tag": [`auth-email`, options.customId || "general"],
+      "o:tag": ["auth-email", options.customId || "general"],
       "h:X-Email-Type": options.customId || "auth",
     };
 
     const response = await mg.messages.create(
       process.env.MAILGUN_DOMAIN,
-      messageData,
+      messageData
     );
 
     console.log(
-      `Email sent successfully to ${recipient}. Message ID: ${response.id}`,
+      `Email sent successfully to ${recipient}. Message ID: ${response.id}`
     );
     return true;
   },
 };
 
 // Error handler wrapper
-const handleAsync = (fn) => async (req, res) => {
+const handleAsync = (fn) => async (req, res, next) => {
   try {
-    await fn(req, res);
+    await fn(req, res, next);
   } catch (error) {
     console.error(`Error in ${fn.name}:`, error.message);
     res.status(500).json({ error: `Failed to ${fn.name}` });
   }
+};
+
+const getAdminFlag = async (userId) => {
+  const admin = await prisma.admins.findUnique({
+    where: { admin_id: toInt(userId) },
+    select: { admin_id: true },
+  });
+  return Boolean(admin);
 };
 
 // Main controller functions
@@ -171,24 +183,32 @@ const signup = handleAsync(async (req, res) => {
   }
 
   const { name, email, password, country } = req.body;
+  const normalizedEmail = email.toLowerCase();
   const hashedPassword = await bcrypt.hash(password, CONFIG.bcrypt.saltRounds);
 
-  const existingUser = await db.query("SELECT 1 FROM users WHERE email = $1", [
-    email.toLowerCase(),
-  ]);
-  if (existingUser.rows.length > 0) {
+  const existingUser = await prisma.users.findUnique({
+    where: { email: normalizedEmail },
+    select: { user_id: true },
+  });
+
+  if (existingUser) {
     return res.status(400).json({ error: "Email already registered" });
   }
 
-  // Invalidate cache for this user if they are registered
-  userExistenceCache.del(USER_EXISTENCE_CACHE_KEY_PREFIX + email.toLowerCase());
+  userExistenceCache.del(USER_EXISTENCE_CACHE_KEY_PREFIX + normalizedEmail);
 
-  const { rows } = await db.query(
-    "INSERT INTO users (name, email, password, country, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING user_id",
-    [name, email.toLowerCase(), hashedPassword, country, false],
-  );
+  const user = await prisma.users.create({
+    data: {
+      name,
+      email: normalizedEmail,
+      password: hashedPassword,
+      country,
+      is_verified: false,
+    },
+    select: { user_id: true },
+  });
 
-  const verificationToken = helpers.generateVerificationToken(rows[0].user_id);
+  const verificationToken = helpers.generateVerificationToken(user.user_id);
   const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
   const emailContent = helpers.getEmailTemplate(`
@@ -220,14 +240,15 @@ const signup = handleAsync(async (req, res) => {
   `);
 
   await helpers.sendEmail(
-    email,
+    normalizedEmail,
     "Welcome to Devquest - Verify Your Email",
-    emailContent,
+    emailContent
   );
+
   await logActivity(
     "User",
-    `Verification email sent to: ${email}`,
-    rows[0].user_id,
+    `Verification email sent to: ${normalizedEmail}`,
+    user.user_id
   );
 
   res.status(201).json({
@@ -243,29 +264,33 @@ const login = handleAsync(async (req, res) => {
     return res.status(400).json({ error: "Email and password are required" });
   }
 
-  const [userResult, adminResult] = await Promise.all([
-    db.query("SELECT user_id, name, email, password, is_verified, created_at, profileimage, country, bio, skills FROM users WHERE email = $1", [email.toLowerCase()]),
-    db.query(
-      "SELECT 1 FROM admins WHERE admin_id = (SELECT user_id FROM users WHERE email = $1)",
-      [email.toLowerCase()],
-    ),
-  ]);
+  const normalizedEmail = email.toLowerCase();
 
-  // Cache user existence after login
-  if (userResult.rows.length > 0) {
-    userExistenceCache.set(
-      USER_EXISTENCE_CACHE_KEY_PREFIX + userResult.rows[0].user_id,
-      true,
-    );
+  const user = await prisma.users.findUnique({
+    where: { email: normalizedEmail },
+    select: {
+      user_id: true,
+      name: true,
+      email: true,
+      password: true,
+      is_verified: true,
+      created_at: true,
+      profileimage: true,
+      country: true,
+      bio: true,
+      skills: true,
+    },
+  });
+
+  if (user) {
+    userExistenceCache.set(USER_EXISTENCE_CACHE_KEY_PREFIX + user.user_id, true);
   }
 
-  if (userResult.rows.length === 0) {
+  if (!user) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  const user = userResult.rows[0];
   const isMatch = await bcrypt.compare(password, user.password);
-
   if (!isMatch) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
@@ -278,8 +303,10 @@ const login = handleAsync(async (req, res) => {
     });
   }
 
+  const isAdmin = await getAdminFlag(user.user_id);
+
   const accessToken = helpers.generateAccessToken(user.user_id, {
-    admin: adminResult.rowCount > 0,
+    admin: isAdmin,
   });
 
   const refreshToken = await helpers.generateRefreshToken(user.user_id);
@@ -287,13 +314,13 @@ const login = handleAsync(async (req, res) => {
   res.status(200).json({
     message: "Login successful",
     token: accessToken,
-    refreshToken: refreshToken,
+    refreshToken,
     user: {
       name: user.name,
       country: user.country,
       bio: user.bio,
       skills: user.skills || [],
-      admin: adminResult.rowCount > 0,
+      admin: isAdmin,
       profileimage: user.profileimage,
     },
   });
@@ -306,45 +333,49 @@ const refreshAccessToken = handleAsync(async (req, res) => {
     return res.status(400).json({ error: "Refresh token is required" });
   }
 
-  const tokenResult = await db.query(
-    "SELECT user_id, expires_at FROM refresh_tokens WHERE token = $1",
-    [refreshToken],
-  );
+  const storedToken = await prisma.refresh_tokens.findUnique({
+    where: { token: refreshToken },
+    select: {
+      user_id: true,
+      expires_at: true,
+    },
+  });
 
-  if (tokenResult.rows.length === 0) {
+  if (!storedToken) {
     return res.status(401).json({ error: "Invalid refresh token" });
   }
 
-  const { user_id, expires_at } = tokenResult.rows[0];
-
-  if (new Date() > new Date(expires_at)) {
-    await db.query("DELETE FROM refresh_tokens WHERE token = $1", [
-      refreshToken,
-    ]);
+  if (new Date() > new Date(storedToken.expires_at)) {
+    await prisma.refresh_tokens.deleteMany({ where: { token: refreshToken } });
     return res.status(401).json({ error: "Refresh token expired" });
   }
 
-  const [userResult, adminResult] = await Promise.all([
-    db.query(
-      "SELECT name, country, bio, skills, profileimage FROM users WHERE user_id = $1",
-      [user_id],
-    ),
-    db.query("SELECT 1 FROM admin_lookup WHERE admin_id = $1", [user_id]),
-  ]);
+  const user = await prisma.users.findUnique({
+    where: { user_id: storedToken.user_id },
+    select: {
+      name: true,
+      country: true,
+      bio: true,
+      skills: true,
+      profileimage: true,
+    },
+  });
 
-  // Cache user existence after token refresh
-  if (userResult.rows.length > 0) {
-    userExistenceCache.set(USER_EXISTENCE_CACHE_KEY_PREFIX + user_id, true);
+  if (user) {
+    userExistenceCache.set(
+      USER_EXISTENCE_CACHE_KEY_PREFIX + storedToken.user_id,
+      true
+    );
   }
 
-  if (userResult.rows.length === 0) {
+  if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
 
-  const user = userResult.rows[0];
-  const isAdmin = adminResult.rowCount > 0;
-
-  const accessToken = helpers.generateAccessToken(user_id, { admin: isAdmin });
+  const isAdmin = await getAdminFlag(storedToken.user_id);
+  const accessToken = helpers.generateAccessToken(storedToken.user_id, {
+    admin: isAdmin,
+  });
 
   res.status(200).json({
     token: accessToken,
@@ -363,9 +394,7 @@ const logout = handleAsync(async (req, res) => {
   const { refreshToken } = req.body;
 
   if (refreshToken) {
-    await db.query("DELETE FROM refresh_tokens WHERE token = $1", [
-      refreshToken,
-    ]);
+    await prisma.refresh_tokens.deleteMany({ where: { token: refreshToken } });
   }
 
   res.status(200).json({ message: "Logged out successfully" });
@@ -375,7 +404,6 @@ const updateProfile = handleAsync(async (req, res) => {
   const { name, country, bio, skills } = req.body;
 
   try {
-    // Ensure skills is always a valid array for JSON column
     let skillsToSave = skills;
     if (skills && !Array.isArray(skills)) {
       try {
@@ -385,66 +413,51 @@ const updateProfile = handleAsync(async (req, res) => {
       }
     }
 
-    const query = `
-      UPDATE users
-      SET
-        name = COALESCE($1, name),
-        country = COALESCE($2, country),
-        bio = COALESCE($3, bio),
-        skills = COALESCE($4, skills)
-      WHERE user_id = $5
-      RETURNING name, country, bio, skills, profileimage
-    `;
+    const data = {};
+    if (name !== undefined) data.name = name;
+    if (country !== undefined) data.country = country;
+    if (bio !== undefined) data.bio = bio;
+    if (skillsToSave !== undefined) data.skills = skillsToSave;
 
-    const values = [
-      name,
-      country,
-      bio,
-      JSON.stringify(skillsToSave),
-      req.user.userId,
-    ];
-    const result = await db.query(query, values);
+    const updatedUser = await prisma.users.update({
+      where: { user_id: toInt(req.user.userId) },
+      data,
+      select: {
+        name: true,
+        country: true,
+        bio: true,
+        skills: true,
+        profileimage: true,
+      },
+    });
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const updatedUser = result.rows[0];
-
-    const adminResult = await db.query(
-      "SELECT 1 FROM admin_lookup WHERE admin_id = $1",
-      [req.user.userId],
-    );
-
-    // Invalidate user existence cache if profile is updated (e.g., email changes)
     userExistenceCache.del(USER_EXISTENCE_CACHE_KEY_PREFIX + req.user.userId);
 
-    const isAdmin = adminResult.rowCount > 0;
+    const isAdmin = await getAdminFlag(req.user.userId);
 
     const accessToken = helpers.generateAccessToken(req.user.userId, {
       admin: isAdmin,
     });
 
-    // After updating user profile, check if all required fields are filled for Profile Complete badge
     try {
-      const allFieldsFilled = !!(
+      const allFieldsFilled = Boolean(
         updatedUser.name &&
-        updatedUser.country &&
-        updatedUser.bio &&
-        updatedUser.skills &&
-        updatedUser.profileimage
+          updatedUser.country &&
+          updatedUser.bio &&
+          updatedUser.skills &&
+          updatedUser.profileimage
       );
       if (allFieldsFilled) {
         await require("../controllers/badge.controller").checkAndAwardBadges(
           req.user.userId,
           "profile_complete",
-          { profileComplete: true },
+          { profileComplete: true }
         );
       }
     } catch (badgeErr) {
       console.error(
         "[Profile Badge] Error checking/awarding profile complete badge:",
-        badgeErr,
+        badgeErr
       );
     }
 
@@ -461,6 +474,9 @@ const updateProfile = handleAsync(async (req, res) => {
       },
     });
   } catch (err) {
+    if (err.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
     console.error("Error updating profile:", err);
     res.status(500).json({ error: "Failed to update profile" });
   }
@@ -468,28 +484,30 @@ const updateProfile = handleAsync(async (req, res) => {
 
 const changePassword = handleAsync(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  const { rows } = await db.query(
-    "SELECT password FROM users WHERE user_id = $1",
-    [req.user.userId],
-  );
 
-  if (rows.length === 0) {
+  const user = await prisma.users.findUnique({
+    where: { user_id: toInt(req.user.userId) },
+    select: { password: true },
+  });
+
+  if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
 
-  const isMatch = await bcrypt.compare(currentPassword, rows[0].password);
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
   if (!isMatch) {
     return res.status(400).json({ error: "Current password is incorrect" });
   }
 
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds,
+    CONFIG.bcrypt.saltRounds
   );
-  await db.query("UPDATE users SET password = $1 WHERE user_id = $2", [
-    hashedPassword,
-    req.user.userId,
-  ]);
+
+  await prisma.users.update({
+    where: { user_id: toInt(req.user.userId) },
+    data: { password: hashedPassword },
+  });
 
   res.status(200).json({ message: "Password changed successfully" });
 });
@@ -501,18 +519,16 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
     return res.status(400).json({ error: "Valid email is required" });
   }
 
-  const { rows } = await db.query(
-    "SELECT user_id FROM users WHERE email = $1",
-    [email.toLowerCase()],
-  );
+  const normalizedEmail = email.toLowerCase();
+  const user = await prisma.users.findUnique({
+    where: { email: normalizedEmail },
+    select: { user_id: true },
+  });
 
-  // Invalidate user existence cache if password reset is requested
-  if (rows.length > 0) {
-    userExistenceCache.del(USER_EXISTENCE_CACHE_KEY_PREFIX + rows[0].user_id);
-  }
+  if (user) {
+    userExistenceCache.del(USER_EXISTENCE_CACHE_KEY_PREFIX + user.user_id);
 
-  if (rows.length > 0) {
-    const resetToken = helpers.generateToken(rows[0].user_id, {
+    const resetToken = helpers.generateToken(user.user_id, {
       expiresIn: CONFIG.jwt.verificationExpiresIn,
     });
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
@@ -538,9 +554,9 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
     `);
 
     await helpers.sendEmail(
-      email,
+      normalizedEmail,
       "Password Reset Request - Devquest",
-      emailContent,
+      emailContent
     );
   }
 
@@ -562,15 +578,15 @@ const resetPassword = handleAsync(async (req, res) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds,
+    CONFIG.bcrypt.saltRounds
   );
 
-  const { rowCount } = await db.query(
-    "UPDATE users SET password = $1 WHERE user_id = $2",
-    [hashedPassword, decoded.userId],
-  );
+  const updated = await prisma.users.updateMany({
+    where: { user_id: toInt(decoded.userId) },
+    data: { password: hashedPassword },
+  });
 
-  if (rowCount === 0) {
+  if (updated.count === 0) {
     return res.status(404).json({ error: "User not found" });
   }
 
@@ -578,27 +594,24 @@ const resetPassword = handleAsync(async (req, res) => {
 });
 
 const checkAuth = handleAsync(async (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!token) {
+  setCacheHeaders(res, { noStore: true });
+  const userId = toInt(req.user?.userId ?? req.user?.user_id);
+  if (!Number.isFinite(userId)) {
     return res.status(401).json({ message: "No token provided" });
   }
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  const [userResult, adminResult] = await Promise.all([
-    db.query("SELECT 1 FROM users WHERE user_id = $1", [decoded.userId]),
-    db.query("SELECT 1 FROM admin_lookup WHERE admin_id = $1", [
-      decoded.userId,
-    ]),
-  ]);
+  const user = await prisma.users.findUnique({
+    where: { user_id: userId },
+    select: { user_id: true },
+  });
 
-  if (userResult.rows.length === 0) {
+  if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
 
   res.status(200).json({
     isAuthenticated: true,
-    isAdmin: adminResult.rowCount > 0,
+    isAdmin: Boolean(req.user?.admin),
   });
 });
 
@@ -611,39 +624,31 @@ const verifyEmail = handleAsync(async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded token:", decoded);
-
     const userId = decoded.userId || decoded.id;
 
     if (!userId) {
-      console.error("Token payload:", decoded);
       return res.status(400).json({ error: "Invalid token format" });
     }
 
-    const checkUser = await db.query(
-      "SELECT is_verified FROM users WHERE user_id = $1",
-      [userId],
-    );
+    const existingUser = await prisma.users.findUnique({
+      where: { user_id: toInt(userId) },
+      select: { is_verified: true },
+    });
 
-    if (checkUser.rows.length === 0) {
+    if (!existingUser) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    if (checkUser.rows[0].is_verified) {
+    if (existingUser.is_verified) {
       return res.status(400).json({ error: "Email already verified" });
     }
 
-    const { rowCount } = await db.query(
-      "UPDATE users SET is_verified = true WHERE user_id = $1",
-      [userId],
-    );
+    await prisma.users.update({
+      where: { user_id: toInt(userId) },
+      data: { is_verified: true },
+    });
 
-    if (rowCount === 0) {
-      console.error("Failed to update verification status for user:", userId);
-      return res.status(500).json({ error: "Failed to verify email" });
-    }
-
-    await logActivity("User", `Email verified for user ID: ${userId}`, userId);
+    await logActivity("User", `Email verified for user ID: ${userId}`, toInt(userId));
     res
       .status(200)
       .json({ message: "Email verified successfully. You can now log in." });
@@ -665,23 +670,21 @@ const resendVerificationEmail = handleAsync(async (req, res) => {
   let { email } = req.body;
   const { token } = req.body;
 
-  // If email is not provided but token is, try to extract email from token
   if (!email && token) {
     try {
       const decoded = jwt.decode(token);
       if (decoded && (decoded.userId || decoded.id)) {
         const userId = decoded.userId || decoded.id;
-        const userResult = await db.query(
-          "SELECT email FROM users WHERE user_id = $1",
-          [userId],
-        );
-        if (userResult.rows.length > 0) {
-          email = userResult.rows[0].email;
+        const user = await prisma.users.findUnique({
+          where: { user_id: toInt(userId) },
+          select: { email: true },
+        });
+        if (user) {
+          email = user.email;
         }
       }
     } catch (error) {
       console.error("Error decoding token for resend:", error);
-      // Continue to validation which will fail if email is still missing
     }
   }
 
@@ -689,39 +692,33 @@ const resendVerificationEmail = handleAsync(async (req, res) => {
     return res.status(400).json({ error: "Valid email is required" });
   }
 
-  // Check if user exists and needs verification
-  const userQuery = await db.query(
-    "SELECT user_id, name, is_verified FROM users WHERE email = $1",
-    [email.toLowerCase()],
-  );
+  const normalizedEmail = email.toLowerCase();
 
-  if (userQuery.rows.length === 0) {
-    // Don't reveal that the email doesn't exist
+  const user = await prisma.users.findUnique({
+    where: { email: normalizedEmail },
+    select: { user_id: true, name: true, is_verified: true },
+  });
+
+  if (!user) {
     return res.status(200).json({
       message:
         "If your email exists and requires verification, you will receive a verification email.",
     });
   }
 
-  const user = userQuery.rows[0];
-
-  // If already verified, no need to send again
   if (user.is_verified) {
     return res.status(200).json({
       message: "Your email is already verified. You can log in now.",
     });
   }
 
-  // Generate a new verification token and send email
   const verificationToken = helpers.generateVerificationToken(user.user_id);
   const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
   const emailContent = helpers.getEmailTemplate(`
     <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">Verify Your Email Address</h1>
     <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
-      Hello ${
-        user.name || "there"
-      }, you requested a new verification email. Please click the button below to verify your email address.
+      Hello ${user.name || "there"}, you requested a new verification email. Please click the button below to verify your email address.
     </p>
     <div style="text-align: center; margin: 32px 0;">
       <a href="${verificationLink}"
@@ -739,7 +736,11 @@ const resendVerificationEmail = handleAsync(async (req, res) => {
     </div>
   `);
 
-  await helpers.sendEmail(email, "Verify Your Email - Devquest", emailContent);
+  await helpers.sendEmail(
+    normalizedEmail,
+    "Verify Your Email - Devquest",
+    emailContent
+  );
 
   res.status(200).json({
     message: "Verification email sent. Please check your inbox.",
@@ -769,9 +770,7 @@ const sendFeedbackReplyEmail = async ({
           <strong>Course:</strong> ${courseName}
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
-          <strong>Your rating:</strong> ${"★".repeat(rating)}${"☆".repeat(
-            5 - rating,
-          )}
+          <strong>Your rating:</strong> ${"★".repeat(rating)}${"☆".repeat(5 - rating)}
         </p>
         <p style="color: #4B5563; margin: 8px 0;">
           <strong>Your feedback:</strong> "${comment || "No comment provided"}"
@@ -799,11 +798,11 @@ const sendFeedbackReplyEmail = async ({
 
     const response = await mg.messages.create(
       process.env.MAILGUN_DOMAIN,
-      messageData,
+      messageData
     );
 
     console.log(
-      `Feedback reply email sent successfully to ${email}. Message ID: ${response.id}`,
+      `Feedback reply email sent successfully to ${email}. Message ID: ${response.id}`
     );
     return true;
   } catch (error) {
@@ -813,12 +812,9 @@ const sendFeedbackReplyEmail = async ({
 };
 
 const checkAdminStatus = handleAsync(async (req, res, next) => {
-  const { rowCount } = await db.query(
-    "SELECT 1 FROM admin_lookup WHERE admin_id = $1",
-    [req.user.userId],
-  );
+  const isAdmin = await getAdminFlag(req.user.userId);
 
-  if (rowCount === 0) {
+  if (!isAdmin) {
     return res
       .status(403)
       .json({ error: "Access denied. Admin privileges required." });
@@ -835,27 +831,29 @@ const requestEmailChange = handleAsync(async (req, res) => {
     return res.status(400).json({ error: "Valid email is required" });
   }
 
-  const existingUser = await db.query("SELECT 1 FROM users WHERE email = $1", [
-    newEmail.toLowerCase(),
-  ]);
-  if (existingUser.rows.length > 0) {
+  const normalizedEmail = newEmail.toLowerCase();
+
+  const existingUser = await prisma.users.findUnique({
+    where: { email: normalizedEmail },
+    select: { user_id: true },
+  });
+
+  if (existingUser) {
     return res.status(400).json({ error: "Email is already in use" });
   }
 
-  const { rows } = await db.query(
-    "SELECT email, name FROM users WHERE user_id = $1",
-    [userId],
-  );
-  if (rows.length === 0) {
+  const user = await prisma.users.findUnique({
+    where: { user_id: toInt(userId) },
+    select: { email: true, name: true },
+  });
+
+  if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
 
-  const currentEmail = rows[0].email;
-  const userName = rows[0].name;
-
   const token = helpers.generateToken(userId, {
-    newEmail,
-    currentEmail,
+    newEmail: normalizedEmail,
+    currentEmail: user.email,
     purpose: "email_change",
     expiresIn: CONFIG.jwt.verificationExpiresIn,
   });
@@ -865,7 +863,7 @@ const requestEmailChange = handleAsync(async (req, res) => {
   const emailContent = helpers.getEmailTemplate(`
     <h1 style="color: #111827; font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center;">Email Change Request</h1>
     <p style="color: #4B5563; line-height: 1.6; margin-bottom: 24px;">
-      Hello ${userName}, we received a request to change your email address from ${currentEmail} to ${newEmail}.
+      Hello ${user.name}, we received a request to change your email address from ${user.email} to ${normalizedEmail}.
     </p>
     <div style="text-align: center; margin: 32px 0;">
       <a href="${verificationLink}"
@@ -884,9 +882,9 @@ const requestEmailChange = handleAsync(async (req, res) => {
   `);
 
   await helpers.sendEmail(
-    currentEmail,
+    user.email,
     "Confirm Your Email Change Request - Devquest",
-    emailContent,
+    emailContent
   );
 
   res.status(200).json({
@@ -910,20 +908,29 @@ const confirmEmailChange = handleAsync(async (req, res) => {
 
     const { userId, newEmail, currentEmail } = decoded;
 
-    const existingUser = await db.query(
-      "SELECT 1 FROM users WHERE email = $1 AND user_id != $2",
-      [newEmail.toLowerCase(), userId],
-    );
-    if (existingUser.rows.length > 0) {
+    const existingUser = await prisma.users.findFirst({
+      where: {
+        email: newEmail.toLowerCase(),
+        NOT: { user_id: toInt(userId) },
+      },
+      select: { user_id: true },
+    });
+
+    if (existingUser) {
       return res.status(400).json({ error: "Email is no longer available" });
     }
 
-    const { rowCount } = await db.query(
-      "UPDATE users SET email = $1 WHERE user_id = $2 AND email = $3",
-      [newEmail.toLowerCase(), userId, currentEmail],
-    );
+    const updated = await prisma.users.updateMany({
+      where: {
+        user_id: toInt(userId),
+        email: currentEmail,
+      },
+      data: {
+        email: newEmail.toLowerCase(),
+      },
+    });
 
-    if (rowCount === 0) {
+    if (updated.count === 0) {
       return res
         .status(400)
         .json({ error: "Failed to update email. Please try again." });
@@ -932,7 +939,7 @@ const confirmEmailChange = handleAsync(async (req, res) => {
     await logActivity(
       "User",
       `Email changed from ${currentEmail} to ${newEmail}`,
-      userId,
+      toInt(userId)
     );
 
     res.status(200).json({

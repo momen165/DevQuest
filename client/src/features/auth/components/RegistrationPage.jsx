@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AuthPages.css';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from 'app/AuthContext';
 import { toast } from 'react-hot-toast';
 import { validateEmail, validatePassword, validateName } from 'shared/utils/formValidation';
@@ -81,7 +81,7 @@ const SignupPage = () => {
       <div className="form-container">
         <h1>Start Your Quest</h1>
         <p>
-          Already have an account? <a href="/LoginPage">Log in</a>
+          Already have an account? <Link to="/LoginPage">Log in</Link>
         </p>
         <form onSubmit={handleSubmit} className="form">
           <label>
@@ -156,8 +156,8 @@ const SignupPage = () => {
           </button>
         </form>
         <p>
-          By creating an account, you agree to our <a href="/terms">Terms of Service</a> and{' '}
-          <a href="/privacy">Privacy Policy</a>
+          By creating an account, you agree to our <Link to="/terms">Terms of Service</Link> and{' '}
+          <Link to="/privacy">Privacy Policy</Link>
         </p>
       </div>
       <div className="welcome-container">

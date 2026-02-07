@@ -1,6 +1,6 @@
 // ResetPasswordPage.js
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './ResetPasswordPage.css';
 import { EyeIcon, EyeOffIcon, CheckCircleIcon, XCircleIcon, ShieldCheckIcon } from 'lucide-react';
@@ -249,7 +249,7 @@ const ResetPasswordPage = () => {
           </button>
 
           <div className="login-link">
-            <a onClick={() => navigate('/LoginPage')}>Return to Login</a>
+            <Link to="/LoginPage">Return to Login</Link>
           </div>
         </form>
       </div>

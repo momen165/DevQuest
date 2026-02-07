@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import './AuthPages.css';
 
 const ForgotPasswordPage = () => {
@@ -91,7 +92,7 @@ const ForgotPasswordPage = () => {
           </button>
         </form>
         <p>
-          Remembered your password? <a href="/loginpage">Log in</a>
+          Remembered your password? <Link to="/LoginPage">Log in</Link>
         </p>
       </div>
       <div className="welcome-container">

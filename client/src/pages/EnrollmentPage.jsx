@@ -16,25 +16,29 @@ const EnrollmentPage = () => {
   const [isUsingFallback, setIsUsingFallback] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const { user } = useAuth();
+  const isAuthenticated = Boolean(user);
+  const userId = user?.user_id;
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthenticated) {
       navigate('/loginPage');
       return;
     }
 
     const fetchCourseData = async () => {
       try {
-        const { data } = await axios.get(`${api_url}/courses/${courseId}`);
-        setCourse(data);
+        const courseRequest = axios.get(`${api_url}/courses/${courseId}`);
+        const enrollmentRequest = userId
+          ? axios.get(`${api_url}/courses/${courseId}/enrollments/${userId}`)
+          : Promise.resolve({ data: { isEnrolled: false } });
 
-        // Check if the user is already enrolled in the course
-        if (user.user_id) {
-          const { data: enrollmentData } = await axios.get(
-            `${api_url}/courses/${courseId}/enrollments/${user.user_id}`
-          );
-          setIsEnrolled(enrollmentData.isEnrolled);
-        }
+        const [{ data: courseData }, { data: enrollmentData }] = await Promise.all([
+          courseRequest,
+          enrollmentRequest,
+        ]);
+
+        setCourse(courseData);
+        setIsEnrolled(Boolean(enrollmentData?.isEnrolled));
 
         setLoading(false);
       } catch (err) {
@@ -45,7 +49,7 @@ const EnrollmentPage = () => {
     };
 
     fetchCourseData();
-  }, [courseId, user, navigate]);
+  }, [courseId, navigate, isAuthenticated, userId]);
   if (loading) {
     return (
       <div className="enrollment-page loading">

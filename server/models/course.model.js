@@ -1,4 +1,11 @@
-const db = require("../config/database");
+const prisma = require("../config/prisma");
+
+const toResult = (rows) => ({
+  rows,
+  rowCount: rows.length,
+});
+
+const toNumber = (value) => (value === null || value === undefined ? 0 : Number(value));
 
 const courseQueries = {
   insertCourse: async (
@@ -7,21 +14,19 @@ const courseQueries = {
     status,
     difficulty,
     language_id,
-    imageUrl,
+    imageUrl
   ) => {
-    const query = `
-      INSERT INTO course (name, description, status, difficulty, language_id, image)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *;
-    `;
-    return db.query(query, [
-      title,
-      description,
-      status,
-      difficulty,
-      language_id,
-      imageUrl,
-    ]);
+    const created = await prisma.course.create({
+      data: {
+        name: title,
+        description,
+        status,
+        difficulty,
+        language_id: language_id ? Number(language_id) : null,
+        image: imageUrl,
+      },
+    });
+    return toResult([created]);
   },
 
   updateCourse: async (
@@ -31,207 +36,211 @@ const courseQueries = {
     status,
     difficulty,
     language_id,
-    imageUrl,
+    imageUrl
   ) => {
-    const query = `
-      UPDATE course
-      SET name = $1,
-          description = $2,
-          status = $3,
-          difficulty = $4,
-          language_id = $5,
-          image = COALESCE($6, image)
-      WHERE course_id = $7
-      RETURNING *;
-    `;
-    return db.query(query, [
-      title,
-      description,
-      status,
-      difficulty,
-      language_id,
-      imageUrl,
-      course_id,
-    ]);
+    const id = Number(course_id);
+    const existing = await prisma.course.findUnique({
+      where: { course_id: id },
+      select: { course_id: true },
+    });
+
+    if (!existing) {
+      return toResult([]);
+    }
+
+    const updated = await prisma.course.update({
+      where: { course_id: id },
+      data: {
+        name: title,
+        description,
+        status,
+        difficulty,
+        language_id: language_id ? Number(language_id) : null,
+        ...(imageUrl ? { image: imageUrl } : {}),
+      },
+    });
+
+    return toResult([updated]);
   },
 
   deleteCourseData: async (course_id) => {
-    const queries = [
-      {
-        text: `DELETE FROM lesson_progress
-               WHERE lesson_id IN (SELECT lesson_id
-                                 FROM lesson
-                                 WHERE section_id IN (SELECT section_id
-                                                    FROM section
-                                                    WHERE course_id = $1));`,
-        values: [course_id],
-      },
-      {
-        text: `DELETE FROM lesson
-               WHERE section_id IN (SELECT section_id
-                                  FROM section
-                                  WHERE course_id = $1);`,
-        values: [course_id],
-      },
-      {
-        text: "DELETE FROM section WHERE course_id = $1;",
-        values: [course_id],
-      },
-      {
-        text: "DELETE FROM enrollment WHERE course_id = $1;",
-        values: [course_id],
-      },
-      {
-        text: "DELETE FROM feedback WHERE course_id = $1;",
-        values: [course_id],
-      },
-      {
-        text: "DELETE FROM course WHERE course_id = $1 RETURNING name;",
-        values: [course_id],
-      },
-    ];
-
-    for (const query of queries) {
-      await db.query(query.text, query.values);
-    }
+    const id = Number(course_id);
+    await prisma.course.delete({
+      where: { course_id: id },
+    });
   },
 
   getAllCourses: async () => {
-    const query = `
-      SELECT 
-        course.language_id,
-        course.course_id, 
-        course.name AS title, 
-        course.description, 
-        course.image,
-        course.difficulty,
-        course.rating,
-        COUNT(enrollment.user_id) AS userscount
-      FROM course
-      LEFT JOIN enrollment ON course.course_id = enrollment.course_id
-      GROUP BY 
-        course.course_id, 
-        course.name, 
-        course.description, 
-        course.image,
-        course.difficulty,
-        course.rating;
-    `;
-    return db.query(query);
+    const courses = await prisma.course.findMany({
+      include: {
+        _count: { select: { enrollment: true } },
+      },
+      orderBy: { course_id: "asc" },
+    });
+
+    return toResult(
+      courses.map((course) => ({
+        language_id: course.language_id,
+        course_id: course.course_id,
+        title: course.name,
+        description: course.description,
+        image: course.image,
+        difficulty: course.difficulty,
+        rating: course.rating,
+        userscount: String(course._count.enrollment),
+      }))
+    );
   },
 
   getCourseById: async (course_id) => {
-    const query = `
-      SELECT 
-        course.course_id, 
-        course.name AS title, 
-        course.description, 
-        course.difficulty, 
-        course.language_id,
-        course.status,
-        course.image, 
-        course.rating,
-        COUNT(enrollment.user_id) AS users
-      FROM course
-      LEFT JOIN enrollment ON course.course_id = enrollment.course_id
-      WHERE course.course_id = $1
-      GROUP BY 
-        course.course_id, 
-        course.name, 
-        course.description, 
-        course.difficulty, 
-        course.language_id,
-        course.status,
-        course.image,
-        course.rating;
-    `;
-    return db.query(query, [course_id]);
+    const id = Number(course_id);
+    const course = await prisma.course.findUnique({
+      where: { course_id: id },
+      include: {
+        _count: { select: { enrollment: true } },
+      },
+    });
+
+    if (!course) {
+      return toResult([]);
+    }
+
+    return toResult([
+      {
+        course_id: course.course_id,
+        title: course.name,
+        description: course.description,
+        difficulty: course.difficulty,
+        language_id: course.language_id,
+        status: course.status,
+        image: course.image,
+        rating: course.rating,
+        users: String(course._count.enrollment),
+      },
+    ]);
   },
 
   getUserCourseStats: async (user_id, course_id) => {
-    const query = `
-      SELECT 
-        u.name,
-        u.profileimage,
-        u.streak,
-        (
-          SELECT COALESCE(SUM(l.xp), 0)
-          FROM lesson_progress lp
-          JOIN lesson l ON lp.lesson_id = l.lesson_id
-          JOIN section s ON l.section_id = s.section_id
-          WHERE lp.user_id = u.user_id 
-          AND s.course_id = $2
-          AND lp.completed = true
-        ) as total_xp,
-        (
-          SELECT COUNT(DISTINCT lp.lesson_id)
-          FROM lesson_progress lp
-          JOIN lesson l ON lp.lesson_id = l.lesson_id
-          JOIN section s ON l.section_id = s.section_id
-          WHERE lp.user_id = u.user_id 
-          AND s.course_id = $2
-          AND lp.completed = true
-        ) as completed_exercises
-      FROM users u
-      WHERE u.user_id = $1;
-    `;
-    return db.query(query, [user_id, course_id]);
+    const userId = Number(user_id);
+    const courseId = Number(course_id);
+
+    const [user, completedProgress] = await Promise.all([
+      prisma.users.findUnique({
+        where: { user_id: userId },
+        select: {
+          name: true,
+          profileimage: true,
+          streak: true,
+        },
+      }),
+      prisma.lesson_progress.findMany({
+        where: {
+          user_id: userId,
+          completed: true,
+          lesson: {
+            section: {
+              course_id: courseId,
+            },
+          },
+        },
+        select: {
+          lesson_id: true,
+          lesson: {
+            select: { xp: true },
+          },
+        },
+      }),
+    ]);
+
+    const uniqueLessons = new Set(completedProgress.map((row) => row.lesson_id));
+    const totalXp = completedProgress.reduce(
+      (sum, row) => sum + toNumber(row.lesson?.xp),
+      0
+    );
+
+    return toResult([
+      {
+        name: user?.name || "",
+        profileimage: user?.profileimage || "",
+        streak: user?.streak || 0,
+        total_xp: String(totalXp),
+        completed_exercises: String(uniqueLessons.size),
+      },
+    ]);
   },
 
   enrollUser: async (user_id, course_id) => {
-    const query = `
-      INSERT INTO enrollment (user_id, course_id, enrollment_date)
-      VALUES ($1, $2, NOW())
-      RETURNING *;
-    `;
-    return db.query(query, [user_id, course_id]);
+    const enrollment = await prisma.enrollment.create({
+      data: {
+        user_id: Number(user_id),
+        course_id: Number(course_id),
+        enrollment_date: new Date(),
+      },
+    });
+
+    return toResult([enrollment]);
   },
 
   checkEnrollment: async (user_id, course_id) => {
-    const query = `
-      SELECT * FROM enrollment
-      WHERE user_id = $1 AND course_id = $2
-    `;
-    return db.query(query, [user_id, course_id]);
+    const enrollment = await prisma.enrollment.findFirst({
+      where: {
+        user_id: Number(user_id),
+        course_id: Number(course_id),
+      },
+    });
+
+    return toResult(enrollment ? [enrollment] : []);
   },
 
   getUserOverallStats: async (user_id) => {
-    const query = `
-      WITH user_stats AS (
-        SELECT 
-          u.name,
-          u.profileimage,
-          u.streak,
-          COUNT(DISTINCT e.course_id) as completed_courses,
-          (
-            SELECT COUNT(DISTINCT lp.lesson_id)
-            FROM lesson_progress lp
-            WHERE lp.user_id = u.user_id 
-            AND lp.completed = true
-          ) as total_exercises_completed,
-          (
-            SELECT COALESCE(SUM(l.xp), 0)
-            FROM lesson_progress lp
-            JOIN lesson l ON lp.lesson_id = l.lesson_id
-            WHERE lp.user_id = u.user_id 
-            AND lp.completed = true
-          ) as total_xp
-        FROM users u
-        LEFT JOIN enrollment e ON u.user_id = e.user_id
-        WHERE u.user_id = $1
-        GROUP BY u.user_id
-      )
-      SELECT 
-        name,
-        profileimage,
-        streak,
-        completed_courses,
-        total_exercises_completed,
-        total_xp,
-        FLOOR(total_xp / 100) as level
-      FROM user_stats;
-    `;
-    return db.query(query, [user_id]);
+    const userId = Number(user_id);
+    const [user, enrollments, progressRows] = await Promise.all([
+      prisma.users.findUnique({
+        where: { user_id: userId },
+        select: {
+          name: true,
+          profileimage: true,
+          streak: true,
+        },
+      }),
+      prisma.enrollment.findMany({
+        where: { user_id: userId },
+        select: { course_id: true },
+      }),
+      prisma.lesson_progress.findMany({
+        where: {
+          user_id: userId,
+          completed: true,
+        },
+        select: {
+          lesson_id: true,
+          lesson: {
+            select: {
+              xp: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const completedCourses = new Set(enrollments.map((row) => row.course_id)).size;
+    const uniqueLessons = new Set(progressRows.map((row) => row.lesson_id));
+    const totalXp = progressRows.reduce(
+      (sum, row) => sum + toNumber(row.lesson?.xp),
+      0
+    );
+
+    return toResult([
+      {
+        name: user?.name || "",
+        profileimage: user?.profileimage || "",
+        streak: user?.streak || 0,
+        completed_courses: String(completedCourses),
+        total_exercises_completed: String(uniqueLessons.size),
+        total_xp: String(totalXp),
+        level: String(Math.floor(totalXp / 100)),
+      },
+    ]);
   },
 };
 

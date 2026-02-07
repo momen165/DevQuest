@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import {
   FiSave,
   FiTrash2,
@@ -13,17 +13,17 @@ import {
   FiCheckCircle,
   FiX,
 } from 'react-icons/fi';
-import axios from 'axios';
 import './AdminManage.css';
-import CustomEditor from 'features/editor/components/CustomEditor';
-import SimpleMonacoEditor from 'features/editor/components/SimpleMonacoEditor';
 import TestCaseManager from 'features/editor/components/TestCaseManager';
 import LoadingSpinner from 'shared/ui/LoadingSpinner';
 import ErrorAlert from './ErrorAlert';
-import { useAuth } from 'app/AuthContext';
 import { decode as decodeEntities } from 'entities';
 import { languageMappings } from 'features/lesson/utils/lessonConstants';
 import { validateRequired, validateNumberRange } from 'shared/utils/formValidation';
+import apiClient from 'shared/lib/apiClient';
+
+const CustomEditor = React.lazy(() => import('features/editor/components/CustomEditor'));
+const SimpleMonacoEditor = React.lazy(() => import('features/editor/components/SimpleMonacoEditor'));
 
 const DEFAULT_LESSON_TEMPLATE = `<div class="lesson-template">
   <h1 class="lesson-template-heading">Exercise</h1>
@@ -31,8 +31,6 @@ const DEFAULT_LESSON_TEMPLATE = `<div class="lesson-template">
 </div>`;
 
 const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDelete }) => {
-  const { user } = useAuth();
-
   // Helper function for default test case
   const getDefaultTestCase = () => ({
     input: '',
@@ -142,17 +140,12 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
         auto_detect: test_cases[0]?.auto_detect || false,
       };
 
-      const url = lesson
-        ? `${import.meta.env.VITE_API_URL}/lesson/${lesson.lesson_id}`
-        : `${import.meta.env.VITE_API_URL}/lesson`;
+      const url = lesson ? `/lesson/${lesson.lesson_id}` : '/lesson';
 
       const method = lesson ? 'put' : 'post';
 
-      const response = await axios[method](url, lessonData, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await apiClient[method](url, lessonData, {
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -172,15 +165,15 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
     if (!lesson?.lesson_id) return;
     if (!window.confirm('Are you sure you want to delete this lesson?')) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/lesson/${lesson.lesson_id}`, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
+      await apiClient.delete(`/lesson/${lesson.lesson_id}`);
       onDelete(lesson.lesson_id);
     } catch (err) {
       console.error('Error deleting lesson:', err);
       alert('Failed to delete lesson.');
     }
   };
+
+  const editorFallback = <LoadingSpinner center={false} message="Loading editor..." />;
 
   return (
     <div className={`form-container ${isSaving ? 'form-loading' : ''}`}>
@@ -213,14 +206,16 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
             <FiBook size={14} /> Lesson Content
           </label>
           <div className="editor-container">
-            <CustomEditor
-              initialData={editorData}
-              onChange={setEditorData}
-              className="lesson-editor"
-              config={{
-                placeholder: 'Start writing your lesson content here...',
-              }}
-            />
+            <Suspense fallback={editorFallback}>
+              <CustomEditor
+                initialData={editorData}
+                onChange={setEditorData}
+                className="lesson-editor"
+                config={{
+                  placeholder: 'Start writing your lesson content here...',
+                }}
+              />
+            </Suspense>
           </div>
         </div>
 
@@ -250,11 +245,13 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
             <FiCode size={14} /> Starter Template Code
           </label>
           <div className="editor-container" style={{ height: '400px', marginBottom: '1rem' }}>
-            <SimpleMonacoEditor
-              code={templateCode}
-              setCode={setTemplateCode}
-              language={languageId ? languageMappings[languageId] || 'plaintext' : 'plaintext'}
-            />
+            <Suspense fallback={editorFallback}>
+              <SimpleMonacoEditor
+                code={templateCode}
+                setCode={setTemplateCode}
+                language={languageId ? languageMappings[languageId] || 'plaintext' : 'plaintext'}
+              />
+            </Suspense>
           </div>
           <small className="form-text text-muted">
             This code will be provided as a starting point for students.
@@ -269,7 +266,9 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
             <FiHelpCircle size={14} /> Hint
           </label>
           <div className="editor-container">
-            <CustomEditor initialData={hint} onChange={setHint} />
+            <Suspense fallback={editorFallback}>
+              <CustomEditor initialData={hint} onChange={setHint} />
+            </Suspense>
           </div>
         </div>
 
@@ -278,7 +277,9 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
             <FiCheckCircle size={14} /> Solution
           </label>
           <div className="editor-container">
-            <CustomEditor initialData={solution} onChange={setSolution} />
+            <Suspense fallback={editorFallback}>
+              <CustomEditor initialData={solution} onChange={setSolution} />
+            </Suspense>
           </div>
         </div>
 

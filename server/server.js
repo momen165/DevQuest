@@ -25,26 +25,23 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Database connection
-const db = require("./config/database");
+const prisma = require("./config/prisma");
 
 // Wrap database with performance tracking
-wrapDatabaseQuery(db);
+wrapDatabaseQuery(prisma);
 
-db.query("SELECT NOW()", (err, result) => {
-  if (err) {
-    console.error("Database connection error:", err);
+(async () => {
+  try {
+    await prisma.$connect();
+    console.log("Database connected");
+
+    // Initialize badge data after database connection is successful
+    await createBadgesTable();
+  } catch (error) {
+    console.error("Database initialization error:", error);
     process.exit(1);
-  } else {
-    console.log("Database connected:", result.rows[0].now);
-
-    // Initialize badge tables after database connection is successful
-    createBadgesTable()
-      .then(() => console.log(""))
-      .catch((error) =>
-        console.error("Error initializing badge system:", error)
-      );
   }
-});
+})();
 
 // Enable trust proxy
 app.set("trust proxy", 1);
@@ -187,22 +184,23 @@ app.get("/api/feedback/public", getPublicFeedback);
 
 // Health check route - no auth required
 app.get("/api/health", (req, res) => {
-  db.query("SELECT NOW()", (err, result) => {
-    if (err) {
+  prisma.users
+    .findFirst({ select: { user_id: true } })
+    .then(() => {
+      res.status(200).json({
+        status: "OK",
+        database: "Connected",
+        timestamp: new Date().toISOString(),
+      });
+    })
+    .catch((err) => {
       console.error("Health check error:", err.message);
       res.status(500).json({
         status: "ERROR",
         database: "Disconnected",
         timestamp: new Date().toISOString(),
       });
-    } else {
-      res.status(200).json({
-        status: "OK",
-        database: "Connected",
-        timestamp: result.rows[0].now,
-      });
-    }
-  });
+    });
 });
 
 // --- SESSION TRACKER: Ping endpoint for real page loads ---

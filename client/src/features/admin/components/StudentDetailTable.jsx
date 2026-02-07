@@ -28,14 +28,12 @@ const StudentDetailTable = ({ studentId, onClose }) => {
 
         const headers = { Authorization: `Bearer ${token}` };
 
-        // Fetch student data and courses
-        const [studentResponse, coursesResponse] = await Promise.all([
+        // Fetch student profile, courses, and subscription in parallel
+        const [studentResponse, coursesResponse, subscriptionResponse] = await Promise.all([
           axios.get(`${import.meta.env.VITE_API_URL}/students/${studentId}`, { headers }),
-          axios.get(`${import.meta.env.VITE_API_URL}/students/${studentId}/courses`, { headers })
+          axios.get(`${import.meta.env.VITE_API_URL}/students/${studentId}/courses`, { headers }),
+          axios.get(`${import.meta.env.VITE_API_URL}/user/${studentId}`, { headers }),
         ]);
- 
-        // Fetch subscription status using new endpoint
-        const subscriptionResponse = await axios.get(`${import.meta.env.VITE_API_URL}/user/${studentId}`, { headers });
 
         setStudent(studentResponse.data);
         setCourses(coursesResponse.data);
@@ -116,7 +114,10 @@ const StudentDetailTable = ({ studentId, onClose }) => {
               {courses.length > 0 ? (
                 <div className="student-courses-grid">
                   {courses.map((course, index) => (
-                    <div key={index} className="student-course-item">
+                    <div
+                      key={`${course.course_id ?? course.course_name ?? 'course'}-${index}`}
+                      className="student-course-item"
+                    >
                       <div className="student-course-header">
                         <h5 className="student-course-title">{course.course_name || 'Unnamed Course'}</h5>
                         <span className={`student-course-status student-course-status--${course.progress >= 100 ? 'completed' : 'in-progress'}`}>

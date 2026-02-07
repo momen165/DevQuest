@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AuthPages.css';
 import { useAuth } from 'app/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 const LoginPage = () => {
@@ -83,7 +83,7 @@ const LoginPage = () => {
       <div className="form-container">
         <h1>Welcome Back</h1>
         <p>
-          Don&apos;t have an account? <a href="/RegistrationPage">Sign up</a>
+          Don&apos;t have an account? <Link to="/RegistrationPage">Sign up</Link>
         </p>
         <form onSubmit={handleSubmit} className="form">
           <label>
@@ -128,7 +128,7 @@ const LoginPage = () => {
         )}
 
         <p>
-          <a href="/ForgotPasswordPage">Forgot your password?</a>
+          <Link to="/ForgotPasswordPage">Forgot your password?</Link>
         </p>
       </div>
       <div className="welcome-container">

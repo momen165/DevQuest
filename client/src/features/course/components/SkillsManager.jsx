@@ -14,7 +14,7 @@ const SkillsManager = ({ skills, newSkill, setNewSkill, onAddSkill, onRemoveSkil
         {skills.split(",").map(
           (skill, index) =>
             skill.trim() && (
-              <div key={index} className="skill-badge">
+              <div key={`${skill.trim()}-${index}`} className="skill-badge">
                 {skill.trim()}
                 <span
                   className="skill-remove-icon"

@@ -1,7 +1,13 @@
-const db = require("../config/database");
+const prisma = require("../config/prisma");
 const { sendFeedbackReplyEmail } = require("./auth.controller");
 const NodeCache = require("node-cache");
+const { cacheManager } = require("../utils/cache.utils");
 const { AppError } = require("../utils/error.utils");
+const {
+  isAdminUser,
+  toIntId,
+  getRequesterUserId,
+} = require("../utils/authz.utils");
 
 // Initialize cache with 5 minutes TTL
 const cache = new NodeCache({ stdTTL: 300 });
@@ -10,6 +16,9 @@ const cache = new NodeCache({ stdTTL: 300 });
 const COURSES_CACHE_KEY = "courses_with_ratings";
 const OPTIMIZED_COURSES_CACHE_PREFIX = "optimized_courses_";
 const OPTIMIZED_COURSE_SECTION_CACHE_PREFIX = "optimized_course_section_";
+
+const toNumber = (value) =>
+  value === null || value === undefined ? 0 : Number(value);
 
 // Function to clear courses cache
 const clearCoursesCache = (courseId = null) => {
@@ -31,50 +40,11 @@ const clearCoursesCache = (courseId = null) => {
   }
 
   cache.del([...keysToDelete]);
-};
-
-// SQL Queries
-const QUERIES = {
-  getAllFeedback: `
-    SELECT f.feedback_id, u.name AS student_name, c.name AS course_name, 
-
-    f.comment AS feedback, f.rating, f.status, f.reply
-
-    FROM feedback f
-    JOIN users u ON f.user_id = u.user_id
-    JOIN course c ON f.course_id = c.course_id
-    WHERE ($1::int IS NULL OR f.course_id = $1)
-    ORDER BY f.feedback_id DESC
-  `,
-  getPublicFeedbackIds: `
-    SELECT feedback_id
-    FROM feedback
-    WHERE rating >= 4 AND comment IS NOT NULL AND comment != ''
-  `,
-  getPublicFeedbackDetails: `
-    SELECT f.feedback_id, f.rating, f.comment, u.name, u.profileimage,
-           u.country, c.name as course_name, c.difficulty
-    FROM feedback f
-    JOIN users u ON f.user_id = u.user_id
-    JOIN course c ON f.course_id = c.course_id
-    WHERE f.feedback_id = ANY($1::int[])
-  `,
-  checkUserProgress: `
-    SELECT e.progress, f.feedback_id
-    FROM enrollment e
-    LEFT JOIN feedback f ON f.user_id = e.user_id AND f.course_id = e.course_id
-    WHERE e.user_id = $1 AND e.course_id = $2
-  `,
-  getRecentFeedback: `
-    SELECT f.feedback_id, u.name AS student_name, c.name AS course_name, 
-           f.comment, f.created_at
-    FROM feedback f
-    JOIN users u ON f.user_id = u.user_id
-    JOIN course c ON f.course_id = c.course_id
-    WHERE f.created_at >= NOW() - INTERVAL '48 HOURS'
-    ORDER BY f.created_at DESC
-    LIMIT 5
-  `,
+  // Keep route-level /courses cache in sync with feedback/course mutations.
+  cacheManager.clear("courses");
+  // Feedback/admin views depend on these aggregates as well.
+  cacheManager.clear("feedback");
+  cacheManager.clear("analytics");
 };
 
 // Error handler wrapper
@@ -92,67 +62,131 @@ const getFeedback = handleAsync(async (req, res) => {
   if (!req.user.admin) {
     return res.status(403).json({ error: "Access denied. Admins only." });
   }
-  const courseId = req.query.course_id ? parseInt(req.query.course_id) : null;
-  const { rows } = await db.query(QUERIES.getAllFeedback, [courseId]);
-  res.status(200).json(rows || []);
+
+  const courseId = req.query.course_id ? parseInt(req.query.course_id, 10) : null;
+
+  const rows = await prisma.feedback.findMany({
+    where: courseId ? { course_id: courseId } : undefined,
+    orderBy: { feedback_id: "desc" },
+    include: {
+      users: {
+        select: {
+          name: true,
+        },
+      },
+      course: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  res.status(200).json(
+    rows.map((row) => ({
+      feedback_id: row.feedback_id,
+      student_name: row.users?.name || null,
+      course_name: row.course?.name || null,
+      feedback: row.comment,
+      rating: row.rating,
+      status: row.status,
+      reply: row.reply,
+    }))
+  );
 });
 
-// Get public feedback (optimized for random selection)
+// Get public feedback
 const getPublicFeedback = handleAsync(async (req, res) => {
-  const { rows: feedbackIds } = await db.query(QUERIES.getPublicFeedbackIds);
+  const rows = await prisma.feedback.findMany({
+    where: {
+      rating: { gte: 4 },
+      comment: {
+        not: null,
+      },
+    },
+    include: {
+      users: {
+        select: {
+          name: true,
+          profileimage: true,
+          country: true,
+        },
+      },
+      course: {
+        select: {
+          name: true,
+          difficulty: true,
+        },
+      },
+    },
+    take: 40,
+  });
 
-  // Randomly select 5 feedback IDs
-  const selectedIds = [];
-  const numToSelect = Math.min(5, feedbackIds.length);
-  const availableIndices = Array.from(
-    { length: feedbackIds.length },
-    (_, i) => i
+  const filtered = rows.filter(
+    (row) => row.comment && String(row.comment).trim().length > 0
   );
 
-  for (let i = 0; i < numToSelect; i++) {
-    const randomIndex = Math.floor(Math.random() * availableIndices.length);
-    const selectedIndex = availableIndices.splice(randomIndex, 1)[0];
-    selectedIds.push(feedbackIds[selectedIndex].feedback_id);
-  }
+  const shuffled = filtered
+    .map((value) => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .slice(0, 5)
+    .map(({ value }) => value);
 
-  if (selectedIds.length === 0) {
-    return res.status(200).json([]);
-  }
-
-  const { rows: feedbackDetails } = await db.query(
-    QUERIES.getPublicFeedbackDetails,
-    [selectedIds]
+  res.status(200).json(
+    shuffled.map((row) => ({
+      feedback_id: row.feedback_id,
+      rating: row.rating,
+      comment: row.comment,
+      name: row.users?.name,
+      profileimage: row.users?.profileimage,
+      country: row.users?.country,
+      course_name: row.course?.name,
+      difficulty: row.course?.difficulty,
+    }))
   );
-  res.status(200).json(feedbackDetails);
 });
 
 // Get courses with ratings and user counts
 const getCoursesWithRatings = handleAsync(async (req, res) => {
-  // Check cache first
   const cachedData = cache.get(COURSES_CACHE_KEY);
   if (cachedData) {
     return res.status(200).json(cachedData);
   }
 
-  const [courses, userscount] = await Promise.all([
-    db.query(
-      "SELECT course_id, name, description, status, image, difficulty, created_at FROM course WHERE status = 'Published'"
-    ),
-    db.query(
-      "SELECT course_id, COUNT(user_id) AS userscount FROM enrollment GROUP BY course_id"
-    ),
+  const [courses, enrollmentCounts] = await Promise.all([
+    prisma.course.findMany({
+      where: { status: "Published" },
+      select: {
+        course_id: true,
+        name: true,
+        description: true,
+        status: true,
+        image: true,
+        difficulty: true,
+        created_at: true,
+        rating: true,
+      },
+      orderBy: { course_id: "asc" },
+    }),
+    prisma.enrollment.groupBy({
+      by: ["course_id"],
+      _count: {
+        user_id: true,
+      },
+    }),
   ]);
 
   const userscountMap = Object.fromEntries(
-    userscount.rows.map((u) => [u.course_id, u.userscount])
+    enrollmentCounts
+      .filter((row) => row.course_id !== null)
+      .map((row) => [row.course_id, String(row._count.user_id)])
   );
 
   const responseData = {
-    courses: courses.rows,
+    courses,
     userscount: userscountMap,
   };
 
-  // Store in cache
   cache.set(COURSES_CACHE_KEY, responseData);
 
   res.status(200).json(responseData);
@@ -160,16 +194,12 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
 
 // Optimized endpoint that combines all course data in a single request
 const getOptimizedCoursesData = handleAsync(async (req, res) => {
-  const {
-    trackCacheHit,
-    trackCacheMiss,
-  } = require("../utils/performance.utils");
+  const { trackCacheHit, trackCacheMiss } = require("../utils/performance.utils");
   const userId = req.user?.userId;
   const cacheKey = userId
-    ? `optimized_courses_${userId}`
+    ? `${OPTIMIZED_COURSES_CACHE_PREFIX}${userId}`
     : "optimized_courses_guest";
 
-  // Check cache first
   const cachedData = cache.get(cacheKey);
   if (cachedData) {
     trackCacheHit("optimized-courses", cacheKey);
@@ -179,77 +209,96 @@ const getOptimizedCoursesData = handleAsync(async (req, res) => {
   trackCacheMiss("optimized-courses", cacheKey);
 
   try {
-    // Single optimized query to get all course data
-    let coursesQuery;
-    let queryParams;
+    const courses = await prisma.course.findMany({
+      where: { status: "Published" },
+      include: {
+        _count: {
+          select: {
+            enrollment: true,
+          },
+        },
+        section: {
+          include: {
+            lesson: {
+              select: {
+                lesson_id: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { course_id: "asc" },
+    });
+
+    let enrollmentMap = new Map();
+    let completedByCourseMap = new Map();
 
     if (userId) {
-      // Query for authenticated users - includes enrollment and progress data
-      coursesQuery = `
-        WITH course_enrollments AS (
-          SELECT course_id, COUNT(user_id) AS enrollment_count
-          FROM enrollment
-          GROUP BY course_id
-        ),
-        user_enrollments AS (
-          SELECT course_id, progress
-          FROM enrollment
-          WHERE user_id = $1
-        ),
-        course_progress AS (
-          SELECT 
-            s.course_id,
-            COUNT(CASE WHEN lp.completed = true THEN 1 END) * 100.0 / 
-            NULLIF(COUNT(l.lesson_id), 0) as calculated_progress
-          FROM section s
-          LEFT JOIN lesson l ON s.section_id = l.section_id
-          LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
-          GROUP BY s.course_id
-        )
-        SELECT 
-          c.*,
-          COALESCE(ce.enrollment_count, 0) as userscount,
-          CASE WHEN ue.course_id IS NOT NULL THEN true ELSE false END as is_enrolled,
-          COALESCE(ROUND(cp.calculated_progress::numeric, 0), 0) as progress
-        FROM course c
-        LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id
-        LEFT JOIN user_enrollments ue ON c.course_id = ue.course_id
-        LEFT JOIN course_progress cp ON c.course_id = cp.course_id
-        WHERE c.status = 'Published'
-        ORDER BY c.course_id;
-      `;
-      queryParams = [userId];
-    } else {
-      // Query for guest users - only basic course data
-      coursesQuery = `
-        WITH course_enrollments AS (
-          SELECT course_id, COUNT(user_id) AS enrollment_count
-          FROM enrollment
-          GROUP BY course_id
-        )
-        SELECT 
-          c.*,
-          COALESCE(ce.enrollment_count, 0) as userscount,
-          false as is_enrolled,
-          0 as progress
-        FROM course c
-        LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id
-        WHERE c.status = 'Published'
-        ORDER BY c.course_id;
-      `;
-      queryParams = [];
+      const [userEnrollments, completedProgress] = await Promise.all([
+        prisma.enrollment.findMany({
+          where: { user_id: Number(userId) },
+          select: {
+            course_id: true,
+          },
+        }),
+        prisma.lesson_progress.findMany({
+          where: {
+            user_id: Number(userId),
+            completed: true,
+          },
+          select: {
+            lesson_id: true,
+            lesson: {
+              select: {
+                section: {
+                  select: {
+                    course_id: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ]);
+
+      enrollmentMap = new Map(userEnrollments.map((row) => [row.course_id, true]));
+
+      for (const row of completedProgress) {
+        const courseId = row.lesson?.section?.course_id;
+        if (!courseId) continue;
+
+        const current = completedByCourseMap.get(courseId) || new Set();
+        current.add(row.lesson_id);
+        completedByCourseMap.set(courseId, current);
+      }
     }
 
-    const result = await db.query(coursesQuery, queryParams);
+    const formattedCourses = courses.map((course) => {
+      const allLessonIds = course.section.flatMap((section) =>
+        section.lesson.map((lesson) => lesson.lesson_id)
+      );
+      const totalLessons = allLessonIds.length;
 
-    // Format the response data
+      const completedCount = userId
+        ? completedByCourseMap.get(course.course_id)?.size || 0
+        : 0;
+
+      const progress = totalLessons > 0 ? Math.round((completedCount * 100) / totalLessons) : 0;
+
+      return {
+        ...course,
+        userscount: String(course._count.enrollment),
+        is_enrolled: userId ? Boolean(enrollmentMap.get(course.course_id)) : false,
+        progress,
+      };
+    });
+
     const responseData = {
-      courses: result.rows,
+      courses: formattedCourses,
       optimized: true,
       cached: false,
     };
 
-    // Cache the result for 5 minutes
     cache.set(cacheKey, responseData, 300);
 
     res.status(200).json(responseData);
@@ -261,10 +310,7 @@ const getOptimizedCoursesData = handleAsync(async (req, res) => {
 
 // Optimized endpoint for CourseSection.jsx that combines multiple API calls
 const getOptimizedCourseSectionData = handleAsync(async (req, res) => {
-  const {
-    trackCacheHit,
-    trackCacheMiss,
-  } = require("../utils/performance.utils");
+  const { trackCacheHit, trackCacheMiss } = require("../utils/performance.utils");
 
   const { courseId } = req.params;
   const userId = req.user?.userId;
@@ -273,9 +319,10 @@ const getOptimizedCourseSectionData = handleAsync(async (req, res) => {
     return res.status(401).json({ error: "Authentication required" });
   }
 
-  const cacheKey = `optimized_course_section_${courseId}_${userId}`;
+  const normalizedCourseId = Number(courseId);
+  const normalizedUserId = Number(userId);
+  const cacheKey = `${OPTIMIZED_COURSE_SECTION_CACHE_PREFIX}${normalizedCourseId}_${normalizedUserId}`;
 
-  // Check cache first
   const cachedData = cache.get(cacheKey);
   if (cachedData) {
     trackCacheHit("optimized-course-section", cacheKey);
@@ -285,176 +332,172 @@ const getOptimizedCourseSectionData = handleAsync(async (req, res) => {
   trackCacheMiss("optimized-course-section", cacheKey);
 
   try {
-    // Single optimized query that combines all the data needed by CourseSection.jsx
-    const optimizedQuery = `
-      WITH course_info AS (
-        SELECT 
-          c.course_id,
-          c.name as title,
-          c.description,
-          c.status
-        FROM course c
-        WHERE c.course_id = $1 AND c.status = 'Published'
-      ),
-      subscription_info AS (        SELECT 
-          CASE 
-            WHEN s.status = true AND s.subscription_end_date > NOW() THEN true 
-            ELSE false 
-          END as has_active_subscription,
-          COALESCE(
-            (SELECT COUNT(*) 
-             FROM lesson_progress lp 
-             WHERE lp.user_id = $2 AND lp.completed = true), 0
-          ) as completed_lessons_count
-        FROM users u
-        LEFT JOIN subscription s ON u.user_id = s.user_id
-        WHERE u.user_id = $2
-      ),
-      user_profile AS (
-        SELECT 
-          u.name,
-          u.profileimage,
-          u.streak,
-          COALESCE(
-            (SELECT COUNT(*) 
-             FROM lesson_progress lp 
-             WHERE lp.user_id = u.user_id AND lp.completed = true), 0
-          ) as exercises_completed
-        FROM users u
-        WHERE u.user_id = $2
-      ),
-      sections_with_lessons AS (
-        SELECT 
-          s.section_id,
-          s.name,
-          s.description,
-          s.section_order,
-          json_agg(
-            json_build_object(
-              'lesson_id', l.lesson_id,
-              'name', l.name,
-              'lesson_order', l.lesson_order,
-              'completed', COALESCE(lp.completed, false)
-            ) ORDER BY l.lesson_order
-          ) as lessons
-        FROM section s
-        LEFT JOIN lesson l ON s.section_id = l.section_id
-        LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $2
-        WHERE s.course_id = $1
-        GROUP BY s.section_id, s.name, s.description, s.section_order
-        ORDER BY s.section_order
-      ),
-      course_stats AS (
-        SELECT 
-          COALESCE(SUM(l.xp), 0) as course_xp,
-          COUNT(DISTINCT lp.lesson_id) as exercises_completed
-        FROM lesson_progress lp
-        JOIN lesson l ON lp.lesson_id = l.lesson_id
-        JOIN section s ON l.section_id = s.section_id
-        WHERE lp.user_id = $2 
-        AND s.course_id = $1
-        AND lp.completed = true
-      ),
-      overall_stats AS (
-        SELECT 
-          COALESCE(SUM(l.xp), 0) as total_xp,
-          COUNT(DISTINCT lp.lesson_id) as total_exercises_completed
-        FROM lesson_progress lp
-        LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
-        WHERE lp.user_id = $2 AND lp.completed = true
-      )
-      SELECT 
-        ci.course_id,
-        ci.title,
-        ci.description,
-        ci.status,
-        si.has_active_subscription,
-        si.completed_lessons_count,
-        up.name as user_name,
-        up.profileimage as user_profile_image,
-        up.streak as user_streak,
-        up.exercises_completed as user_exercises_completed,
-        COALESCE(cs.course_xp, 0) as course_xp,
-        COALESCE(cs.exercises_completed, 0) as course_exercises_completed,
-        COALESCE(os.total_xp, 0) as total_xp,
-        COALESCE(os.total_exercises_completed, 0) as total_exercises_completed,
-        (
-          SELECT json_agg(
-            json_build_object(
-              'section_id', swl.section_id,
-              'name', swl.name,
-              'description', swl.description,
-              'section_order', swl.section_order,
-              'lessons', swl.lessons
-            ) ORDER BY swl.section_order
-          )
-          FROM sections_with_lessons swl
-        ) as sections
-      FROM course_info ci
-      CROSS JOIN subscription_info si
-      CROSS JOIN user_profile up
-      CROSS JOIN course_stats cs
-      CROSS JOIN overall_stats os;
-    `;
+    const [
+      course,
+      activeSubscription,
+      completedLessonsTotal,
+      profile,
+      sections,
+      completedInCourse,
+      completedAll,
+    ] = await Promise.all([
+      prisma.course.findFirst({
+        where: {
+          course_id: normalizedCourseId,
+          status: "Published",
+        },
+        select: {
+          course_id: true,
+          name: true,
+          description: true,
+          status: true,
+        },
+      }),
+      prisma.subscription.findFirst({
+        where: {
+          user_id: normalizedUserId,
+          status: true,
+          subscription_end_date: { gt: new Date() },
+        },
+        select: {
+          subscription_id: true,
+        },
+        orderBy: { subscription_start_date: "desc" },
+      }),
+      prisma.lesson_progress.count({
+        where: {
+          user_id: normalizedUserId,
+          completed: true,
+        },
+      }),
+      prisma.users.findUnique({
+        where: { user_id: normalizedUserId },
+        select: {
+          name: true,
+          profileimage: true,
+          streak: true,
+        },
+      }),
+      prisma.section.findMany({
+        where: { course_id: normalizedCourseId },
+        orderBy: { section_order: "asc" },
+        include: {
+          lesson: {
+            orderBy: { lesson_order: "asc" },
+            include: {
+              lesson_progress: {
+                where: { user_id: normalizedUserId },
+                select: { completed: true },
+                take: 1,
+              },
+            },
+          },
+        },
+      }),
+      prisma.lesson_progress.findMany({
+        where: {
+          user_id: normalizedUserId,
+          completed: true,
+          lesson: {
+            section: {
+              course_id: normalizedCourseId,
+            },
+          },
+        },
+        select: {
+          lesson_id: true,
+          lesson: {
+            select: {
+              xp: true,
+            },
+          },
+        },
+      }),
+      prisma.lesson_progress.findMany({
+        where: {
+          user_id: normalizedUserId,
+          completed: true,
+        },
+        select: {
+          lesson_id: true,
+          lesson: {
+            select: {
+              xp: true,
+            },
+          },
+        },
+      }),
+    ]);
 
-    const result = await db.query(optimizedQuery, [courseId, userId]);
-
-    if (result.rows.length === 0) {
+    if (!course) {
       return res
         .status(404)
         .json({ error: "Course not found or not available" });
     }
 
-    const data = result.rows[0];
+    const courseXP = completedInCourse.reduce(
+      (sum, row) => sum + toNumber(row.lesson?.xp),
+      0
+    );
+    const totalXP = completedAll.reduce(
+      (sum, row) => sum + toNumber(row.lesson?.xp),
+      0
+    );
 
-    // Calculate level and XP to next level
-    const calculateLevel = (totalXP) => {
-      return Math.floor(totalXP / 100) + 1;
+    const sectionsPayload = sections.map((section) => ({
+      section_id: section.section_id,
+      name: section.name,
+      description: section.description,
+      section_order: section.section_order,
+      lessons: section.lesson.map((lesson) => ({
+        lesson_id: lesson.lesson_id,
+        name: lesson.name,
+        lesson_order: lesson.lesson_order,
+        completed: Boolean(lesson.lesson_progress[0]?.completed),
+      })),
+    }));
+
+    const calculateLevel = (xp) => Math.floor(xp / 100) + 1;
+    const calculateXPToNextLevel = (xp) => {
+      const currentLevel = calculateLevel(xp);
+      return currentLevel * 100 - xp;
     };
 
-    const calculateXPToNextLevel = (totalXP) => {
-      const currentLevel = calculateLevel(totalXP);
-      const xpForNextLevel = currentLevel * 100;
-      return xpForNextLevel - totalXP;
-    };
+    const level = calculateLevel(totalXP);
+    const xpToNextLevel = calculateXPToNextLevel(totalXP);
 
-    const level = calculateLevel(data.total_xp);
-    const xpToNextLevel = calculateXPToNextLevel(data.total_xp);
-
-    // Format the response data
     const responseData = {
       course: {
-        course_id: data.course_id,
-        title: data.title,
-        description: data.description,
-        status: data.status,
+        course_id: course.course_id,
+        title: course.name,
+        description: course.description,
+        status: course.status,
       },
       subscription: {
-        hasActiveSubscription: data.has_active_subscription,
-        completedLessonsCount: data.completed_lessons_count,
+        hasActiveSubscription: Boolean(activeSubscription),
+        completedLessonsCount: completedLessonsTotal,
       },
       profile: {
-        name: data.user_name,
-        profileimage: data.user_profile_image,
-        streak: data.user_streak,
-        exercisesCompleted: data.user_exercises_completed,
+        name: profile?.name || "",
+        profileimage: profile?.profileimage || null,
+        streak: profile?.streak || 0,
+        exercisesCompleted: completedLessonsTotal,
       },
-      sections: data.sections || [],
+      sections: sectionsPayload,
       stats: {
-        courseXP: data.course_xp,
-        exercisesCompleted: data.course_exercises_completed,
-        streak: data.user_streak,
-        name: data.user_name,
-        profileImage: data.user_profile_image,
-        totalXP: data.total_xp,
-        level: level,
-        xpToNextLevel: xpToNextLevel,
+        courseXP,
+        exercisesCompleted: completedInCourse.length,
+        streak: profile?.streak || 0,
+        name: profile?.name || "",
+        profileImage: profile?.profileimage || null,
+        totalXP,
+        level,
+        xpToNextLevel,
       },
       optimized: true,
       cached: false,
     };
 
-    // Cache the result for 3 minutes (course section data changes more frequently)
     cache.set(cacheKey, responseData, 180);
 
     return res.status(200).json(responseData);
@@ -464,41 +507,64 @@ const getOptimizedCourseSectionData = handleAsync(async (req, res) => {
   }
 });
 
-// Add this before submitFeedback function
 const checkFeedbackEligibility = async (userId, courseId) => {
-  const { rows } = await db.query(QUERIES.checkUserProgress, [
-    userId,
-    courseId,
-  ]);
+  const enrollment = await prisma.enrollment.findUnique({
+    where: {
+      user_id_course_id: {
+        user_id: Number(userId),
+        course_id: Number(courseId),
+      },
+    },
+    select: { progress: true },
+  });
 
-  if (!rows.length) {
+  if (!enrollment) {
     throw new AppError("User is not enrolled in this course", 400);
   }
 
-  const progress = parseFloat(rows[0].progress) || 0;
-  const existingFeedback = rows[0].feedback_id;
+  const existingFeedback = await prisma.feedback.findFirst({
+    where: {
+      user_id: Number(userId),
+      course_id: Number(courseId),
+    },
+    select: { feedback_id: true },
+  });
+
+  const progress = parseFloat(enrollment.progress || 0);
 
   return {
-    canSubmitFeedback: progress >= 30 || (existingFeedback && progress === 100),
-    hasExistingFeedback: !!existingFeedback,
+    canSubmitFeedback:
+      progress >= 30 || (existingFeedback?.feedback_id && progress === 100),
+    hasExistingFeedback: Boolean(existingFeedback?.feedback_id),
     progress,
   };
 };
 
-// Modify submitFeedback function
 const submitFeedback = handleAsync(async (req, res) => {
   const { course_id, rating, comment } = req.body;
+  const requesterId = getRequesterUserId(req);
+  const normalizedCourseId = toIntId(course_id);
+  const normalizedRating = toIntId(rating);
 
-  if (!course_id || !rating || rating < 1 || rating > 5) {
+  if (
+    !normalizedCourseId ||
+    !normalizedRating ||
+    normalizedRating < 1 ||
+    normalizedRating > 5
+  ) {
     return res.status(400).json({
       error:
         "Invalid input. Provide a valid course ID and a rating between 1 and 5.",
     });
   }
 
+  if (!requesterId) {
+    return res.status(401).json({ error: "Authentication required." });
+  }
+
   const eligibility = await checkFeedbackEligibility(
-    req.user.userId,
-    course_id
+    requesterId,
+    normalizedCourseId
   );
 
   if (!eligibility.canSubmitFeedback) {
@@ -517,103 +583,124 @@ const submitFeedback = handleAsync(async (req, res) => {
     });
   }
 
-  const courseExists = await db.query(
-    "SELECT 1 FROM course WHERE course_id = $1",
-    [course_id]
-  );
-  if (!courseExists.rowCount) {
+  const courseExists = await prisma.course.findUnique({
+    where: { course_id: normalizedCourseId },
+    select: { course_id: true },
+  });
+  if (!courseExists) {
     return res.status(404).json({ error: "Course not found." });
   }
 
-  await db.query("BEGIN");
-  try {
-    // Insert the feedback
-    const { rows } = await db.query(
-      "INSERT INTO feedback (user_id, course_id, rating, comment) VALUES ($1, $2, $3, $4) RETURNING *",
-      [req.user.userId, course_id, rating, comment || null]
-    );
+  const createdFeedback = await prisma.$transaction(async (tx) => {
+    const feedback = await tx.feedback.create({
+      data: {
+        user_id: requesterId,
+        course_id: normalizedCourseId,
+        rating: normalizedRating,
+        comment: comment || null,
+      },
+    });
 
-    // Update course rating
-    await db.query(
-      `UPDATE course 
-       SET rating = (
-         SELECT ROUND(AVG(rating)::numeric, 2)
-         FROM feedback 
-         WHERE course_id = $1
-       )
-       WHERE course_id = $1`,
-      [course_id]
-    );
+    const ratingAggregate = await tx.feedback.aggregate({
+      where: { course_id: normalizedCourseId },
+      _avg: { rating: true },
+    });
 
-    await db.query("COMMIT");
-    clearCoursesCache(course_id);
-    res
-      .status(201)
-      .json({ message: "Feedback submitted successfully!", feedback: rows[0] });
-  } catch (error) {
-    await db.query("ROLLBACK");
-    throw error;
-  }
+    const avgRating = Number(ratingAggregate._avg.rating || 0);
+    await tx.course.update({
+      where: { course_id: normalizedCourseId },
+      data: {
+        rating: avgRating.toFixed(2),
+      },
+    });
+
+    return feedback;
+  });
+
+  clearCoursesCache(normalizedCourseId);
+  res.status(201).json({
+    message: "Feedback submitted successfully!",
+    feedback: createdFeedback,
+  });
 });
 
 // Reply to feedback
 const replyToFeedback = handleAsync(async (req, res) => {
   const { feedback_id, reply } = req.body;
+  const feedbackId = toIntId(feedback_id);
 
-  if (!feedback_id || !reply) {
+  if (!isAdminUser(req)) {
+    return res.status(403).json({ error: "Access denied. Admins only." });
+  }
+
+  if (!feedbackId || !reply || !reply.trim()) {
     return res
       .status(400)
       .json({ error: "Feedback ID and reply message are required." });
   }
 
-  await db.query("BEGIN");
   try {
-    // Get user details and feedback content with a more specific query
-    const userDetails = await db.query(
-      `SELECT u.email, u.name, f.comment, f.rating, c.name as course_name
-       FROM feedback f 
-       JOIN users u ON f.user_id = u.user_id 
-       JOIN course c ON f.course_id = c.course_id
-       WHERE f.feedback_id = $1`,
-      [feedback_id]
-    );
+    const feedbackDetails = await prisma.feedback.findUnique({
+      where: { feedback_id: feedbackId },
+      select: {
+        feedback_id: true,
+        comment: true,
+        rating: true,
+        users: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+        course: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
 
-    if (!userDetails.rows.length) {
-      await db.query("ROLLBACK");
+    if (!feedbackDetails) {
       return res.status(404).json({ error: "Feedback not found" });
     }
 
-    // Update the feedback status to 'closed'
-    const updateResult = await db.query(
-      "UPDATE feedback SET status = $1, reply = $2 WHERE feedback_id = $3 RETURNING *",
-      ["closed", reply, feedback_id]
-    );
+    const updatedFeedback = await prisma.feedback.update({
+      where: { feedback_id: feedbackId },
+      data: {
+        status: "closed",
+        reply: reply.trim(),
+      },
+    });
+    cacheManager.clear("feedback");
+    cacheManager.clear("analytics");
 
-    const { email, name, comment, rating, course_name } = userDetails.rows[0];
+    const email = feedbackDetails.users?.email;
+    const name = feedbackDetails.users?.name;
+    const commentValue = feedbackDetails.comment;
+    const ratingValue = feedbackDetails.rating;
+    const courseName = feedbackDetails.course?.name;
 
-    // Send email with all the necessary information
     try {
-      await sendFeedbackReplyEmail({
-        email,
-        name,
-        comment,
-        rating,
-        courseName: course_name,
-        reply,
-      });
+      if (email && name && courseName) {
+        await sendFeedbackReplyEmail({
+          email,
+          name,
+          comment: commentValue,
+          rating: ratingValue,
+          courseName,
+          reply: reply.trim(),
+        });
+      }
     } catch (emailError) {
       console.error("Email sending failed:", emailError);
-      // Continue with the transaction even if email fails
+      // Keep feedback status update even if email fails.
     }
-
-    await db.query("COMMIT");
 
     res.status(200).json({
       message: "Reply sent successfully and feedback closed.",
-      feedback: updateResult.rows[0],
+      feedback: updatedFeedback,
     });
   } catch (error) {
-    await db.query("ROLLBACK");
     console.error("Error in replyToFeedback:", error);
     res.status(500).json({
       error: "Failed to process feedback reply",
@@ -622,31 +709,71 @@ const replyToFeedback = handleAsync(async (req, res) => {
   }
 });
 
-// Add this function to get recent feedback
+// Get recent feedback
 const getRecentFeedback = handleAsync(async (req, res) => {
-  const { rows } = await db.query(QUERIES.getRecentFeedback);
-  res.status(200).json(rows || []);
+  if (!isAdminUser(req)) {
+    return res.status(403).json({ error: "Access denied. Admins only." });
+  }
+
+  const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
+  const rows = await prisma.feedback.findMany({
+    where: {
+      created_at: { gte: since },
+    },
+    include: {
+      users: {
+        select: { name: true },
+      },
+      course: {
+        select: { name: true },
+      },
+    },
+    orderBy: { created_at: "desc" },
+    take: 5,
+  });
+
+  res.status(200).json(
+    rows.map((row) => ({
+      feedback_id: row.feedback_id,
+      student_name: row.users?.name || null,
+      course_name: row.course?.name || null,
+      comment: row.comment,
+      created_at: row.created_at,
+    }))
+  );
 });
 
 const reopenFeedback = handleAsync(async (req, res) => {
   const { feedback_id } = req.body;
+  const feedbackId = toIntId(feedback_id);
 
-  if (!feedback_id) {
+  if (!isAdminUser(req)) {
+    return res.status(403).json({ error: "Access denied. Admins only." });
+  }
+
+  if (!feedbackId) {
     return res.status(400).json({ error: "Feedback ID is required." });
   }
 
-  const updateResult = await db.query(
-    "UPDATE feedback SET status = $1 WHERE feedback_id = $2 RETURNING *",
-    ["open", feedback_id]
-  );
+  const feedbackRecord = await prisma.feedback.findUnique({
+    where: { feedback_id: feedbackId },
+    select: { feedback_id: true },
+  });
 
-  if (!updateResult.rows.length) {
+  if (!feedbackRecord) {
     return res.status(404).json({ error: "Feedback not found" });
   }
 
+  const reopenedFeedback = await prisma.feedback.update({
+    where: { feedback_id: feedbackId },
+    data: { status: "open" },
+  });
+  cacheManager.clear("feedback");
+  cacheManager.clear("analytics");
+
   res.status(200).json({
     message: "Feedback reopened successfully",
-    feedback: updateResult.rows[0],
+    feedback: reopenedFeedback,
   });
 });
 
@@ -654,9 +781,9 @@ module.exports = {
   getFeedback,
   submitFeedback,
   getCoursesWithRatings,
-  getOptimizedCoursesData, // Export the new optimized endpoint
+  getOptimizedCoursesData,
   replyToFeedback,
-  getPublicFeedback, // Re-add this export
+  getPublicFeedback,
   checkFeedbackEligibility,
   getRecentFeedback,
   reopenFeedback,

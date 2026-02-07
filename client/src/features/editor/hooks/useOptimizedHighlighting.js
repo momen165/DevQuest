@@ -1,5 +1,23 @@
 import { useEffect, useRef, useCallback } from 'react';
-import hljs from 'highlight.js';
+import hljs from 'highlight.js/lib/core';
+import bash from 'highlight.js/lib/languages/bash';
+import c from 'highlight.js/lib/languages/c';
+import cpp from 'highlight.js/lib/languages/cpp';
+import csharp from 'highlight.js/lib/languages/csharp';
+import css from 'highlight.js/lib/languages/css';
+import go from 'highlight.js/lib/languages/go';
+import haskell from 'highlight.js/lib/languages/haskell';
+import java from 'highlight.js/lib/languages/java';
+import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import kotlin from 'highlight.js/lib/languages/kotlin';
+import php from 'highlight.js/lib/languages/php';
+import python from 'highlight.js/lib/languages/python';
+import ruby from 'highlight.js/lib/languages/ruby';
+import rust from 'highlight.js/lib/languages/rust';
+import swift from 'highlight.js/lib/languages/swift';
+import typescript from 'highlight.js/lib/languages/typescript';
+import xml from 'highlight.js/lib/languages/xml';
 import {
   debounce,
   createIntersectionObserver,
@@ -10,6 +28,26 @@ import {
 
 // Create a cache for highlighted code to avoid re-processing
 const highlightCache = createCache(200, 10 * 60 * 1000); // 10 minutes TTL
+
+// Register only the languages used in DevQuest to avoid bundling every grammar.
+hljs.registerLanguage('bash', bash);
+hljs.registerLanguage('c', c);
+hljs.registerLanguage('cpp', cpp);
+hljs.registerLanguage('csharp', csharp);
+hljs.registerLanguage('css', css);
+hljs.registerLanguage('go', go);
+hljs.registerLanguage('haskell', haskell);
+hljs.registerLanguage('java', java);
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('kotlin', kotlin);
+hljs.registerLanguage('php', php);
+hljs.registerLanguage('python', python);
+hljs.registerLanguage('ruby', ruby);
+hljs.registerLanguage('rust', rust);
+hljs.registerLanguage('swift', swift);
+hljs.registerLanguage('typescript', typescript);
+hljs.registerLanguage('xml', xml);
 
 /**
  * Custom hook for optimized syntax highlighting

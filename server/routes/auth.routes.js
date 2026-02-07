@@ -2,7 +2,6 @@ const express = require("express");
 const authController = require("../controllers/auth.controller");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
 const { body } = require("express-validator");
-const { cacheMiddleware } = require("../utils/cache.utils");
 const {
   performanceMiddleware,
 } = require("../middleware/performance.middleware");
@@ -50,7 +49,6 @@ router.get(
   "/check-auth",
   authenticateToken,
   performanceMiddleware("check-auth"),
-  cacheMiddleware("user", 120),
   authController.checkAuth
 ); // Only needs token, no force requirement
 

@@ -1,24 +1,63 @@
-const db = require("../config/database");
-const NodeCache = require("node-cache"); // Import NodeCache
+const prisma = require("../config/prisma");
+const NodeCache = require("node-cache");
+const { invalidateUserCache } = require("../utils/cache.utils");
 
 // Initialize cache for admin access with a short TTL (e.g., 60 seconds)
 const adminAccessCache = new NodeCache({ stdTTL: 60 });
 const ADMIN_ACCESS_CACHE_KEY_PREFIX = "admin_access_";
 
+const toInt = (value) => Number.parseInt(value, 10);
+const startOfDay = (date) => {
+  const d = new Date(date);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+};
+
+const formatDay = (date) => {
+  const d = startOfDay(date);
+  return d.toISOString().slice(0, 10);
+};
+
+const formatMonth = (date) => {
+  const d = new Date(date);
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${month}`;
+};
+
+const aggregateBy = (rows, keyBuilder) => {
+  const map = new Map();
+  for (const row of rows) {
+    const key = keyBuilder(row);
+    if (!key) continue;
+    map.set(key, (map.get(key) || 0) + 1);
+  }
+  return map;
+};
+
+const mapToSortedSeries = (map, keyField) =>
+  Array.from(map.entries())
+    .sort(([a], [b]) => (a > b ? 1 : -1))
+    .map(([key, count]) => ({ [keyField]: key, count: String(count) }));
+
+const getNow = () => new Date();
+
 // Check if a user has admin access
 const checkAdminAccess = async (userId) => {
-  const cacheKey = ADMIN_ACCESS_CACHE_KEY_PREFIX + userId;
-  let isAdmin = adminAccessCache.get(cacheKey);
+  const normalizedUserId = toInt(userId);
+  const cacheKey = ADMIN_ACCESS_CACHE_KEY_PREFIX + normalizedUserId;
+  const cached = adminAccessCache.get(cacheKey);
 
-  if (isAdmin !== undefined) {
-    return isAdmin; // Return from cache if available
+  if (cached !== undefined) {
+    return cached;
   }
 
   try {
-    const query = "SELECT 1 FROM admin_lookup WHERE admin_id = $1";
-    const result = await db.query(query, [userId]);
-    isAdmin = result.rowCount > 0;
-    adminAccessCache.set(cacheKey, isAdmin); // Store in cache
+    const admin = await prisma.admins.findUnique({
+      where: { admin_id: normalizedUserId },
+      select: { admin_id: true },
+    });
+
+    const isAdmin = Boolean(admin);
+    adminAccessCache.set(cacheKey, isAdmin);
     return isAdmin;
   } catch (error) {
     console.error("Error checking admin access:", error);
@@ -34,309 +73,514 @@ const grantFreeSubscriptionDB = async (
   amountPaid,
   status
 ) => {
-  const userCheck = await db.query(
-    "SELECT email, name FROM users WHERE user_id = $1",
-    [userId]
-  );
+  const normalizedUserId = toInt(userId);
 
-  if (userCheck.rowCount === 0) {
-    throw new Error("User not found");
-  }
+  const result = await prisma.$transaction(async (tx) => {
+    const user = await tx.users.findUnique({
+      where: { user_id: normalizedUserId },
+      select: { email: true, name: true },
+    });
 
-  const userEmail = userCheck.rows[0].email;
-  const userName = userCheck.rows[0].name;
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-  const insertSubQuery = `
-    INSERT INTO subscription (subscription_start_date, subscription_end_date, subscription_type, amount_paid, status, user_email, user_id)
-    VALUES (CURRENT_DATE, $1, $2, $3, $4, $5, $6)
-    RETURNING subscription_id;
-  `;
+    const subscription = await tx.subscription.create({
+      data: {
+        subscription_start_date: new Date(),
+        subscription_end_date: new Date(freeEndDate),
+        subscription_type: subscriptionType,
+        amount_paid: Number(amountPaid),
+        status: Boolean(status),
+        user_email: user.email,
+        user_id: normalizedUserId,
+      },
+      select: { subscription_id: true },
+    });
 
-  const { rows: subRows } = await db.query(insertSubQuery, [
-    freeEndDate,
-    subscriptionType,
-    amountPaid,
-    status,
-    userEmail,
-    userId,
-  ]);
+    await tx.user_subscription.upsert({
+      where: {
+        user_id_subscription_id: {
+          user_id: normalizedUserId,
+          subscription_id: subscription.subscription_id,
+        },
+      },
+      create: {
+        user_id: normalizedUserId,
+        subscription_id: subscription.subscription_id,
+      },
+      update: {},
+    });
 
-  const subscriptionId = subRows[0].subscription_id;
+    return { userName: user.name, userEmail: user.email };
+  });
 
-  await db.query(
-    `INSERT INTO user_subscription (user_id, subscription_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-    [userId, subscriptionId]
-  );
+  invalidateUserCache(normalizedUserId);
 
-  return { userName, userEmail }; // Returns target user's name and email
+  return result;
 };
 
 // Get admin activities
 const getAdminActivitiesDB = async (adminId) => {
-  const query = `
-    SELECT 
-      activity_id,
-      action_type as type,
-      action_description as description,
-      created_at
-    FROM admin_activity
-    WHERE admin_id = $1
-    ORDER BY created_at DESC
-    LIMIT 10
-  `;
-  const { rows } = await db.query(query, [adminId]);
-  return rows;
+  const rows = await prisma.admin_activity.findMany({
+    where: { admin_id: toInt(adminId) },
+    orderBy: { created_at: "desc" },
+    take: 10,
+    select: {
+      activity_id: true,
+      action_type: true,
+      action_description: true,
+      created_at: true,
+    },
+  });
+
+  return rows.map((row) => ({
+    activity_id: row.activity_id,
+    type: row.action_type,
+    description: row.action_description,
+    created_at: row.created_at,
+  }));
 };
 
 // Get system metrics
 const getSystemMetricsDB = async () => {
-  const queries = {
-    totalUsers: "SELECT COUNT(*) FROM users",
-    activeCourses: "SELECT COUNT(*) FROM course WHERE is_active = true",
-    totalEnrollments: "SELECT COUNT(*) FROM enrollment",
+  const [totalUsers, activeCourses, totalEnrollments] = await Promise.all([
+    prisma.users.count(),
+    prisma.course.count({ where: { is_active: true } }),
+    prisma.enrollment.count(),
+  ]);
+
+  return {
+    totalUsers,
+    activeCourses,
+    totalEnrollments,
   };
-
-  const results = await Promise.all(
-    Object.entries(queries).map(async ([key, query]) => {
-      const { rows } = await db.query(query);
-      return { [key]: parseInt(rows[0].count) };
-    })
-  );
-
-  return Object.assign({}, ...results);
 };
 
 // Get performance metrics
 const getPerformanceMetricsDB = async () => {
-  const query = `
-    SELECT 
-      (SELECT COUNT(*) FROM lesson_progress WHERE completed = true) as completed_lessons,
-      (SELECT COUNT(DISTINCT user_id) FROM user_activity 
-       WHERE created_at > NOW() - INTERVAL '7 days') as active_users,
-      (SELECT AVG(EXTRACT(EPOCH FROM (completed_at - started_at)))::integer 
-       FROM lesson_progress WHERE completed = true) as avg_completion_time
-  `;
+  const sevenDaysAgo = new Date(getNow().getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const { rows } = await db.query(query);
-  return rows[0];
+  const [completedLessons, activeUsersRows, avgSession] = await Promise.all([
+    prisma.lesson_progress.count({ where: { completed: true } }),
+    prisma.user_activity.findMany({
+      where: {
+        created_at: {
+          gt: sevenDaysAgo,
+        },
+      },
+      distinct: ["user_id"],
+      select: { user_id: true },
+    }),
+    prisma.user_sessions.aggregate({
+      where: {
+        created_at: { gte: sevenDaysAgo },
+        session_duration: { not: null },
+      },
+      _avg: {
+        session_duration: true,
+      },
+    }),
+  ]);
+
+  return {
+    completed_lessons: String(completedLessons),
+    active_users: String(activeUsersRows.length),
+    avg_completion_time: Math.round(avgSession._avg.session_duration || 0),
+  };
 };
 
 // Add admin
 const addAdminDB = async (userId, requesterId) => {
-  const userCheck = await db.query("SELECT 1 FROM users WHERE user_id = $1", [
-    userId,
+  const normalizedUserId = toInt(userId);
+  const normalizedRequesterId = toInt(requesterId);
+
+  const [userExists, adminExists] = await Promise.all([
+    prisma.users.findUnique({
+      where: { user_id: normalizedUserId },
+      select: { user_id: true },
+    }),
+    prisma.admins.findUnique({
+      where: { admin_id: normalizedUserId },
+      select: { admin_id: true },
+    }),
   ]);
-  if (userCheck.rowCount === 0) {
+
+  if (!userExists) {
     throw new Error("User not found");
   }
 
-  const adminCheck = await db.query(
-    "SELECT 1 FROM admin_lookup WHERE admin_id = $1",
-    [userId]
-  );
-  if (adminCheck.rowCount > 0) {
+  if (adminExists) {
     throw new Error("User is already an admin");
   }
 
-  await db.query("INSERT INTO admins (admin_id) VALUES ($1)", [userId]);
+  await prisma.admins.create({
+    data: { admin_id: normalizedUserId },
+  });
 
-  // Invalidate cache for the added admin
-  adminAccessCache.del(ADMIN_ACCESS_CACHE_KEY_PREFIX + userId);
+  adminAccessCache.del(ADMIN_ACCESS_CACHE_KEY_PREFIX + normalizedUserId);
 
   const [requesterInfo, targetInfo] = await Promise.all([
-    db.query("SELECT name FROM users WHERE user_id = $1", [requesterId]),
-    db.query("SELECT name FROM users WHERE user_id = $1", [userId]),
+    prisma.users.findUnique({
+      where: { user_id: normalizedRequesterId },
+      select: { name: true },
+    }),
+    prisma.users.findUnique({
+      where: { user_id: normalizedUserId },
+      select: { name: true },
+    }),
   ]);
 
   return {
-    targetName: targetInfo.rows[0]?.name || "Unknown",
-    requesterName: requesterInfo.rows[0]?.name || "Unknown",
+    targetName: targetInfo?.name || "Unknown",
+    requesterName: requesterInfo?.name || "Unknown",
   };
 };
 
 // Remove admin
 const removeAdminDB = async (userIdToRemove, requesterId) => {
-  const adminCheck = await db.query(
-    "SELECT 1 FROM admin_lookup WHERE admin_id = $1",
-    [userIdToRemove]
-  );
-  if (adminCheck.rowCount === 0) {
+  const normalizedUserId = toInt(userIdToRemove);
+  const normalizedRequesterId = toInt(requesterId);
+
+  const adminExists = await prisma.admins.findUnique({
+    where: { admin_id: normalizedUserId },
+    select: { admin_id: true },
+  });
+
+  if (!adminExists) {
     throw new Error("User is not an admin");
   }
 
-  await db.query("DELETE FROM admins WHERE admin_id = $1", [userIdToRemove]);
+  await prisma.admins.delete({
+    where: { admin_id: normalizedUserId },
+  });
 
-  // Invalidate cache for the removed admin
-  adminAccessCache.del(ADMIN_ACCESS_CACHE_KEY_PREFIX + userIdToRemove);
+  adminAccessCache.del(ADMIN_ACCESS_CACHE_KEY_PREFIX + normalizedUserId);
 
   const [requesterInfo, targetInfo] = await Promise.all([
-    db.query("SELECT name FROM users WHERE user_id = $1", [requesterId]),
-    db.query("SELECT name FROM users WHERE user_id = $1", [userIdToRemove]),
+    prisma.users.findUnique({
+      where: { user_id: normalizedRequesterId },
+      select: { name: true },
+    }),
+    prisma.users.findUnique({
+      where: { user_id: normalizedUserId },
+      select: { name: true },
+    }),
   ]);
 
   return {
-    targetName: targetInfo.rows[0]?.name || "Unknown",
-    requesterName: requesterInfo.rows[0]?.name || "Unknown",
+    targetName: targetInfo?.name || "Unknown",
+    requesterName: requesterInfo?.name || "Unknown",
   };
 };
 
 // Get user name by ID
 const getUserNameByIdDB = async (userId) => {
-  const userInfo = await db.query("SELECT name FROM users WHERE user_id = $1", [
-    userId,
-  ]);
-  return userInfo.rows[0]?.name || "Unknown";
+  const userInfo = await prisma.users.findUnique({
+    where: { user_id: toInt(userId) },
+    select: { name: true },
+  });
+
+  return userInfo?.name || "Unknown";
 };
 
 // Toggle maintenance mode
 const toggleMaintenanceModeDB = async (enabled, updatedByAdminId) => {
-  const query = `
-    INSERT INTO system_settings (setting_id, maintenance_mode, updated_at, updated_by) 
-    VALUES (1, $1, CURRENT_TIMESTAMP, $2)
-    ON CONFLICT (setting_id) DO UPDATE 
-    SET maintenance_mode = $1, 
-        updated_at = CURRENT_TIMESTAMP,
-        updated_by = $2
-    RETURNING maintenance_mode`;
-  const { rows } = await db.query(query, [enabled, updatedByAdminId]);
-  return rows[0];
+  return prisma.system_settings.upsert({
+    where: { setting_id: 1 },
+    create: {
+      setting_id: 1,
+      maintenance_mode: Boolean(enabled),
+      updated_by: toInt(updatedByAdminId),
+      updated_at: new Date(),
+    },
+    update: {
+      maintenance_mode: Boolean(enabled),
+      updated_by: toInt(updatedByAdminId),
+      updated_at: new Date(),
+    },
+    select: { maintenance_mode: true },
+  });
 };
 
 // Get system settings
 const getSystemSettingsDB = async (adminId) => {
-  const query = `
-    INSERT INTO system_settings (setting_id, maintenance_mode, updated_at, updated_by) 
-    VALUES (1, false, CURRENT_TIMESTAMP, $1) 
-    ON CONFLICT (setting_id) DO UPDATE 
-    SET setting_id = system_settings.setting_id 
-    RETURNING maintenance_mode, updated_at, updated_by`;
-  const { rows } = await db.query(query, [adminId]);
-  return rows[0];
+  return prisma.system_settings.upsert({
+    where: { setting_id: 1 },
+    create: {
+      setting_id: 1,
+      maintenance_mode: false,
+      updated_by: toInt(adminId),
+      updated_at: new Date(),
+    },
+    update: {},
+    select: {
+      maintenance_mode: true,
+      updated_at: true,
+      updated_by: true,
+    },
+  });
 };
 
 // Get maintenance status (public)
 const getMaintenanceStatusDB = async () => {
-  const query = `
-    SELECT maintenance_mode, updated_at, updated_by 
-    FROM system_settings 
-    WHERE setting_id = 1`;
-  const { rows } = await db.query(query);
-  return rows[0];
+  return prisma.system_settings.findUnique({
+    where: { setting_id: 1 },
+    select: {
+      maintenance_mode: true,
+      updated_at: true,
+      updated_by: true,
+    },
+  });
 };
 
 // Get site analytics data
 const getSiteAnalyticsDB = async (days) => {
+  const now = getNow();
+  const dayRangeStart = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  const last7Start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const activeUserDays = Math.min(days, 30);
-  const monthsToGet = Math.max(1, Math.ceil(days / 30));
+  const activeUserStart = new Date(
+    now.getTime() - activeUserDays * 24 * 60 * 60 * 1000
+  );
+  const monthRangeStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - Math.max(1, Math.ceil(days / 30)) + 1, 1)
+  );
 
-  const queries = {
-    totalVisits: `SELECT COUNT(*) as total_visits FROM site_visits`,
-    dailyVisitsLast7Days: `
-      SELECT TO_CHAR(visit_date, 'YYYY-MM-DD') as date, COUNT(visit_id) as count
-      FROM site_visits WHERE visit_date >= NOW() - INTERVAL '7 days'
-      GROUP BY TO_CHAR(visit_date, 'YYYY-MM-DD') ORDER BY date ASC`,
-    uniqueVisitors: `
-      SELECT COUNT(DISTINCT COALESCE(user_id::text, ip_address)) as unique_visitors
-      FROM site_visits WHERE visit_date >= NOW() - INTERVAL '${days} days'`,
-    topPages: `
-      SELECT page_visited, COUNT(*) as visits FROM site_visits
-      WHERE visit_date >= NOW() - INTERVAL '${days} days'
-        AND page_visited IS NOT NULL AND page_visited NOT LIKE '/admin/analytics%'
-        AND page_visited NOT LIKE '/getCoursesWithRatings%' AND page_visited NOT LIKE '/api%'
-      GROUP BY page_visited ORDER BY visits DESC LIMIT 10`,
-    filteredPageViews: `
-      SELECT COUNT(*) as page_views FROM site_visits
-      WHERE visit_date >= NOW() - INTERVAL '${days} days'
-        AND page_visited IS NOT NULL AND page_visited NOT LIKE '/admin/analytics%'
-        AND page_visited NOT LIKE '/getCoursesWithRatings%' AND page_visited NOT LIKE '/api%'`,
-    dailyVisits: `
-      SELECT TO_CHAR(visit_date, 'YYYY-MM-DD') as date, COUNT(visit_id) as count
-      FROM site_visits WHERE visit_date >= NOW() - INTERVAL '${days} days'
-      GROUP BY TO_CHAR(visit_date, 'YYYY-MM-DD') ORDER BY date ASC`,
-    monthlyVisits: `
-      SELECT TO_CHAR(visit_date, 'YYYY-MM') as month, COUNT(visit_id) as count
-      FROM site_visits WHERE visit_date >= NOW() - INTERVAL '${monthsToGet} months'
-      GROUP BY TO_CHAR(visit_date, 'YYYY-MM') ORDER BY month ASC`,
-    userStats: `
-      SELECT 
-        (SELECT COUNT(*) FROM users) as total_users,
-        (SELECT COUNT(*) FROM users WHERE last_login >= NOW() - INTERVAL '${activeUserDays} days') as active_users,
-        (SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '${days} days') as new_users`,
-    newUsersDaily: `
-      SELECT TO_CHAR(created_at, 'YYYY-MM-DD') as date, COUNT(user_id) as count
-      FROM users WHERE created_at >= NOW() - INTERVAL '${days} days'
-      GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD') ORDER BY date ASC`,
-    activeUsers24h: `
-      SELECT COUNT(DISTINCT user_id) as active_users_24h
-      FROM user_activity WHERE created_at >= NOW() - INTERVAL '24 hours'`,
-    quizzesTaken: `
-      SELECT COUNT(*) as total_quizzes_taken
-      FROM quiz_attempts WHERE attempted_at >= NOW() - INTERVAL '${days} days'`,
-    mostAttemptedLessons: `
-      SELECT l.name as lesson_title, COUNT(lp.lesson_id) as attempts
-      FROM lesson_progress lp JOIN lesson l ON lp.lesson_id = l.lesson_id
-      WHERE lp.completed_at >= NOW() - INTERVAL '${days} days'
-      GROUP BY l.lesson_id, l.name ORDER BY attempts DESC LIMIT 5`,
-    courseStats: `
-      SELECT 
-        (SELECT COUNT(*) FROM course) as total_courses,
-        (SELECT COUNT(*) FROM enrollment) as total_enrollments,
-        (SELECT ROUND(COALESCE(AVG(progress),0) * 100) / 100 FROM enrollment) as completion_rate`,
-    engagementStats: `
-      SELECT 
-        (SELECT COALESCE(AVG(session_duration), 0) FROM user_sessions 
-         WHERE created_at >= NOW() - INTERVAL '${days} days' AND session_duration > 0) as avg_session_time,
-        (SELECT COALESCE((SUM(CASE WHEN page_views = 1 THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(session_id), 0), 0)
-         FROM user_sessions WHERE created_at >= NOW() - INTERVAL '${days} days') as bounce_rate`,
-    topCountries: `
-      SELECT country, COUNT(*) as visits FROM site_visits
-      WHERE visit_date >= NOW() - INTERVAL '${days} days' AND country IS NOT NULL
-      GROUP BY country ORDER BY visits DESC LIMIT 5`,
-    browserStats: `
-      SELECT browser, COUNT(*) as count,
-        COUNT(*) * 100.0 / NULLIF((SELECT COUNT(*) FROM site_visits WHERE visit_date >= NOW() - INTERVAL '${days} days'), 0) as percentage
-      FROM site_visits WHERE visit_date >= NOW() - INTERVAL '${days} days' AND browser IS NOT NULL
-      GROUP BY browser ORDER BY count DESC LIMIT 5`,
-    deviceBreakdown: `
-      SELECT device_type as device,
-        COUNT(*) * 100.0 / NULLIF((SELECT COUNT(*) FROM site_visits WHERE visit_date >= NOW() - INTERVAL '${days} days'),0) as percentage
-      FROM site_visits WHERE visit_date >= NOW() - INTERVAL '${days} days' AND device_type IS NOT NULL
-      GROUP BY device_type ORDER BY percentage DESC`,
+  const pageFilter = {
+    NOT: [
+      { page_visited: { startsWith: "/admin/analytics" } },
+      { page_visited: { startsWith: "/getCoursesWithRatings" } },
+      { page_visited: { startsWith: "/api" } },
+    ],
   };
 
-  const results = {};
-  const promises = Object.entries(queries).map(async ([key, queryStr]) => {
-    try {
-      const { rows } = await db.query(queryStr);
-      // Simplify result structure for single-row results
-      if (
-        rows.length === 1 &&
-        (key === "totalVisits" ||
-          key === "uniqueVisitors" ||
-          key === "userStats" ||
-          key === "courseStats" ||
-          key === "engagementStats" ||
-          key === "activeUsers24h" ||
-          key === "quizzesTaken" ||
-          key === "filteredPageViews")
-      ) {
-        results[key] = rows[0];
-      } else {
-        results[key] = rows;
-      }
-    } catch (error) {
-      console.error(`Error executing query for ${key}:`, error);
-      results[key] =
-        key === "userStats" ||
-        key === "courseStats" ||
-        key === "engagementStats"
-          ? {}
-          : []; // Default to empty object or array on error
-    }
-  });
+  const [
+    totalVisits,
+    visitsInRange,
+    visitsInLast7,
+    monthlyVisitRows,
+    uniqueVisitorRows,
+    topPagesRaw,
+    filteredPageViews,
+    totalUsers,
+    activeUsers,
+    newUsers,
+    newUsersRows,
+    activeUsers24Rows,
+    lessonProgressRows,
+    totalCourses,
+    totalEnrollments,
+    completionRate,
+    sessionsInRange,
+    sessionsWithDuration,
+    topCountriesRaw,
+    browserStatsRaw,
+    deviceStatsRaw,
+    totalVisitsInRange,
+  ] = await Promise.all([
+    prisma.site_visits.count(),
+    prisma.site_visits.findMany({
+      where: { visit_date: { gte: dayRangeStart } },
+      select: { visit_date: true },
+    }),
+    prisma.site_visits.findMany({
+      where: { visit_date: { gte: last7Start } },
+      select: { visit_date: true },
+    }),
+    prisma.site_visits.findMany({
+      where: { visit_date: { gte: monthRangeStart } },
+      select: { visit_date: true },
+    }),
+    prisma.site_visits.findMany({
+      where: { visit_date: { gte: dayRangeStart } },
+      select: { user_id: true, ip_address: true },
+    }),
+    prisma.site_visits.groupBy({
+      by: ["page_visited"],
+      where: {
+        visit_date: { gte: dayRangeStart },
+        ...pageFilter,
+      },
+      _count: { page_visited: true },
+      orderBy: { _count: { page_visited: "desc" } },
+      take: 10,
+    }),
+    prisma.site_visits.count({
+      where: {
+        visit_date: { gte: dayRangeStart },
+        ...pageFilter,
+      },
+    }),
+    prisma.users.count(),
+    prisma.users.count({
+      where: { last_login: { gte: activeUserStart } },
+    }),
+    prisma.users.count({ where: { created_at: { gte: dayRangeStart } } }),
+    prisma.users.findMany({
+      where: { created_at: { gte: dayRangeStart } },
+      select: { created_at: true },
+    }),
+    prisma.user_activity.findMany({
+      where: {
+        created_at: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
+      },
+      distinct: ["user_id"],
+      select: { user_id: true },
+    }),
+    prisma.lesson_progress.findMany({
+      where: { completed_at: { gte: dayRangeStart } },
+      select: {
+        lesson_id: true,
+        lesson: { select: { name: true } },
+      },
+    }),
+    prisma.course.count(),
+    prisma.enrollment.count(),
+    prisma.enrollment.aggregate({ _avg: { progress: true } }),
+    prisma.user_sessions.findMany({
+      where: { created_at: { gte: dayRangeStart } },
+      select: { page_views: true, session_id: true },
+    }),
+    prisma.user_sessions.aggregate({
+      where: {
+        created_at: { gte: dayRangeStart },
+        session_duration: { gt: 0 },
+      },
+      _avg: { session_duration: true },
+    }),
+    prisma.site_visits.groupBy({
+      by: ["country"],
+      where: {
+        visit_date: { gte: dayRangeStart },
+        country: { not: null },
+      },
+      _count: { country: true },
+      orderBy: { _count: { country: "desc" } },
+      take: 5,
+    }),
+    prisma.site_visits.groupBy({
+      by: ["browser"],
+      where: {
+        visit_date: { gte: dayRangeStart },
+        browser: { not: null },
+      },
+      _count: { browser: true },
+      orderBy: { _count: { browser: "desc" } },
+      take: 5,
+    }),
+    prisma.site_visits.groupBy({
+      by: ["device_type"],
+      where: {
+        visit_date: { gte: dayRangeStart },
+        device_type: { not: null },
+      },
+      _count: { device_type: true },
+      orderBy: { _count: { device_type: "desc" } },
+    }),
+    prisma.site_visits.count({
+      where: {
+        visit_date: { gte: dayRangeStart },
+      },
+    }),
+  ]);
 
-  await Promise.all(promises);
-  return results;
+  const uniqueVisitors = new Set(
+    uniqueVisitorRows.map((row) =>
+      row.user_id ? `user-${row.user_id}` : `ip-${row.ip_address || "unknown"}`
+    )
+  ).size;
+
+  const dailyVisitsMap = aggregateBy(visitsInRange, (row) =>
+    row.visit_date ? formatDay(row.visit_date) : null
+  );
+
+  const dailyVisitsLast7Map = aggregateBy(visitsInLast7, (row) =>
+    row.visit_date ? formatDay(row.visit_date) : null
+  );
+
+  const monthlyVisitsMap = aggregateBy(monthlyVisitRows, (row) =>
+    row.visit_date ? formatMonth(row.visit_date) : null
+  );
+
+  const newUsersDailyMap = aggregateBy(newUsersRows, (row) =>
+    row.created_at ? formatDay(row.created_at) : null
+  );
+
+  const lessonAttemptsMap = new Map();
+  for (const row of lessonProgressRows) {
+    if (!row.lesson_id) continue;
+    const current = lessonAttemptsMap.get(row.lesson_id) || {
+      lesson_title: row.lesson?.name || "Untitled Lesson",
+      attempts: 0,
+    };
+    current.attempts += 1;
+    lessonAttemptsMap.set(row.lesson_id, current);
+  }
+
+  const mostAttemptedLessons = Array.from(lessonAttemptsMap.values())
+    .sort((a, b) => b.attempts - a.attempts)
+    .slice(0, 5)
+    .map((row) => ({
+      lesson_title: row.lesson_title,
+      attempts: String(row.attempts),
+    }));
+
+  const bounceCount = sessionsInRange.filter((s) => (s.page_views || 0) === 1).length;
+  const bounceRate =
+    sessionsInRange.length > 0
+      ? (bounceCount * 100) / sessionsInRange.length
+      : 0;
+
+  return {
+    totalVisits: { total_visits: String(totalVisits) },
+    dailyVisitsLast7Days: mapToSortedSeries(dailyVisitsLast7Map, "date"),
+    uniqueVisitors: { unique_visitors: String(uniqueVisitors) },
+    topPages: topPagesRaw.map((row) => ({
+      page_visited: row.page_visited,
+      visits: String(row._count.page_visited),
+    })),
+    filteredPageViews: { page_views: String(filteredPageViews) },
+    dailyVisits: mapToSortedSeries(dailyVisitsMap, "date"),
+    monthlyVisits: mapToSortedSeries(monthlyVisitsMap, "month"),
+    userStats: {
+      total_users: String(totalUsers),
+      active_users: String(activeUsers),
+      new_users: String(newUsers),
+    },
+    newUsersDaily: mapToSortedSeries(newUsersDailyMap, "date"),
+    activeUsers24h: { active_users_24h: String(activeUsers24Rows.length) },
+    quizzesTaken: { total_quizzes_taken: "0" },
+    mostAttemptedLessons,
+    courseStats: {
+      total_courses: String(totalCourses),
+      total_enrollments: String(totalEnrollments),
+      completion_rate: Number(completionRate._avg.progress || 0),
+    },
+    engagementStats: {
+      avg_session_time: Number(sessionsWithDuration._avg.session_duration || 0),
+      bounce_rate: bounceRate,
+    },
+    topCountries: topCountriesRaw.map((row) => ({
+      country: row.country,
+      visits: String(row._count.country),
+    })),
+    browserStats: browserStatsRaw.map((row) => ({
+      browser: row.browser,
+      count: String(row._count.browser),
+      percentage:
+        totalVisitsInRange > 0
+          ? (row._count.browser * 100.0) / totalVisitsInRange
+          : 0,
+    })),
+    deviceBreakdown: deviceStatsRaw.map((row) => ({
+      device: row.device_type,
+      percentage:
+        totalVisitsInRange > 0
+          ? (row._count.device_type * 100.0) / totalVisitsInRange
+          : 0,
+    })),
+  };
 };
 
 module.exports = {

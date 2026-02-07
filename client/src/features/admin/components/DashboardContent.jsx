@@ -29,13 +29,30 @@ const DashboardContent = () => {
           throw new Error('No token found. Please log in again.');
         }
 
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
+        const authToken = user?.token || token;
+        const headers = { Authorization: `Bearer ${authToken}` };
 
-        const studentsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/students`, {
-          headers,
-        });
+        const [
+          studentsResponse,
+          coursesResponse,
+          activityResponse,
+          feedbackResponse,
+          ticketsResponse,
+        ] = await Promise.all([
+          axios.get(`${import.meta.env.VITE_API_URL}/students`, { headers }),
+          axios.get(`${import.meta.env.VITE_API_URL}/courses`, {
+            headers: {
+              ...headers,
+              'Cache-Control': 'no-cache',
+              Pragma: 'no-cache',
+            },
+            params: { _ts: Date.now() },
+          }),
+          axios.get(`${import.meta.env.VITE_API_URL}/activities/recent`, { headers }),
+          axios.get(`${import.meta.env.VITE_API_URL}/feedback/recent`, { headers }),
+          axios.get(`${import.meta.env.VITE_API_URL}/support-tickets/recent`, { headers }),
+        ]);
+
         const { students = [], count = 0 } = studentsResponse.data || {};
 
         if (!Array.isArray(students)) {
@@ -55,34 +72,10 @@ const DashboardContent = () => {
         setNewStudentsCount(newStudents.length);
         setNewStudentsList(newStudents);
 
-        const coursesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/courses`, {
-          headers,
-        });
         setCoursesCount(coursesResponse.data.length);
-
-        const activityResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/activities/recent`,
-          {
-            headers,
-          }
-        );
         setAllActivities(activityResponse.data);
         setRecentActivity(activityResponse.data.slice(0, 5));
-
-        const feedbackResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/feedback/recent`,
-          {
-            headers,
-          }
-        );
         setRecentFeedback(feedbackResponse.data);
-
-        const ticketsResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/support-tickets/recent`,
-          {
-            headers: { Authorization: `Bearer ${user.token}` },
-          }
-        );
         setRecentTickets(ticketsResponse.data);
       } catch (err) {
         console.error('Error fetching dashboard data:', err.response?.data || err.message);
@@ -91,7 +84,7 @@ const DashboardContent = () => {
     };
 
     fetchData();
-  }, [token, user.token]);
+  }, [token, user?.token]);
 
   const openActivityDetails = (activity) => {
     setSelectedActivity(activity);

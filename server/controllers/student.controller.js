@@ -1,87 +1,170 @@
-const db = require("../config/database");
+const prisma = require("../config/prisma");
 const {
   calculateLevel,
   calculateXPToNextLevel,
 } = require("../utils/xpCalculator");
 const badgeController = require("../controllers/badge.controller");
+const { canAccessUser, toIntId } = require("../utils/authz.utils");
+
+const toNumber = (value) =>
+  value === null || value === undefined ? 0 : Number(value);
 
 // Fetch all students
 const getAllStudents = async (req, res) => {
   try {
-    // Role-based access control
     if (!req.user.admin) {
       console.error(`Access denied for user: ${req.user.userId}`);
       return res.status(403).json({ error: "Access denied. Admins only." });
     }
 
-    // Single optimized query that gets all student data including subscription info, enrollment counts, and stats
-    const optimizedQuery = `
-      WITH student_subscriptions AS (
-        SELECT DISTINCT ON (u.user_id)
-          u.user_id,
-          u.name,
-          u.email,
-          u.created_at,
-          u.is_verified,
-          s.subscription_type,
-          s.subscription_end_date,
-          s.status as subscription_status,
-          CASE 
-            WHEN s.subscription_id IS NOT NULL AND s.status = true AND s.subscription_end_date > CURRENT_TIMESTAMP THEN true
-            ELSE false
-          END AS has_active_subscription
-        FROM users u
-        LEFT JOIN user_subscription us ON u.user_id = us.user_id
-        LEFT JOIN subscription s ON us.subscription_id = s.subscription_id
-        WHERE NOT EXISTS (SELECT 1 FROM admins a WHERE a.admin_id = u.user_id) -- Only non-admin users
-        ORDER BY u.user_id, s.subscription_start_date DESC NULLS LAST
-      ),
-      student_stats AS (
-        SELECT 
-          u.user_id,
-          COUNT(DISTINCT e.course_id) as total_enrollments,
-          COALESCE(AVG(e.progress), 0) as avg_progress,
-          COUNT(DISTINCT CASE WHEN e.progress >= 100 THEN e.course_id END) as completed_courses,
-          COALESCE(SUM(l.xp), 0) as total_xp,
-          COUNT(DISTINCT CASE WHEN lp.completed = true THEN lp.lesson_id END) as exercises_completed
-        FROM users u
-        LEFT JOIN enrollment e ON u.user_id = e.user_id
-        LEFT JOIN lesson_progress lp ON u.user_id = lp.user_id AND lp.completed = true
-        LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
-        WHERE NOT EXISTS (SELECT 1 FROM admins a WHERE a.admin_id = u.user_id)
-        GROUP BY u.user_id
-      )
-      SELECT 
-        ss.*,
-        COALESCE(st.total_enrollments, 0) as total_enrollments,
-        ROUND(COALESCE(st.avg_progress, 0)::numeric, 1) as avg_progress,
-        COALESCE(st.completed_courses, 0) as completed_courses,
-        COALESCE(st.total_xp, 0) as total_xp,
-        COALESCE(st.exercises_completed, 0) as exercises_completed
-      FROM student_subscriptions ss
-      LEFT JOIN student_stats st ON ss.user_id = st.user_id
-      ORDER BY ss.created_at DESC
-    `;
+    const adminUsers = await prisma.admins.findMany({
+      select: { admin_id: true },
+    });
+    const adminIds = adminUsers.map((row) => row.admin_id);
 
-    const { rows } = await db.query(optimizedQuery);
+    const students = await prisma.users.findMany({
+      where: {
+        user_id: {
+          notIn: adminIds,
+        },
+      },
+      select: {
+        user_id: true,
+        name: true,
+        email: true,
+        created_at: true,
+        is_verified: true,
+      },
+      orderBy: { created_at: "desc" },
+    });
 
-    // Enhanced response structure with optimization metadata
+    const studentIds = students.map((s) => s.user_id);
+
+    const [subscriptions, enrollments, progressRows] = await Promise.all([
+      prisma.subscription.findMany({
+        where: {
+          user_id: { in: studentIds },
+        },
+        select: {
+          user_id: true,
+          subscription_type: true,
+          subscription_end_date: true,
+          status: true,
+          subscription_start_date: true,
+        },
+        orderBy: [
+          { user_id: "asc" },
+          { subscription_start_date: "desc" },
+        ],
+      }),
+      prisma.enrollment.findMany({
+        where: {
+          user_id: { in: studentIds },
+        },
+        select: {
+          user_id: true,
+          course_id: true,
+          progress: true,
+        },
+      }),
+      prisma.lesson_progress.findMany({
+        where: {
+          user_id: { in: studentIds },
+          completed: true,
+        },
+        select: {
+          user_id: true,
+          lesson_id: true,
+          lesson: { select: { xp: true } },
+        },
+      }),
+    ]);
+
+    const latestSubscriptionByUser = new Map();
+    for (const sub of subscriptions) {
+      if (!sub.user_id) continue;
+      if (!latestSubscriptionByUser.has(sub.user_id)) {
+        latestSubscriptionByUser.set(sub.user_id, sub);
+      }
+    }
+
+    const enrollmentByUser = new Map();
+    for (const enrollment of enrollments) {
+      if (!enrollmentByUser.has(enrollment.user_id)) {
+        enrollmentByUser.set(enrollment.user_id, []);
+      }
+      enrollmentByUser.get(enrollment.user_id).push(enrollment);
+    }
+
+    const completedLessonSetByUser = new Map();
+    const totalXpByUser = new Map();
+    for (const row of progressRows) {
+      if (!completedLessonSetByUser.has(row.user_id)) {
+        completedLessonSetByUser.set(row.user_id, new Set());
+      }
+      completedLessonSetByUser.get(row.user_id).add(row.lesson_id);
+      totalXpByUser.set(
+        row.user_id,
+        (totalXpByUser.get(row.user_id) || 0) + toNumber(row.lesson?.xp)
+      );
+    }
+
+    const now = new Date();
+
+    const formatted = students.map((student) => {
+      const studentEnrollments = enrollmentByUser.get(student.user_id) || [];
+      const avgProgress =
+        studentEnrollments.length > 0
+          ? studentEnrollments.reduce(
+              (sum, item) => sum + toNumber(item.progress),
+              0
+            ) / studentEnrollments.length
+          : 0;
+
+      const completedCourses = studentEnrollments.filter(
+        (item) => toNumber(item.progress) >= 100
+      ).length;
+
+      const latestSub = latestSubscriptionByUser.get(student.user_id);
+      const hasActiveSubscription = Boolean(
+        latestSub && latestSub.status && latestSub.subscription_end_date > now
+      );
+
+      return {
+        user_id: student.user_id,
+        name: student.name,
+        email: student.email,
+        created_at: student.created_at,
+        is_verified: student.is_verified,
+        subscription_type: latestSub?.subscription_type || null,
+        subscription_end_date: latestSub?.subscription_end_date || null,
+        subscription_status: latestSub?.status || false,
+        has_active_subscription: hasActiveSubscription,
+        total_enrollments: studentEnrollments.length,
+        avg_progress: Math.round(avgProgress * 10) / 10,
+        completed_courses: completedCourses,
+        total_xp: totalXpByUser.get(student.user_id) || 0,
+        exercises_completed:
+          completedLessonSetByUser.get(student.user_id)?.size || 0,
+      };
+    });
+
     const response = {
-      students: rows,
-      count: rows.length,
+      students: formatted,
+      count: formatted.length,
       metadata: {
-        totalStudents: rows.length,
-        verifiedStudents: rows.filter((s) => s.is_verified).length,
-        activeSubscriptions: rows.filter((s) => s.has_active_subscription)
+        totalStudents: formatted.length,
+        verifiedStudents: formatted.filter((s) => s.is_verified).length,
+        activeSubscriptions: formatted.filter((s) => s.has_active_subscription)
           .length,
         averageProgress:
-          rows.length > 0
+          formatted.length > 0
             ? Math.round(
-                (rows.reduce(
+                (formatted.reduce(
                   (sum, s) => sum + (parseFloat(s.avg_progress) || 0),
                   0
                 ) /
-                  rows.length) *
+                  formatted.length) *
                   10
               ) / 10
             : 0,
@@ -99,113 +182,107 @@ const getAllStudents = async (req, res) => {
 };
 
 // Fetch details of a specific student
-// In website/server/controllers/student.controller.js
-// In website/server/controllers/student.controller.js
-// In website/server/controllers/student.controller.js
-
 const getStudentById = async (req, res) => {
   const { studentId } = req.params;
+  const normalizedStudentId = toIntId(studentId);
+
+  if (!normalizedStudentId) {
+    return res.status(400).json({ error: "Invalid student ID." });
+  }
+
+  if (!canAccessUser(req, normalizedStudentId)) {
+    return res.status(403).json({ error: "Access denied." });
+  }
 
   try {
-    // Single optimized query that gets all student data including courses and stats
-    const optimizedQuery = `
-      WITH student_info AS (
-        SELECT 
-          u.user_id, 
-          u.name, 
-          u.email, 
-          u.bio, 
-          u.streak,
-          u.skills,
-          u.profileimage
-        FROM users u
-        WHERE u.user_id = $1
-      ),
-      course_enrollments AS (
-        SELECT 
-          e.course_id,
-          c.name as course_name,
-          e.progress
-        FROM enrollment e
-        JOIN course c ON e.course_id = c.course_id
-        WHERE e.user_id = $1
-      ),
-      student_stats AS (
-        SELECT 
-          COALESCE(SUM(l.xp), 0) as total_xp,
-          COUNT(DISTINCT lp.lesson_id) as exercises_completed
-        FROM lesson_progress lp
-        LEFT JOIN lesson l ON lp.lesson_id = l.lesson_id
-        WHERE lp.user_id = $1 AND lp.completed = true
-      ),
-      last_lessons AS (
-        SELECT DISTINCT ON (s.course_id)
-          s.course_id,
-          l.lesson_id,
-          l.name as lesson_name,
-          sec.name as section_name,
-          lp.completed_at
-        FROM lesson_progress lp
-        JOIN lesson l ON lp.lesson_id = l.lesson_id
-        JOIN section sec ON l.section_id = sec.section_id
-        JOIN course s ON sec.course_id = s.course_id
-        WHERE lp.user_id = $1
-        ORDER BY s.course_id, lp.completed_at DESC NULLS LAST
-      )
-      SELECT 
-        si.*,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'course_id', ce.course_id,
-              'course_name', ce.course_name,
-              'progress', COALESCE(ce.progress, 0),
-              'last_lesson', 
-              CASE 
-                WHEN ll.lesson_id IS NOT NULL THEN
-                  json_build_object(
-                    'lesson_id', ll.lesson_id,
-                    'name', ll.lesson_name,
-                    'section_name', ll.section_name,
-                    'completed_at', ll.completed_at
-                  )
-                ELSE NULL
-              END
-            )
-          ) FILTER (WHERE ce.course_id IS NOT NULL), 
-          '[]'::json
-        ) as courses,
-        COALESCE(ss.total_xp, 0) as total_xp,
-        COALESCE(ss.exercises_completed, 0) as exercises_completed
-      FROM student_info si
-      LEFT JOIN course_enrollments ce ON true
-      LEFT JOIN student_stats ss ON true
-      LEFT JOIN last_lessons ll ON ce.course_id = ll.course_id
-      GROUP BY si.user_id, si.name, si.email, si.bio, si.streak, si.skills, 
-               si.profileimage, ss.total_xp, ss.exercises_completed
-    `;
+    const user = await prisma.users.findUnique({
+      where: { user_id: normalizedStudentId },
+      select: {
+        user_id: true,
+        name: true,
+        email: true,
+        bio: true,
+        streak: true,
+        skills: true,
+        profileimage: true,
+      },
+    });
 
-    const result = await db.query(optimizedQuery, [studentId]);
-
-    if (result.rows.length === 0) {
+    if (!user) {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    const studentData = result.rows[0];
-    const totalXP = parseInt(studentData.total_xp) || 0;
-    const courses = studentData.courses || [];
+    const [enrollments, progressRows] = await Promise.all([
+      prisma.enrollment.findMany({
+        where: { user_id: normalizedStudentId },
+        include: {
+          course: {
+            select: { name: true },
+          },
+        },
+      }),
+      prisma.lesson_progress.findMany({
+        where: {
+          user_id: normalizedStudentId,
+          completed: true,
+        },
+        select: {
+          lesson_id: true,
+          completed_at: true,
+          lesson: {
+            select: {
+              xp: true,
+              name: true,
+              section: {
+                select: {
+                  name: true,
+                  course_id: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
 
-    // Build optimized response
+    const totalXP = progressRows.reduce(
+      (sum, row) => sum + toNumber(row.lesson?.xp),
+      0
+    );
+
+    const latestByCourse = new Map();
+    for (const row of progressRows) {
+      const courseId = row.lesson?.section?.course_id;
+      if (!courseId) continue;
+
+      const current = latestByCourse.get(courseId);
+      if (!current || (row.completed_at && row.completed_at > current.completed_at)) {
+        latestByCourse.set(courseId, {
+          lesson_id: row.lesson_id,
+          name: row.lesson?.name,
+          section_name: row.lesson?.section?.name,
+          completed_at: row.completed_at,
+        });
+      }
+    }
+
+    const courses = enrollments.map((enrollment) => ({
+      course_id: enrollment.course_id,
+      course_name: enrollment.course?.name,
+      progress: toNumber(enrollment.progress),
+      last_lesson: latestByCourse.get(enrollment.course_id) || null,
+    }));
+
     const response = {
-      user_id: studentData.user_id,
-      name: studentData.name,
-      email: studentData.email,
-      bio: studentData.bio,
-      streak: studentData.streak,
-      skills: studentData.skills || [],
-      profileimage: studentData.profileimage,
-      courses: courses,
-      exercisesCompleted: parseInt(studentData.exercises_completed) || 0,
+      user_id: user.user_id,
+      name: user.name,
+      email: user.email,
+      bio: user.bio,
+      streak: user.streak,
+      skills: user.skills || [],
+      profileimage: user.profileimage,
+      courses,
+      exercisesCompleted: new Set(progressRows.map((row) => row.lesson_id)).size,
       courseXP: totalXP,
       level: calculateLevel(totalXP),
       xpToNextLevel: calculateXPToNextLevel(totalXP),
@@ -223,7 +300,6 @@ const getStudentById = async (req, res) => {
 // Fetch courses for a specific student
 const getCoursesByStudentId = async (req, res) => {
   const { studentId } = req.params;
-  // Role-based access control
   if (!req.user.admin) {
     console.error(`Access denied for user: ${req.user.userId}`);
     return res.status(403).json({ error: "Access denied. Admins only." });
@@ -234,40 +310,47 @@ const getCoursesByStudentId = async (req, res) => {
   }
 
   try {
-    const query = `
-      SELECT 
-        c.name AS course_name, 
-        e.progress 
-      FROM enrollment e
-      JOIN course c ON e.course_id = c.course_id
-      WHERE e.user_id = $1
-    `;
+    const rows = await prisma.enrollment.findMany({
+      where: { user_id: Number(studentId) },
+      include: {
+        course: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
 
-    const { rows } = await db.query(query, [studentId]);
-
-    res.status(200).json(rows.length > 0 ? rows : []); // Return empty array if no courses found
+    res.status(200).json(
+      rows.map((row) => ({
+        course_name: row.course?.name,
+        progress: row.progress,
+      }))
+    );
   } catch (err) {
     console.error("Error fetching courses for student:", err.message || err);
     res.status(500).json({ error: "Failed to fetch courses for the student." });
   }
 };
 
-// Fetch enrollment status for a specific user and course
-
 // Fetch all enrollments for a specific user
 const getEnrollmentsByUserId = async (req, res) => {
   const { userId } = req.params;
+  const normalizedUserId = toIntId(userId);
 
-  if (!userId || isNaN(userId)) {
+  if (!normalizedUserId) {
     return res.status(400).json({ error: "Invalid user ID." });
   }
 
+  if (!canAccessUser(req, normalizedUserId)) {
+    return res.status(403).json({ error: "Access denied." });
+  }
+
   try {
-    const query = `
-      SELECT course_id FROM enrollment
-      WHERE user_id = $1
-    `;
-    const { rows } = await db.query(query, [userId]);
+    const rows = await prisma.enrollment.findMany({
+      where: { user_id: normalizedUserId },
+      select: { course_id: true },
+    });
 
     const enrollments = rows.reduce((acc, row) => {
       acc[row.course_id] = true;
@@ -290,11 +373,10 @@ const getProgressByUserId = async (req, res) => {
   }
 
   try {
-    const query = `
-      SELECT course_id, progress FROM enrollment
-      WHERE user_id = $1
-    `;
-    const { rows } = await db.query(query, [userId]);
+    const rows = await prisma.enrollment.findMany({
+      where: { user_id: Number(userId) },
+      select: { course_id: true, progress: true },
+    });
 
     const progress = rows.reduce((acc, row) => {
       acc[row.course_id] = row.progress;
@@ -312,55 +394,70 @@ const getProgressByUserId = async (req, res) => {
 const checkXPBadges = async (userId, totalXP) => {
   try {
     if (totalXP >= 100) {
-      const badgeAwarded = await badgeController.checkAndAwardBadges(userId, 'xp_update', { totalXp: totalXP });
+      const badgeAwarded = await badgeController.checkAndAwardBadges(
+        userId,
+        "xp_update",
+        { totalXp: totalXP }
+      );
       return badgeAwarded;
     }
     return null;
   } catch (error) {
-    console.error('Error checking XP badges:', error);
+    console.error("Error checking XP badges:", error);
     return null;
   }
 };
 
 // Get student stats with badge checks
 const getStudentStats = async (req, res) => {
-  const userId = req.user.userId;
+  const requestedUserId = toIntId(req.params.userId);
+
+  if (!requestedUserId) {
+    return res.status(400).json({ error: "Invalid user ID." });
+  }
+
+  if (!canAccessUser(req, requestedUserId)) {
+    return res.status(403).json({ error: "Access denied." });
+  }
 
   try {
-    // Optimized query to get student stats in a single database call
-    const statsQuery = `
-      SELECT
-        COALESCE(SUM(l.xp), 0) as totalXP,
-        COUNT(DISTINCT lp.lesson_id) as completed_exercises,
-        COUNT(DISTINCT lp.course_id) as courses_interacted,
-        MAX(lp.completed_at) as last_activity
-      FROM lesson_progress lp
-      JOIN lesson l ON lp.lesson_id = l.lesson_id
-      WHERE lp.user_id = $1 AND lp.completed = true;
-    `;
+    const rows = await prisma.lesson_progress.findMany({
+      where: {
+        user_id: requestedUserId,
+        completed: true,
+      },
+      select: {
+        lesson_id: true,
+        course_id: true,
+        completed_at: true,
+        lesson: { select: { xp: true } },
+      },
+    });
 
-    const { rows } = await db.query(statsQuery, [userId]);
-    const stats = rows[0];
-
-    // Calculate level based on total XP
-    const totalXP = parseInt(stats.totalxp) || 0;
+    const totalXP = rows.reduce((sum, row) => sum + toNumber(row.lesson?.xp), 0);
     const level = calculateLevel(totalXP);
     const xpToNextLevel = calculateXPToNextLevel(totalXP);
-    
-    // Check XP badges
+
     let badgeAwarded = null;
     if (totalXP >= 100) {
-      badgeAwarded = await checkXPBadges(userId, totalXP);
+      badgeAwarded = await checkXPBadges(requestedUserId, totalXP);
     }
+
+    const completedExercises = new Set(rows.map((row) => row.lesson_id)).size;
+    const coursesInteracted = new Set(rows.map((row) => row.course_id)).size;
+    const lastActivity = rows
+      .map((row) => row.completed_at)
+      .filter(Boolean)
+      .sort((a, b) => b - a)[0];
 
     res.status(200).json({
       totalXP,
       level,
       xpToNextLevel,
-      completedExercises: parseInt(stats.completed_exercises) || 0,
-      coursesInteracted: parseInt(stats.courses_interacted) || 0,
-      lastActivity: stats.last_activity,
-      badgeAwarded
+      completedExercises,
+      coursesInteracted,
+      lastActivity,
+      badgeAwarded,
     });
   } catch (error) {
     console.error("Error fetching student stats:", error);
@@ -373,40 +470,37 @@ const getCourseStats = async (req, res) => {
   const userId = req.user.user_id;
 
   try {
-    const query = `
-            WITH stats AS (
-                SELECT 
-                    COALESCE(SUM(l.xp), 0) as courseXP,
-                    COUNT(DISTINCT lp.lesson_id) as exercisesCompleted
-                FROM lesson_progress lp
-                JOIN lesson l ON lp.lesson_id = l.lesson_id
-                JOIN section s ON l.section_id = s.section_id
-                WHERE lp.user_id = $1 
-                AND s.course_id = $2
-                AND lp.completed = true
-            )
-            SELECT 
-                stats.*,
-                u.streak
-            FROM stats
-            CROSS JOIN users u
-            WHERE u.user_id = $1
-        `;
-    const result = await db.query(query, [userId, courseId]);
+    const [progressRows, user] = await Promise.all([
+      prisma.lesson_progress.findMany({
+        where: {
+          user_id: Number(userId),
+          completed: true,
+          lesson: {
+            section: {
+              course_id: Number(courseId),
+            },
+          },
+        },
+        select: {
+          lesson_id: true,
+          lesson: { select: { xp: true } },
+        },
+      }),
+      prisma.users.findUnique({
+        where: { user_id: Number(userId) },
+        select: { streak: true },
+      }),
+    ]);
 
-    // Handle case where no rows are returned
-    const stats = result.rows[0] || {
-      coursexp: 0,
-      exercisescompleted: 0,
-      streak: 0,
-    };
-
-    const courseXP = parseInt(stats.coursexp) || 0;
+    const courseXP = progressRows.reduce(
+      (sum, row) => sum + toNumber(row.lesson?.xp),
+      0
+    );
 
     res.json({
       courseXP,
-      exercisesCompleted: parseInt(stats.exercisescompleted) || 0,
-      streak: parseInt(stats.streak) || 0,
+      exercisesCompleted: new Set(progressRows.map((row) => row.lesson_id)).size,
+      streak: Number(user?.streak || 0),
       level: calculateLevel(courseXP),
       xpToNextLevel: calculateXPToNextLevel(courseXP),
     });
@@ -417,34 +511,40 @@ const getCourseStats = async (req, res) => {
 };
 
 const deleteStudentAccount = async (req, res) => {
-  const userId = req.user.user_id;
-  
-  const client = await db.connect();
+  const userId = Number(req.user.user_id);
+
   try {
-    await client.query("BEGIN");
+    const user = await prisma.users.findUnique({
+      where: { user_id: userId },
+      select: { email: true },
+    });
 
-    // Delete data sequentially to avoid deadlocks during concurrent operations
-    // Follow foreign key dependency order
-    await client.query("DELETE FROM recent_activity WHERE user_id = $1", [userId]);
-    await client.query("DELETE FROM lesson_progress WHERE user_id = $1", [userId]);
-    await client.query("DELETE FROM enrollment WHERE user_id = $1", [userId]);
-    await client.query("DELETE FROM feedback WHERE user_id = $1", [userId]);
-    await client.query("DELETE FROM admin_activity WHERE admin_id = $1", [userId]);
-    await client.query("DELETE FROM payment WHERE user_id = $1", [userId]);
+    await prisma.$transaction(async (tx) => {
+      await tx.recent_activity.deleteMany({ where: { user_id: userId } });
+      await tx.lesson_progress.deleteMany({ where: { user_id: userId } });
+      await tx.enrollment.deleteMany({ where: { user_id: userId } });
+      await tx.feedback.deleteMany({ where: { user_id: userId } });
+      await tx.admin_activity.deleteMany({ where: { admin_id: userId } });
+      await tx.payment.deleteMany({ where: { user_id: userId } });
+      await tx.refresh_tokens.deleteMany({ where: { user_id: userId } });
+      await tx.site_visits.deleteMany({ where: { user_id: userId } });
+      await tx.user_activity.deleteMany({ where: { user_id: userId } });
+      await tx.user_sessions.deleteMany({ where: { user_id: userId } });
+      await tx.user_subscription.deleteMany({ where: { user_id: userId } });
+      await tx.subscription.deleteMany({ where: { user_id: userId } });
+      await tx.comments.deleteMany({ where: { user_id: userId } });
+      await tx.admins.deleteMany({ where: { admin_id: userId } });
+      await tx.system_settings.updateMany({
+        where: { updated_by: userId },
+        data: { updated_by: null },
+      });
 
-    // Delete subscription-related data
-    await client.query("DELETE FROM user_subscription WHERE user_id = $1", [userId]);
-    await client.query("DELETE FROM subscription WHERE user_id = $1", [userId]);
+      if (user?.email) {
+        await tx.support.deleteMany({ where: { user_email: user.email } });
+      }
 
-    // Delete support tickets and user record
-    await client.query(
-      "DELETE FROM support WHERE user_email = (SELECT email FROM users WHERE user_id = $1)",
-      [userId]
-    );
-    
-    await client.query("DELETE FROM users WHERE user_id = $1", [userId]);
-
-    await client.query("COMMIT");
+      await tx.users.delete({ where: { user_id: userId } });
+    });
 
     if (process.env.NODE_ENV === "development") {
       console.log(`Account deletion successful for user ${userId}`);
@@ -455,15 +555,12 @@ const deleteStudentAccount = async (req, res) => {
       message: "Account successfully deleted",
     });
   } catch (error) {
-    await client.query("ROLLBACK");
     console.error("Error in deleteStudentAccount:", error);
     res.status(500).json({
       success: false,
       message: "Failed to delete account",
       error: error.message,
     });
-  } finally {
-    client.release();
   }
 };
 

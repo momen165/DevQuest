@@ -56,6 +56,7 @@ import {
   ImageResizeEditing,
   ImageResizeButtons,
   List,
+  PasteFromMarkdownExperimental,
 } from 'ckeditor5';
 
 import 'ckeditor5/ckeditor5.css';
@@ -189,6 +190,7 @@ const DEFAULT_CONFIG = {
     ImageResizeEditing,
     ImageResizeButtons,
     List,
+    PasteFromMarkdownExperimental,
   ],
   fontFamily: {
     options: [

@@ -1,65 +1,113 @@
+const prisma = require("../config/prisma");
+
+const toInt = (value) => Number.parseInt(value, 10);
+const toResult = (rows) => ({
+  rows,
+  rowCount: rows.length,
+});
+
 // Unlock hint for a user/lesson (create row if needed)
 const unlockHint = async (user_id, lesson_id) => {
-  // Try to update first
-  let result = await db.query(
-    `UPDATE lesson_progress SET hint_unlocked = TRUE WHERE user_id = $1 AND lesson_id = $2 RETURNING *;`,
-    [user_id, lesson_id]
-  );
-  if (result.rows.length === 0) {
-    // No row exists, insert one
-    // Need course_id for insert
-    // In unlockHint and unlockSolution functions, replace the courseRes query with:
-    const courseRes = await db.query(
-      `SELECT course_id FROM section_course_info WHERE section_id = (
-          SELECT section_id FROM lesson WHERE lesson_id = $1
-        )`,
-      [lesson_id]
-    );
-    const course_id = courseRes.rows[0]?.course_id;
-    if (!course_id) throw new Error("Course not found for lesson");
-    result = await db.query(
-      `INSERT INTO lesson_progress (user_id, lesson_id, course_id, hint_unlocked) VALUES ($1, $2, $3, TRUE) RETURNING *;`,
-      [user_id, lesson_id, course_id]
-    );
+  const userId = toInt(user_id);
+  const lessonId = toInt(lesson_id);
+
+  const lesson = await prisma.lesson.findUnique({
+    where: { lesson_id: lessonId },
+    select: {
+      lesson_id: true,
+      section: {
+        select: {
+          course_id: true,
+        },
+      },
+    },
+  });
+
+  const courseId = lesson?.section?.course_id;
+  if (!courseId) {
+    throw new Error("Course not found for lesson");
   }
-  return result;
+
+  const record = await prisma.lesson_progress.upsert({
+    where: {
+      user_id_lesson_id: {
+        user_id: userId,
+        lesson_id: lessonId,
+      },
+    },
+    update: {
+      hint_unlocked: true,
+    },
+    create: {
+      user_id: userId,
+      lesson_id: lessonId,
+      course_id: courseId,
+      hint_unlocked: true,
+      completed: false,
+    },
+  });
+
+  return toResult([record]);
 };
 
 // Unlock solution for a user/lesson (create row if needed)
 const unlockSolution = async (user_id, lesson_id) => {
-  let result = await db.query(
-    `UPDATE lesson_progress SET solution_unlocked = TRUE WHERE user_id = $1 AND lesson_id = $2 RETURNING *;`,
-    [user_id, lesson_id]
-  );
-  if (result.rows.length === 0) {
-    const courseRes = await db.query(
-      `SELECT section.course_id FROM lesson JOIN section ON lesson.section_id = section.section_id WHERE lesson.lesson_id = $1`,
-      [lesson_id]
-    );
-    const course_id = courseRes.rows[0]?.course_id;
-    if (!course_id) throw new Error("Course not found for lesson");
-    result = await db.query(
-      `INSERT INTO lesson_progress (user_id, lesson_id, course_id, solution_unlocked) VALUES ($1, $2, $3, TRUE) RETURNING *;`,
-      [user_id, lesson_id, course_id]
-    );
+  const userId = toInt(user_id);
+  const lessonId = toInt(lesson_id);
+
+  const lesson = await prisma.lesson.findUnique({
+    where: { lesson_id: lessonId },
+    select: {
+      lesson_id: true,
+      section: {
+        select: {
+          course_id: true,
+        },
+      },
+    },
+  });
+
+  const courseId = lesson?.section?.course_id;
+  if (!courseId) {
+    throw new Error("Course not found for lesson");
   }
-  return result;
+
+  const record = await prisma.lesson_progress.upsert({
+    where: {
+      user_id_lesson_id: {
+        user_id: userId,
+        lesson_id: lessonId,
+      },
+    },
+    update: {
+      solution_unlocked: true,
+    },
+    create: {
+      user_id: userId,
+      lesson_id: lessonId,
+      course_id: courseId,
+      solution_unlocked: true,
+      completed: false,
+    },
+  });
+
+  return toResult([record]);
 };
-const db = require("../config/database");
-const { AppError } = require("../utils/error.utils");
 
 const lessonQueries = {
   unlockHint,
   unlockSolution,
+
   // Get next order value for a section
   getNextOrder: async (section_id) => {
-    const query = `
-      SELECT COALESCE(MAX(lesson_order), -1) + 1 AS next_order 
-      FROM lesson 
-      WHERE section_id = $1;
-    `;
-    const result = await db.query(query, [section_id]);
-    return result.rows[0].next_order;
+    const sectionId = toInt(section_id);
+    const lesson = await prisma.lesson.findFirst({
+      where: { section_id: sectionId },
+      orderBy: { lesson_order: "desc" },
+      select: { lesson_order: true },
+    });
+
+    return lesson ? lesson.lesson_order + 1 : 0;
   },
 
   // Insert a new lesson
@@ -74,17 +122,7 @@ const lessonQueries = {
     hint,
     solution
   ) => {
-    const query = `
-      INSERT INTO lesson (
-        section_id, name, content, xp, test_cases, lesson_order, 
-        template_code, hint, solution, auto_detect
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING *;
-    `;
-
-    // Process test cases to include pattern validation
-    const processedTestCases = test_cases.map((test) => ({
+    const processedTestCases = (test_cases || []).map((test) => ({
       input: test.input || "",
       expected_output: test.expected_output || "",
       auto_detect: test.auto_detect || false,
@@ -92,45 +130,92 @@ const lessonQueries = {
       pattern: test.pattern || "",
     }));
 
-    const values = [
-      section_id,
-      name,
-      content,
-      xp || 0,
-      JSON.stringify(processedTestCases),
-      lesson_order,
-      template_code || "",
-      hint || "",
-      solution || "",
-      processedTestCases[0]?.auto_detect || false,
-    ];
-    return db.query(query, values);
+    const created = await prisma.lesson.create({
+      data: {
+        section_id: toInt(section_id),
+        name,
+        content,
+        xp: xp || 0,
+        test_cases: processedTestCases,
+        lesson_order: toInt(lesson_order),
+        template_code: template_code || "",
+        hint: hint || "",
+        solution: solution || "",
+        auto_detect: processedTestCases[0]?.auto_detect || false,
+      },
+    });
+
+    return toResult([created]);
   },
 
   // Get lessons by section with user progress
   getLessonsBySection: async (userId, sectionId) => {
-    const query = `
-      SELECT 
-        l.lesson_id,
-        l.name,
-        l.lesson_order,
-        l.xp,
-        COALESCE(lp.completed, false) as completed
-      FROM lesson l
-      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id 
-        AND lp.user_id = $1
-      WHERE l.section_id = $2
-      ORDER BY l.lesson_order ASC
-    `;
-    return db.query(query, [userId, sectionId]);
+    const section = toInt(sectionId);
+    const user = toInt(userId);
+
+    const lessons = await prisma.lesson.findMany({
+      where: { section_id: section },
+      orderBy: { lesson_order: "asc" },
+      select: {
+        lesson_id: true,
+        name: true,
+        lesson_order: true,
+        xp: true,
+        lesson_progress: {
+          where: { user_id: user },
+          select: { completed: true },
+          take: 1,
+        },
+      },
+    });
+
+    return toResult(
+      lessons.map((lesson) => ({
+        lesson_id: lesson.lesson_id,
+        name: lesson.name,
+        lesson_order: lesson.lesson_order,
+        xp: lesson.xp,
+        completed: lesson.lesson_progress[0]?.completed || false,
+      }))
+    );
   },
 
   getLessonById: async (lessonId) => {
-    const query = `
-      SELECT * FROM lesson_details
-      WHERE lesson_id = $1;
-    `;
-    return db.query(query, [lessonId]);
+    const lessonIdInt = toInt(lessonId);
+
+    const lesson = await prisma.lesson.findUnique({
+      where: { lesson_id: lessonIdInt },
+      include: {
+        section: {
+          include: {
+            course: {
+              select: {
+                course_id: true,
+                name: true,
+                status: true,
+                language_id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!lesson) {
+      return toResult([]);
+    }
+
+    return toResult([
+      {
+        ...lesson,
+        section_name: lesson.section?.name,
+        section_order: lesson.section?.section_order,
+        course_id: lesson.section?.course?.course_id,
+        course_name: lesson.section?.course?.name,
+        course_status: lesson.section?.course?.status,
+        language_id: lesson.section?.course?.language_id ?? null,
+      },
+    ]);
   },
 
   // Update lesson
@@ -145,89 +230,115 @@ const lessonQueries = {
     hint,
     solution
   ) => {
-    // Process test cases while preserving all fields
-    const processedTestCases = test_cases.map((test) => ({
+    const lessonId = toInt(lesson_id);
+    const sectionId = toInt(section_id);
+
+    const processedTestCases = (test_cases || []).map((test) => ({
       input: test.input || "",
       expected_output: test.expected_output || "",
-      auto_detect: test.auto_detect === true, // Force boolean
-      use_pattern: test.use_pattern === true, // Force boolean
+      auto_detect: test.auto_detect === true,
+      use_pattern: test.use_pattern === true,
       pattern: test.pattern || "",
     }));
 
-    const query = `
-      UPDATE lesson
-      SET 
-        name = $1,
-        content = $2,
-        xp = $3,
-        test_cases = $4::jsonb,
-        section_id = $5,
-        template_code = $6,
-        hint = $7,
-        solution = $8
-      WHERE lesson_id = $9
-      RETURNING *;
-    `;
+    const exists = await prisma.lesson.findUnique({
+      where: { lesson_id: lessonId },
+      select: { lesson_id: true },
+    });
 
-    const values = [
-      name,
-      content,
-      xp || 0,
-      JSON.stringify(processedTestCases),
-      section_id,
-      template_code || "",
-      hint || "",
-      solution || "",
-      lesson_id,
-    ];
+    if (!exists) {
+      return toResult([]);
+    }
 
-    return db.query(query, values);
+    const updated = await prisma.lesson.update({
+      where: { lesson_id: lessonId },
+      data: {
+        name,
+        content,
+        xp: xp || 0,
+        test_cases: processedTestCases,
+        section_id: sectionId,
+        template_code: template_code || "",
+        hint: hint || "",
+        solution: solution || "",
+      },
+    });
+
+    return toResult([updated]);
   },
 
   // Delete lesson progress
   deleteLessonProgress: async (lesson_id) => {
-    const query = `
-      DELETE FROM lesson_progress
-      WHERE lesson_id = $1;
-    `;
-    return db.query(query, [lesson_id]);
+    const lessonId = toInt(lesson_id);
+    const result = await prisma.lesson_progress.deleteMany({
+      where: { lesson_id: lessonId },
+    });
+
+    return { rows: [], rowCount: result.count };
   },
 
   // Delete lesson
   deleteLesson: async (lesson_id) => {
-    const query = `
-      DELETE FROM lesson
-      WHERE lesson_id = $1
-      RETURNING lesson_id;
-    `;
-    return db.query(query, [lesson_id]);
+    const lessonId = toInt(lesson_id);
+    const existing = await prisma.lesson.findUnique({
+      where: { lesson_id: lessonId },
+      select: { lesson_id: true },
+    });
+
+    if (!existing) {
+      return toResult([]);
+    }
+
+    const deleted = await prisma.lesson.delete({
+      where: { lesson_id: lessonId },
+      select: { lesson_id: true },
+    });
+
+    return toResult([deleted]);
   },
 
   // Update lesson order
-  updateLessonOrder: async (lesson_id, order, client = db) => {
-    const query = "UPDATE lesson SET lesson_order = $1 WHERE lesson_id = $2";
-    return client.query(query, [order, lesson_id]);
+  updateLessonOrder: async (lesson_id, order, client = prisma) => {
+    const updated = await client.lesson.update({
+      where: { lesson_id: toInt(lesson_id) },
+      data: { lesson_order: toInt(order) },
+    });
+
+    return toResult([updated]);
   },
 
   // Get course ID for lesson
   getCourseIdForLesson: async (lesson_id) => {
-    const query = `
-      SELECT course.course_id
-      FROM course
-      JOIN section ON course.course_id = section.course_id
-      JOIN lesson ON section.section_id = lesson.section_id
-      WHERE lesson.lesson_id = $1;
-    `;
-    return db.query(query, [lesson_id]);
+    const lesson = await prisma.lesson.findUnique({
+      where: { lesson_id: toInt(lesson_id) },
+      select: {
+        section: {
+          select: {
+            course_id: true,
+          },
+        },
+      },
+    });
+
+    if (!lesson?.section?.course_id) {
+      return toResult([]);
+    }
+
+    return toResult([{ course_id: lesson.section.course_id }]);
   },
 
   // Check lesson progress
   checkLessonProgress: async (user_id, lesson_id) => {
-    const query = `
-      SELECT * FROM lesson_progress
-      WHERE user_id = $1 AND lesson_id = $2;
-    `;
-    return db.query(query, [user_id, lesson_id]);
+    const progress = await prisma.lesson_progress.findUnique({
+      where: {
+        user_id_lesson_id: {
+          user_id: toInt(user_id),
+          lesson_id: toInt(lesson_id),
+        },
+      },
+    });
+
+    return toResult(progress ? [progress] : []);
   },
 
   // Update lesson progress
@@ -238,19 +349,21 @@ const lessonQueries = {
     completed_at,
     submitted_code
   ) => {
-    const query = `
-      UPDATE lesson_progress
-      SET completed = $1, completed_at = $2, submitted_code = $3
-      WHERE user_id = $4 AND lesson_id = $5
-      RETURNING *;
-    `;
-    return db.query(query, [
-      completed,
-      completed_at,
-      submitted_code,
-      user_id,
-      lesson_id,
-    ]);
+    const progress = await prisma.lesson_progress.update({
+      where: {
+        user_id_lesson_id: {
+          user_id: toInt(user_id),
+          lesson_id: toInt(lesson_id),
+        },
+      },
+      data: {
+        completed,
+        completed_at,
+        submitted_code,
+      },
+    });
+
+    return toResult([progress]);
   },
 
   // Insert lesson progress
@@ -262,173 +375,325 @@ const lessonQueries = {
     course_id,
     submitted_code
   ) => {
-    const query = `
-      INSERT INTO lesson_progress (user_id, lesson_id, completed, completed_at, course_id, submitted_code)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *;
-    `;
-    return db.query(query, [
-      user_id,
-      lesson_id,
-      completed,
-      completed_at,
-      course_id,
-      submitted_code,
-    ]);
+    const progress = await prisma.lesson_progress.create({
+      data: {
+        user_id: toInt(user_id),
+        lesson_id: toInt(lesson_id),
+        completed,
+        completed_at,
+        course_id: toInt(course_id),
+        submitted_code,
+      },
+    });
+
+    return toResult([progress]);
   },
 
   // Get total lessons count for course
   getTotalLessonsCount: async (course_id) => {
-    const query = `
-      SELECT COUNT(*) AS total_lessons
-      FROM lesson
-      JOIN section ON lesson.section_id = section.section_id
-      WHERE section.course_id = $1;
-    `;
-    return db.query(query, [course_id]);
+    const total = await prisma.lesson.count({
+      where: {
+        section: {
+          course_id: toInt(course_id),
+        },
+      },
+    });
+
+    return toResult([{ total_lessons: String(total) }]);
   },
 
   // Get completed lessons count
   getCompletedLessonsCount: async (user_id, course_id) => {
-    const query = `
-      SELECT COUNT(*) AS completed_lessons
-      FROM lesson_progress
-      WHERE user_id = $1 AND course_id = $2 AND completed = true;
-    `;
-    return db.query(query, [user_id, course_id]);
+    const completed = await prisma.lesson_progress.count({
+      where: {
+        user_id: toInt(user_id),
+        course_id: toInt(course_id),
+        completed: true,
+      },
+    });
+
+    return toResult([{ completed_lessons: String(completed) }]);
   },
 
   // Update enrollment progress
   updateEnrollmentProgress: async (progress, user_id, course_id) => {
-    const query = `
-      UPDATE enrollment
-      SET progress = $1
-      WHERE user_id = $2 AND course_id = $3
-      RETURNING *;
-    `;
-    return db.query(query, [progress, user_id, course_id]);
+    const enrollment = await prisma.enrollment.findFirst({
+      where: {
+        user_id: toInt(user_id),
+        course_id: toInt(course_id),
+      },
+      select: { enrollment_id: true },
+    });
+
+    if (!enrollment) {
+      return toResult([]);
+    }
+
+    const updated = await prisma.enrollment.update({
+      where: { enrollment_id: enrollment.enrollment_id },
+      data: { progress },
+    });
+
+    return toResult([updated]);
   },
 
   // Get lesson progress
   getLessonProgress: async (user_id, lesson_id) => {
-    const query = `
-      SELECT completed, completed_at, submitted_code, hint_unlocked, solution_unlocked
-      FROM lesson_progress
-      WHERE user_id = $1 AND lesson_id = $2;
-    `;
-    return db.query(query, [user_id, lesson_id]);
+    const progress = await prisma.lesson_progress.findUnique({
+      where: {
+        user_id_lesson_id: {
+          user_id: toInt(user_id),
+          lesson_id: toInt(lesson_id),
+        },
+      },
+      select: {
+        completed: true,
+        completed_at: true,
+        submitted_code: true,
+        hint_unlocked: true,
+        solution_unlocked: true,
+      },
+    });
+
+    return toResult(progress ? [progress] : []);
   },
 
   // Get last accessed lesson
   getLastAccessedLesson: async (userId, courseId) => {
-    const query = `
-      SELECT 
-        l.lesson_id,
-        l.name,
-        s.name as section_name,
-        lp.completed_at
-      FROM lesson_progress lp
-      JOIN lesson l ON lp.lesson_id = l.lesson_id
-      JOIN section s ON l.section_id = s.section_id
-      WHERE lp.user_id = $1 
-      AND s.course_id = $2
-      ORDER BY lp.completed_at DESC
-      LIMIT 1;
-    `;
-    return db.query(query, [userId, courseId]);
+    const row = await prisma.lesson_progress.findFirst({
+      where: {
+        user_id: toInt(userId),
+        lesson: {
+          section: {
+            course_id: toInt(courseId),
+          },
+        },
+      },
+      orderBy: { completed_at: "desc" },
+      select: {
+        completed_at: true,
+        lesson: {
+          select: {
+            lesson_id: true,
+            name: true,
+            section: {
+              select: { name: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!row?.lesson) {
+      return toResult([]);
+    }
+
+    return toResult([
+      {
+        lesson_id: row.lesson.lesson_id,
+        name: row.lesson.name,
+        section_name: row.lesson.section?.name,
+        completed_at: row.completed_at,
+      },
+    ]);
   },
 
   getLessons: async (section_id, course_id) => {
-    let query;
-    let params;
-
     if (section_id) {
-      query = `
-        SELECT * FROM lesson_section_view
-        WHERE section_id = $1
-        ORDER BY lesson_order ASC;
-      `;
-      params = [section_id];
-    } else {
-      query = `
-        SELECT * FROM lesson_course_view
-        WHERE section_id IN (
-          SELECT section_id FROM section WHERE course_id = $1
-        )
-        ORDER BY section_order ASC, lesson_order ASC;
-      `;
-      params = [course_id];
+      const sectionId = toInt(section_id);
+      const lessons = await prisma.lesson.findMany({
+        where: { section_id: sectionId },
+        orderBy: { lesson_order: "asc" },
+        include: {
+          section: {
+            include: {
+              course: {
+                select: {
+                  course_id: true,
+                  name: true,
+                  status: true,
+                  language_id: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return toResult(
+        lessons.map((lesson) => ({
+          ...lesson,
+          section_order: lesson.section?.section_order,
+          section_name: lesson.section?.name,
+          course_id: lesson.section?.course?.course_id,
+          course_name: lesson.section?.course?.name,
+          course_status: lesson.section?.course?.status,
+          language_id: lesson.section?.course?.language_id ?? null,
+        }))
+      );
     }
 
-    return db.query(query, params);
+    const courseId = toInt(course_id);
+    const lessons = await prisma.lesson.findMany({
+      where: {
+        section: {
+          course_id: courseId,
+        },
+      },
+      orderBy: [{ section: { section_order: "asc" } }, { lesson_order: "asc" }],
+      include: {
+        section: {
+          include: {
+            course: {
+              select: {
+                course_id: true,
+                name: true,
+                status: true,
+                language_id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return toResult(
+      lessons.map((lesson) => ({
+        ...lesson,
+        section_order: lesson.section?.section_order,
+        section_name: lesson.section?.name,
+        course_id: lesson.section?.course?.course_id,
+        course_name: lesson.section?.course?.name,
+        course_status: lesson.section?.course?.status,
+        language_id: lesson.section?.course?.language_id ?? null,
+      }))
+    );
   },
 
   // Get all sections
   getAllSections: async () => {
-    return db.query("SELECT section_id FROM section");
+    const sections = await prisma.section.findMany({
+      select: { section_id: true },
+      orderBy: { section_id: "asc" },
+    });
+
+    return toResult(sections);
   },
+
   // Get lessons by section for ordering
   getLessonsBySectionForOrdering: async (section_id) => {
-    const query = `
-      SELECT lesson_id 
-      FROM lesson 
-      WHERE section_id = $1 
-      ORDER BY lesson_order ASC
-    `;
-    return db.query(query, [section_id]);
+    const lessons = await prisma.lesson.findMany({
+      where: { section_id: toInt(section_id) },
+      select: { lesson_id: true },
+      orderBy: { lesson_order: "asc" },
+    });
+
+    return toResult(lessons);
   },
 
   getCourseIdFromSection: async (section_id) => {
-    const query = `
-    SELECT * FROM section_course_info
-    WHERE section_id = $1;
-  `;
-    return db.query(query, [section_id]);
+    const section = await prisma.section.findUnique({
+      where: { section_id: toInt(section_id) },
+      include: {
+        course: {
+          select: {
+            course_id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!section) {
+      return toResult([]);
+    }
+
+    return toResult([
+      {
+        course_id: section.course_id,
+        section_id: section.section_id,
+        section_name: section.name,
+        course_name: section.course?.name,
+      },
+    ]);
   },
 
   recalculateProgressForCourse: async (course_id) => {
-    const query = `
-      WITH enrolled_users AS (
-        SELECT DISTINCT user_id 
-        FROM enrollment 
-        WHERE course_id = $1
-      ),
-      progress_calc AS (
-        SELECT 
-          eu.user_id,
-          COUNT(DISTINCT lp.lesson_id)::float / 
-          (SELECT COUNT(*)::float FROM lesson l 
-           JOIN section s ON l.section_id = s.section_id 
-           WHERE s.course_id = $1) * 100 as new_progress
-        FROM enrolled_users eu
-        LEFT JOIN lesson_progress lp ON eu.user_id = lp.user_id
-        WHERE lp.completed = true
-        AND lp.course_id = $1
-        GROUP BY eu.user_id
-      )
-      UPDATE enrollment e
-      SET progress = COALESCE(pc.new_progress, 0)
-      FROM progress_calc pc
-      WHERE e.user_id = pc.user_id
-      AND e.course_id = $1
-    `;
-    return db.query(query, [course_id]);
+    const courseId = toInt(course_id);
+    const totalLessons = await prisma.lesson.count({
+      where: {
+        section: {
+          course_id: courseId,
+        },
+      },
+    });
+
+    if (totalLessons === 0) {
+      await prisma.enrollment.updateMany({
+        where: { course_id: courseId },
+        data: { progress: 0 },
+      });
+      return { rows: [], rowCount: 0 };
+    }
+
+    const enrollments = await prisma.enrollment.findMany({
+      where: { course_id: courseId },
+      select: { enrollment_id: true, user_id: true },
+    });
+
+    await prisma.$transaction(async (tx) => {
+      for (const enrollment of enrollments) {
+        const completedCount = await tx.lesson_progress.count({
+          where: {
+            user_id: enrollment.user_id,
+            course_id: courseId,
+            completed: true,
+          },
+        });
+
+        const progress = (completedCount / totalLessons) * 100;
+
+        await tx.enrollment.update({
+          where: { enrollment_id: enrollment.enrollment_id },
+          data: { progress },
+        });
+      }
+    });
+
+    return { rows: [], rowCount: enrollments.length };
   },
 
   // Check if all lessons in a section are completed by a user
   checkSectionCompletion: async (user_id, section_id) => {
-    const query = `
-      SELECT 
-        COUNT(*) AS total_lessons,
-        SUM(CASE WHEN lp.completed = true THEN 1 ELSE 0 END) AS completed_lessons
-      FROM lesson l
-      LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id AND lp.user_id = $1
-      WHERE l.section_id = $2
-    `;
+    const userId = toInt(user_id);
+    const sectionId = toInt(section_id);
 
-    const result = await db.query(query, [user_id, section_id]);
-    const totalLessons = parseInt(result.rows[0].total_lessons);
-    const completedLessons = parseInt(result.rows[0].completed_lessons || 0);
+    const lessons = await prisma.lesson.findMany({
+      where: { section_id: sectionId },
+      select: { lesson_id: true },
+    });
+
+    const totalLessons = lessons.length;
+
+    if (totalLessons === 0) {
+      return {
+        total: 0,
+        completed: 0,
+        allCompleted: false,
+      };
+    }
+
+    const lessonIds = lessons.map((lesson) => lesson.lesson_id);
+    const progressRows = await prisma.lesson_progress.findMany({
+      where: {
+        user_id: userId,
+        lesson_id: { in: lessonIds },
+        completed: true,
+      },
+      select: { lesson_id: true },
+    });
+
+    const completedLessons = new Set(progressRows.map((row) => row.lesson_id)).size;
 
     return {
       total: totalLessons,

@@ -128,12 +128,12 @@ const CourseSection = () => {
           throw err;
         }
 
-        // Check subscription status
-        const subscriptionResponse = await fetchWithRetry('/check', config);
+        // Check subscription status and load profile in parallel
+        const [subscriptionResponse, profileResponse] = await Promise.all([
+          fetchWithRetry('/check', config),
+          fetchWithRetry(`/students/${user.user_id}`, config),
+        ]);
         setHasActiveSubscription(subscriptionResponse.data.hasActiveSubscription);
-
-        // Get profile data
-        const profileResponse = await fetchWithRetry(`/students/${user.user_id}`, config);
         setProfileData(profileResponse.data);
 
         // Get sections, course stats, and overall stats

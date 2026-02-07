@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const prisma = require("../config/prisma");
 
 // Badge types enum
 const BadgeType = {
@@ -13,117 +13,81 @@ const BadgeType = {
   PROFILE_COMPLETE: "profile_complete",
 };
 
-// Create badges table if not exists
+const DEFAULT_BADGES = [
+  {
+    badge_type: BadgeType.CODE_NOVICE,
+    name: "Code Novice",
+    description: "Unlocked after submitting your first code",
+    image_path: "/badges/code_novice.png",
+  },
+  {
+    badge_type: BadgeType.LESSON_SMASHER,
+    name: "Lesson Smasher",
+    description: "Unlocked after completing 10 lessons successfully",
+    image_path: "/badges/lesson_smasher.png",
+  },
+  {
+    badge_type: BadgeType.LANGUAGE_EXPLORER,
+    name: "Language Explorer",
+    description: "Unlocked after using 3 different programming languages",
+    image_path: "/badges/language_explorer.png",
+  },
+  {
+    badge_type: BadgeType.STREAK_MASTER,
+    name: "Streak Master",
+    description: "Unlocked after maintaining a 7-day learning streak",
+    image_path: "/badges/streak_master.png",
+  },
+  {
+    badge_type: BadgeType.XP_ACHIEVER,
+    name: "100 XP Achieved",
+    description: "Unlocked after reaching 100 XP",
+    image_path: "/badges/xp_achiever.png",
+  },
+  {
+    badge_type: BadgeType.PERFECTIONIST,
+    name: "Perfectionist",
+    description: "Unlocked after achieving 100% completion in a course",
+    image_path: "/badges/perfectionist.png",
+  },
+  {
+    badge_type: BadgeType.DAILY_LEARNER,
+    name: "Daily Learner",
+    description: "Unlocked after completing a lesson on 3 consecutive days",
+    image_path: "/badges/daily_learner.png",
+  },
+  {
+    badge_type: BadgeType.MARATHONER,
+    name: "Marathoner",
+    description: "Unlocked after completing 5 lessons in a single day",
+    image_path: "/badges/marathoner.png",
+  },
+  {
+    badge_type: BadgeType.PROFILE_COMPLETE,
+    name: "Profile Complete",
+    description: "Unlocked after filling out all profile fields",
+    image_path: "/badges/profile_complete.png",
+  },
+];
+
+// Prisma-backed no-op for schema creation and initializer for seed data
 const createBadgesTable = async () => {
-  try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS badges (
-        badge_id SERIAL PRIMARY KEY,
-        badge_type VARCHAR(50) NOT NULL,
-        name VARCHAR(100) NOT NULL,
-        description TEXT NOT NULL,
-        image_path VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS user_badges (
-        user_badge_id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        badge_id INTEGER NOT NULL,
-        awarded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (badge_id) REFERENCES badges(badge_id),
-        UNIQUE (user_id, badge_id)
-      );
-    `);
-
-    //console.log("Badges tables created successfully");
-
-    // Insert default badges if they don't exist
-    await initDefaultBadges();
-  } catch (error) {
-    console.error("Error creating badges tables:", error);
-    throw error;
-  }
+  await initDefaultBadges();
 };
 
 // Initialize default badges
 const initDefaultBadges = async () => {
-  const defaultBadges = [
-    {
-      badge_type: BadgeType.CODE_NOVICE,
-      name: "Code Novice",
-      description: "Unlocked after submitting your first code",
-      image_path: "/badges/code_novice.png",
-    },
-    {
-      badge_type: BadgeType.LESSON_SMASHER,
-      name: "Lesson Smasher",
-      description: "Unlocked after completing 10 lessons successfully",
-      image_path: "/badges/lesson_smasher.png",
-    },
-    {
-      badge_type: BadgeType.LANGUAGE_EXPLORER,
-      name: "Language Explorer",
-      description: "Unlocked after using 3 different programming languages",
-      image_path: "/badges/language_explorer.png",
-    },
-    {
-      badge_type: BadgeType.STREAK_MASTER,
-      name: "Streak Master",
-      description: "Unlocked after maintaining a 7-day learning streak",
-      image_path: "/badges/streak_master.png",
-    },
-    {
-      badge_type: BadgeType.XP_ACHIEVER,
-      name: "100 XP Achieved",
-      description: "Unlocked after reaching 100 XP",
-      image_path: "/badges/xp_achiever.png",
-    },
-    {
-      badge_type: BadgeType.PERFECTIONIST,
-      name: "Perfectionist",
-      description: "Unlocked after achieving 100% completion in a course",
-      image_path: "/badges/perfectionist.png",
-    },
-    {
-      badge_type: BadgeType.DAILY_LEARNER,
-      name: "Daily Learner",
-      description: "Unlocked after completing a lesson on 3 consecutive days",
-      image_path: "/badges/daily_learner.png",
-    },
-    {
-      badge_type: BadgeType.MARATHONER,
-      name: "Marathoner",
-      description: "Unlocked after completing 5 lessons in a single day",
-      image_path: "/badges/marathoner.png",
-    },
-    {
-      badge_type: BadgeType.PROFILE_COMPLETE,
-      name: "Profile Complete",
-      description: "Unlocked after filling out all profile fields",
-      image_path: "/badges/profile_complete.png",
-    },
-  ];
-
   try {
-    // Check if badges already exist
-    const badgesResult = await db.query("SELECT badge_type FROM badges");
-    const existingBadgeTypes = badgesResult.rows.map((row) => row.badge_type);
+    for (const badge of DEFAULT_BADGES) {
+      const existing = await prisma.badges.findFirst({
+        where: { badge_type: badge.badge_type },
+        select: { badge_id: true },
+      });
 
-    // Insert only badges that don't already exist
-    for (const badge of defaultBadges) {
-      if (!existingBadgeTypes.includes(badge.badge_type)) {
-        await db.query(
-          `INSERT INTO badges (badge_type, name, description, image_path) 
-           VALUES ($1, $2, $3, $4)`,
-          [badge.badge_type, badge.name, badge.description, badge.image_path]
-        );
+      if (!existing) {
+        await prisma.badges.create({ data: badge });
       }
     }
-
-    //console.log("Default badges initialized");
   } catch (error) {
     console.error("Error initializing default badges:", error);
     throw error;
@@ -133,34 +97,33 @@ const initDefaultBadges = async () => {
 // Award a badge to a user
 const awardBadge = async (userId, badgeType) => {
   try {
-    // Get badge ID
-    const badgeResult = await db.query(
-      "SELECT badge_id FROM badges WHERE badge_type = $1",
-      [badgeType]
-    );
+    const badge = await prisma.badges.findFirst({
+      where: { badge_type: badgeType },
+      select: { badge_id: true },
+    });
 
-    if (badgeResult.rows.length === 0) {
+    if (!badge) {
       throw new Error(`Badge type ${badgeType} not found`);
     }
 
-    const badgeId = badgeResult.rows[0].badge_id;
+    const existingBadge = await prisma.user_badges.findFirst({
+      where: {
+        user_id: Number(userId),
+        badge_id: badge.badge_id,
+      },
+      select: { user_badge_id: true },
+    });
 
-    // Check if user already has this badge
-    const existingBadgeResult = await db.query(
-      "SELECT 1 FROM user_badges WHERE user_id = $1 AND badge_id = $2",
-      [userId, badgeId]
-    );
-
-    if (existingBadgeResult.rows.length > 0) {
-      // User already has this badge
+    if (existingBadge) {
       return { awarded: false, message: "Badge already awarded" };
     }
 
-    // Award badge to user
-    await db.query(
-      "INSERT INTO user_badges (user_id, badge_id) VALUES ($1, $2)",
-      [userId, badgeId]
-    );
+    await prisma.user_badges.create({
+      data: {
+        user_id: Number(userId),
+        badge_id: badge.badge_id,
+      },
+    });
 
     return {
       awarded: true,
@@ -176,16 +139,30 @@ const awardBadge = async (userId, badgeType) => {
 // Get all badges for a user
 const getUserBadges = async (userId) => {
   try {
-    const result = await db.query(
-      `SELECT b.badge_id, b.badge_type, b.name, b.description, b.image_path, ub.awarded_at 
-       FROM user_badges ub
-       JOIN badges b ON ub.badge_id = b.badge_id
-       WHERE ub.user_id = $1
-       ORDER BY ub.awarded_at DESC`,
-      [userId]
-    );
+    const result = await prisma.user_badges.findMany({
+      where: { user_id: Number(userId) },
+      include: {
+        badges: {
+          select: {
+            badge_id: true,
+            badge_type: true,
+            name: true,
+            description: true,
+            image_path: true,
+          },
+        },
+      },
+      orderBy: { awarded_at: "desc" },
+    });
 
-    return result.rows;
+    return result.map((row) => ({
+      badge_id: row.badges.badge_id,
+      badge_type: row.badges.badge_type,
+      name: row.badges.name,
+      description: row.badges.description,
+      image_path: row.badges.image_path,
+      awarded_at: row.awarded_at,
+    }));
   } catch (error) {
     console.error("Error retrieving user badges:", error);
     throw error;
@@ -195,11 +172,16 @@ const getUserBadges = async (userId) => {
 // Get all available badges
 const getAllBadges = async () => {
   try {
-    const result = await db.query(
-      `SELECT badge_id, badge_type, name, description, image_path FROM badges ORDER BY badge_id`
-    );
-
-    return result.rows;
+    return prisma.badges.findMany({
+      select: {
+        badge_id: true,
+        badge_type: true,
+        name: true,
+        description: true,
+        image_path: true,
+      },
+      orderBy: { badge_id: "asc" },
+    });
   } catch (error) {
     console.error("Error retrieving all badges:", error);
     throw error;
@@ -209,14 +191,17 @@ const getAllBadges = async () => {
 // Check if a user has a specific badge
 const userHasBadge = async (userId, badgeType) => {
   try {
-    const result = await db.query(
-      `SELECT 1 FROM user_badges ub
-       JOIN badges b ON ub.badge_id = b.badge_id
-       WHERE ub.user_id = $1 AND b.badge_type = $2`,
-      [userId, badgeType]
-    );
+    const result = await prisma.user_badges.findFirst({
+      where: {
+        user_id: Number(userId),
+        badges: {
+          badge_type: badgeType,
+        },
+      },
+      select: { user_badge_id: true },
+    });
 
-    return result.rows.length > 0;
+    return Boolean(result);
   } catch (error) {
     console.error("Error checking if user has badge:", error);
     throw error;

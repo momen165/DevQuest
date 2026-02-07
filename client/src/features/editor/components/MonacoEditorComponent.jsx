@@ -105,11 +105,6 @@ const MonacoEditorComponent = ({
       console.log('Running code for lesson ID:', lessonId);
       setConsoleOutput(<CircularProgress />);
 
-      if (!languageId) {
-        setConsoleOutput('Language ID not available. Cannot run the code.');
-        return;
-      }
-
       if (!user || !user.token) {
         setConsoleOutput('Authorization token is missing. Please log in again.');
         return;
@@ -126,7 +121,7 @@ const MonacoEditorComponent = ({
 
       console.log('Sending request to run code with payload:', {
         lessonId: parseInt(lessonId, 10),
-        languageId,
+        languageId: languageId ?? null,
         codeLength: code.length,
       });
 

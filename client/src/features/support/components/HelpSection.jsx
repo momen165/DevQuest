@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import parse from 'html-react-parser';
 import { useAuth } from 'app/AuthContext';
 import { useParams } from 'react-router-dom';
@@ -15,6 +15,7 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
   const [dynamicSolution, setDynamicSolution] = useState(solution);
   const [isUnlockingHint, setIsUnlockingHint] = useState(false);
   const [isUnlockingSolution, setIsUnlockingSolution] = useState(false);
+  const lessonUiStateRef = useRef({});
   
   const { user } = useAuth();
   const { lessonId } = useParams();
@@ -25,6 +26,26 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
   const canShowHint = hintUnlocked || failedAttempts >= HINT_THRESHOLD;
   const canShowSolution = solutionUnlocked || failedAttempts >= SOLUTION_THRESHOLD;
 
+  // Keep open/closed state scoped to each lesson.
+  useEffect(() => {
+    const lessonState = lessonUiStateRef.current[lessonId] || {
+      showHint: false,
+      showSolution: false,
+    };
+    setShowHint(Boolean(lessonState.showHint));
+    setShowSolution(Boolean(lessonState.showSolution));
+    setIsUnlockingHint(false);
+    setIsUnlockingSolution(false);
+  }, [lessonId]);
+
+  useEffect(() => {
+    if (!lessonId) return;
+    lessonUiStateRef.current[lessonId] = {
+      showHint,
+      showSolution,
+    };
+  }, [lessonId, showHint, showSolution]);
+
   // Update dynamic content when progress changes
   useEffect(() => {
     if (currentLessonProgress?.hint) {
@@ -34,42 +55,64 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
       setDynamicSolution(currentLessonProgress.solution);
     }
   }, [currentLessonProgress]);
+
+  // Keep local dynamic content in sync with latest props from lesson fetches.
+  useEffect(() => {
+    setDynamicHint(hint || '');
+  }, [hint]);
+
+  useEffect(() => {
+    setDynamicSolution(solution || '');
+  }, [solution]);
   // Handle hint button click
-  const handleHintClick = async () => {
+  const handleHintClick = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     const newShowHint = !showHint;
     setShowHint(newShowHint);
-    
-    // If showing hint and it needs to be unlocked
-    if (newShowHint && canShowHint && !hintUnlocked && !isUnlockingHint) {
+
+    // If showing hint and content is not present, fetch latest lesson payload.
+    if (newShowHint && canShowHint && !isUnlockingHint && !dynamicHint) {
       setIsUnlockingHint(true);
       try {
-        // Step 1: Call unlock API
-        await apiClient.post(
-          `/lesson/${lessonId}/unlock-hint`,
-          {},
-          { headers: { Authorization: `Bearer ${user?.token}` } }
-        );
-        
-        // Step 2: Fetch updated lesson data to get the actual hint content
+        // Step 1: Unlock if still locked.
+        if (!hintUnlocked) {
+          await apiClient.post(
+            `/lesson/${lessonId}/unlock-hint`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${user?.token}`,
+                'Cache-Control': 'no-cache',
+                Pragma: 'no-cache',
+              },
+            }
+          );
+        }
+
+        // Step 2: Fetch fresh lesson data including hint.
         const lessonResponse = await apiClient.get(
           `/lesson/${lessonId}`,
-          { headers: { Authorization: `Bearer ${user?.token}` } }
+          {
+            params: { showHint: true, _ts: Date.now() },
+            headers: {
+              Authorization: `Bearer ${user?.token}`,
+              'Cache-Control': 'no-cache',
+              Pragma: 'no-cache',
+            },
+          }
         );
-        
+
         if (lessonResponse.data?.hint) {
           setDynamicHint(lessonResponse.data.hint);
         } else if (hint) {
-          // Fallback to original hint prop
+          // Fallback to original hint prop if present.
           setDynamicHint(hint);
         }
-        
-        // Refresh progress to sync state
-        if (onRequestProgressRefresh) {
-          setTimeout(() => onRequestProgressRefresh(), 100);
-        }
+
       } catch (e) {
         console.error("Failed to unlock hint:", e);
-        // Fallback to original hint
+        // Fallback to original hint.
         if (hint) {
           setDynamicHint(hint);
         }
@@ -79,41 +122,54 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
     }
   };
   // Handle solution button click
-  const handleSolutionClick = async () => {
+  const handleSolutionClick = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     const newShowSolution = !showSolution;
     setShowSolution(newShowSolution);
-    
-    // If showing solution and it needs to be unlocked
-    if (newShowSolution && canShowSolution && !solutionUnlocked && !isUnlockingSolution) {
+
+    // If showing solution and content is not present, fetch latest lesson payload.
+    if (newShowSolution && canShowSolution && !isUnlockingSolution && !dynamicSolution) {
       setIsUnlockingSolution(true);
       try {
-        // Step 1: Call unlock API
-        await apiClient.post(
-          `/lesson/${lessonId}/unlock-solution`,
-          {},
-          { headers: { Authorization: `Bearer ${user?.token}` } }
-        );
-        
-        // Step 2: Fetch updated lesson data to get the actual solution content
+        // Step 1: Unlock if still locked.
+        if (!solutionUnlocked) {
+          await apiClient.post(
+            `/lesson/${lessonId}/unlock-solution`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${user?.token}`,
+                'Cache-Control': 'no-cache',
+                Pragma: 'no-cache',
+              },
+            }
+          );
+        }
+
+        // Step 2: Fetch fresh lesson data including solution.
         const lessonResponse = await apiClient.get(
           `/lesson/${lessonId}`,
-          { headers: { Authorization: `Bearer ${user?.token}` } }
+          {
+            params: { showSolution: true, _ts: Date.now() },
+            headers: {
+              Authorization: `Bearer ${user?.token}`,
+              'Cache-Control': 'no-cache',
+              Pragma: 'no-cache',
+            },
+          }
         );
-        
+
         if (lessonResponse.data?.solution) {
           setDynamicSolution(lessonResponse.data.solution);
         } else if (solution) {
-          // Fallback to original solution prop
+          // Fallback to original solution prop if present.
           setDynamicSolution(solution);
         }
-        
-        // Refresh progress to sync state
-        if (onRequestProgressRefresh) {
-          setTimeout(() => onRequestProgressRefresh(), 100);
-        }
+
       } catch (e) {
         console.error("Failed to unlock solution:", e);
-        // Fallback to original solution
+        // Fallback to original solution.
         if (solution) {
           setDynamicSolution(solution);
         }

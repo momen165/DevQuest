@@ -1,5 +1,5 @@
 const axios = require("axios");
-const db = require("../config/database");
+const prisma = require("../config/prisma");
 const { Buffer } = require("buffer");
 const NodeCache = require("node-cache");
 const rateLimit = require("express-rate-limit");
@@ -261,30 +261,36 @@ const runCode = handleAsync(async (req, res) => {
   }
 
   try {
-    const [langResult, lessonResult] = await Promise.all([
-      db.query(
-        `
-        SELECT c.language_id
-        FROM course c
-        JOIN section s ON c.course_id = s.course_id
-        JOIN lesson l ON s.section_id = l.section_id
-        WHERE l.lesson_id = $1
-      `,
-        [lessonId]
-      ),
-      db.query("SELECT test_cases FROM lesson WHERE lesson_id = $1", [
-        lessonId,
-      ]),
-    ]);
+    const lessonData = await prisma.lesson.findUnique({
+      where: { lesson_id: Number(lessonId) },
+      select: {
+        test_cases: true,
+        section: {
+          select: {
+            course_id: true,
+            course: {
+              select: {
+                language_id: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-    const testCases = lessonResult.rows[0]?.test_cases;
+    const languageId = lessonData?.section?.course?.language_id;
+    const testCases = lessonData?.test_cases || [];
+
+    if (!languageId || testCases.length === 0) {
+      return res.status(404).json({ error: "Lesson configuration not found." });
+    }
 
     // Process test cases
     const results = await Promise.all(
       testCases.map(async (testCase) => {
         const result = await helpers.executeCode({
           source_code: code,
-          language_id: langResult.rows[0].language_id,
+          language_id: languageId,
           stdin: testCase.input || "",
           expected_output: testCase.expected_output || "",
         });
@@ -355,14 +361,7 @@ const runCode = handleAsync(async (req, res) => {
     const allPassed = results.every((result) => result.status === "Passed");
 
     // Get course ID for the lesson
-    const courseResult = await db.query(
-      `SELECT s.course_id 
-       FROM section s
-       JOIN lesson l ON s.section_id = l.section_id
-       WHERE l.lesson_id = $1`,
-      [lessonId]
-    );
-    const courseId = courseResult.rows[0]?.course_id;
+    const courseId = lessonData?.section?.course_id;
 
     // If all tests passed, update lesson progress and check badge eligibility
     let badgeAwarded = null;
@@ -413,17 +412,33 @@ const runCode = handleAsync(async (req, res) => {
       }
 
       // Check for Language Explorer badge
-      const languagesResult = await db.query(
-        `SELECT COUNT(DISTINCT c.language_id) as unique_languages
-         FROM lesson_progress lp
-         JOIN lesson l ON lp.lesson_id = l.lesson_id
-         JOIN section s ON l.section_id = s.section_id
-         JOIN course c ON s.course_id = c.course_id
-         WHERE lp.user_id = $1 AND lp.completed = true`,
-        [userId]
-      );
-      
-      const uniqueLanguagesCount = parseInt(languagesResult.rows[0].unique_languages || 0);
+      const completedProgress = await prisma.lesson_progress.findMany({
+        where: {
+          user_id: Number(userId),
+          completed: true,
+        },
+        select: {
+          lesson: {
+            select: {
+              section: {
+                select: {
+                  course: {
+                    select: {
+                      language_id: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const uniqueLanguagesCount = new Set(
+        completedProgress
+          .map((row) => row.lesson?.section?.course?.language_id)
+          .filter((language) => language !== null && language !== undefined)
+      ).size;
       
       if (uniqueLanguagesCount >= 3) {
         const languageExplorerBadge = await badgeController.checkAndAwardBadges(userId, 'language_used', {

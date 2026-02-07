@@ -54,95 +54,86 @@ router.get(
     }
 
     const metrics = getPerformanceMetrics();
+    const endpoints = metrics.endpoints || [];
+    const database = metrics.database || [];
+    const cache = metrics.cache || [];
 
-    // Calculate summary statistics
-    const summary = {
+    const totalRequests = endpoints.reduce(
+      (sum, endpoint) => sum + endpoint.totalRequests,
+      0
+    );
+
+    const totalQueries = database.reduce(
+      (sum, query) => sum + query.totalQueries,
+      0
+    );
+
+    const totalHits = cache.reduce((sum, item) => sum + item.hits, 0);
+    const totalMisses = cache.reduce((sum, item) => sum + item.misses, 0);
+
+    const avgResponseTime =
+      totalRequests > 0
+        ? (
+            endpoints.reduce(
+              (sum, endpoint) =>
+                sum + endpoint.averageResponseTime * endpoint.totalRequests,
+              0
+            ) / totalRequests
+          ).toFixed(2)
+        : "0.00";
+
+    const avgQueryTime =
+      totalQueries > 0
+        ? (
+            database.reduce(
+              (sum, query) => sum + query.averageQueryTime * query.totalQueries,
+              0
+            ) / totalQueries
+          ).toFixed(2)
+        : "0.00";
+
+    const successRate =
+      totalQueries > 0
+        ? (
+            (database.reduce(
+              (sum, query) => sum + query.successfulQueries,
+              0
+            ) /
+              totalQueries) *
+            100
+          ).toFixed(2) + "%"
+        : "0%";
+
+    const sortedEndpoints = [...endpoints].sort(
+      (a, b) => b.averageResponseTime - a.averageResponseTime
+    );
+    const sortedQueries = [...database].sort(
+      (a, b) => b.averageQueryTime - a.averageQueryTime
+    );
+
+    res.json({
       api: {
-        totalRequests: Object.values(metrics.apiCalls).reduce(
-          (sum, calls) => sum + calls.length,
-          0
-        ),
-        averageResponseTime: 0,
-        slowestEndpoint: null,
-        fastestEndpoint: null,
+        totalRequests,
+        averageResponseTime: avgResponseTime,
+        slowestEndpoint: sortedEndpoints[0]?.endpoint || null,
+        fastestEndpoint:
+          sortedEndpoints[sortedEndpoints.length - 1]?.endpoint || null,
       },
       database: {
-        totalQueries: Object.values(metrics.databaseQueries).reduce(
-          (sum, queries) => sum + queries.length,
-          0
-        ),
-        averageQueryTime: 0,
-        slowestQueryType: null,
-        successRate: 0,
+        totalQueries,
+        averageQueryTime: avgQueryTime,
+        slowestQueryType: sortedQueries[0]?.queryType || null,
+        successRate,
       },
       cache: {
-        totalHits: metrics.cacheHits,
-        totalMisses: metrics.cacheMisses,
+        totalHits,
+        totalMisses,
         hitRate:
-          metrics.cacheHits + metrics.cacheMisses > 0
-            ? (
-                (metrics.cacheHits /
-                  (metrics.cacheHits + metrics.cacheMisses)) *
-                100
-              ).toFixed(2) + "%"
+          totalHits + totalMisses > 0
+            ? ((totalHits / (totalHits + totalMisses)) * 100).toFixed(2) + "%"
             : "0%",
       },
-    };
-
-    // Calculate API averages
-    const allApiCalls = Object.values(metrics.apiCalls).flat();
-    if (allApiCalls.length > 0) {
-      summary.api.averageResponseTime = (
-        allApiCalls.reduce((sum, call) => sum + call.responseTime, 0) /
-        allApiCalls.length
-      ).toFixed(2);
-
-      // Find slowest and fastest endpoints
-      const endpointAvgs = Object.entries(metrics.apiCalls).map(
-        ([endpoint, calls]) => ({
-          endpoint,
-          avgTime:
-            calls.reduce((sum, call) => sum + call.responseTime, 0) /
-            calls.length,
-        })
-      );
-
-      endpointAvgs.sort((a, b) => b.avgTime - a.avgTime);
-      summary.api.slowestEndpoint = endpointAvgs[0]?.endpoint;
-      summary.api.fastestEndpoint =
-        endpointAvgs[endpointAvgs.length - 1]?.endpoint;
-    }
-
-    // Calculate database averages
-    const allDbQueries = Object.values(metrics.databaseQueries).flat();
-    if (allDbQueries.length > 0) {
-      summary.database.averageQueryTime = (
-        allDbQueries.reduce((sum, query) => sum + query.queryTime, 0) /
-        allDbQueries.length
-      ).toFixed(2);
-
-      summary.database.successRate =
-        (
-          (allDbQueries.filter((query) => query.success).length /
-            allDbQueries.length) *
-          100
-        ).toFixed(2) + "%";
-
-      // Find slowest query type
-      const queryAvgs = Object.entries(metrics.databaseQueries).map(
-        ([type, queries]) => ({
-          type,
-          avgTime:
-            queries.reduce((sum, query) => sum + query.queryTime, 0) /
-            queries.length,
-        })
-      );
-
-      queryAvgs.sort((a, b) => b.avgTime - a.avgTime);
-      summary.database.slowestQueryType = queryAvgs[0]?.type;
-    }
-
-    res.json(summary);
+    });
   }
 );
 

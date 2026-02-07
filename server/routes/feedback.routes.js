@@ -11,7 +11,11 @@ const {
   getRecentFeedback,
   reopenFeedback,
 } = require("../controllers/feedback.controller");
-const { authenticateToken, requireAuth } = require("../middleware/auth");
+const {
+  authenticateToken,
+  requireAuth,
+  requireAdmin,
+} = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
 const { cacheMiddleware } = require("../utils/cache.utils");
 const {
@@ -41,6 +45,7 @@ router.post(
   "/feedback/reply",
   authenticateToken,
   requireAuth,
+  requireAdmin,
   sessionTracker,
   replyToFeedback
 );
@@ -89,6 +94,7 @@ router.get(
   "/feedback/recent",
   authenticateToken,
   requireAuth,
+  requireAdmin,
   sessionTracker,
   getRecentFeedback
 );
@@ -97,6 +103,7 @@ router.post(
   "/feedback/reopen",
   authenticateToken,
   requireAuth,
+  requireAdmin,
   sessionTracker,
   reopenFeedback
 );

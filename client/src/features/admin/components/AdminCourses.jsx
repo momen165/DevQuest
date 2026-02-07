@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import {
   FiEdit2,
   FiTrash2,
@@ -10,13 +10,14 @@ import {
   FiFolder,
 } from 'react-icons/fi';
 import './AdminDashboard.css';
-import CourseForm from 'features/admin/components/CourseForm';
-import SectionManager from 'features/admin/components/SectionManager';
-import CourseFeedbackModal from './CourseFeedbackModal';
 import axios from 'axios';
 import { useAuth } from 'app/AuthContext';
 import CircularProgress from '@mui/material/CircularProgress';
 import useAdminCourses from 'features/admin/hooks/useAdminCourses';
+
+const CourseForm = React.lazy(() => import('features/admin/components/CourseForm'));
+const SectionManager = React.lazy(() => import('features/admin/components/SectionManager'));
+const CourseFeedbackModal = React.lazy(() => import('./CourseFeedbackModal'));
 
 const AdminCourses = () => {
   const { user } = useAuth();
@@ -106,6 +107,12 @@ const AdminCourses = () => {
     return 'Courses';
   };
 
+  const lazyFallback = (
+    <div className="admin-loading">
+      <CircularProgress className="admin-loading-spinner" />
+    </div>
+  );
+
   return (
     <div className="admin-page">
       <main className="admin-main">
@@ -134,47 +141,51 @@ const AdminCourses = () => {
             <CircularProgress className="admin-loading-spinner" />
           </div>
         ) : editingSections ? (
-          <SectionManager
-            sections={sections}
-            courseId={editingCourse?.course_id}
-            languageId={editingCourse?.language_id}
-            courseName={editingCourse?.title}
-            onSectionUpdate={(updatedSections) => {
-              const payload = updatedSections.map((section, index) => ({
-                section_id: section.section_id,
-                order: index,
-              }));
-              axios
-                .post(
-                  `${import.meta.env.VITE_API_URL}/sections/reorder`,
-                  { sections: payload },
-                  { headers: { Authorization: `Bearer ${token}` } }
-                )
-                .then(async () => {
-                  const sectionsData = await fetchSections(editingCourse?.course_id);
-                  if (sectionsData) {
-                    setSections(sectionsData);
-                  }
-                })
-                .catch((err) => console.error('Failed to reorder sections:', err));
-            }}
-            onDeleteSection={handleDeleteSection}
-            onClose={handleCloseSections}
-          />
+          <Suspense fallback={lazyFallback}>
+            <SectionManager
+              sections={sections}
+              courseId={editingCourse?.course_id}
+              languageId={editingCourse?.language_id}
+              courseName={editingCourse?.title}
+              onSectionUpdate={(updatedSections) => {
+                const payload = updatedSections.map((section, index) => ({
+                  section_id: section.section_id,
+                  order: index,
+                }));
+                axios
+                  .post(
+                    `${import.meta.env.VITE_API_URL}/sections/reorder`,
+                    { sections: payload },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  )
+                  .then(async () => {
+                    const sectionsData = await fetchSections(editingCourse?.course_id);
+                    if (sectionsData) {
+                      setSections(sectionsData);
+                    }
+                  })
+                  .catch((err) => console.error('Failed to reorder sections:', err));
+              }}
+              onDeleteSection={handleDeleteSection}
+              onClose={handleCloseSections}
+            />
+          </Suspense>
         ) : editingCourse || isAddingCourse ? (
-          <CourseForm
-            course={editingCourse}
-            onClose={() => {
-              setEditingCourse(null);
-              setIsAddingCourse(false);
-            }}
-            onSave={() => {
-              fetchCourses();
-              setEditingCourse(null);
-              setIsAddingCourse(false);
-            }}
-            onFileUpload={handleFileUpload}
-          />
+          <Suspense fallback={lazyFallback}>
+            <CourseForm
+              course={editingCourse}
+              onClose={() => {
+                setEditingCourse(null);
+                setIsAddingCourse(false);
+              }}
+              onSave={() => {
+                fetchCourses();
+                setEditingCourse(null);
+                setIsAddingCourse(false);
+              }}
+              onFileUpload={handleFileUpload}
+            />
+          </Suspense>
         ) : (
           <div className="admin-card">
             {courses.length === 0 ? (
@@ -258,7 +269,9 @@ const AdminCourses = () => {
         )}
 
         {selectedCourse && (
-          <CourseFeedbackModal course={selectedCourse} onClose={() => setSelectedCourse(null)} />
+          <Suspense fallback={null}>
+            <CourseFeedbackModal course={selectedCourse} onClose={() => setSelectedCourse(null)} />
+          </Suspense>
         )}
       </main>
     </div>

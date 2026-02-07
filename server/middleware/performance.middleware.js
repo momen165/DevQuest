@@ -15,7 +15,7 @@ const performanceMiddleware = (endpointName) => {
     // Track response time when response is sent
     const trackResponse = () => {
       const endTime = process.hrtime.bigint();
-      const responseTime = Number(endTime - startTime) / 1000000; // Convert to milliseconds
+      const responseTime = Number(endTime - startTime) / 1000000;
 
       trackAPIPerformance(
         endpointName,
@@ -26,7 +26,6 @@ const performanceMiddleware = (endpointName) => {
       );
     };
 
-    // Override response methods to capture timing
     res.send = function (...args) {
       trackResponse();
       return originalSend.apply(this, args);
@@ -42,47 +41,20 @@ const performanceMiddleware = (endpointName) => {
 };
 
 /**
- * Middleware to wrap database queries with performance tracking
+ * Optional Prisma query instrumentation.
  */
-const wrapDatabaseQuery = (db) => {
-  const originalQuery = db.query; // This is the original pool.query method
+const wrapDatabaseQuery = (prismaClient) => {
+  if (!prismaClient || typeof prismaClient.$on !== "function") {
+    return prismaClient;
+  }
 
-  db.query = async function (text, params) {
-    const startTime = process.hrtime.bigint();
+  prismaClient.$on("query", (event) => {
+    const queryText = event?.query || "UNKNOWN";
+    const queryType = queryText.trim().split(" ")[0].toUpperCase();
+    trackDatabaseQuery(queryType, event?.duration || 0, true, queryText);
+  });
 
-    // // Log pool state before query (pool.query handles connect/release)
-    // console.log(
-    //   `[DB Pool State Before Query] Total: ${db.pool.totalCount}, Idle: ${db.pool.idleCount}, Waiting: ${db.pool.waitingCount}`
-    // );
-
-    try {
-      const result = await originalQuery.call(db, text, params);
-      const endTime = process.hrtime.bigint();
-      const queryTime = Number(endTime - startTime) / 1000000; // Convert to milliseconds
-
-      const queryType = text.trim().split(" ")[0].toUpperCase();
-
-      // console.warn(
-      //   `Detailed DB Query: ${queryType} - Total: ${queryTime.toFixed(
-      //     2
-      //   )}ms\nQuery: ${text}`
-      // );
-
-      trackDatabaseQuery(queryType, queryTime, true, text);
-
-      return result;
-    } catch (error) {
-      const endTime = process.hrtime.bigint();
-      const queryTime = Number(endTime - startTime) / 1000000;
-
-      const queryType = text.trim().split(" ")[0].toUpperCase();
-      trackDatabaseQuery(queryType, queryTime, false, text);
-
-      throw error;
-    }
-  };
-
-  return db;
+  return prismaClient;
 };
 
 module.exports = {

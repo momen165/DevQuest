@@ -43,11 +43,20 @@ router.get("/courses/:course_id", courseController.getCourseById);
 // Get course stats for a user
 router.get(
   "/courses/:course_id/stats/:user_id",
+  authenticateToken,
+  requireAuth,
+  sessionTracker,
   courseController.getUserCourseStats
 );
 
 // Get user's overall stats
-router.get("/users/:user_id/stats", courseController.getUserOverallStats);
+router.get(
+  "/users/:user_id/stats",
+  authenticateToken,
+  requireAuth,
+  sessionTracker,
+  courseController.getUserOverallStats
+);
 
 // Delete a course
 router.delete(
@@ -68,6 +77,9 @@ router.post(
 
 router.get(
   "/courses/:course_id/enrollments/:user_id",
+  authenticateToken,
+  requireAuth,
+  sessionTracker,
   courseController.checkEnrollmentStatus
 );
 

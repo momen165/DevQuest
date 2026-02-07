@@ -37,7 +37,7 @@ const AdSense = ({
             return;
           }
           retryCountRef.current += 1;
-          console.warn(`AdSense: Container has zero width, retrying... (${retryCountRef.current}/${MAX_RETRIES})`);
+          // console.warn(`AdSense: Container has zero width, retrying... (${retryCountRef.current}/${MAX_RETRIES})`);
           // Retry after a short delay to allow layout to complete
           const timeoutId = setTimeout(loadAd, 100);
           timeoutIdsRef.current.push(timeoutId);
@@ -52,7 +52,7 @@ const AdSense = ({
             return;
           }
           retryCountRef.current += 1;
-          console.warn(`AdSense: Script not loaded yet, retrying... (${retryCountRef.current}/${MAX_RETRIES})`);
+          // console.warn(`AdSense: Script not loaded yet, retrying... (${retryCountRef.current}/${MAX_RETRIES})`);
           const timeoutId = setTimeout(loadAd, 100);
           timeoutIdsRef.current.push(timeoutId);
           return;

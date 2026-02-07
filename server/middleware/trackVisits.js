@@ -1,13 +1,10 @@
-const db = require("../config/database");
+const prisma = require("../config/prisma");
 const geoip = require("geoip-lite");
 const UAParser = require("ua-parser-js");
 
 const trackVisit = async (req, res, next) => {
   try {
-    // Only log real page visits (not API calls or assets):
-    // - Accept header must include 'text/html'
-    // - Path should not be an asset (skip ".", "/favicon.ico", "/health")
-    // - Path should NOT start with /api or /admin/analytics or /getCoursesWithRatings
+    // Only log real page visits (not API calls or assets)
     const accept = req.headers["accept"] || "";
     if (
       !accept.includes("text/html") ||
@@ -29,16 +26,11 @@ const trackVisit = async (req, res, next) => {
     if (typeof ip === "string" && ip.includes(",")) {
       ip = ip.split(",")[0].trim();
     }
-    // Remove IPv6 prefix if present
     if (typeof ip === "string" && ip.startsWith("::ffff:")) {
       ip = ip.replace("::ffff:", "");
     }
 
-    // Get geo-location info from IP (if available)
     const geo = geoip.lookup(ip);
-    if (!geo || !geo.country) {
-      console.warn(`[GeoIP] Could not resolve country for IP: ${ip}`);
-    }
 
     // Parse user agent for device info
     const parser = new UAParser(req.headers["user-agent"]);
@@ -49,67 +41,36 @@ const trackVisit = async (req, res, next) => {
     if (uaResult.device.type === "mobile") deviceType = "Mobile";
     else if (uaResult.device.type === "tablet") deviceType = "Tablet";
     else if (!uaResult.device.type) deviceType = "Desktop";
-    // Insert visit data with enhanced tracking
-    const query = `
-      INSERT INTO site_visits 
-        (user_id, ip_address, visit_date, page_visited, referrer, device_type, browser, os, country, city)
-      VALUES
-        ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5, $6, $7, $8, $9)
-    `;
 
-    await db.query(query, [
-      req.user?.userId || null,
-      ip,
-      req.originalUrl || req.url,
-      req.headers.referer || null,
-      deviceType,
-      uaResult.browser.name || "Unknown",
-      uaResult.os.name || "Unknown",
-      geo && geo.country ? geo.country : null,
-      geo && geo.city ? geo.city : null,
-    ]);
+    await prisma.site_visits.create({
+      data: {
+        user_id: req.user?.userId || null,
+        ip_address: ip,
+        page_visited: req.originalUrl || req.url,
+        referrer: req.headers.referer || null,
+        device_type: deviceType,
+        browser: uaResult.browser.name || "Unknown",
+        os: uaResult.os.name || "Unknown",
+        country: geo?.country || null,
+        city: geo?.city || null,
+      },
+    });
 
-    // If this is a logged-in user, update the session information
     // Support both user.userId and user.user_id for compatibility
     const userId = req.user?.userId || req.user?.user_id || null;
     if (userId) {
-      console.log(
-        `[TrackVisits] Resolved userId:`,
-        userId,
-        "req.user:",
-        req.user
-      );
-      // Always update last login time for active users metric
-      const updateResult = await db.query(
-        `
-        UPDATE users 
-        SET last_login = CURRENT_TIMESTAMP 
-        WHERE user_id = $1
-        RETURNING user_id, last_login
-      `,
-        [userId]
-      );
-      if (updateResult.rowCount === 0) {
-        console.warn(`[TrackVisits] No user found for userId:`, userId);
-      } else {
-        console.log(
-          `[TrackVisits] Updated last_login for userId:`,
-          userId,
-          "at",
-          updateResult.rows[0].last_login
-        );
-      }
+      await prisma.users.update({
+        where: { user_id: userId },
+        data: { last_login: new Date() },
+      });
 
-      // Track session information
-      const sessionQuery = `
-        INSERT INTO user_activity (user_id, action_type, resource_id)
-        VALUES ($1, $2, NULL)
-      `;
-
-      await db.query(sessionQuery, [
-        userId,
-        req.method === "GET" ? "page_view" : "api_call",
-      ]);
+      await prisma.user_activity.create({
+        data: {
+          user_id: userId,
+          action_type: req.method === "GET" ? "page_view" : "api_call",
+          resource_id: null,
+        },
+      });
     }
   } catch (err) {
     console.error("Error tracking visit:", err);

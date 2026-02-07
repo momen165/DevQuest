@@ -151,15 +151,11 @@ const AdminSettingsPage = () => {
     const loadData = async () => {
       const isAdmin = await checkAdminStatus();
       if (isAdmin) {
-        fetchSystemSettings();
+        await fetchSystemSettings();
       }
     };
     loadData();
   }, [user?.userId]);
-
-  useEffect(() => {
-    fetchSystemSettings();
-  }, []);
 
   const fetchSystemSettings = async () => {
     try {

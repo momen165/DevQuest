@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'app/AuthContext';
 import LessonNavigation from 'features/lesson/components/LessonNavigation';
 import LessonContent from 'features/lesson/components/LessonContent';
-import MonacoEditorComponent from 'features/editor/components/MonacoEditorComponent';
 import LoadingSpinner from 'shared/ui/LoadingSpinner';
 import BadgeNotification from 'features/badge/components/BadgeNotification';
 import { languageMappings as LSLanguageMappings } from 'features/lesson/utils/lessonConstants';
@@ -11,6 +10,8 @@ import { formatBadge } from 'features/badge/utils/badgeUtils';
 import { useLessonData } from 'features/lesson/hooks/useLessonData';
 import { useResizablePanes } from 'features/editor/hooks/useResizablePanes';
 import './LessonPage.css';
+
+const MonacoEditorComponent = React.lazy(() => import('features/editor/components/MonacoEditorComponent'));
 
 const LessonPage = () => {
   const { lessonId } = useParams();
@@ -42,7 +43,8 @@ const LessonPage = () => {
   const [code, setCode] = useState('');
   const [consoleOutput, setConsoleOutput] = useState('Output will appear here...');
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [failedAttemptsByLesson, setFailedAttemptsByLesson] = useState({});
+  const currentFailedAttempts = failedAttemptsByLesson[lessonId] || 0;
 
   useEffect(() => {
     if (initialCode !== undefined) {
@@ -57,7 +59,10 @@ const LessonPage = () => {
 
   const handleCodeResult = (success, resultData) => {
     if (!success) {
-      setFailedAttempts((prev) => prev + 1);
+      setFailedAttemptsByLesson((prev) => ({
+        ...prev,
+        [lessonId]: (prev[lessonId] || 0) + 1,
+      }));
     } else if (resultData?.badge_awarded) {
       setEarnedBadge(formatBadge(resultData.badge_awarded));
     }
@@ -114,7 +119,7 @@ const LessonPage = () => {
             content={lesson.content}
             hint={lesson.hint}
             solution={lesson.solution}
-            failedAttempts={failedAttempts}
+            failedAttempts={currentFailedAttempts}
             currentLessonProgress={currentLessonProgress}
             onRequestProgressRefresh={handleRequestProgressRefresh}
           />
@@ -130,18 +135,20 @@ const LessonPage = () => {
           style={secondPaneStyle}
         >
           <div className="code-editor">
-            <MonacoEditorComponent
-              language={LSLanguageMappings[lessonLanguageId] || 'plaintext'}
-              code={code}
-              setCode={setCode}
-              user={user}
-              lessonId={lessonId}
-              languageId={lessonLanguageId}
-              setConsoleOutput={setConsoleOutput}
-              setIsAnswerCorrect={setIsAnswerCorrect}
-              onCodeResult={handleCodeResult}
-              templateCode={lesson?.template_code}
-            />
+            <Suspense fallback={<LoadingSpinner message="Loading editor..." />}>
+              <MonacoEditorComponent
+                language={LSLanguageMappings[lessonLanguageId] || 'plaintext'}
+                code={code}
+                setCode={setCode}
+                user={user}
+                lessonId={lessonId}
+                languageId={lessonLanguageId}
+                setConsoleOutput={setConsoleOutput}
+                setIsAnswerCorrect={setIsAnswerCorrect}
+                onCodeResult={handleCodeResult}
+                templateCode={lesson?.template_code}
+              />
+            </Suspense>
           </div>
           <div className="console">
             <div className="console-header">
@@ -153,7 +160,7 @@ const LessonPage = () => {
       </div>
 
       <LessonNavigation
-        currentLessonId={parseInt(lessonId)}
+        currentLessonId={parseInt(lessonId, 10)}
         lessons={lessonsForNav}
         sections={sectionsForNav}
         isAnswerCorrect={isAnswerCorrect}

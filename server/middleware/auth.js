@@ -1,6 +1,7 @@
 // website/server/middleware/auth.js
 
 const jwt = require("jsonwebtoken");
+const prisma = require("../config/prisma");
 require("dotenv").config();
 
 // List of routes that should be publicly accessible without authentication
@@ -26,6 +27,8 @@ const isPublicRequest = (req) => {
     publicRoutePatterns.some((pattern) => pattern.test(path))
   );
 };
+
+const toInt = (value) => Number.parseInt(value, 10);
 
 const authenticateToken = async (req, res, next) => {
   // Check if the route is in the public routes list
@@ -56,7 +59,26 @@ const authenticateToken = async (req, res, next) => {
     });
 
     // Normalize userId/user_id to ensure consistent naming
-    req.user = { ...user, user_id: user.userId || user.user_id };
+    const normalizedUserId = toInt(user.userId || user.user_id);
+    if (!Number.isFinite(normalizedUserId)) {
+      return res.status(403).json({
+        error: "Invalid token payload",
+        code: "INVALID_TOKEN_PAYLOAD",
+      });
+    }
+
+    // Always resolve admin status from DB so stale JWT claims do not block admin actions.
+    const adminRecord = await prisma.admins.findUnique({
+      where: { admin_id: normalizedUserId },
+      select: { admin_id: true },
+    });
+
+    req.user = {
+      ...user,
+      userId: normalizedUserId,
+      user_id: normalizedUserId,
+      admin: Boolean(adminRecord),
+    };
     next(); // Only call next() if token is successfully verified
   } catch (err) {
     // Handle specific JWT errors more gracefully

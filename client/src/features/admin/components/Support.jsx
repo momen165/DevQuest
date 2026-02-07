@@ -231,7 +231,7 @@ const Support = () => {
                         <div className="messages-list">
                           {ticket.messages.map((msg, index) => (
                             <div
-                              key={index}
+                              key={`${msg.message_id ?? msg.sent_at ?? 'message'}-${msg.sender_type}-${index}`}
                               className={`message ${msg.sender_type} ${
                                 ticketSource === 'email' && msg.sender_type === 'user'
                                   ? 'email-message'
