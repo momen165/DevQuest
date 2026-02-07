@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import apiClient from 'shared/lib/apiClient';
 
-export const useSections = (token) => {
+export const useSections = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

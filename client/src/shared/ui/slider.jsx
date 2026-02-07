@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect, memo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from 'app/AuthContext';
 import CourseCard from 'features/course/components/CourseCard';
@@ -11,13 +10,10 @@ const CoursesSlider = () => {
   const { user } = useAuth();
   const sliderRef = useRef(null);
   const animationFrameRef = useRef(null);
-  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(null);
   const [scrollLeft, setScrollLeft] = useState(null);
   const [courses, setCourses] = useState([]);
-
-  const [userscount, setUserscount] = useState({});
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
@@ -33,13 +29,12 @@ const CoursesSlider = () => {
           `${import.meta.env.VITE_API_URL}/optimized-courses`,
           config
         );
-        const { courses, userscount } = response.data;
+        const { courses } = response.data;
 
         const topCourses = [...courses]
           .sort((a, b) => (b.rating || 0) - (a.rating || 0))
           .slice(0, 5);
         setCourses(topCourses);
-        setUserscount(userscount || {});
       } catch (err) {
         console.error('Error fetching courses:', err);
       }

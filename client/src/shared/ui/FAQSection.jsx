@@ -9,7 +9,7 @@ const FAQSection = () => {
     <section className="faq">
       <h2 className="faq__heading">Frequently Asked Questions</h2>
       <p className="faq__text">
-        Can't find the answer you're looking for? Visit our FAQ page.
+        Can&apos;t find the answer you&apos;re looking for? Visit our FAQ page.
       </p>
       <button className="faq-btn" onClick={() => navigate("/faq")}>
         Visit FAQ

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import apiClient from 'shared/lib/apiClient';
 import { useAuth } from 'app/AuthContext';
 
@@ -9,7 +9,7 @@ export const useSupportTickets = () => {
   const [reply, setReply] = useState({});
   const { user } = useAuth();
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.get('/support-tickets', {
@@ -27,13 +27,13 @@ export const useSupportTickets = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (user?.token) {
       fetchTickets();
     }
-  }, [user?.token]);
+  }, [user?.token, fetchTickets]);
 
   const handleReply = async (ticketId, replyMessage) => {
     if (!replyMessage || replyMessage.trim() === '') {

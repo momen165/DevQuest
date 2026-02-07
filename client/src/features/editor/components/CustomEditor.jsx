@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import {
   ClassicEditor,
@@ -548,14 +548,7 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
       .replace(/<p><span>(\s|&nbsp;)*<\/span><\/p>/g, '')
       .replace(/<p[^>]*>\s*<\/p>/g, '');
 
-    // Debug: Show cleaned HTML and count of removed empty paragraphs
-    const emptyParagraphsRemoved =
-      (html.match(/<p[^>]*>(\s|&nbsp;|<br\s*\/?>)*<\/p>/g) || []).length +
-      (html.match(/<p><span>(\s|&nbsp;)*<\/span><\/p>/g) || []).length +
-      (html.match(/<p[^>]*>\s*<\/p>/g) || []).length;
-
     // console.log('EDITOR - Cleaned HTML:', cleaned);
-    // console.log('EDITOR - Empty paragraphs removed:', emptyParagraphsRemoved);
 
     return cleaned;
   };

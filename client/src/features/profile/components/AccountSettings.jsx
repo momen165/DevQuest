@@ -20,7 +20,6 @@ function AccountSettings() {
     newSkill, setNewSkill,
     showBadgeNotification, setShowBadgeNotification,
     profileCompleteBadge,
-    handleRemoveProfilePic,
     handleProfilePicChange,
     handleSaveChanges,
     addSkill,
@@ -32,8 +31,6 @@ function AccountSettings() {
       navigate("/");
     }
   }, [user, navigate]);
-
-  const profileImageSrc = user?.profileimage || defaultProfilePic;
 
   return (
     <>

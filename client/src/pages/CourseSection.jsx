@@ -5,7 +5,7 @@ import RatingForm from 'features/feedback/components/RatingForm';
 import axios from 'axios';
 import './CourseSections.css';
 import { useAuth } from 'app/AuthContext';
-import { calculateLevel, calculateLevelProgress, getXPForLevel } from 'features/profile/hooks/xpCalculator';
+import { calculateLevel, calculateLevelProgress } from 'features/profile/hooks/xpCalculator';
 
 // Create axios instance with default config
 const api = axios.create({

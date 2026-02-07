@@ -11,7 +11,6 @@ function Billing() {
   const [subscriptionDetails, setSubscriptionDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (!user || !user.token) {
@@ -77,9 +76,6 @@ function Billing() {
           <h1 className="billing-main-title">Billing & Subscription</h1>
 
           {error && <div className="billing-error-message">{error}</div>}
-          {successMessage && (
-            <div className="billing-success-message">{successMessage}</div>
-          )}
 
           {loading ? (
             <div className="billing-loading-text">
@@ -135,7 +131,7 @@ function Billing() {
                     No Active Subscription
                   </h2>
                   <p className="billing-no-subscription-text">
-                    You currently don't have an active subscription.
+                    You currently don&apos;t have an active subscription.
                   </p>
                   <button
                     className="billing-button"

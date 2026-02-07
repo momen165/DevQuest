@@ -1,234 +1,312 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { gsap } from 'gsap';
+import { Trophy, Sparkles, X, Zap } from 'lucide-react';
+import { Box, Typography, IconButton, Paper } from '@mui/material';
 
-// SuccessNotification component for celebrating achievements
-const SuccessNotification = ({ xp, message = "Great job! You've mastered this lesson!" }) => {
-  // Add keyframe animation styles on component mount
+// Enhanced SuccessNotification with GSAP animations and Glassmorphism
+const SuccessNotification = ({ xp, message = "Lessons Complete!", onClose }) => {
+  const containerRef = useRef(null);
+  const contentRef = useRef(null);
+  const glowRef = useRef(null);
+  const particlesRef = useRef(null);
+  const ribbonRef = useRef(null);
+  
+  // State for XP counter animation
+  const [displayXp, setDisplayXp] = useState(0);
+
   useEffect(() => {
-    // Add animation styles if they don't exist
-    if (!document.getElementById('success-animation-styles')) {
-      const style = document.createElement('style');
-      style.id = 'success-animation-styles';
-      style.innerHTML = `
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translate(-50%, -20px); }
-          to { opacity: 1; transform: translate(-50%, 0); }
-        }
-        
-        @keyframes bounceIn {
-          0%, 20%, 40%, 60%, 80%, 100% { transform: scale(1) }
-          50% { transform: scale(1.1) }
-        }
-        
-        @keyframes pulse {
-          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
-          70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
-          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-        }
-        
-        @keyframes glitter {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-        
-        @keyframes float {
-          0% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-          100% { transform: translateY(0px); }
-        }
-        
-        @keyframes confetti {
-          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(100px) rotate(720deg); opacity: 0; }
-        }
-        
-        @keyframes gradientBG {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        
-        .success-confetti-piece {
-          position: absolute;
-          width: 10px;
-          height: 10px;
-          background: #ffd700;
-          top: -5px;
-          opacity: 0;
-        }
-        
-        .success-confetti-piece:nth-child(1) {
-          left: 7%;
-          animation: confetti 3s ease-in-out 0.1s infinite;
-          background-color: #ffeb3b;
-        }
-        
-        .success-confetti-piece:nth-child(2) {
-          left: 14%;
-          animation: confetti 3.5s ease-in-out 0.5s infinite;
-          background-color: #4caf50;
-        }
-        
-        .success-confetti-piece:nth-child(3) {
-          left: 21%;
-          animation: confetti 2.8s ease-in-out 0.9s infinite;
-          background-color: #3f51b5;
-        }
-        
-        .success-confetti-piece:nth-child(4) {
-          left: 28%;
-          animation: confetti 3.2s ease-in-out 1.3s infinite;
-          background-color: #9c27b0;
-        }
-        
-        .success-confetti-piece:nth-child(5) {
-          left: 35%;
-          animation: confetti 3.7s ease-in-out 1.7s infinite;
-          background-color: #e91e63;
-        }
-        
-        .success-confetti-piece:nth-child(6) {
-          left: 42%;
-          animation: confetti 3s ease-in-out 2.1s infinite;
-          background-color: #f44336;
-        }
-        
-        .success-confetti-piece:nth-child(7) {
-          left: 49%;
-          animation: confetti 3.6s ease-in-out 2.5s infinite;
-          background-color: #ff9800;
-        }
-        
-        .success-confetti-piece:nth-child(8) {
-          left: 56%;
-          animation: confetti 3.2s ease-in-out 2.9s infinite;
-          background-color: #00bcd4;
-        }
-        
-        .success-confetti-piece:nth-child(9) {
-          left: 63%;
-          animation: confetti 3.4s ease-in-out 3.3s infinite;
-          background-color: #ffeb3b;
-        }
-        
-        .success-confetti-piece:nth-child(10) {
-          left: 70%;
-          animation: confetti 3.1s ease-in-out 3.7s infinite;
-          background-color: #4caf50;
-        }
-        
-        .success-confetti-piece:nth-child(11) {
-          left: 77%;
-          animation: confetti 3.3s ease-in-out 4.1s infinite;
-          background-color: #3f51b5;
-        }
-        
-        .success-confetti-piece:nth-child(12) {
-          left: 84%;
-          animation: confetti 3.8s ease-in-out 4.5s infinite;
-          background-color: #f44336;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-    
-    return () => {
-      // Clean up on unmount if no other instances are running
-      if (document.querySelectorAll('.success-notification-container').length <= 1) {
-        const styleElement = document.getElementById('success-animation-styles');
-        if (styleElement) styleElement.remove();
+    const ctx = gsap.context(() => {
+      // 1. Initial State Setup
+      gsap.set(containerRef.current, { y: -100, opacity: 0, scale: 0.8 });
+      gsap.set(contentRef.current.children, { y: 20, opacity: 0 });
+      gsap.set(".particle", { scale: 0, opacity: 0, x: 0, y: 0 });
+      gsap.set(glowRef.current, { opacity: 0, scale: 0.5 });
+      gsap.set(ribbonRef.current, { y: -12, opacity: 0, scaleX: 0.9 });
+
+      // 2. Entrance Timeline
+      const tl = gsap.timeline({
+        defaults: { ease: "back.out(1.7)" }
+      });
+
+      tl.to(containerRef.current, {
+        duration: 0.8,
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        ease: "elastic.out(1, 0.6)"
+      })
+      .to(ribbonRef.current, {
+        duration: 0.5,
+        y: 0,
+        opacity: 1,
+        scaleX: 1,
+        ease: "bounce.out"
+      }, "-=0.45")
+      .to(glowRef.current, {
+        duration: 0.6,
+        opacity: 0.6,
+        scale: 1.5,
+        ease: "power2.out"
+      }, "-=0.6")
+      .to(".particle", {
+        duration: 0.6,
+        opacity: 1,
+        scale: "random(0.6, 1)",
+        x: "random(-80, 80)",
+        y: "random(-40, 40)",
+        ease: "power3.out",
+        stagger: { each: 0.02, from: "center" }
+      }, "-=0.35")
+      .to(".particle", {
+        duration: 0.6,
+        opacity: 0,
+        scale: 0.5,
+        ease: "power2.in"
+      }, "-=0.2")
+      .to(contentRef.current.children, {
+        duration: 0.4,
+        y: 0,
+        opacity: 1,
+        stagger: 0.1,
+        ease: "power2.out"
+      }, "-=0.4");
+
+      // 3. XP Counter Animation
+      if (xp > 0) {
+        gsap.to({}, {
+          duration: 1.5,
+          val: xp,
+          ease: "power2.out",
+          onUpdate: function() {
+            setDisplayXp(Math.ceil(this.targets()[0].val));
+          },
+          targets: { val: 0 }
+        });
       }
-    };
-  }, []);
+
+      // 4. Continuous Ambient Animation
+      gsap.to(glowRef.current, {
+        rotation: 360,
+        duration: 20,
+        repeat: -1,
+        ease: "none"
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, [xp]);
+
+  // Handle close with exit animation
+  const handleClose = () => {
+    gsap.to(containerRef.current, {
+      y: -50,
+      opacity: 0,
+      scale: 0.9,
+      duration: 0.3,
+      ease: "power2.in",
+      onComplete: onClose
+    });
+  };
+
+  // Generate random particles
+  const particleCount = 12;
 
   return (
-    <div
-      className="success-notification-container"
-      style={{
+    <Box
+      ref={containerRef}
+      sx={{
         position: 'fixed',
-        top: '120px',
+        top: '24px',
         left: '50%',
-        transform: 'translateX(-50%)',
-        backgroundColor: 'rgba(37, 44, 73, 0.95)',
-        color: 'white',
-        padding: '20px 30px',
-        borderRadius: '12px',
-        zIndex: '9999',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(66, 153, 225, 0.3)',
-        textAlign: 'center',
-        minWidth: '320px',
-        animation: 'fadeIn 0.5s ease-out',
-        overflow: 'hidden',
-        border: '2px solid rgba(74, 222, 128, 0.6)'
+        transform: 'translateX(-50%)', // GSAP will overwrite this but good for initial render
+        zIndex: 9999,
+        perspective: '1000px',
+        pointerEvents: 'none', // Allow clicks to pass through around the card
+        display: 'flex',
+        justifyContent: 'center',
+        width: '100%',
       }}
     >
-      {/* Confetti elements */}
-      <div className="confetti-container" style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-        <div className="success-confetti-piece"></div>
-      </div>
-      
-      {/* Trophy emoji with animation */}
-      <div 
-        style={{
-          fontSize: '40px',
-          marginBottom: '15px',
-          animation: 'float 2s ease-in-out infinite',
-          display: 'inline-block'
+      <Paper
+        elevation={0}
+        sx={{
+          position: 'relative',
+          pointerEvents: 'auto',
+          background: 'rgba(15, 23, 42, 0.85)',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '24px',
+          padding: '24px 32px',
+          minWidth: '360px',
+          maxWidth: '90vw',
+          overflow: 'hidden',
+          boxShadow: `
+            0 20px 40px -10px rgba(0, 0, 0, 0.5),
+            0 0 30px -5px rgba(99, 102, 241, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1)
+          `,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
         }}
       >
-        🏆
-      </div>
-      
-      {/* Success message with animations */}
-      <div 
-        style={{
-          fontSize: '18px',
-          fontWeight: 'bold',
-          marginBottom: '15px',
-          animation: 'bounceIn 2s infinite',
-          background: 'linear-gradient(45deg, #4fc3f7, #00e676, #ffeb3b)',
-          backgroundSize: '200% 200%',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          textShadow: '0 0 5px rgba(255,255,255,0.1)',
-          animationDuration: '4s',
-          animationName: 'gradientBG',
-          animationIterationCount: 'infinite'
-        }}
-      >
-        {message}
-      </div>
-      
-      {/* XP gained with pulse animation */}
-      <div 
-        style={{
-          background: 'linear-gradient(90deg, #667eea, #764ba2)',
-          padding: '10px 25px',
-          borderRadius: '20px',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          display: 'inline-block',
-          boxShadow: '0 5px 15px rgba(0,0,0,0.2)',
-          animation: 'pulse 1.5s infinite'
-        }}
-      >
-        +{xp} XP
-      </div>
-      
-      {/* Additional star decorations */}
-      <div style={{ position: 'absolute', top: '10px', right: '15px', fontSize: '20px', animation: 'glitter 1.5s infinite' }}>✨</div>
-      <div style={{ position: 'absolute', bottom: '10px', left: '15px', fontSize: '20px', animation: 'glitter 1.8s infinite' }}>✨</div>
-    </div>
+        {/* Slim Ribbon */}
+        <Box
+          ref={ribbonRef}
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '6px',
+            background: 'linear-gradient(90deg, #16a34a, #22c55e, #4ade80)',
+            boxShadow: '0 0 12px rgba(34, 197, 94, 0.6)',
+            borderTopLeftRadius: '24px',
+            borderTopRightRadius: '24px',
+            zIndex: 2,
+            transformOrigin: 'center',
+            pointerEvents: 'none'
+          }}
+        />
+
+        {/* Animated Glow Background */}
+        <Box
+          ref={glowRef}
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '20%',
+            width: '300px',
+            height: '300px',
+            background: 'conic-gradient(from 0deg at 50% 50%, #4f46e5, #ec4899, #8b5cf6, #4f46e5)',
+            filter: 'blur(60px)',
+            opacity: 0,
+            zIndex: 0,
+            transform: 'translate(-50%, -50%)',
+            borderRadius: '50%',
+          }}
+        />
+
+        {/* Floating Particles */}
+        <div ref={particlesRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+          {[...Array(particleCount)].map((_, i) => (
+            <div
+              key={i}
+              className="particle"
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                width: Math.random() > 0.5 ? '4px' : '6px',
+                height: Math.random() > 0.5 ? '4px' : '6px',
+                background: Math.random() > 0.5 ? '#FFD700' : '#4F46E5',
+                borderRadius: '50%',
+                boxShadow: '0 0 10px rgba(255, 255, 255, 0.5)',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Icon Section */}
+        <Box
+          sx={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+            borderRadius: '16px',
+            padding: '12px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+          }}
+        >
+          <Trophy size={32} color="#FFD700" style={{ filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))' }} />
+        </Box>
+
+        {/* Content Section */}
+        <Box ref={contentRef} sx={{ flex: 1, zIndex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Typography
+            variant="overline"
+            sx={{
+              color: '#94a3b8',
+              fontWeight: 700,
+              letterSpacing: '1px',
+              lineHeight: 1,
+              mb: 0.5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5
+            }}
+          >
+            <Sparkles size={12} color="#ec4899" />
+            ACHIEVEMENT UNLOCKED
+          </Typography>
+          
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 800,
+              background: 'linear-gradient(to right, #ffffff, #e2e8f0)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+              lineHeight: 1.2
+            }}
+          >
+            {message}
+          </Typography>
+
+          {xp > 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 1 }}>
+              <Box
+                sx={{
+                  background: 'rgba(79, 70, 229, 0.2)',
+                  border: '1px solid rgba(79, 70, 229, 0.4)',
+                  borderRadius: '12px',
+                  padding: '4px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5
+                }}
+              >
+                <Zap size={14} color="#818cf8" fill="#818cf8" />
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: '#818cf8',
+                    fontWeight: 'bold',
+                    fontFamily: 'monospace'
+                  }}
+                >
+                  +{displayXp} XP
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        </Box>
+
+        {/* Close Button */}
+        {onClose && (
+          <IconButton
+            onClick={handleClose}
+            size="small"
+            sx={{
+              zIndex: 1,
+              color: 'rgba(255,255,255,0.4)',
+              '&:hover': {
+                color: 'white',
+                background: 'rgba(255,255,255,0.1)'
+              }
+            }}
+          >
+            <X size={18} />
+          </IconButton>
+        )}
+      </Paper>
+    </Box>
   );
 };
 

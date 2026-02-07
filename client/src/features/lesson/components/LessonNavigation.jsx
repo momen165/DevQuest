@@ -518,11 +518,10 @@ const LessonNavigation = ({
           <div className="empty-menu-indicator">No lessons to display.</div>
         )}
       </div>
-
       {showSuccessMessage && <SuccessNotification xp={lessonXp || 0} />}
 
       {showErrorMessage && (
-        <div
+        <div  
           className="floating-message error"
           style={{
             position: 'fixed',

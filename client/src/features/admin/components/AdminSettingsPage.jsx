@@ -5,7 +5,6 @@ import toast, { Toaster } from 'react-hot-toast';
 import { 
   Shield, 
   ShieldAlert, 
-  Activity, 
   Power, 
   UserPlus, 
   UserMinus, 
@@ -143,7 +142,7 @@ const AdminSettingsPage = () => {
           return false;
         }
         return true;
-      } catch (err) {
+      } catch {
         setError('CONNECTION FAILURE: UNABLE TO VERIFY CREDENTIALS');
         return false;
       }
@@ -166,7 +165,7 @@ const AdminSettingsPage = () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/system-settings`);
       setMaintenanceMode(!!response.data.maintenanceMode);
-    } catch (err) {
+    } catch {
       console.error('Failed to fetch settings');
     }
   };
@@ -198,7 +197,7 @@ const AdminSettingsPage = () => {
       });
       setMaintenanceMode(newState);
       toast.success(`SYSTEM STATUS: ${newState ? 'MAINTENANCE' : 'OPERATIONAL'}`);
-    } catch (err) {
+    } catch {
       toast.error('FAILED TO UPDATE SYSTEM STATUS');
       fetchSystemSettings(); // Revert to server state
     }

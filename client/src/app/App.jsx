@@ -81,6 +81,28 @@ const CourseSection = React.lazy(() => import('pages/CourseSection'));
 
 const LessonPage = React.lazy(() => import('pages/LessonPage'));
 
+const normalizeTrackedPath = (path) => {
+  if (!path) return '';
+
+  let normalized = path;
+  if (/\d/.test(normalized) && !/^\/?[A-Za-z]+Page$/.test(normalized)) {
+    normalized = normalized.replace(/\d+/g, ':id');
+  }
+
+  if (!normalized.startsWith('/')) normalized = `/${normalized}`;
+  return normalized.replace(/\/+/g, '/');
+};
+
+const getStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  } catch {
+    return null;
+  }
+};
+
+const MaintenanceGuard = ({ children }) => <MaintenanceCheck>{children}</MaintenanceCheck>;
+
 // Loading component for Suspense fallback
 
 function App() {
@@ -120,32 +142,16 @@ function App() {
 function AppContent() {
   const location = useLocation();
 
-  // Track unique page view per session (per page), normalize dynamic routes
-  function normalizePath(path) {
-    // Replace numbers (IDs) with :id, e.g. /course/123 -> /course/:id
-    // Also ensure leading slash and no double slashes
-    if (!path) return '';
-    let normalized = path;
-    // Only replace numbers if not the whole path (so /ProfilePage is not affected)
-    if (/\d/.test(normalized) && !/^\/?[A-Za-z]+Page$/.test(normalized)) {
-      normalized = normalized.replace(/\d+/g, ':id');
-    }
-    if (!normalized.startsWith('/')) normalized = '/' + normalized;
-    normalized = normalized.replace(/\/+/g, '/');
-    return normalized;
-  }
-
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = getStoredUser();
     const apiUrl = import.meta.env.VITE_API_URL;
-    const normalizedPath = normalizePath(location.pathname);
-    // Allow tracking of all real pages except root
+    const normalizedPath = normalizeTrackedPath(location.pathname);
     if (!normalizedPath || normalizedPath.trim() === '') return;
     const key = `pageview_${normalizedPath}`;
     if (!sessionStorage.getItem(key)) {
       sessionStorage.setItem(key, '1');
 
-      axios
+      void axios
         .post(
           `${apiUrl}/track-pageview`,
           {
@@ -167,9 +173,6 @@ function AppContent() {
     }
   }, [location.pathname]);
 
-  // Move WithMaintenance definition here so it's in scope
-  const WithMaintenance = ({ children }) => <MaintenanceCheck>{children}</MaintenanceCheck>;
-
   return (
     <Suspense fallback={<LoadingSpinner fullScreen center message="Initialising application..." />}>
       <Routes>
@@ -186,131 +189,131 @@ function AppContent() {
         <Route
           index
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <HomePage />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="confirm-email-change"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ConfirmEmailChange />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="CoursesPage"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <CoursesPage />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="coursespage"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <CoursesPage />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="enroll/:courseId"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <EnrollmentPage />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="faq"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <FAQPage />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="pricing"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <PricingPage />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="privacy"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <PrivacyPage />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="terms"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <TermsPage />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="success"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <PaymentSuccessPage />
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="ProfilePage"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute>
                 <ProfilePage />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="profile"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute>
                 <ProfilePage />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="CourseSection/:courseId"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute>
                 <CourseSection />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="course/:courseId"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute>
                 <CourseSection />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="lesson/:lessonId"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute>
                 <LessonPage />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
       </Route>
@@ -320,161 +323,161 @@ function AppContent() {
         <Route
           path="/dashboard"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <Dashboard />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/Dashboard"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <Dashboard />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/Students"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <Students />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/students"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <Students />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/AdminCourses"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <AdminCourses />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/admincourses"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <AdminCourses />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/PaymentInfo"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <PaymentInfo />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/paymentinfo"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <PaymentInfo />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/Feedback"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <Feedback />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/feedback"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <Feedback />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/AdminSettingsPage"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <AdminSettingsPage />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/adminsettingspage"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <AdminSettingsPage />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/Support"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <Support />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/support"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <Support />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/SupportDashboard"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <SupportDashboard />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/supportdashboard"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute adminRequired={true}>
                 <SupportDashboard />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route path="/Analytics" element={<Analytics />} />
@@ -486,31 +489,31 @@ function AppContent() {
         <Route
           path="/AccountSettings"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute>
                 <AccountSettings />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/changepassword"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute>
                 <ChangePassword />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
         <Route
           path="/billing"
           element={
-            <WithMaintenance>
+            <MaintenanceGuard>
               <ProtectedRoute>
                 <Billing />
               </ProtectedRoute>
-            </WithMaintenance>
+            </MaintenanceGuard>
           }
         />
       </Route>

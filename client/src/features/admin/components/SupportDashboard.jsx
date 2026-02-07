@@ -19,12 +19,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Alert,
   Badge,
 } from '@mui/material';
 import {
-  TrendingUp,
   AccessTime,
   PriorityHigh,
   CheckCircle,

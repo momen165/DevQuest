@@ -89,7 +89,7 @@ const FAQPage = () => {
             <span className="faq-badge">Help Center</span>
             <h1>Frequently Asked <span className="hero-gradient-text">Questions</span></h1>
             <p className="faq-subtitle">
-              Everything you need to know about DevQuest. Can't find the answer you're looking for? 
+              Everything you need to know about DevQuest. Can&apos;t find the answer you&apos;re looking for? 
               Feel free to contact our support team.
             </p>
           </div>

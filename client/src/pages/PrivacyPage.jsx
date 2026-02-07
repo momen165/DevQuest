@@ -115,11 +115,11 @@ const PrivacyPage = () => {
                 ensure user safety.
               </p>
 
-              <h3>What We Don't Do</h3>
+              <h3>What We Don&apos;t Do</h3>
               <div className="highlight-box">
                 <p>🚫 We never sell your personal information to third parties</p>
-                <p>🚫 We don't share your coding submissions without permission</p>
-                <p>🚫 We don't use your data for advertising to third parties</p>
+                <p>🚫 We don&apos;t share your coding submissions without permission</p>
+                <p>🚫 We don&apos;t use your data for advertising to third parties</p>
               </div>
             </div>
           </section>
@@ -237,7 +237,7 @@ const PrivacyPage = () => {
           </section>
 
           <section className="legal-section">
-            <h2>👶 Children's Privacy</h2>
+            <h2>👶 Children&apos;s Privacy</h2>
             <div className="section-content">
               <p>
                 DevQuest is designed for users aged 13 and older. We do not knowingly collect
@@ -250,7 +250,7 @@ const PrivacyPage = () => {
                 <li>Limited data collection focused on educational purposes</li>
                 <li>Enhanced privacy protections and restricted data sharing</li>
                 <li>
-                  Parents can contact us to review, modify, or delete their child's information
+                  Parents can contact us to review, modify, or delete their child&apos;s information
                 </li>
               </ul>
             </div>

@@ -5,15 +5,12 @@ import LessonList from './LessonList';
 import SectionForm from './SectionForm';
 import './AdminManage.css';
 import ErrorAlert from './ErrorAlert';
-import { useAuth } from 'app/AuthContext';
 import { useSections } from 'features/course/hooks/useSections';
 
 const SectionManager = ({ sections, courseId, languageId, onSectionUpdate, onDeleteSection, onClose }) => {
   const [editingSection, setEditingSection] = useState(null);
   const [viewingSection, setViewingSection] = useState(null);
-  const { user } = useAuth();
-
-  const { loading, error: sectionError, saveSection, reorderSections } = useSections(user?.token);
+  const { error: sectionError, saveSection, reorderSections } = useSections();
 
   const handleDragEnd = async (result) => {
     if (!result.destination) return;

@@ -232,8 +232,8 @@ const NotFoundPage = () => {
         </h1>
         
         <p style={styles.subtitle}>
-          The page you're looking for seems to have ventured into the digital void. 
-          Don't worry though – your coding journey continues here at DevQuest!
+          The page you&apos;re looking for seems to have ventured into the digital void. 
+          Don&apos;t worry though – your coding journey continues here at DevQuest!
         </p>
 
         <div style={styles.buttonContainer}>

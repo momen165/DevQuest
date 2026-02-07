@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from 'app/AuthContext';
 import './Footer.css';
 import footerLogo from 'assets/icons/layer1.svg';
-import { FaLinkedin, FaGithub, FaTwitter, FaEnvelope } from 'react-icons/fa';
+import { FaLinkedin, FaGithub, FaEnvelope } from 'react-icons/fa';
 
 const Footer = memo(() => {
   const [courses, setCourses] = useState([]);

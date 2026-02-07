@@ -6,7 +6,6 @@ import './PaymentSuccessPage.css';
 
 const PaymentSuccessPage = () => {
   const location = useLocation();
-  const [sessionId, setSessionId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -14,16 +13,15 @@ const PaymentSuccessPage = () => {
   useEffect(() => {
     const query = new URLSearchParams(location.search);
     const sessionId = query.get('session_id');
-    setSessionId(sessionId);
 
     if (sessionId) {
       axios
         .get(`${import.meta.env.VITE_API_URL}/checkout-session/${sessionId}`)
-        .then((response) => {
+        .then(() => {
           setMessage('Payment successful! Thank you for your purchase.');
           setIsSuccess(true);
         })
-        .catch((error) => {
+        .catch(() => {
           setMessage('There was an issue retrieving your session. Please contact support.');
           setIsSuccess(false);
         })

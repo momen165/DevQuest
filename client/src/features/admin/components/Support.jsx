@@ -4,7 +4,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 import useSupportTickets from 'features/support/hooks/useSupportTickets';
 
 const Support = () => {
-  const [sortOrder, setSortOrder] = useState('desc');
   const [expandedTickets, setExpandedTickets] = useState(new Set());
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'open', 'closed'
   const [filterSource, setFilterSource] = useState('all'); // 'all', 'email', 'direct'
@@ -16,7 +15,6 @@ const Support = () => {
     reply,
     setReply,
     handleReply,
-    handleStatusChange,
     deleteTicket,
   } = useSupportTickets();
 
@@ -74,19 +72,6 @@ const Support = () => {
       }
     }
     return <span className="status-open">Open</span>;
-  };
-
-  const handleStatusSort = () => {
-    const sortedTickets = [...tickets].sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.status.localeCompare(b.status);
-      } else {
-        return b.status.localeCompare(a.status);
-      }
-    });
-
-    setTickets(sortedTickets);
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   };
 
   // Determine if ticket has email messages vs direct messages

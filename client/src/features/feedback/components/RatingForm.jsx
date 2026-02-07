@@ -119,7 +119,7 @@ const RatingForm = memo(({ courseId }) => {
               </p>
             ) : (
               <p>
-                You've already submitted feedback for this course. Complete the
+                You&apos;ve already submitted feedback for this course. Complete the
                 entire course to provide additional feedback, or contact us at
                 support@mail.dev-quest.me for any other thoughts.
               </p>

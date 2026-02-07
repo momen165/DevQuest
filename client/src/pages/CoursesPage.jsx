@@ -160,7 +160,7 @@ const CoursesPage = () => {
           ))
         ) : (
           <div className="no-courses-found">
-            <h3>No courses found matching "{searchTerm}"</h3>
+            <h3>No courses found matching &quot;{searchTerm}&quot;</h3>
             <p>Try searching for a different language or difficulty level.</p>
           </div>
         )}

@@ -83,7 +83,7 @@ const LoginPage = () => {
       <div className="form-container">
         <h1>Welcome Back</h1>
         <p>
-          Don't have an account? <a href="/RegistrationPage">Sign up</a>
+          Don&apos;t have an account? <a href="/RegistrationPage">Sign up</a>
         </p>
         <form onSubmit={handleSubmit} className="form">
           <label>
@@ -135,7 +135,7 @@ const LoginPage = () => {
         <h2>Continue Your Coding Journey!</h2>
         <p>
           Welcome back to DevQuest! Ready to dive back into your programming adventure? Your next
-          coding challenge awaits. Let's build something amazing together and level up your
+          coding challenge awaits. Let&apos;s build something amazing together and level up your
           development skills one line of code at a time.
         </p>
       </div>

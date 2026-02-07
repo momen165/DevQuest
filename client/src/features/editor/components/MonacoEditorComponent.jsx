@@ -156,9 +156,6 @@ const MonacoEditorComponent = ({
 
       let output = '';
       let allPassed = true;
-      // Check if any test case has auto_detect enabled
-      const isAutoDetect = results.some((testCase) => testCase.auto_detect);
-
       // Log test case results
       console.log(
         'Test case results:',

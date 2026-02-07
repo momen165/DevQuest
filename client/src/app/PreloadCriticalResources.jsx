@@ -32,7 +32,7 @@ const PreloadCriticalResources = () => {
         commonLanguages.forEach(lang => {
           try {
             hljs.default.getLanguage(lang);
-          } catch (e) {
+          } catch {
             // Language not loaded, that's fine
           }
         });

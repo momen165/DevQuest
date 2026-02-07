@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 
 // Component Imports
@@ -18,7 +18,7 @@ import "./HomePage.css";
 const HomePage = () => {
   // Hooks
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // Navigation Handlers
   const handleBrowseCourses = () => navigate("/CoursesPage");

@@ -238,7 +238,7 @@ const TermsPage = () => {
 
               <h3>Limitation of Liability</h3>
               <p>
-                DevQuest provides educational services "as is" without warranties. We are not liable
+                DevQuest provides educational services &quot;as is&quot; without warranties. We are not liable
                 for:
               </p>
               <ul>
@@ -366,7 +366,7 @@ const TermsPage = () => {
           <section className="legal-section">
             <h2>📞 Contact Information</h2>
             <div className="section-content">
-              <p>Questions about these Terms of Service? We're here to help:</p>
+              <p>Questions about these Terms of Service? We&apos;re here to help:</p>
 
               <div className="contact-info">
                 <div className="contact-method">

@@ -149,7 +149,7 @@ const SignupPage = () => {
           </label>
           <div className="captcha">
             <input type="checkbox" required id="robot-check" />
-            <label htmlFor="robot-check">I'm not a robot 🤖</label>
+            <label htmlFor="robot-check">I&apos;m not a robot 🤖</label>
           </div>
           <button type="submit" className="button" disabled={loading}>
             {loading ? 'Creating Account...' : 'Begin Your Journey'}
@@ -165,8 +165,8 @@ const SignupPage = () => {
         <p>
           Ready to embark on an epic coding adventure? DevQuest is your gateway to mastering
           programming skills through interactive challenges, real-world projects, and a supportive
-          community of developers. From beginner to expert, we'll guide you every step of the way.
-          Let's code the future together!
+          community of developers. From beginner to expert, we&apos;ll guide you every step of the
+          way. Let&apos;s code the future together!
         </p>
       </div>
     </div>

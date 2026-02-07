@@ -323,7 +323,7 @@ function ChangePassword() {
             <h3>Account Deletion</h3>
             <div className="account-deletion-content">
               <p className="account-deletion-text">
-                If you'd like to permanently delete your account and all
+                If you&apos;d like to permanently delete your account and all
                 associated data, you can do so by clicking the button below.
               </p>
               <button

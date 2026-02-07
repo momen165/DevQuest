@@ -127,4 +127,6 @@ const CourseCard = memo(
   }
 );
 
+CourseCard.displayName = 'CourseCard';
+
 export default CourseCard;

@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'app/AuthContext';
 import LessonNavigation from 'features/lesson/components/LessonNavigation';
 import LessonContent from 'features/lesson/components/LessonContent';
 import MonacoEditorComponent from 'features/editor/components/MonacoEditorComponent';
 import LoadingSpinner from 'shared/ui/LoadingSpinner';
-import CopyNotification from 'shared/ui/CopyNotification';
 import BadgeNotification from 'features/badge/components/BadgeNotification';
 import { languageMappings as LSLanguageMappings } from 'features/lesson/utils/lessonConstants';
 import { formatBadge } from 'features/badge/utils/badgeUtils';
@@ -43,7 +42,6 @@ const LessonPage = () => {
   const [code, setCode] = useState('');
   const [consoleOutput, setConsoleOutput] = useState('Output will appear here...');
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
-  const [showCopyNotification, setShowCopyNotification] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
 
   useEffect(() => {
@@ -57,11 +55,6 @@ const LessonPage = () => {
     setIsAnswerCorrect(false);
   };
 
-  const showCopiedNotification = () => {
-    setShowCopyNotification(true);
-    setTimeout(() => setShowCopyNotification(false), 2000);
-  };
-  
   const handleCodeResult = (success, resultData) => {
     if (!success) {
       setFailedAttempts((prev) => prev + 1);
@@ -170,13 +163,6 @@ const LessonPage = () => {
         lessonXp={lesson.xp}
         currentLessonProgress={currentLessonProgress}
       />
-      
-      {showCopyNotification && (
-        <CopyNotification>
-          <span>✓</span>
-          <span>Copied!</span>
-        </CopyNotification>
-      )}
       
       {earnedBadge && (
         <BadgeNotification 

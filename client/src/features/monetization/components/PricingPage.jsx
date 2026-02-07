@@ -35,7 +35,6 @@ const PricingPage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
-  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const { user } = useAuth();
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
@@ -224,7 +223,7 @@ const PricingPage = () => {
         ) : hasActiveSubscription ? (
           <div className="pricing-active-subscription">
             <div className="pricing-active-icon">✓</div>
-            <h2>You're Already a Premium Member!</h2>
+            <h2>You&apos;re Already a Premium Member!</h2>
             <p>Enjoy unlimited access to all courses and features.</p>
             <button 
               className="pricing-manage-btn"
@@ -382,14 +381,6 @@ const PricingPage = () => {
               </button>
             </div>
             
-            {successMessage && (
-              <div className="pricing-modal-success">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                {successMessage}
-              </div>
-            )}
             {errorMessage && (
               <div className="pricing-modal-error">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

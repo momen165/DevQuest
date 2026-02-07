@@ -35,7 +35,7 @@ const MaintenanceCheck = ({ children }) => {
         try {
           // Use relative path, not full URL
           response = await axiosInstance.get('/admin/system-settings');
-        } catch (firstError) {
+        } catch {
           
           response = await axiosInstance.get('/admin/maintenance-status');
         }
@@ -100,10 +100,10 @@ const MaintenanceCheck = ({ children }) => {
     <div className="maintenance-page">
       <div className="maintenance-content">
         <h1>Site Under Maintenance</h1>
-        <p>We're currently performing scheduled maintenance to improve your experience.</p>
+        <p>We&apos;re currently performing scheduled maintenance to improve your experience.</p>
         <div className="maintenance-info">
           <p>Expected Duration: 2 hours</p>
-          <p>We'll be back online soon!</p>
+          <p>We&apos;ll be back online soon!</p>
         </div>
         <div className="admin-login-section">
           <p>

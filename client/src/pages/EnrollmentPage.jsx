@@ -88,7 +88,7 @@ const EnrollmentPage = () => {
             },
           }
         )
-        .then(({ data }) => {
+        .then(() => {
           setIsEnrolled(true);
           navigate(`/course/${courseId}`);
         })
