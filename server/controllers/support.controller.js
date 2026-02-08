@@ -23,11 +23,15 @@ const anonymousAccessTokenCache = new NodeCache({
 const ANONYMOUS_ACCESS_MAX_ATTEMPTS = 5;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const normalizeEmail = (email) => String(email || "").trim().toLowerCase();
+const normalizeEmail = (email) =>
+  String(email || "")
+    .trim()
+    .toLowerCase();
 const hashValue = (value) =>
   crypto.createHash("sha256").update(value).digest("hex");
 
-const addHours = (date, hours) => new Date(date.getTime() + hours * 60 * 60 * 1000);
+const addHours = (date, hours) =>
+  new Date(date.getTime() + hours * 60 * 60 * 1000);
 
 const formatTicket = (ticket) => ({
   ticket_id: ticket.ticket_id,
@@ -150,7 +154,11 @@ const submitTicket = async (req, res) => {
     const ticket = await getTicketWithMessages(newTicket.ticket_id);
 
     try {
-      await sendSupportTicketConfirmation(user.email, user.name, newTicket.ticket_id);
+      await sendSupportTicketConfirmation(
+        user.email,
+        user.name,
+        newTicket.ticket_id,
+      );
     } catch (emailError) {
       console.error("Failed to send confirmation email:", emailError);
     }
@@ -291,7 +299,7 @@ const replyToTicket = async (req, res) => {
         await sendSupportReplyNotification(
           ticket.user_email,
           normalizedTicketId,
-          reply.trim()
+          reply.trim(),
         );
       } catch (emailError) {
         console.error("Failed to send email notification:", emailError);
@@ -572,7 +580,7 @@ const requestAnonymousTicketAccess = async (req, res) => {
   const requestId = crypto.randomUUID();
   const verificationCode = String(crypto.randomInt(100000, 1000000)).padStart(
     6,
-    "0"
+    "0",
   );
   const verificationHash = hashValue(`${requestId}:${verificationCode}`);
 

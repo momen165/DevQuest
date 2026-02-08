@@ -43,145 +43,154 @@ const checkAndAwardBadges = async (userId, eventType, eventData = {}) => {
     let badgeAwarded = null;
 
     switch (eventType) {
-      case "code_submission":
+      case "code_submission": {
         // Check for Code Novice badge (first code submission)
         const hasCodeNoviceBadge = await BadgeModel.userHasBadge(
           userId,
-          BadgeModel.BadgeType.CODE_NOVICE
+          BadgeModel.BadgeType.CODE_NOVICE,
         );
         if (!hasCodeNoviceBadge) {
           badgeAwarded = await BadgeModel.awardBadge(
             userId,
-            BadgeModel.BadgeType.CODE_NOVICE
+            BadgeModel.BadgeType.CODE_NOVICE,
           );
         }
         break;
+      }
 
-      case "lesson_completed":
+      case "lesson_completed": {
         // Check for Lesson Smasher badge (10 completed lessons)
         if (eventData.completedLessonsCount >= 10) {
           const hasLessonSmasherBadge = await BadgeModel.userHasBadge(
             userId,
-            BadgeModel.BadgeType.LESSON_SMASHER
+            BadgeModel.BadgeType.LESSON_SMASHER,
           );
           if (!hasLessonSmasherBadge) {
             badgeAwarded = await BadgeModel.awardBadge(
               userId,
-              BadgeModel.BadgeType.LESSON_SMASHER
+              BadgeModel.BadgeType.LESSON_SMASHER,
             );
           }
         }
         break;
+      }
 
-      case "language_used":
+      case "language_used": {
         // Check for Language Explorer badge (3 different languages)
         if (eventData.uniqueLanguagesCount >= 3) {
           const hasLanguageExplorerBadge = await BadgeModel.userHasBadge(
             userId,
-            BadgeModel.BadgeType.LANGUAGE_EXPLORER
+            BadgeModel.BadgeType.LANGUAGE_EXPLORER,
           );
           if (!hasLanguageExplorerBadge) {
             badgeAwarded = await BadgeModel.awardBadge(
               userId,
-              BadgeModel.BadgeType.LANGUAGE_EXPLORER
+              BadgeModel.BadgeType.LANGUAGE_EXPLORER,
             );
           }
         }
         break;
+      }
 
-      case "streak_update":
+      case "streak_update": {
         // Check for Streak Master badge (7-day streak)
         if (eventData.streakDays >= 7) {
           const hasStreakMasterBadge = await BadgeModel.userHasBadge(
             userId,
-            BadgeModel.BadgeType.STREAK_MASTER
+            BadgeModel.BadgeType.STREAK_MASTER,
           );
           if (!hasStreakMasterBadge) {
             badgeAwarded = await BadgeModel.awardBadge(
               userId,
-              BadgeModel.BadgeType.STREAK_MASTER
+              BadgeModel.BadgeType.STREAK_MASTER,
             );
           }
         }
         break;
+      }
 
-      case "xp_update":
+      case "xp_update": {
         // Check for XP Achiever badge (100 XP)
         if (eventData.totalXp >= 100) {
           const hasXpAchieverBadge = await BadgeModel.userHasBadge(
             userId,
-            BadgeModel.BadgeType.XP_ACHIEVER
+            BadgeModel.BadgeType.XP_ACHIEVER,
           );
           if (!hasXpAchieverBadge) {
             badgeAwarded = await BadgeModel.awardBadge(
               userId,
-              BadgeModel.BadgeType.XP_ACHIEVER
+              BadgeModel.BadgeType.XP_ACHIEVER,
             );
           }
         }
         break;
+      }
 
       // --- NEW BADGES ---
-      case "perfectionist":
+      case "perfectionist": {
         // Check for Perfectionist badge (100% course completion)
         if (eventData.courseCompleted === true) {
           const hasPerfectionist = await BadgeModel.userHasBadge(
             userId,
-            BadgeModel.BadgeType.PERFECTIONIST
+            BadgeModel.BadgeType.PERFECTIONIST,
           );
           if (!hasPerfectionist) {
             badgeAwarded = await BadgeModel.awardBadge(
               userId,
-              BadgeModel.BadgeType.PERFECTIONIST
+              BadgeModel.BadgeType.PERFECTIONIST,
             );
           }
         }
         break;
-      case "daily_learner":
+      }
+      case "daily_learner": {
         // Check for Daily Learner badge (3 consecutive days)
         if (eventData.consecutiveDays >= 3) {
           const hasDailyLearner = await BadgeModel.userHasBadge(
             userId,
-            BadgeModel.BadgeType.DAILY_LEARNER
+            BadgeModel.BadgeType.DAILY_LEARNER,
           );
           if (!hasDailyLearner) {
             badgeAwarded = await BadgeModel.awardBadge(
               userId,
-              BadgeModel.BadgeType.DAILY_LEARNER
+              BadgeModel.BadgeType.DAILY_LEARNER,
             );
           }
         }
         break;
-      case "marathoner":
+      }
+      case "marathoner": {
         // Check for Marathoner badge (5 lessons in a day)
         if (eventData.lessonsToday >= 5) {
           const hasMarathoner = await BadgeModel.userHasBadge(
             userId,
-            BadgeModel.BadgeType.MARATHONER
+            BadgeModel.BadgeType.MARATHONER,
           );
           if (!hasMarathoner) {
             badgeAwarded = await BadgeModel.awardBadge(
               userId,
-              BadgeModel.BadgeType.MARATHONER
+              BadgeModel.BadgeType.MARATHONER,
             );
           }
         }
         break;
-      case "profile_complete":
+      }
+      case "profile_complete": {
         // Check for Profile Complete badge (all profile fields filled)
         if (eventData.profileComplete === true) {
           const hasProfileComplete = await BadgeModel.userHasBadge(
             userId,
-            BadgeModel.BadgeType.PROFILE_COMPLETE
+            BadgeModel.BadgeType.PROFILE_COMPLETE,
           );
           if (!hasProfileComplete) {
             badgeAwarded = await BadgeModel.awardBadge(
               userId,
-              BadgeModel.BadgeType.PROFILE_COMPLETE
+              BadgeModel.BadgeType.PROFILE_COMPLETE,
             );
           }
         }
         break;
+      }
 
       default:
         break;
@@ -191,7 +200,7 @@ const checkAndAwardBadges = async (userId, eventType, eventData = {}) => {
   } catch (error) {
     console.error(
       `Error checking and awarding badges for ${eventType}:`,
-      error
+      error,
     );
     return null;
   }
@@ -219,7 +228,7 @@ const awardBadgeToUser = async (req, res) => {
 
     // Validate badge type
     const validBadgeType = Object.values(BadgeModel.BadgeType).includes(
-      badgeType
+      badgeType,
     );
     if (!validBadgeType) {
       return res.status(400).json({

@@ -15,7 +15,6 @@ const {
 // Middleware
 const { authenticateToken, requireAuth } = require("../middleware/auth");
 const sessionTracker = require("../middleware/sessionTracker");
-const { cacheMiddleware } = require("../utils/cache.utils");
 const {
   performanceMiddleware,
 } = require("../middleware/performance.middleware");
@@ -30,7 +29,7 @@ router.get(
   sessionTracker,
   performanceMiddleware("students-list"),
 
-  getAllStudents
+  getAllStudents,
 );
 router.get(
   "/students/:studentId",
@@ -40,7 +39,7 @@ router.get(
   sessionTracker,
   performanceMiddleware("student-details"),
 
-  getStudentById
+  getStudentById,
 );
 router.get(
   "/students/:studentId/courses",
@@ -48,7 +47,7 @@ router.get(
   requireAuth,
   updateUserStreak,
   sessionTracker,
-  getCoursesByStudentId
+  getCoursesByStudentId,
 );
 router.get(
   "/students/:userId/enrollments",
@@ -58,7 +57,7 @@ router.get(
   sessionTracker,
   performanceMiddleware("student-enrollments"),
 
-  getEnrollmentsByUserId
+  getEnrollmentsByUserId,
 );
 router.get(
   "/student/stats/:userId",
@@ -66,7 +65,7 @@ router.get(
   requireAuth,
   updateUserStreak,
   sessionTracker,
-  getStudentStats
+  getStudentStats,
 );
 router.get(
   "/student/courses/:courseId/stats",
@@ -74,7 +73,7 @@ router.get(
   requireAuth,
   updateUserStreak,
   sessionTracker,
-  getCourseStats
+  getCourseStats,
 );
 router.delete(
   "/student/delete-account",
@@ -82,7 +81,7 @@ router.delete(
   requireAuth,
   updateUserStreak,
   sessionTracker,
-  deleteStudentAccount
+  deleteStudentAccount,
 );
 
 // Export router

@@ -15,15 +15,15 @@ async function testMailgunMigration() {
   // Check if required environment variables are set
   console.log("📋 Environment Check:");
   console.log(
-    `MAILGUN_API_KEY: ${process.env.MAILGUN_API_KEY ? "✅ Set" : "❌ Missing"}`
+    `MAILGUN_API_KEY: ${process.env.MAILGUN_API_KEY ? "✅ Set" : "❌ Missing"}`,
   );
   console.log(
-    `MAILGUN_DOMAIN: ${process.env.MAILGUN_DOMAIN ? "✅ Set" : "❌ Missing"}`
+    `MAILGUN_DOMAIN: ${process.env.MAILGUN_DOMAIN ? "✅ Set" : "❌ Missing"}`,
   );
   console.log(
     `SENDER_EMAIL_SUPPORT: ${
       process.env.SENDER_EMAIL_SUPPORT ? "✅ Set" : "❌ Missing"
-    }`
+    }`,
   );
   console.log("");
 
@@ -45,7 +45,7 @@ async function testMailgunMigration() {
     const confirmationResult = await sendSupportTicketConfirmation(
       testEmail,
       testUser,
-      testTicketId
+      testTicketId,
     );
 
     if (confirmationResult) {
@@ -60,7 +60,7 @@ async function testMailgunMigration() {
       testUser,
       testTicketId,
       "Test Admin",
-      "This is a test reply to verify the Mailgun migration is working correctly."
+      "This is a test reply to verify the Mailgun migration is working correctly.",
     );
 
     if (replyResult) {
@@ -71,7 +71,7 @@ async function testMailgunMigration() {
 
     console.log("\n🎉 Mailgun migration test completed!");
     console.log(
-      "Note: Check your email inbox to verify messages were received."
+      "Note: Check your email inbox to verify messages were received.",
     );
   } catch (error) {
     console.error("❌ Error during Mailgun migration test:", error);

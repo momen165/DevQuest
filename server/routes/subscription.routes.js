@@ -26,7 +26,7 @@ router.get(
   sessionTracker,
   performanceMiddleware("subscription-status"),
   cacheMiddleware("user", 180),
-  checkSubscriptionStatusFromDb
+  checkSubscriptionStatusFromDb,
 ); // Optimized DB check with caching and performance monitoring
 router.get(
   "/check",
@@ -35,7 +35,7 @@ router.get(
   sessionTracker,
   performanceMiddleware("subscription-check"),
   cacheMiddleware("user", 180),
-  checkActiveSubscription
+  checkActiveSubscription,
 ); // Optimized Stripe check with caching and performance monitoring
 router.get(
   "/list-subscriptions",
@@ -43,7 +43,7 @@ router.get(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  listSubscriptions
+  listSubscriptions,
 );
 router.get(
   "/user/:userId",
@@ -51,7 +51,7 @@ router.get(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  getSubscriptionStatusForUser
+  getSubscriptionStatusForUser,
 ); // Admin route
 
 module.exports = router;

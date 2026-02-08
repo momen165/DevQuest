@@ -111,7 +111,7 @@ const helpers = {
     // First try UTF-8 decode
     try {
       return Buffer.from(str, "base64").toString("utf-8");
-    } catch (e) {
+    } catch {
       // Fallback to binary if UTF-8 fails
       return Buffer.from(str, "base64").toString("binary");
     }
@@ -132,7 +132,7 @@ const helpers = {
 
     try {
       const base64SourceCode = Buffer.from(submission.source_code).toString(
-        "base64"
+        "base64",
       );
       const base64ExpectedOutput = submission.expected_output
         ? Buffer.from(submission.expected_output).toString("base64")
@@ -160,7 +160,7 @@ const helpers = {
           },
           timeout: 30000, // 30 seconds
           timeoutErrorMessage: "Request timed out while connecting to Judge0",
-        }
+        },
       );
 
       // Get language-specific error formatter
@@ -175,12 +175,12 @@ const helpers = {
           : "",
         error: response.data.stderr
           ? languageConfig.formatError(
-              Buffer.from(response.data.stderr, "base64").toString()
+              Buffer.from(response.data.stderr, "base64").toString(),
             )
           : "",
         compile_error: response.data.compile_output
           ? languageConfig.formatError(
-              Buffer.from(response.data.compile_output, "base64").toString()
+              Buffer.from(response.data.compile_output, "base64").toString(),
             )
           : "",
         status_description: response.data.status?.description || "Unknown",
@@ -335,12 +335,12 @@ const runCode = handleAsync(async (req, res) => {
         } else if (testCase.use_pattern) {
           validationResult = validatePattern(
             result.actual_output,
-            testCase.pattern
+            testCase.pattern,
           );
         } else {
           validationResult = validateExactMatch(
             result.actual_output,
-            testCase.expected_output
+            testCase.expected_output,
           );
         }
 
@@ -354,7 +354,7 @@ const runCode = handleAsync(async (req, res) => {
           use_pattern: testCase.use_pattern,
           pattern: testCase.pattern,
         };
-      })
+      }),
     );
 
     // Check if all test cases passed their respective validations
@@ -367,8 +367,11 @@ const runCode = handleAsync(async (req, res) => {
     let badgeAwarded = null;
     if (allPassed) {
       // First, check if the lesson was already completed
-      const progressResult = await lessonQueries.getLessonProgress(userId, lessonId);
-      
+      const progressResult = await lessonQueries.getLessonProgress(
+        userId,
+        lessonId,
+      );
+
       if (progressResult.rows.length === 0) {
         // This is the first completion - insert progress record
         await lessonQueries.insertLessonProgress(
@@ -377,11 +380,14 @@ const runCode = handleAsync(async (req, res) => {
           true,
           new Date(),
           courseId,
-          code
+          code,
         );
-        
+
         // Check for Code Novice badge (first code submission)
-        badgeAwarded = await badgeController.checkAndAwardBadges(userId, 'code_submission');
+        badgeAwarded = await badgeController.checkAndAwardBadges(
+          userId,
+          "code_submission",
+        );
       } else if (!progressResult.rows[0].completed) {
         // Update existing progress record
         await lessonQueries.updateLessonProgress(
@@ -389,7 +395,7 @@ const runCode = handleAsync(async (req, res) => {
           lessonId,
           true,
           new Date(),
-          code
+          code,
         );
       }
 
@@ -397,15 +403,22 @@ const runCode = handleAsync(async (req, res) => {
       await lessonQueries.recalculateProgressForCourse(courseId);
 
       // Get the count of completed lessons for the user
-      const completedLessonsResult = await lessonQueries.getCompletedLessonsCount(userId, courseId);
-      const completedLessonsCount = parseInt(completedLessonsResult.rows[0].completed_lessons || 0);
+      const completedLessonsResult =
+        await lessonQueries.getCompletedLessonsCount(userId, courseId);
+      const completedLessonsCount = parseInt(
+        completedLessonsResult.rows[0].completed_lessons || 0,
+      );
 
       // Check for Lesson Smasher badge (10 completed lessons)
       if (completedLessonsCount >= 10) {
-        const lessonSmasherBadge = await badgeController.checkAndAwardBadges(userId, 'lesson_completed', {
-          completedLessonsCount
-        });
-        
+        const lessonSmasherBadge = await badgeController.checkAndAwardBadges(
+          userId,
+          "lesson_completed",
+          {
+            completedLessonsCount,
+          },
+        );
+
         if (lessonSmasherBadge && lessonSmasherBadge.awarded) {
           badgeAwarded = lessonSmasherBadge;
         }
@@ -437,15 +450,23 @@ const runCode = handleAsync(async (req, res) => {
       const uniqueLanguagesCount = new Set(
         completedProgress
           .map((row) => row.lesson?.section?.course?.language_id)
-          .filter((language) => language !== null && language !== undefined)
+          .filter((language) => language !== null && language !== undefined),
       ).size;
-      
+
       if (uniqueLanguagesCount >= 3) {
-        const languageExplorerBadge = await badgeController.checkAndAwardBadges(userId, 'language_used', {
-          uniqueLanguagesCount
-        });
-        
-        if (languageExplorerBadge && languageExplorerBadge.awarded && !badgeAwarded) {
+        const languageExplorerBadge = await badgeController.checkAndAwardBadges(
+          userId,
+          "language_used",
+          {
+            uniqueLanguagesCount,
+          },
+        );
+
+        if (
+          languageExplorerBadge &&
+          languageExplorerBadge.awarded &&
+          !badgeAwarded
+        ) {
           badgeAwarded = languageExplorerBadge;
         }
       }
@@ -457,7 +478,7 @@ const runCode = handleAsync(async (req, res) => {
       message: allPassed ? "All test cases passed!" : "Some test cases failed.",
       execution_successful: true,
       validation_passed: allPassed,
-      badge_awarded: badgeAwarded
+      badge_awarded: badgeAwarded,
     });
   } catch (error) {
     console.error("Error running code:", error);

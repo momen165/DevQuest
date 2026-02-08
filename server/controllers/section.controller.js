@@ -61,7 +61,7 @@ const addSection = async (req, res) => {
     await logActivity(
       "Section",
       `New section added: ${name} for course ID ${normalizedCourseId}`,
-      req.user.userId
+      req.user.userId,
     );
 
     clearSectionCache(normalizedCourseId);
@@ -207,12 +207,19 @@ const getSectionById = async (req, res) => {
       lesson_name: lesson.name,
       lesson_order: lesson.lesson_order,
       xp: lesson.xp,
-      completed: userId ? Boolean(lesson.lesson_progress?.[0]?.completed) : false,
+      completed: userId
+        ? Boolean(lesson.lesson_progress?.[0]?.completed)
+        : false,
     }));
 
     const totalLessons = lessons.length;
-    const completedLessons = lessons.filter((lesson) => lesson.completed).length;
-    const totalXp = lessons.reduce((sum, lesson) => sum + Number(lesson.xp || 0), 0);
+    const completedLessons = lessons.filter(
+      (lesson) => lesson.completed,
+    ).length;
+    const totalXp = lessons.reduce(
+      (sum, lesson) => sum + Number(lesson.xp || 0),
+      0,
+    );
     const earnedXp = lessons
       .filter((lesson) => lesson.completed)
       .reduce((sum, lesson) => sum + Number(lesson.xp || 0), 0);
@@ -343,7 +350,11 @@ const deleteSection = async (req, res) => {
       });
     });
 
-    await logActivity("Section", `Section deleted: ${sectionName}`, req.user.userId);
+    await logActivity(
+      "Section",
+      `Section deleted: ${sectionName}`,
+      req.user.userId,
+    );
 
     clearSectionCache(courseId);
 
@@ -378,8 +389,8 @@ const reorderSections = async (req, res) => {
           tx.section.update({
             where: { section_id: Number(section_id) },
             data: { section_order: Number(order) },
-          })
-        )
+          }),
+        ),
       );
     });
 

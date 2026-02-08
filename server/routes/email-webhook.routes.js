@@ -20,15 +20,20 @@ function verifyMailgunWebhook(apiKey, token, timestamp, signature) {
 }
 
 const normalizeEmail = (value) => {
-  const input = String(value || "").trim().toLowerCase();
+  const input = String(value || "")
+    .trim()
+    .toLowerCase();
   const match = input.match(/<([^>]+)>/);
   return match ? match[1].trim().toLowerCase() : input;
 };
 
-const addHours = (date, hours) => new Date(date.getTime() + hours * 60 * 60 * 1000);
+const addHours = (date, hours) =>
+  new Date(date.getTime() + hours * 60 * 60 * 1000);
 
 const parseSlaToHours = (sla) => {
-  const normalized = String(sla || "").trim().toLowerCase();
+  const normalized = String(sla || "")
+    .trim()
+    .toLowerCase();
   const match = normalized.match(/^(\d+)h$/);
   if (!match) return 24;
   return Number.parseInt(match[1], 10);
@@ -52,7 +57,7 @@ router.post("/email-webhook", upload.any(), async (req, res) => {
         process.env.MAILGUN_WEBHOOK_SIGNING_KEY,
         token,
         timestamp,
-        signature
+        signature,
       );
       if (!isValid) {
         console.warn("Invalid Mailgun webhook signature");
@@ -61,7 +66,7 @@ router.post("/email-webhook", upload.any(), async (req, res) => {
       console.log("Webhook signature verified successfully");
     } else {
       console.log(
-        "Webhook signature verification skipped (no signing key configured)"
+        "Webhook signature verification skipped (no signing key configured)",
       );
     }
 
@@ -115,7 +120,7 @@ async function processIncomingEmail(message) {
 
     if (from !== normalizeEmail(ticket.user_email)) {
       console.log(
-        `Email from ${from} doesn't match ticket owner ${ticket.user_email}`
+        `Email from ${from} doesn't match ticket owner ${ticket.user_email}`,
       );
       return;
     }
@@ -168,7 +173,9 @@ async function handleNewSupportEmail(from, subject, content) {
         },
       });
 
-      console.log(`Added email to existing ticket #${existingTicket.ticket_id}`);
+      console.log(
+        `Added email to existing ticket #${existingTicket.ticket_id}`,
+      );
       return;
     }
 
@@ -210,7 +217,7 @@ async function handleNewSupportEmail(from, subject, content) {
         newTicket.ticket_id,
         from,
         analysis.category,
-        analysis.autoResponse
+        analysis.autoResponse,
       );
 
       await prisma.ticket_messages.create({
@@ -224,7 +231,7 @@ async function handleNewSupportEmail(from, subject, content) {
     }
 
     console.log(
-      `Created new ticket #${newTicket.ticket_id} from email with category: ${analysis.category} (confidence: ${analysis.confidence})`
+      `Created new ticket #${newTicket.ticket_id} from email with category: ${analysis.category} (confidence: ${analysis.confidence})`,
     );
   } catch (error) {
     console.error("Error handling new support email:", error);

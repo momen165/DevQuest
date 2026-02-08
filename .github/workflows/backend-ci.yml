@@ -1,0 +1,39 @@
+name: Server CI
+
+on:
+  push:
+    paths:
+      - "server/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    paths:
+      - "server/**"
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install deps (runs postinstall -> prisma generate)
+        run: npm ci
+
+
+
+      - name: Lint (if present)
+        run: npm run lint --if-present
+      - name: Test (if present)
+        run: npm test --if-present

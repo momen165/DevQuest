@@ -9,7 +9,9 @@ const ADMIN_ACCESS_CACHE_KEY_PREFIX = "admin_access_";
 const toInt = (value) => Number.parseInt(value, 10);
 const startOfDay = (date) => {
   const d = new Date(date);
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  return new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+  );
 };
 
 const formatDay = (date) => {
@@ -71,7 +73,7 @@ const grantFreeSubscriptionDB = async (
   freeEndDate,
   subscriptionType,
   amountPaid,
-  status
+  status,
 ) => {
   const normalizedUserId = toInt(userId);
 
@@ -341,10 +343,14 @@ const getSiteAnalyticsDB = async (days) => {
   const last7Start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const activeUserDays = Math.min(days, 30);
   const activeUserStart = new Date(
-    now.getTime() - activeUserDays * 24 * 60 * 60 * 1000
+    now.getTime() - activeUserDays * 24 * 60 * 60 * 1000,
   );
   const monthRangeStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - Math.max(1, Math.ceil(days / 30)) + 1, 1)
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth() - Math.max(1, Math.ceil(days / 30)) + 1,
+      1,
+    ),
   );
 
   const pageFilter = {
@@ -487,24 +493,24 @@ const getSiteAnalyticsDB = async (days) => {
 
   const uniqueVisitors = new Set(
     uniqueVisitorRows.map((row) =>
-      row.user_id ? `user-${row.user_id}` : `ip-${row.ip_address || "unknown"}`
-    )
+      row.user_id ? `user-${row.user_id}` : `ip-${row.ip_address || "unknown"}`,
+    ),
   ).size;
 
   const dailyVisitsMap = aggregateBy(visitsInRange, (row) =>
-    row.visit_date ? formatDay(row.visit_date) : null
+    row.visit_date ? formatDay(row.visit_date) : null,
   );
 
   const dailyVisitsLast7Map = aggregateBy(visitsInLast7, (row) =>
-    row.visit_date ? formatDay(row.visit_date) : null
+    row.visit_date ? formatDay(row.visit_date) : null,
   );
 
   const monthlyVisitsMap = aggregateBy(monthlyVisitRows, (row) =>
-    row.visit_date ? formatMonth(row.visit_date) : null
+    row.visit_date ? formatMonth(row.visit_date) : null,
   );
 
   const newUsersDailyMap = aggregateBy(newUsersRows, (row) =>
-    row.created_at ? formatDay(row.created_at) : null
+    row.created_at ? formatDay(row.created_at) : null,
   );
 
   const lessonAttemptsMap = new Map();
@@ -526,7 +532,9 @@ const getSiteAnalyticsDB = async (days) => {
       attempts: String(row.attempts),
     }));
 
-  const bounceCount = sessionsInRange.filter((s) => (s.page_views || 0) === 1).length;
+  const bounceCount = sessionsInRange.filter(
+    (s) => (s.page_views || 0) === 1,
+  ).length;
   const bounceRate =
     sessionsInRange.length > 0
       ? (bounceCount * 100) / sessionsInRange.length

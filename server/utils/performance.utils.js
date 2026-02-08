@@ -116,7 +116,7 @@ const performanceMiddleware = (req, res, next) => {
       path: req.path,
       userAgent: req.get("User-Agent"),
       userId: req.user?.userId,
-    }
+    },
   );
 
   // Override res.end to capture completion time
@@ -127,7 +127,7 @@ const performanceMiddleware = (req, res, next) => {
     const threshold = process.env.NODE_ENV === "production" ? 2000 : 1000;
     if (metric && metric.duration > threshold) {
       console.warn(
-        `Slow API request detected: ${metric.operation} took ${metric.duration}ms`
+        `Slow API request detected: ${metric.operation} took ${metric.duration}ms`,
       );
     }
     originalEnd.apply(this, args);
@@ -138,7 +138,10 @@ const performanceMiddleware = (req, res, next) => {
 // Log performance summary
 const logPerformanceSummary = () => {
   // Skip logging in production unless explicitly enabled
-  if (process.env.NODE_ENV === "production" && !process.env.ENABLE_PERFORMANCE_LOGS) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    !process.env.ENABLE_PERFORMANCE_LOGS
+  ) {
     return;
   }
 
@@ -149,7 +152,7 @@ const logPerformanceSummary = () => {
     if (data.averageDuration > 100) {
       // Only show operations taking > 100ms on average
       console.log(
-        `${operation}: avg=${data.averageDuration}ms, p95=${data.p95Duration}ms, count=${data.count}`
+        `${operation}: avg=${data.averageDuration}ms, p95=${data.p95Duration}ms, count=${data.count}`,
       );
     }
   }
@@ -177,7 +180,10 @@ const logPerformanceSummary = () => {
 };
 
 // Log performance summary every 5 minutes (only in dev or if explicitly enabled)
-if (process.env.NODE_ENV === "development" || process.env.ENABLE_PERFORMANCE_LOGS) {
+if (
+  process.env.NODE_ENV === "development" ||
+  process.env.ENABLE_PERFORMANCE_LOGS
+) {
   setInterval(logPerformanceSummary, 5 * 60 * 1000);
 }
 
@@ -195,7 +201,7 @@ const trackAPIPerformance = (
   endpointName,
   responseTime,
   statusCode,
-  method
+  method,
 ) => {
   const key = `${method}_${endpointName}`;
 
@@ -232,7 +238,7 @@ const trackAPIPerformance = (
   const threshold = process.env.NODE_ENV === "production" ? 2000 : 1000;
   if (responseTime > threshold) {
     console.warn(
-      `🐌 Slow API request: ${key} took ${responseTime.toFixed(2)}ms`
+      `🐌 Slow API request: ${key} took ${responseTime.toFixed(2)}ms`,
     );
   }
 };
@@ -240,7 +246,7 @@ const trackAPIPerformance = (
 /**
  * Track database query performance
  */
-const trackDatabaseQuery = (queryType, queryTime, success, queryText = "") => {
+const trackDatabaseQuery = (queryType, queryTime, success) => {
   if (!apiMetrics.database.has(queryType)) {
     apiMetrics.database.set(queryType, {
       queryType,
@@ -273,7 +279,7 @@ const trackDatabaseQuery = (queryType, queryTime, success, queryText = "") => {
   const threshold = process.env.NODE_ENV === "production" ? 1000 : 100;
   if (queryTime > threshold) {
     console.warn(
-      `🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms`
+      `🐌 Slow database query: ${queryType} took ${queryTime.toFixed(2)}ms`,
     );
   }
 };
@@ -343,7 +349,7 @@ const getPerformanceSummary = () => {
       totalEndpoints: endpoints.length,
       totalDatabaseQueries: database.reduce(
         (sum, db) => sum + db.totalQueries,
-        0
+        0,
       ),
       totalCacheAccesses: cache.reduce((sum, c) => sum + c.hits + c.misses, 0),
       timestamp: new Date(),

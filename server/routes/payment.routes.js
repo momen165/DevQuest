@@ -16,13 +16,13 @@ router.post(
   "/create-checkout-session",
   authenticateToken,
   requireAuth,
-  createCheckoutSession
+  createCheckoutSession,
 );
 router.post(
   "/create-portal-session",
   authenticateToken,
   requireAuth,
-  createPortalSession
+  createPortalSession,
 );
 
 // Export webhook handler separately to be used directly in server.js

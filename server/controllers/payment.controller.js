@@ -27,8 +27,11 @@ const persistSubscriptionFromStripe = async ({
     (stripeSubscription.latest_invoice?.payment_intent?.amount_received ||
       stripeSubscription.items.data[0]?.price?.unit_amount ||
       0) / 100;
-  const paymentId = stripeSubscription.latest_invoice?.payment_intent?.id || null;
-  const subscriptionType = resolvePlanType(stripeSubscription.items.data[0].price.id);
+  const paymentId =
+    stripeSubscription.latest_invoice?.payment_intent?.id || null;
+  const subscriptionType = resolvePlanType(
+    stripeSubscription.items.data[0].price.id,
+  );
   const dbStatus = mapStripeStatusToBoolean(stripeSubscription.status);
 
   const existing = await prisma.subscription.findFirst({
@@ -189,7 +192,7 @@ const handleWebhook = async (req, res) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET
+      process.env.STRIPE_WEBHOOK_SECRET,
     );
     console.log("Webhook event received:", event.type);
   } catch (err) {
@@ -200,12 +203,16 @@ const handleWebhook = async (req, res) => {
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      const userId = toInt(session.client_reference_id || session.metadata?.userId);
+      const userId = toInt(
+        session.client_reference_id || session.metadata?.userId,
+      );
       const stripeSubscriptionId = session.subscription;
       const stripeCustomerId = session.customer;
 
       if (!userId || !stripeSubscriptionId) {
-        return res.status(400).json({ error: "Missing user or subscription reference." });
+        return res
+          .status(400)
+          .json({ error: "Missing user or subscription reference." });
       }
 
       const user = await prisma.users.findUnique({
@@ -228,7 +235,7 @@ const handleWebhook = async (req, res) => {
         stripeSubscriptionId,
         {
           expand: ["latest_invoice.payment_intent"],
-        }
+        },
       );
 
       await persistSubscriptionFromStripe({
@@ -262,7 +269,7 @@ const handleWebhook = async (req, res) => {
       if (userId && userEmail) {
         const fullSubscription = await stripe.subscriptions.retrieve(
           stripeSubscriptionId,
-          { expand: ["latest_invoice.payment_intent"] }
+          { expand: ["latest_invoice.payment_intent"] },
         );
 
         await persistSubscriptionFromStripe({

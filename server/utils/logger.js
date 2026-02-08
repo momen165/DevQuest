@@ -39,7 +39,7 @@ const logger = {
   performance: (operation, duration, threshold = 1000) => {
     if (duration > threshold) {
       console.warn(
-        `[${new Date().toISOString()}] SLOW: ${operation} took ${duration.toFixed(2)}ms`
+        `[${new Date().toISOString()}] SLOW: ${operation} took ${duration.toFixed(2)}ms`,
       );
     }
   },

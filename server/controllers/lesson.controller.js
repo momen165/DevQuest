@@ -18,7 +18,6 @@ const {
   clearAllSectionCache,
 } = require("./section.controller");
 
-
 // Unlock hint for a lesson (POST /lesson/:lessonId/unlock-hint)
 const unlockHint = asyncHandler(async (req, res) => {
   const { lessonId } = req.params;
@@ -72,7 +71,7 @@ const addLesson = asyncHandler(async (req, res) => {
     nextOrder,
     template_code ? decodeEntities(template_code) : "",
     hint,
-    solution
+    solution,
   );
 
   // Get course_id from section
@@ -85,7 +84,7 @@ const addLesson = asyncHandler(async (req, res) => {
   await logActivity(
     "lesson_created",
     `Admin (ID: ${req.user.user_id}) created lesson "${name}" in section "${sectionName}" (ID: ${section_id}) of course "${courseName}" (ID: ${courseId}).`,
-    parseInt(req.user.user_id)
+    parseInt(req.user.user_id),
   );
 
   // Recalculate progress for all enrolled users
@@ -254,38 +253,42 @@ const getLessonById = asyncHandler(async (req, res) => {
   const originalLesson = lessonResult.rows[0];
 
   try {
-    const [completedLessonsCount, activeSubscription, progressResult, sectionLessons] =
-      await Promise.all([
-        prisma.lesson_progress.count({
-          where: {
-            user_id: Number(userId),
-            completed: true,
+    const [
+      completedLessonsCount,
+      activeSubscription,
+      progressResult,
+      sectionLessons,
+    ] = await Promise.all([
+      prisma.lesson_progress.count({
+        where: {
+          user_id: Number(userId),
+          completed: true,
+        },
+      }),
+      prisma.subscription.findFirst({
+        where: {
+          user_id: Number(userId),
+          status: true,
+          subscription_end_date: { gt: new Date() },
+        },
+        select: { subscription_id: true },
+        orderBy: { subscription_start_date: "desc" },
+      }),
+      lessonQueries.getLessonProgress(userId, lessonId),
+      prisma.lesson.findMany({
+        where: { section_id: originalLesson.section_id },
+        orderBy: { lesson_order: "asc" },
+        select: {
+          lesson_id: true,
+          lesson_order: true,
+          lesson_progress: {
+            where: { user_id: Number(userId) },
+            select: { completed: true },
+            take: 1,
           },
-        }),
-        prisma.subscription.findFirst({
-          where: {
-            user_id: Number(userId),
-            status: true,
-            subscription_end_date: { gt: new Date() },
-          },
-          select: { subscription_id: true },
-          orderBy: { subscription_start_date: "desc" },
-        }),
-        lessonQueries.getLessonProgress(userId, lessonId),
-        prisma.lesson.findMany({
-          where: { section_id: originalLesson.section_id },
-          orderBy: { lesson_order: "asc" },
-          select: {
-            lesson_id: true,
-            lesson_order: true,
-            lesson_progress: {
-              where: { user_id: Number(userId) },
-              select: { completed: true },
-              take: 1,
-            },
-          },
-        }),
-      ]);
+        },
+      }),
+    ]);
 
     // Check subscription limits
     const completedLessons = completedLessonsCount || 0;
@@ -317,7 +320,7 @@ const getLessonById = asyncHandler(async (req, res) => {
       lesson_order: lesson.lesson_order,
       completed: Boolean(lesson.lesson_progress[0]?.completed),
     }));
-    
+
     // First lesson is always accessible
     if (
       sectionLessonRows.length > 0 &&
@@ -338,7 +341,7 @@ const getLessonById = asyncHandler(async (req, res) => {
 
       if (currentLessonIndex > 0) {
         previousLessonCompleted = Boolean(
-          sectionLessonRows[currentLessonIndex - 1].completed
+          sectionLessonRows[currentLessonIndex - 1].completed,
         );
 
         // If the previous lesson is not completed, check if this is the first section
@@ -373,7 +376,7 @@ const getLessonById = asyncHandler(async (req, res) => {
               const prevSectionCompletion =
                 await lessonQueries.checkSectionCompletion(
                   userId,
-                  prevSectionId
+                  prevSectionId,
                 );
 
               if (!prevSectionCompletion.allCompleted) {
@@ -454,7 +457,7 @@ const updateLesson = asyncHandler(async (req, res) => {
       solution,
       Array.isArray(test_cases) && test_cases.length > 0
         ? Boolean(test_cases[0]?.auto_detect)
-        : Boolean(auto_detect)
+        : Boolean(auto_detect),
     );
 
     if (result.rows.length === 0) {
@@ -473,7 +476,7 @@ const updateLesson = asyncHandler(async (req, res) => {
     await logActivity(
       "lesson_updated",
       `Admin (ID: ${req.user.user_id}) updated lesson "${name}" (ID: ${lesson_id}) in section "${sectionName}" (ID: ${section_id}) of course "${courseName}" (ID: ${courseId}). `,
-      parseInt(req.user.user_id)
+      parseInt(req.user.user_id),
     );
 
     // Invalidate relevant caches after updating a lesson
@@ -513,7 +516,7 @@ const deleteLesson = asyncHandler(async (req, res) => {
 
   // Get course and section info before deletion logging
   const courseInfo = await lessonQueries.getCourseIdFromSection(
-    lessonResult.rows[0].section_id
+    lessonResult.rows[0].section_id,
   );
   const {
     course_id: courseId,
@@ -525,7 +528,7 @@ const deleteLesson = asyncHandler(async (req, res) => {
   await logActivity(
     "lesson_deleted",
     `Admin (ID: ${req.user.user_id}) deleted lesson "${lessonName}" (ID: ${lesson_id}) from section "${sectionName}" (ID: ${lessonResult.rows[0].section_id}) of course "${courseName}" (ID: ${courseId})`,
-    parseInt(req.user.user_id)
+    parseInt(req.user.user_id),
   );
 
   // Invalidate relevant caches after deleting a lesson
@@ -544,66 +547,61 @@ const reorderLessons = asyncHandler(async (req, res) => {
   if (!Array.isArray(lessons)) {
     throw new AppError(
       "Invalid request format. Expected an array of lessons.",
-      400
+      400,
     );
   }
 
-  try {
-    await prisma.$transaction(async (tx) => {
-      await Promise.all(
-        lessons.map(({ lesson_id, order }) =>
-          lessonQueries.updateLessonOrder(lesson_id, order, tx)
-        )
-      );
-    });
-
-    // Get course_id if not provided but section_id is
-    let courseIdToInvalidate = course_id;
-    if (!courseIdToInvalidate && section_id) {
-      const courseResult = await lessonQueries.getCourseIdFromSection(
-        section_id
-      );
-      if (courseResult.rows.length > 0) {
-        courseIdToInvalidate = courseResult.rows[0].course_id;
-      }
-    }
-
-    // Invalidate relevant caches after reordering lessons
-    if (courseIdToInvalidate) {
-      clearLessonCacheForCourse(courseIdToInvalidate);
-      clearSectionCache(courseIdToInvalidate);
-    }
-    if (section_id) {
-      clearLessonCacheForSection(section_id);
-    }
-
-    // Log the reordering action
-    await logActivity(
-      "lessons_reordered",
-      `Admin (ID: ${req.user.user_id}) reordered ${lessons.length} lessons in section ID ${section_id}`,
-      parseInt(req.user.user_id)
+  await prisma.$transaction(async (tx) => {
+    await Promise.all(
+      lessons.map(({ lesson_id, order }) =>
+        lessonQueries.updateLessonOrder(lesson_id, order, tx),
+      ),
     );
+  });
 
-    setCacheHeaders(res, { noStore: true });
-    res.json({ success: true, lessons_updated: lessons.length });
-  } catch (err) {
-    throw err;
+  // Get course_id if not provided but section_id is
+  let courseIdToInvalidate = course_id;
+  if (!courseIdToInvalidate && section_id) {
+    const courseResult = await lessonQueries.getCourseIdFromSection(section_id);
+    if (courseResult.rows.length > 0) {
+      courseIdToInvalidate = courseResult.rows[0].course_id;
+    }
   }
+
+  // Invalidate relevant caches after reordering lessons
+  if (courseIdToInvalidate) {
+    clearLessonCacheForCourse(courseIdToInvalidate);
+    clearSectionCache(courseIdToInvalidate);
+  }
+  if (section_id) {
+    clearLessonCacheForSection(section_id);
+  }
+
+  // Log the reordering action
+  await logActivity(
+    "lessons_reordered",
+    `Admin (ID: ${req.user.user_id}) reordered ${lessons.length} lessons in section ID ${section_id}`,
+    parseInt(req.user.user_id),
+  );
+
+  setCacheHeaders(res, { noStore: true });
+  res.json({ success: true, lessons_updated: lessons.length });
 });
 
 const updateLessonProgress = asyncHandler(async (req, res) => {
-  const { user_id: userIdFromBody, lesson_id, completed, submitted_code } =
-    req.body;
+  const {
+    user_id: userIdFromBody,
+    lesson_id,
+    completed,
+    submitted_code,
+  } = req.body;
   const userId = parseInt(req.user.user_id, 10);
 
   if (!lesson_id || completed === undefined) {
     throw new AppError("Missing required fields.", 400);
   }
 
-  if (
-    userIdFromBody !== undefined &&
-    parseInt(userIdFromBody, 10) !== userId
-  ) {
+  if (userIdFromBody !== undefined && parseInt(userIdFromBody, 10) !== userId) {
     throw new AppError("Access denied.", 403);
   }
 
@@ -615,7 +613,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
   const courseId = courseResult.rows[0].course_id;
   const checkResult = await lessonQueries.checkLessonProgress(
     userId,
-    lesson_id
+    lesson_id,
   );
   const sanitizedCode = decodeEntities(submitted_code);
   const completedAt = completed ? new Date() : null;
@@ -626,7 +624,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
       lesson_id,
       completed,
       completedAt,
-      sanitizedCode
+      sanitizedCode,
     );
 
     if (updateResult.rows.length === 0) {
@@ -639,7 +637,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
       completed,
       completedAt,
       courseId,
-      sanitizedCode
+      sanitizedCode,
     );
   }
 
@@ -648,18 +646,18 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
 
   const completedLessonsResult = await lessonQueries.getCompletedLessonsCount(
     userId,
-    courseId
+    courseId,
   );
   const completedLessons = parseInt(
     completedLessonsResult.rows[0].completed_lessons,
-    10
+    10,
   );
 
   const progress = (completedLessons / totalLessons) * 100;
   const updateEnrollmentResult = await lessonQueries.updateEnrollmentProgress(
     progress,
     userId,
-    courseId
+    courseId,
   );
 
   if (updateEnrollmentResult.rows.length === 0) {
@@ -683,13 +681,13 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     });
     const xp = completedRows.reduce(
       (sum, row) => sum + Number(row.lesson?.xp || 0),
-      0
+      0,
     );
     if (xp >= 100) {
       await require("../controllers/badge.controller").checkAndAwardBadges(
         userId,
         "xp_update",
-        { totalXp: xp }
+        { totalXp: xp },
       );
     }
   } catch (badgeErr) {
@@ -703,7 +701,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
       await require("../controllers/badge.controller").checkAndAwardBadges(
         userId,
         "perfectionist",
-        { courseCompleted: true }
+        { courseCompleted: true },
       );
     }
     // --- BADGE LOGIC: Daily Learner & Marathoner ---
@@ -721,7 +719,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
       });
       const days = streakRows.map(
         (r) =>
-          r.completed_at && new Date(r.completed_at).toISOString().slice(0, 10)
+          r.completed_at && new Date(r.completed_at).toISOString().slice(0, 10),
       );
       let consecutive = 1;
       for (let i = 1; i < days.length; i++) {
@@ -734,7 +732,7 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
         await require("../controllers/badge.controller").checkAndAwardBadges(
           userId,
           "daily_learner",
-          { consecutiveDays: consecutive }
+          { consecutiveDays: consecutive },
         );
       }
       // Marathoner: check for 5 lessons in a single day
@@ -744,14 +742,14 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
         await require("../controllers/badge.controller").checkAndAwardBadges(
           userId,
           "marathoner",
-          { lessonsToday: todayCount }
+          { lessonsToday: todayCount },
         );
       }
     }
   } catch (badgeErr) {
     console.error(
       "[Extra Badges] Error checking/awarding extra badges:",
-      badgeErr
+      badgeErr,
     );
   }
 
@@ -847,7 +845,7 @@ const checkLessonOrderIntegrity = asyncHandler(async (req, res) => {
 
         // Check for duplicates
         const duplicates = orderValues.filter(
-          (value, index, self) => self.indexOf(value) !== index
+          (value, index, self) => self.indexOf(value) !== index,
         );
 
         // Check for gaps
@@ -883,7 +881,7 @@ const checkLessonOrderIntegrity = asyncHandler(async (req, res) => {
     console.error("Error checking lesson order integrity:", error);
     throw new AppError(
       `Failed to check lesson order integrity: ${error.message}`,
-      500
+      500,
     );
   }
 });

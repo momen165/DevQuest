@@ -23,7 +23,7 @@ async function testBasicEndpoint() {
 
     if (error.code === "ECONNREFUSED") {
       console.error(
-        "🔴 Server is not running or not accessible on localhost:5000"
+        "🔴 Server is not running or not accessible on localhost:5000",
       );
     } else if (error.code === "ENOTFOUND") {
       console.error("🔴 Cannot resolve localhost");
@@ -56,7 +56,7 @@ async function testWebhookEndpoint() {
           "Content-Type": "application/json",
         },
         timeout: 10000,
-      }
+      },
     );
 
     console.log("✅ Webhook responded!");

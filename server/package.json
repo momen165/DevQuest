@@ -13,14 +13,16 @@
     "setup-analytics": "prisma db push",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "generate-test-data": "node scripts/generateTestData.js"
+    "generate-test-data": "node scripts/generateTestData.js",
+    "lint": "eslint . --ext .js",
+    "format": "prettier --write '**/*.{js,jsx,css,html}'"
+    
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.985.0",
     "@aws-sdk/s3-request-presigner": "^3.985.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
-    "prisma": "^7.3.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
@@ -31,13 +33,14 @@
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.1",
     "form-data": "^4.0.4",
-    "geoip-lite": "^1.4.10",
+    "geoip-lite2": "^2.2.7",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mailgun.js": "^12.0.3",
     "multer": "^2.0.2",
     "node-cache": "^5.1.2",
     "pg": "^8.13.1",
+    "prisma": "^7.3.0",
     "sharp": "^0.33.5",
     "stripe": "^17.5.0",
     "ua-parser-js": "^2.0.3",
@@ -48,6 +51,7 @@
     "@eslint/js": "^9.24.0",
     "eslint": "^9.24.0",
     "globals": "^16.0.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "prettier": "3.8.1"
   }
 }

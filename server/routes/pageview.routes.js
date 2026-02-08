@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../config/prisma");
-const geoip = require("geoip-lite");
+const geoip = require("geoip-lite2");
 const UAParser = require("ua-parser-js");
 
 // POST /api/track-pageview

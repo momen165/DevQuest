@@ -1,4 +1,3 @@
-import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -6,10 +5,6 @@ import path from 'path';
 export default defineConfig({
   plugins: [
     react(),
-    sentryVitePlugin({
-      org: 'momen-wl',
-      project: 'javascript-react',
-    }),
   ],
 
   resolve: {
@@ -17,6 +12,8 @@ export default defineConfig({
       app: path.resolve(__dirname, './src/app'),
       features: path.resolve(__dirname, './src/features'),
       shared: path.resolve(__dirname, './src/shared'),
+      react: path.resolve(__dirname, './node_modules/react'),
+      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       components: path.resolve(__dirname, './src/shared/ui'),
       pages: path.resolve(__dirname, './src/pages'),
       utils: path.resolve(__dirname, './src/shared/utils'),

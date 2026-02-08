@@ -29,12 +29,12 @@ const {
 router.get(
   "/system-settings",
   performanceMiddleware("systemSettings"),
-  getMaintenanceStatus
+  getMaintenanceStatus,
 );
 router.get(
   "/maintenance-status",
   performanceMiddleware("maintenanceStatus"),
-  getMaintenanceStatus
+  getMaintenanceStatus,
 ); // Add an alias for consistency
 
 // Protected admin routes - these should use requireAdmin middleware
@@ -43,12 +43,7 @@ router.use(authenticateToken);
 router.use(requireAuth);
 router.use(trackVisit); // <-- Add this so all admin routes after this will have trackVisit with req.user set
 router.use(sessionTracker);
-router.get(
-  "/status",
-  performanceMiddleware("status"),
-  checkAdminStatus,
- 
-);
+router.get("/status", performanceMiddleware("status"), checkAdminStatus);
 router.get("/activities", requireAdmin, getAdminActivities);
 router.get("/metrics/system", requireAdmin, getSystemMetrics);
 router.get("/metrics/performance", requireAdmin, getPerformanceMetrics);
@@ -61,7 +56,7 @@ router.get(
   requireAdmin,
   cacheMiddleware("analytics", 300),
   performanceMiddleware("analytics"), // Performance monitoring for analytics
-  getSiteAnalytics
+  getSiteAnalytics,
 );
 router.post("/grant-free-subscription", requireAdmin, grantFreeSubscription);
 module.exports = router;

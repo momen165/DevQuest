@@ -5,7 +5,7 @@ require("dotenv").config();
 // Initialize Mailgun client
 const mailgun = new Mailgun(formData);
 const isMailgunConfigured = Boolean(
-  process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN
+  process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN,
 );
 
 // Debug logging for configuration
@@ -14,12 +14,12 @@ console.log(
   "- API Key:",
   process.env.MAILGUN_API_KEY
     ? `${process.env.MAILGUN_API_KEY.substring(0, 10)}...`
-    : "Not set"
+    : "Not set",
 );
 console.log("- Domain:", process.env.MAILGUN_DOMAIN || "Not set");
 console.log(
   "- API URL:",
-  process.env.MAILGUN_API_URL || "https://api.mailgun.net (default)"
+  process.env.MAILGUN_API_URL || "https://api.mailgun.net (default)",
 );
 
 const mg = isMailgunConfigured
@@ -60,7 +60,7 @@ const getEmailTemplate = (content) => `
 const sendSupportReplyNotification = async (
   userEmail,
   ticketId,
-  adminReply
+  adminReply,
 ) => {
   if (!isMailgunConfigured || !mg) {
     console.warn("Mailgun configuration missing - skipping email notification");
@@ -122,11 +122,11 @@ Alternative contact: ${process.env.SENDER_EMAIL_SUPPORT}`;
 
     const response = await mg.messages.create(
       process.env.MAILGUN_DOMAIN,
-      messageData
+      messageData,
     );
 
     console.log(
-      `Support reply notification sent successfully to ${userEmail} for ticket #${ticketId}. Message ID: ${response.id}`
+      `Support reply notification sent successfully to ${userEmail} for ticket #${ticketId}. Message ID: ${response.id}`,
     );
     return true;
   } catch (error) {
@@ -214,11 +214,11 @@ Contact: ${process.env.SENDER_EMAIL_SUPPORT}`;
 
     const response = await mg.messages.create(
       process.env.MAILGUN_DOMAIN,
-      messageData
+      messageData,
     );
 
     console.log(
-      `Support ticket confirmation sent successfully to ${userEmail} for ticket #${ticketId}. Message ID: ${response.id}`
+      `Support ticket confirmation sent successfully to ${userEmail} for ticket #${ticketId}. Message ID: ${response.id}`,
     );
     return true;
   } catch (error) {

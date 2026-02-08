@@ -7,7 +7,9 @@ const streakUpdateCache = new NodeCache({ stdTTL: 86400 }); // 24 hour TTL
 
 const dayStartUtc = (value) => {
   const date = new Date(value);
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
 };
 
 const updateUserStreak = async (req, res, next) => {
@@ -81,17 +83,17 @@ const updateUserStreak = async (req, res, next) => {
         const badgeAwarded = await badgeController.checkAndAwardBadges(
           userId,
           "streak_update",
-          { streakDays: newStreak }
+          { streakDays: newStreak },
         );
         if (badgeAwarded?.awarded) {
           console.log(
-            `[Badge] User ${userId} earned the Streak Master badge for ${newStreak} day streak`
+            `[Badge] User ${userId} earned the Streak Master badge for ${newStreak} day streak`,
           );
         }
       } catch (badgeError) {
         console.error(
           "[Badge Error] Error while checking streak badge:",
-          badgeError
+          badgeError,
         );
       }
     }

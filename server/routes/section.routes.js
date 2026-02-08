@@ -3,7 +3,6 @@ const router = express.Router();
 const sectionController = require("../controllers/section.controller");
 const sessionTracker = require("../middleware/sessionTracker");
 const { authenticateToken, requireAuth } = require("../middleware/auth");
-const { cacheMiddleware } = require("../utils/cache.utils");
 const {
   performanceMiddleware,
 } = require("../middleware/performance.middleware");
@@ -14,35 +13,35 @@ router.post(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  sectionController.addSection
+  sectionController.addSection,
 );
 router.get(
   "/admin/sections",
   authenticateToken,
   requireAuth,
   sessionTracker,
-  sectionController.getAdminSections
+  sectionController.getAdminSections,
 );
 router.put(
   "/sections/:section_id",
   authenticateToken,
   requireAuth,
   sessionTracker,
-  sectionController.editSection
+  sectionController.editSection,
 );
 router.delete(
   "/sections/:section_id",
   authenticateToken,
   requireAuth,
   sessionTracker,
-  sectionController.deleteSection
+  sectionController.deleteSection,
 );
 router.post(
   "/sections/reorder",
   authenticateToken,
   requireAuth,
   sessionTracker,
-  sectionController.reorderSections
+  sectionController.reorderSections,
 );
 
 // User routes
@@ -50,23 +49,23 @@ router.get(
   "/sections",
   authenticateToken,
   sessionTracker,
-  sectionController.getAdminSections
+  sectionController.getAdminSections,
 );
 router.get(
   "/sections/course/:courseId",
   authenticateToken,
   sessionTracker,
   performanceMiddleware("getUserSections"),
-  
-  sectionController.getUserSections
+
+  sectionController.getUserSections,
 );
 router.get(
   "/sections/:section_id",
   authenticateToken,
   sessionTracker,
   performanceMiddleware("section-details"),
- 
-  sectionController.getSectionById
+
+  sectionController.getSectionById,
 );
 
 module.exports = router;

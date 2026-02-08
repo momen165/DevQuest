@@ -16,4 +16,4 @@ router.get("/all", badgeController.getAllBadges);
 // Admin-only route to manually award badges
 router.post("/award", badgeController.awardBadgeToUser);
 
-module.exports = router; 
+module.exports = router;

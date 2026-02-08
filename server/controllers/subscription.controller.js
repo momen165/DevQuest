@@ -189,9 +189,8 @@ const warmSubscriptionCache = async (userId) => {
   if (subscriptionCache.has(cacheKey)) return;
 
   try {
-    const activeSubscription = await getActiveSubscriptionForUser(
-      normalizedUserId
-    );
+    const activeSubscription =
+      await getActiveSubscriptionForUser(normalizedUserId);
 
     const response = {
       hasActiveSubscription: Boolean(activeSubscription),

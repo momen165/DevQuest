@@ -29,7 +29,7 @@ const getSslConfig = () => {
 
 if (!hasDbConfig && !process.env.DATABASE_URL) {
   throw new Error(
-    "Database connection is not configured. Set DB_* variables or DATABASE_URL."
+    "Database connection is not configured. Set DB_* variables or DATABASE_URL.",
   );
 }
 

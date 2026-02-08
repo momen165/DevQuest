@@ -3,14 +3,8 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { authenticateToken } = require("./middleware/auth");
-const updateUserStreak = require("./middleware/updateUserStreak");
 const sanitizeInput = require("./middleware/sanitizeInput");
-const { handleError } = require("./utils/error.utils");
-const trackVisit = require("./middleware/trackVisits");
-const {
-  performanceMiddleware,
-  wrapDatabaseQuery,
-} = require("./middleware/performance.middleware");
+const { wrapDatabaseQuery } = require("./middleware/performance.middleware");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { closeExpiredTickets } = require("./controllers/support.controller");
@@ -61,7 +55,7 @@ app.use(
       "sentry-trace",
       "baggage",
     ],
-  })
+  }),
 );
 
 // Security headers
@@ -101,7 +95,7 @@ app.use(
       ],
       upgradeInsecureRequests: [],
     },
-  })
+  }),
 );
 
 // Define stricter rate limits for auth routes
@@ -131,7 +125,7 @@ app.disable("x-powered-by");
 app.post(
   "/api/webhook",
   express.raw({ type: "application/json" }),
-  webhookHandler
+  webhookHandler,
 );
 
 // Middleware for parsing JSON and URL-encoded data
@@ -167,7 +161,6 @@ const {
   getCoursesWithRatings,
   getPublicFeedback,
 } = require("./controllers/feedback.controller");
-const { getMaintenanceStatus } = require("./controllers/admin.controller");
 
 // Apply specific rate limiting to auth endpoints
 app.use("/api/login", authLimiter);
@@ -214,7 +207,7 @@ app.post("/api/ping-session", express.json(), async (req, res) => {
       const token = req.headers.authorization.split(" ")[1];
       const decoded = require("jsonwebtoken").verify(
         token,
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
       );
       req.user = { user_id: decoded.userId };
       await sessionTracker(req, res, () => {
@@ -250,33 +243,37 @@ app.use("/api/admin", performanceRoutes);
 app.use("/api/badges", badgeRoutes);
 
 // Checkout session endpoint - secured with authentication and returns minimal payload
-app.get("/api/checkout-session/:sessionId", authenticateToken, async (req, res) => {
-  const { sessionId } = req.params;
-  const userId = req.user.userId;
-  
-  try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    
-    // Verify the session belongs to the authenticated user
-    if (session.client_reference_id !== userId.toString()) {
-      return res.status(403).json({ error: "Access denied to this session" });
+app.get(
+  "/api/checkout-session/:sessionId",
+  authenticateToken,
+  async (req, res) => {
+    const { sessionId } = req.params;
+    const userId = req.user.userId;
+
+    try {
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      // Verify the session belongs to the authenticated user
+      if (session.client_reference_id !== userId.toString()) {
+        return res.status(403).json({ error: "Access denied to this session" });
+      }
+
+      // Return minimal payload instead of full session object
+      res.json({
+        id: session.id,
+        status: session.status,
+        payment_status: session.payment_status,
+        customer_email: session.customer_email,
+        amount_total: session.amount_total,
+        currency: session.currency,
+        subscription: session.subscription,
+      });
+    } catch (error) {
+      console.error("Error retrieving checkout session:", error);
+      res.status(404).json({ error: "Session not found" });
     }
-    
-    // Return minimal payload instead of full session object
-    res.json({
-      id: session.id,
-      status: session.status,
-      payment_status: session.payment_status,
-      customer_email: session.customer_email,
-      amount_total: session.amount_total,
-      currency: session.currency,
-      subscription: session.subscription,
-    });
-  } catch (error) {
-    console.error("Error retrieving checkout session:", error);
-    res.status(404).json({ error: "Session not found" });
-  }
-});
+  },
+);
 
 // Block cloud metadata access
 app.use((req, res, next) => {
@@ -292,12 +289,12 @@ app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader(
     "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains"
+    "max-age=31536000; includeSubDomains",
   );
   res.setHeader("Referrer-Policy", "same-origin");
   res.setHeader(
     "Permissions-Policy",
-    "geolocation=(), microphone=(), camera=()"
+    "geolocation=(), microphone=(), camera=()",
   );
   next();
 });

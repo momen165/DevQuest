@@ -16,7 +16,7 @@ router.post(
   requireAuth,
   sessionTracker,
   upload.single("image"),
-  courseController.addCourse
+  courseController.addCourse,
 );
 
 // Edit a course
@@ -26,7 +26,7 @@ router.put(
   requireAuth,
   sessionTracker,
   upload.single("image"),
-  courseController.editCourse
+  courseController.editCourse,
 );
 
 // Get all courses
@@ -34,7 +34,7 @@ router.get(
   "/courses",
   cacheMiddleware("courses", 300),
   performanceMiddleware("courses"),
-  courseController.getCourses
+  courseController.getCourses,
 );
 
 // Get a specific course by ID
@@ -46,7 +46,7 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  courseController.getUserCourseStats
+  courseController.getUserCourseStats,
 );
 
 // Get user's overall stats
@@ -55,7 +55,7 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  courseController.getUserOverallStats
+  courseController.getUserOverallStats,
 );
 
 // Delete a course
@@ -64,7 +64,7 @@ router.delete(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  courseController.deleteCourse
+  courseController.deleteCourse,
 );
 
 router.post(
@@ -72,7 +72,7 @@ router.post(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  courseController.enrollCourse
+  courseController.enrollCourse,
 );
 
 router.get(
@@ -80,7 +80,7 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  courseController.checkEnrollmentStatus
+  courseController.checkEnrollmentStatus,
 );
 
 module.exports = router;

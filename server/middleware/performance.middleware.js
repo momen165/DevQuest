@@ -22,7 +22,7 @@ const performanceMiddleware = (endpointName) => {
         responseTime,
         res.statusCode,
         req.method,
-        req.ip
+        req.ip,
       );
     };
 

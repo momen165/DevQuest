@@ -63,7 +63,9 @@ const getFeedback = handleAsync(async (req, res) => {
     return res.status(403).json({ error: "Access denied. Admins only." });
   }
 
-  const courseId = req.query.course_id ? parseInt(req.query.course_id, 10) : null;
+  const courseId = req.query.course_id
+    ? parseInt(req.query.course_id, 10)
+    : null;
 
   const rows = await prisma.feedback.findMany({
     where: courseId ? { course_id: courseId } : undefined,
@@ -91,7 +93,7 @@ const getFeedback = handleAsync(async (req, res) => {
       rating: row.rating,
       status: row.status,
       reply: row.reply,
-    }))
+    })),
   );
 });
 
@@ -123,7 +125,7 @@ const getPublicFeedback = handleAsync(async (req, res) => {
   });
 
   const filtered = rows.filter(
-    (row) => row.comment && String(row.comment).trim().length > 0
+    (row) => row.comment && String(row.comment).trim().length > 0,
   );
 
   const shuffled = filtered
@@ -142,7 +144,7 @@ const getPublicFeedback = handleAsync(async (req, res) => {
       country: row.users?.country,
       course_name: row.course?.name,
       difficulty: row.course?.difficulty,
-    }))
+    })),
   );
 });
 
@@ -179,7 +181,7 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
   const userscountMap = Object.fromEntries(
     enrollmentCounts
       .filter((row) => row.course_id !== null)
-      .map((row) => [row.course_id, String(row._count.user_id)])
+      .map((row) => [row.course_id, String(row._count.user_id)]),
   );
 
   const responseData = {
@@ -194,7 +196,10 @@ const getCoursesWithRatings = handleAsync(async (req, res) => {
 
 // Optimized endpoint that combines all course data in a single request
 const getOptimizedCoursesData = handleAsync(async (req, res) => {
-  const { trackCacheHit, trackCacheMiss } = require("../utils/performance.utils");
+  const {
+    trackCacheHit,
+    trackCacheMiss,
+  } = require("../utils/performance.utils");
   const userId = req.user?.userId;
   const cacheKey = userId
     ? `${OPTIMIZED_COURSES_CACHE_PREFIX}${userId}`
@@ -261,7 +266,9 @@ const getOptimizedCoursesData = handleAsync(async (req, res) => {
         }),
       ]);
 
-      enrollmentMap = new Map(userEnrollments.map((row) => [row.course_id, true]));
+      enrollmentMap = new Map(
+        userEnrollments.map((row) => [row.course_id, true]),
+      );
 
       for (const row of completedProgress) {
         const courseId = row.lesson?.section?.course_id;
@@ -275,7 +282,7 @@ const getOptimizedCoursesData = handleAsync(async (req, res) => {
 
     const formattedCourses = courses.map((course) => {
       const allLessonIds = course.section.flatMap((section) =>
-        section.lesson.map((lesson) => lesson.lesson_id)
+        section.lesson.map((lesson) => lesson.lesson_id),
       );
       const totalLessons = allLessonIds.length;
 
@@ -283,12 +290,17 @@ const getOptimizedCoursesData = handleAsync(async (req, res) => {
         ? completedByCourseMap.get(course.course_id)?.size || 0
         : 0;
 
-      const progress = totalLessons > 0 ? Math.round((completedCount * 100) / totalLessons) : 0;
+      const progress =
+        totalLessons > 0
+          ? Math.round((completedCount * 100) / totalLessons)
+          : 0;
 
       return {
         ...course,
         userscount: String(course._count.enrollment),
-        is_enrolled: userId ? Boolean(enrollmentMap.get(course.course_id)) : false,
+        is_enrolled: userId
+          ? Boolean(enrollmentMap.get(course.course_id))
+          : false,
         progress,
       };
     });
@@ -310,7 +322,10 @@ const getOptimizedCoursesData = handleAsync(async (req, res) => {
 
 // Optimized endpoint for CourseSection.jsx that combines multiple API calls
 const getOptimizedCourseSectionData = handleAsync(async (req, res) => {
-  const { trackCacheHit, trackCacheMiss } = require("../utils/performance.utils");
+  const {
+    trackCacheHit,
+    trackCacheMiss,
+  } = require("../utils/performance.utils");
 
   const { courseId } = req.params;
   const userId = req.user?.userId;
@@ -437,11 +452,11 @@ const getOptimizedCourseSectionData = handleAsync(async (req, res) => {
 
     const courseXP = completedInCourse.reduce(
       (sum, row) => sum + toNumber(row.lesson?.xp),
-      0
+      0,
     );
     const totalXP = completedAll.reduce(
       (sum, row) => sum + toNumber(row.lesson?.xp),
-      0
+      0,
     );
 
     const sectionsPayload = sections.map((section) => ({
@@ -564,7 +579,7 @@ const submitFeedback = handleAsync(async (req, res) => {
 
   const eligibility = await checkFeedbackEligibility(
     requesterId,
-    normalizedCourseId
+    normalizedCourseId,
   );
 
   if (!eligibility.canSubmitFeedback) {
@@ -739,7 +754,7 @@ const getRecentFeedback = handleAsync(async (req, res) => {
       course_name: row.course?.name || null,
       comment: row.comment,
       created_at: row.created_at,
-    }))
+    })),
   );
 });
 

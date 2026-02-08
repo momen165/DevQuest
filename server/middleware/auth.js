@@ -24,7 +24,7 @@ const isPublicRequest = (req) => {
     pathsToCheck.push(req.originalUrl.split("?")[0]);
   }
   return pathsToCheck.some((path) =>
-    publicRoutePatterns.some((pattern) => pattern.test(path))
+    publicRoutePatterns.some((pattern) => pattern.test(path)),
   );
 };
 

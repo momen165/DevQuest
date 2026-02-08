@@ -151,16 +151,16 @@ function generateWelcomeTemplate(ticketId, category, userMessage) {
           <p>Hi there!</p>
           
           <p>We've successfully received your message and created support ticket <strong>#${ticketId}</strong>. ${
-    info.description
-  }</p>
+            info.description
+          }</p>
           
           <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 3px solid ${
             BRAND_COLORS.accent
           };">
             <strong>Your Message:</strong><br>
             <em>${userMessage.substring(0, 200)}${
-    userMessage.length > 200 ? "..." : ""
-  }</em>
+              userMessage.length > 200 ? "..." : ""
+            }</em>
           </div>
           
           <a href="https://dev-quest.me/support/ticket/${ticketId}" class="button">
@@ -199,7 +199,7 @@ function generateAdminResponseTemplate(
   ticketId,
   adminName,
   responseMessage,
-  userEmail
+  userEmail,
 ) {
   return `
     <!DOCTYPE html>
@@ -271,7 +271,7 @@ function generateAdminResponseTemplate(
 function generateResolvedTemplate(
   ticketId,
   resolutionMessage,
-  satisfactionSurveyUrl
+  satisfactionSurveyUrl,
 ) {
   return `
     <!DOCTYPE html>
@@ -310,8 +310,8 @@ function generateResolvedTemplate(
           <p><strong>Was this helpful?</strong> We'd love to hear about your experience!</p>
           
           <a href="${satisfactionSurveyUrl}" class="button" style="background: ${
-    BRAND_COLORS.success
-  };">
+            BRAND_COLORS.success
+          };">
             ⭐ Rate Our Support (2 minutes)
           </a>
           

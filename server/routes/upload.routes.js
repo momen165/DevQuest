@@ -25,16 +25,8 @@ router.use(requireAuth);
 // Define routes
 router.get("/test", testRoute);
 router.post("/upload", uploadFile);
-router.post(
-  "/uploadProfilePic",
-  sessionTracker,
-  uploadProfilePic
-);
-router.delete(
-  "/removeProfilePic",
-  sessionTracker,
-  removeProfilePic
-);
+router.post("/uploadProfilePic", sessionTracker, uploadProfilePic);
+router.delete("/removeProfilePic", sessionTracker, removeProfilePic);
 
 // Add new route for editor uploads
 router.post("/editor", sessionTracker, uploadEditorImage);

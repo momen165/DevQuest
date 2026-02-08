@@ -61,7 +61,7 @@ const addCourse = asyncHandler(async (req, res) => {
     status,
     difficulty,
     language_id,
-    imageUrl
+    imageUrl,
   );
 
   if (result.rowCount === 0) {
@@ -77,7 +77,7 @@ const addCourse = asyncHandler(async (req, res) => {
   await logActivity(
     "Course",
     `New course added: ${title} by user ID ${req.user.userId}`,
-    req.user.userId
+    req.user.userId,
   );
 
   res.status(201).json(createdCourse);
@@ -103,7 +103,7 @@ const editCourse = asyncHandler(async (req, res) => {
     status,
     difficulty,
     language_id,
-    imageUrl
+    imageUrl,
   );
 
   if (result.rowCount === 0) {
@@ -118,7 +118,7 @@ const editCourse = asyncHandler(async (req, res) => {
   await logActivity(
     "Course",
     `Course updated: ${title} by user ID ${req.user.userId}`,
-    req.user.userId
+    req.user.userId,
   );
   res.status(200).json(updatedCourse);
 });
@@ -136,7 +136,7 @@ const deleteCourse = asyncHandler(async (req, res) => {
   await logActivity(
     "Course",
     `Course deleted by user ID ${req.user.userId}`,
-    req.user.userId
+    req.user.userId,
   );
   res
     .status(200)
@@ -157,7 +157,7 @@ const getCourseById = asyncHandler(async (req, res) => {
   if (result.rows.length === 0) {
     throw new AppError(
       "The course you are looking for does not exist or has been removed",
-      404
+      404,
     );
   }
 
@@ -188,7 +188,7 @@ const getUserCourseStats = asyncHandler(async (req, res) => {
 
   const result = await courseQueries.getUserCourseStats(
     normalizedUserId,
-    normalizedCourseId
+    normalizedCourseId,
   );
 
   const stats = {
@@ -214,7 +214,10 @@ const enrollCourse = asyncHandler(async (req, res) => {
   validateCourseId(normalizedCourseId);
 
   try {
-    const result = await courseQueries.enrollUser(requesterId, normalizedCourseId);
+    const result = await courseQueries.enrollUser(
+      requesterId,
+      normalizedCourseId,
+    );
     res
       .status(200)
       .json({ message: "Enrollment successful", result: result.rows[0] });
@@ -246,7 +249,7 @@ const checkEnrollmentStatus = asyncHandler(async (req, res) => {
 
   const result = await courseQueries.checkEnrollment(
     normalizedUserId,
-    normalizedCourseId
+    normalizedCourseId,
   );
   res.status(200).json({ isEnrolled: result.rowCount > 0 });
 });

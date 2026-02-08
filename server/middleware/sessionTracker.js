@@ -43,8 +43,8 @@ async function flushSessionUpdates() {
               session_duration: update.duration,
               page_views: update.pageViews,
             },
-          })
-        )
+          }),
+        ),
       );
     }
   } catch (err) {

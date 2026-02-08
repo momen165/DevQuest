@@ -5,7 +5,8 @@ const toResult = (rows) => ({
   rowCount: rows.length,
 });
 
-const toNumber = (value) => (value === null || value === undefined ? 0 : Number(value));
+const toNumber = (value) =>
+  value === null || value === undefined ? 0 : Number(value);
 
 const courseQueries = {
   insertCourse: async (
@@ -14,7 +15,7 @@ const courseQueries = {
     status,
     difficulty,
     language_id,
-    imageUrl
+    imageUrl,
   ) => {
     const created = await prisma.course.create({
       data: {
@@ -36,7 +37,7 @@ const courseQueries = {
     status,
     difficulty,
     language_id,
-    imageUrl
+    imageUrl,
   ) => {
     const id = Number(course_id);
     const existing = await prisma.course.findUnique({
@@ -88,7 +89,7 @@ const courseQueries = {
         difficulty: course.difficulty,
         rating: course.rating,
         userscount: String(course._count.enrollment),
-      }))
+      })),
     );
   },
 
@@ -152,10 +153,12 @@ const courseQueries = {
       }),
     ]);
 
-    const uniqueLessons = new Set(completedProgress.map((row) => row.lesson_id));
+    const uniqueLessons = new Set(
+      completedProgress.map((row) => row.lesson_id),
+    );
     const totalXp = completedProgress.reduce(
       (sum, row) => sum + toNumber(row.lesson?.xp),
-      0
+      0,
     );
 
     return toResult([
@@ -223,11 +226,12 @@ const courseQueries = {
       }),
     ]);
 
-    const completedCourses = new Set(enrollments.map((row) => row.course_id)).size;
+    const completedCourses = new Set(enrollments.map((row) => row.course_id))
+      .size;
     const uniqueLessons = new Set(progressRows.map((row) => row.lesson_id));
     const totalXp = progressRows.reduce(
       (sum, row) => sum + toNumber(row.lesson?.xp),
-      0
+      0,
     );
 
     return toResult([

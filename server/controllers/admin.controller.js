@@ -23,19 +23,19 @@ const grantFreeSubscription = async (req, res) => {
     const amountPaid = 0;
     const status = true; // Boolean status: true for active subscription
 
-    const { userName, userEmail } = await AdminModel.grantFreeSubscriptionDB(
+    const { userName } = await AdminModel.grantFreeSubscriptionDB(
       userId,
       freeEndDate,
       subscriptionType,
       amountPaid,
-      status
+      status,
     );
 
     const requesterName = await AdminModel.getUserNameByIdDB(req.user.userId);
     await logAdminActivity(
       req.user.userId,
       "Subscription",
-      `Admin ${requesterName} (ID: ${req.user.userId}) granted free subscription to user ${userName} (ID: ${userId})`
+      `Admin ${requesterName} (ID: ${req.user.userId}) granted free subscription to user ${userName} (ID: ${userId})`,
     );
 
     res.status(200).json({ message: "Free subscription granted" });
@@ -104,13 +104,13 @@ const addAdmin = async (req, res) => {
     // addAdminDB handles user existence and current admin status checks
     const { targetName, requesterName } = await AdminModel.addAdminDB(
       userId,
-      req.user.userId
+      req.user.userId,
     );
 
     await logAdminActivity(
       req.user.userId,
       "Admin",
-      `Admin ${requesterName} (ID: ${req.user.userId}) added user ${targetName} (ID: ${userId}) as admin`
+      `Admin ${requesterName} (ID: ${req.user.userId}) added user ${targetName} (ID: ${userId}) as admin`,
     );
 
     res.status(200).json({ message: "Admin added successfully" });
@@ -130,7 +130,7 @@ const addAdmin = async (req, res) => {
       await logAdminActivity(
         req.user.userId,
         "Admin",
-        `Admin ${requesterName} (ID: ${req.user.userId}) attempted to add user ${targetName} (ID: ${userId}) as admin but they are already an admin`
+        `Admin ${requesterName} (ID: ${req.user.userId}) attempted to add user ${targetName} (ID: ${userId}) as admin but they are already an admin`,
       );
       return res.status(400).json({ error: "User is already an admin" });
     }
@@ -154,13 +154,13 @@ const removeAdmin = async (req, res) => {
     // removeAdminDB handles admin existence check
     const { targetName, requesterName } = await AdminModel.removeAdminDB(
       userId,
-      req.user.userId
+      req.user.userId,
     );
 
     await logAdminActivity(
       req.user.userId,
       "Admin",
-      `Admin ${requesterName} (ID: ${req.user.userId}) removed user ${targetName} (ID: ${userId}) from admin role`
+      `Admin ${requesterName} (ID: ${req.user.userId}) removed user ${targetName} (ID: ${userId}) from admin role`,
     );
 
     res.status(200).json({ message: "Admin removed successfully" });
@@ -183,13 +183,13 @@ const toggleMaintenanceMode = async (req, res) => {
     const { enabled } = req.body;
     const settings = await AdminModel.toggleMaintenanceModeDB(
       enabled,
-      req.user.userId
+      req.user.userId,
     );
 
     await logAdminActivity(
       req.user.userId,
       "System",
-      `Maintenance mode ${enabled ? "enabled" : "disabled"}`
+      `Maintenance mode ${enabled ? "enabled" : "disabled"}`,
     );
 
     // Clear the cache when maintenance mode is toggled
@@ -297,7 +297,7 @@ const getSiteAnalytics = async (req, res) => {
       },
       engagementStats: {
         averageSessionTime: parseFloat(
-          engagementStatsRaw.avg_session_time || 0
+          engagementStatsRaw.avg_session_time || 0,
         ),
         bounceRate: parseFloat(engagementStatsRaw.bounce_rate || 0),
         pageViews: parseInt(dbResults.filteredPageViews?.page_views || 0),
@@ -307,10 +307,10 @@ const getSiteAnalytics = async (req, res) => {
       userEngagement: {
         newUsersDaily: dbResults.newUsersDaily || [],
         activeUsers24h: parseInt(
-          dbResults.activeUsers24h?.active_users_24h || 0
+          dbResults.activeUsers24h?.active_users_24h || 0,
         ),
         quizzesTaken: parseInt(
-          dbResults.quizzesTaken?.total_quizzes_taken || 0
+          dbResults.quizzesTaken?.total_quizzes_taken || 0,
         ),
         mostAttemptedLessons: dbResults.mostAttemptedLessons || [],
       },
@@ -340,8 +340,6 @@ module.exports = {
   getSiteAnalytics,
   grantFreeSubscription,
 };
-
-
 
 module.exports = {
   // Include all existing exports

@@ -120,7 +120,7 @@ const lessonQueries = {
     lesson_order,
     template_code,
     hint,
-    solution
+    solution,
   ) => {
     const processedTestCases = (test_cases || []).map((test) => ({
       input: test.input || "",
@@ -176,7 +176,7 @@ const lessonQueries = {
         lesson_order: lesson.lesson_order,
         xp: lesson.xp,
         completed: lesson.lesson_progress[0]?.completed || false,
-      }))
+      })),
     );
   },
 
@@ -228,7 +228,7 @@ const lessonQueries = {
     section_id,
     template_code,
     hint,
-    solution
+    solution,
   ) => {
     const lessonId = toInt(lesson_id);
     const sectionId = toInt(section_id);
@@ -347,7 +347,7 @@ const lessonQueries = {
     lesson_id,
     completed,
     completed_at,
-    submitted_code
+    submitted_code,
   ) => {
     const progress = await prisma.lesson_progress.update({
       where: {
@@ -373,7 +373,7 @@ const lessonQueries = {
     completed,
     completed_at,
     course_id,
-    submitted_code
+    submitted_code,
   ) => {
     const progress = await prisma.lesson_progress.create({
       data: {
@@ -529,7 +529,7 @@ const lessonQueries = {
           course_name: lesson.section?.course?.name,
           course_status: lesson.section?.course?.status,
           language_id: lesson.section?.course?.language_id ?? null,
-        }))
+        })),
       );
     }
 
@@ -566,7 +566,7 @@ const lessonQueries = {
         course_name: lesson.section?.course?.name,
         course_status: lesson.section?.course?.status,
         language_id: lesson.section?.course?.language_id ?? null,
-      }))
+      })),
     );
   },
 
@@ -693,7 +693,8 @@ const lessonQueries = {
       select: { lesson_id: true },
     });
 
-    const completedLessons = new Set(progressRows.map((row) => row.lesson_id)).size;
+    const completedLessons = new Set(progressRows.map((row) => row.lesson_id))
+      .size;
 
     return {
       total: totalLessons,

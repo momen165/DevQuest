@@ -21,7 +21,7 @@ router.get(
 
     const metrics = getPerformanceMetrics();
     res.json(metrics);
-  }
+  },
 );
 
 /**
@@ -38,7 +38,7 @@ router.post(
 
     clearPerformanceMetrics();
     res.json({ message: "Performance metrics cleared successfully" });
-  }
+  },
 );
 
 /**
@@ -60,12 +60,12 @@ router.get(
 
     const totalRequests = endpoints.reduce(
       (sum, endpoint) => sum + endpoint.totalRequests,
-      0
+      0,
     );
 
     const totalQueries = database.reduce(
       (sum, query) => sum + query.totalQueries,
-      0
+      0,
     );
 
     const totalHits = cache.reduce((sum, item) => sum + item.hits, 0);
@@ -77,7 +77,7 @@ router.get(
             endpoints.reduce(
               (sum, endpoint) =>
                 sum + endpoint.averageResponseTime * endpoint.totalRequests,
-              0
+              0,
             ) / totalRequests
           ).toFixed(2)
         : "0.00";
@@ -87,7 +87,7 @@ router.get(
         ? (
             database.reduce(
               (sum, query) => sum + query.averageQueryTime * query.totalQueries,
-              0
+              0,
             ) / totalQueries
           ).toFixed(2)
         : "0.00";
@@ -95,20 +95,17 @@ router.get(
     const successRate =
       totalQueries > 0
         ? (
-            (database.reduce(
-              (sum, query) => sum + query.successfulQueries,
-              0
-            ) /
+            (database.reduce((sum, query) => sum + query.successfulQueries, 0) /
               totalQueries) *
             100
           ).toFixed(2) + "%"
         : "0%";
 
     const sortedEndpoints = [...endpoints].sort(
-      (a, b) => b.averageResponseTime - a.averageResponseTime
+      (a, b) => b.averageResponseTime - a.averageResponseTime,
     );
     const sortedQueries = [...database].sort(
-      (a, b) => b.averageQueryTime - a.averageQueryTime
+      (a, b) => b.averageQueryTime - a.averageQueryTime,
     );
 
     res.json({
@@ -134,7 +131,7 @@ router.get(
             : "0%",
       },
     });
-  }
+  },
 );
 
 module.exports = router;

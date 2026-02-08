@@ -31,7 +31,7 @@ router.get(
   sessionTracker,
   cacheMiddleware("feedback", 300),
   performanceMiddleware("submitFeedback"), // Performance monitoring for feedback submission
-  getFeedback
+  getFeedback,
 );
 router.post(
   "/feedback",
@@ -39,7 +39,7 @@ router.post(
   requireAuth,
   sessionTracker,
 
-  submitFeedback
+  submitFeedback,
 );
 router.post(
   "/feedback/reply",
@@ -47,26 +47,26 @@ router.post(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  replyToFeedback
+  replyToFeedback,
 );
 
 router.get(
   "/getCoursesWithRatings",
   performanceMiddleware("getCoursesWithRatings"),
 
-  getCoursesWithRatings
+  getCoursesWithRatings,
 );
 router.get(
   "/optimized-courses",
   authenticateToken,
   performanceMiddleware("optimized-courses"),
-  getOptimizedCoursesData
+  getOptimizedCoursesData,
 ); // New optimized endpoint with performance monitoring
 router.get(
   "/feedback/public",
   performanceMiddleware("publicFeedback"),
 
-  getPublicFeedback
+  getPublicFeedback,
 );
 
 router.get(
@@ -80,14 +80,14 @@ router.get(
     try {
       const eligibility = await checkFeedbackEligibility(
         req.user.userId,
-        req.params.courseId
+        req.params.courseId,
       );
       res.json(eligibility);
     } catch (error) {
       console.error("Eligibility check error:", error);
       res.status(400).json({ error: error.message });
     }
-  }
+  },
 );
 
 router.get(
@@ -96,7 +96,7 @@ router.get(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  getRecentFeedback
+  getRecentFeedback,
 );
 
 router.post(
@@ -105,7 +105,7 @@ router.post(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  reopenFeedback
+  reopenFeedback,
 );
 router.get(
   "/optimized-course-section/:courseId",
@@ -114,7 +114,7 @@ router.get(
   sessionTracker,
   performanceMiddleware("optimized-course-section"),
 
-  getOptimizedCourseSectionData
+  getOptimizedCourseSectionData,
 );
 
 module.exports = router;

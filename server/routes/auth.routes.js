@@ -19,7 +19,7 @@ const validateSignup = [
     .isLength({ min: 8 })
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
     .withMessage(
-      "Password must be at least 8 characters and contain uppercase, lowercase, number, and special character"
+      "Password must be at least 8 characters and contain uppercase, lowercase, number, and special character",
     ),
   body("country").trim().notEmpty().withMessage("Country is required"),
 ];
@@ -32,7 +32,7 @@ const validatePasswordChange = [
     .isLength({ min: 8 })
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
     .withMessage(
-      "New password must be at least 8 characters and contain uppercase, lowercase, number, and special character"
+      "New password must be at least 8 characters and contain uppercase, lowercase, number, and special character",
     ),
 ];
 
@@ -49,7 +49,7 @@ router.get(
   "/check-auth",
   authenticateToken,
   performanceMiddleware("check-auth"),
-  authController.checkAuth
+  authController.checkAuth,
 ); // Only needs token, no force requirement
 
 // Protected routes - require valid authentication
@@ -59,7 +59,7 @@ router.put(
   requireAuth,
   trackVisit,
   sessionTracker,
-  authController.updateProfile
+  authController.updateProfile,
 );
 router.post(
   "/change-password",
@@ -68,7 +68,7 @@ router.post(
   trackVisit,
   sessionTracker,
   validatePasswordChange,
-  authController.changePassword
+  authController.changePassword,
 );
 router.post(
   "/requestEmailChange",
@@ -76,7 +76,7 @@ router.post(
   requireAuth,
   trackVisit,
   sessionTracker,
-  authController.requestEmailChange
+  authController.requestEmailChange,
 );
 router.post(
   "/confirmEmailChange",
@@ -84,7 +84,7 @@ router.post(
   requireAuth,
   trackVisit,
   sessionTracker,
-  authController.confirmEmailChange
+  authController.confirmEmailChange,
 );
 
 // Export the router as a CommonJS module

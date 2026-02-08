@@ -16,7 +16,7 @@ async function sendSimpleMessage() {
       process.env.MAILGUN_API_KEY
         ? `${process.env.MAILGUN_API_KEY.substring(0, 15)}...`
         : "❌ Missing"
-    }`
+    }`,
   );
   console.log(`Domain: ${process.env.MAILGUN_DOMAIN || "❌ Missing"}`);
   console.log(`EU Endpoint: https://api.eu.mailgun.net\n`);
@@ -71,7 +71,7 @@ async function sendSimpleMessage() {
     if (error.status === 401) {
       console.log("\n💡 API Key Issues:");
       console.log(
-        "- Make sure you're using the correct Private API key from Mailgun dashboard"
+        "- Make sure you're using the correct Private API key from Mailgun dashboard",
       );
       console.log("- Verify the key starts with 'key-'");
       console.log("- Check if you're using the right account/region");

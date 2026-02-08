@@ -14,14 +14,14 @@ router.post(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  lessonController.unlockHint
+  lessonController.unlockHint,
 );
 router.post(
   "/lesson/:lessonId/unlock-solution",
   authenticateToken,
   requireAuth,
   sessionTracker,
-  lessonController.unlockSolution
+  lessonController.unlockSolution,
 );
 
 // CRUD Operations
@@ -31,7 +31,7 @@ router.post(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  lessonController.addLesson
+  lessonController.addLesson,
 ); // Add a lesson
 
 router.get("/lesson", lessonController.getLessons); // This route will handle both section_id and course_id queries
@@ -42,14 +42,14 @@ router.get(
   authenticateToken,
   requireAuth,
   requireAdmin,
-  lessonController.getAdminLessonsForSection
+  lessonController.getAdminLessonsForSection,
 ); // Admin-specific route with all lesson fields
 
 router.get(
   "/lesson/:lessonId",
   authenticateToken,
   requireAuth,
-  lessonController.getLessonById
+  lessonController.getLessonById,
 ); // Get a lesson by ID
 router.put(
   "/lesson/:lesson_id",
@@ -57,7 +57,7 @@ router.put(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  lessonController.editLesson
+  lessonController.editLesson,
 ); // Update a lesson
 router.delete(
   "/lesson/:lesson_id",
@@ -65,7 +65,7 @@ router.delete(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  lessonController.deleteLesson
+  lessonController.deleteLesson,
 ); // Delete a lesson
 
 // Reordering Lessons
@@ -75,7 +75,7 @@ router.post(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  lessonController.reorderLessons
+  lessonController.reorderLessons,
 ); // Reorder lessons
 
 // Update progress
@@ -84,13 +84,13 @@ router.put(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  lessonController.updateLessonProgress
+  lessonController.updateLessonProgress,
 ); // User-specific progress update
 router.get(
   "/lesson-progress",
   authenticateToken,
   requireAuth,
-  lessonController.getLessonProgress
+  lessonController.getLessonProgress,
 );
 
 // Add this new route
@@ -100,7 +100,7 @@ router.post(
   requireAuth,
   requireAdmin,
   sessionTracker,
-  lessonController.fixLessonOrders
+  lessonController.fixLessonOrders,
 );
 
 // Add route for checking lesson order integrity
@@ -109,7 +109,7 @@ router.get(
   authenticateToken,
   requireAuth,
   requireAdmin,
-  lessonController.checkLessonOrderIntegrity
+  lessonController.checkLessonOrderIntegrity,
 );
 
 router.get(
@@ -117,7 +117,7 @@ router.get(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  lessonController.getLessonsBySection
+  lessonController.getLessonsBySection,
 );
 
 module.exports = router;

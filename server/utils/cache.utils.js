@@ -16,11 +16,15 @@ const feedbackCache = createCache(300, 2000); // 5 minutes
 const analyticsCache = createCache(300, 1000); // 5 minutes
 const warnedUnknownCacheTypes = new Set();
 
-const getUserScope = (req) => String(req.user?.user_id ?? req.user?.userId ?? "guest");
+const getUserScope = (req) =>
+  String(req.user?.user_id ?? req.user?.userId ?? "guest");
 
 const normalizeQueryValue = (value) => {
   if (Array.isArray(value)) {
-    return value.map((entry) => String(entry)).sort().join(",");
+    return value
+      .map((entry) => String(entry))
+      .sort()
+      .join(",");
   }
   if (value !== null && typeof value === "object") {
     return JSON.stringify(value);
@@ -30,7 +34,9 @@ const normalizeQueryValue = (value) => {
 
 const buildCacheKey = (req) => {
   const query = req.query || {};
-  const queryEntries = Object.entries(query).sort(([a], [b]) => a.localeCompare(b));
+  const queryEntries = Object.entries(query).sort(([a], [b]) =>
+    a.localeCompare(b),
+  );
 
   // Avoid key explosion with unbounded query cardinality.
   if (queryEntries.length > 20) return null;
@@ -117,7 +123,9 @@ const getCacheInstance = (cacheType) => {
 const warnUnknownCacheType = (cacheType) => {
   if (warnedUnknownCacheTypes.has(cacheType)) return;
   warnedUnknownCacheTypes.add(cacheType);
-  console.warn(`[cache] Unknown cache type "${cacheType}". Caching disabled for this route.`);
+  console.warn(
+    `[cache] Unknown cache type "${cacheType}". Caching disabled for this route.`,
+  );
 };
 
 // Invalidate all user-scoped entries in the shared user cache.

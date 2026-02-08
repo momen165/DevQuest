@@ -8,7 +8,7 @@ class AppError extends Error {
   }
 }
 
-const handleError = (err, req, res, next) => {
+const handleError = (err, req, res) => {
   console.error("Error:", err);
 
   if (err instanceof AppError) {

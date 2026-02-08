@@ -16,13 +16,13 @@ async function testMailgunConnection() {
       process.env.MAILGUN_API_KEY
         ? `${process.env.MAILGUN_API_KEY.substring(0, 15)}...`
         : "❌ Missing"
-    }`
+    }`,
   );
   console.log(`Domain: ${process.env.MAILGUN_DOMAIN || "❌ Missing"}`);
   console.log(
     `API URL: ${
       process.env.MAILGUN_API_URL || "https://api.mailgun.net (default)"
-    }\n`
+    }\n`,
   );
 
   if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {

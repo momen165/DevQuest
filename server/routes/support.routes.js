@@ -28,7 +28,7 @@ router.post(
   authenticateToken,
   requireAuth,
   sessionTracker,
-  submitTicket
+  submitTicket,
 );
 
 router.get(
@@ -37,7 +37,7 @@ router.get(
   requireAuth,
   sessionTracker,
   performanceMiddleware("support-tickets"), // Performance monitoring for support tickets
-  getTickets
+  getTickets,
 );
 router.get(
   "/user-support-tickets",
@@ -45,28 +45,28 @@ router.get(
   requireAuth,
   sessionTracker,
   performanceMiddleware("user-support-tickets"), // Performance monitoring for support tickets
-  getUserTicketsByUserId
+  getUserTicketsByUserId,
 ); // Route for user support tickets by user ID
 router.post(
   "/support-tickets/:ticketId/reply",
   authenticateToken,
   requireAuth,
   sessionTracker,
-  replyToTicket
+  replyToTicket,
 );
 router.delete(
   "/support-tickets/:ticketId",
   authenticateToken,
   requireAuth,
   sessionTracker,
-  deleteTicket
+  deleteTicket,
 ); // Route for deleting a support ticket
 router.post(
   "/support-tickets/:ticketId/close",
   authenticateToken,
   requireAuth,
   sessionTracker,
-  closeTicket
+  closeTicket,
 );
 router.get(
   "/support-tickets/recent",
@@ -74,7 +74,7 @@ router.get(
   requireAuth,
   sessionTracker,
   performanceMiddleware("user-support-tickets"),
-  getRecentTickets
+  getRecentTickets,
 );
 
 // Public routes for anonymous support
@@ -82,28 +82,28 @@ router.post(
   "/support/anonymous",
   sessionTracker,
   performanceMiddleware("anonymous-support"),
-  submitAnonymousTicket
+  submitAnonymousTicket,
 );
 
 router.post(
   "/support/anonymous/access/request",
   sessionTracker,
   performanceMiddleware("anonymous-support-access-request"),
-  requestAnonymousTicketAccess
+  requestAnonymousTicketAccess,
 );
 
 router.post(
   "/support/anonymous/access/verify",
   sessionTracker,
   performanceMiddleware("anonymous-support-access-verify"),
-  verifyAnonymousTicketAccess
+  verifyAnonymousTicketAccess,
 );
 
 router.get(
   "/support/anonymous/:email",
   sessionTracker,
   performanceMiddleware("anonymous-support-tickets"),
-  getAnonymousTicketsByEmail
+  getAnonymousTicketsByEmail,
 );
 
 // Support Dashboard Analytics Routes
@@ -113,7 +113,7 @@ router.get(
   requireAuth,
   sessionTracker,
   performanceMiddleware("support-dashboard-analytics"),
-  getDashboardAnalytics
+  getDashboardAnalytics,
 );
 
 router.get(
@@ -122,7 +122,7 @@ router.get(
   requireAuth,
   sessionTracker,
   performanceMiddleware("support-recent-tickets"),
-  getRecentTicketsForDashboard
+  getRecentTicketsForDashboard,
 );
 
 module.exports = router;

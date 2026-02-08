@@ -73,7 +73,7 @@ const helpers = {
         admin: userData.admin || false,
       },
       process.env.JWT_SECRET,
-      { expiresIn: CONFIG.jwt.accessTokenExpiresIn }
+      { expiresIn: CONFIG.jwt.accessTokenExpiresIn },
     );
   },
 
@@ -147,11 +147,11 @@ const helpers = {
 
     const response = await mg.messages.create(
       process.env.MAILGUN_DOMAIN,
-      messageData
+      messageData,
     );
 
     console.log(
-      `Email sent successfully to ${recipient}. Message ID: ${response.id}`
+      `Email sent successfully to ${recipient}. Message ID: ${response.id}`,
     );
     return true;
   },
@@ -242,13 +242,13 @@ const signup = handleAsync(async (req, res) => {
   await helpers.sendEmail(
     normalizedEmail,
     "Welcome to Devquest - Verify Your Email",
-    emailContent
+    emailContent,
   );
 
   await logActivity(
     "User",
     `Verification email sent to: ${normalizedEmail}`,
-    user.user_id
+    user.user_id,
   );
 
   res.status(201).json({
@@ -283,7 +283,10 @@ const login = handleAsync(async (req, res) => {
   });
 
   if (user) {
-    userExistenceCache.set(USER_EXISTENCE_CACHE_KEY_PREFIX + user.user_id, true);
+    userExistenceCache.set(
+      USER_EXISTENCE_CACHE_KEY_PREFIX + user.user_id,
+      true,
+    );
   }
 
   if (!user) {
@@ -364,7 +367,7 @@ const refreshAccessToken = handleAsync(async (req, res) => {
   if (user) {
     userExistenceCache.set(
       USER_EXISTENCE_CACHE_KEY_PREFIX + storedToken.user_id,
-      true
+      true,
     );
   }
 
@@ -442,22 +445,22 @@ const updateProfile = handleAsync(async (req, res) => {
     try {
       const allFieldsFilled = Boolean(
         updatedUser.name &&
-          updatedUser.country &&
-          updatedUser.bio &&
-          updatedUser.skills &&
-          updatedUser.profileimage
+        updatedUser.country &&
+        updatedUser.bio &&
+        updatedUser.skills &&
+        updatedUser.profileimage,
       );
       if (allFieldsFilled) {
         await require("../controllers/badge.controller").checkAndAwardBadges(
           req.user.userId,
           "profile_complete",
-          { profileComplete: true }
+          { profileComplete: true },
         );
       }
     } catch (badgeErr) {
       console.error(
         "[Profile Badge] Error checking/awarding profile complete badge:",
-        badgeErr
+        badgeErr,
       );
     }
 
@@ -501,7 +504,7 @@ const changePassword = handleAsync(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds
+    CONFIG.bcrypt.saltRounds,
   );
 
   await prisma.users.update({
@@ -556,7 +559,7 @@ const sendPasswordResetEmail = handleAsync(async (req, res) => {
     await helpers.sendEmail(
       normalizedEmail,
       "Password Reset Request - Devquest",
-      emailContent
+      emailContent,
     );
   }
 
@@ -578,7 +581,7 @@ const resetPassword = handleAsync(async (req, res) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    CONFIG.bcrypt.saltRounds
+    CONFIG.bcrypt.saltRounds,
   );
 
   const updated = await prisma.users.updateMany({
@@ -648,7 +651,11 @@ const verifyEmail = handleAsync(async (req, res) => {
       data: { is_verified: true },
     });
 
-    await logActivity("User", `Email verified for user ID: ${userId}`, toInt(userId));
+    await logActivity(
+      "User",
+      `Email verified for user ID: ${userId}`,
+      toInt(userId),
+    );
     res
       .status(200)
       .json({ message: "Email verified successfully. You can now log in." });
@@ -739,7 +746,7 @@ const resendVerificationEmail = handleAsync(async (req, res) => {
   await helpers.sendEmail(
     normalizedEmail,
     "Verify Your Email - Devquest",
-    emailContent
+    emailContent,
   );
 
   res.status(200).json({
@@ -798,11 +805,11 @@ const sendFeedbackReplyEmail = async ({
 
     const response = await mg.messages.create(
       process.env.MAILGUN_DOMAIN,
-      messageData
+      messageData,
     );
 
     console.log(
-      `Feedback reply email sent successfully to ${email}. Message ID: ${response.id}`
+      `Feedback reply email sent successfully to ${email}. Message ID: ${response.id}`,
     );
     return true;
   } catch (error) {
@@ -884,7 +891,7 @@ const requestEmailChange = handleAsync(async (req, res) => {
   await helpers.sendEmail(
     user.email,
     "Confirm Your Email Change Request - Devquest",
-    emailContent
+    emailContent,
   );
 
   res.status(200).json({
@@ -939,7 +946,7 @@ const confirmEmailChange = handleAsync(async (req, res) => {
     await logActivity(
       "User",
       `Email changed from ${currentEmail} to ${newEmail}`,
-      toInt(userId)
+      toInt(userId),
     );
 
     res.status(200).json({

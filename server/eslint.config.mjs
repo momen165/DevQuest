@@ -3,10 +3,9 @@ import globals from "globals";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
+  js.configs.recommended,
   {
-    files: ["**/*.{js,mjs,cjs}"],
-    plugins: { js },
-    extends: ["js/recommended"],
+    files: ["**/*.{js,cjs}"],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -14,6 +13,16 @@ export default defineConfig([
       },
       ecmaVersion: 2022,
       sourceType: "commonjs",
+    },
+  },
+  {
+    files: ["**/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      ecmaVersion: 2022,
+      sourceType: "module",
     },
   },
 ]);

@@ -52,10 +52,7 @@ const getAllStudents = async (req, res) => {
           status: true,
           subscription_start_date: true,
         },
-        orderBy: [
-          { user_id: "asc" },
-          { subscription_start_date: "desc" },
-        ],
+        orderBy: [{ user_id: "asc" }, { subscription_start_date: "desc" }],
       }),
       prisma.enrollment.findMany({
         where: {
@@ -105,7 +102,7 @@ const getAllStudents = async (req, res) => {
       completedLessonSetByUser.get(row.user_id).add(row.lesson_id);
       totalXpByUser.set(
         row.user_id,
-        (totalXpByUser.get(row.user_id) || 0) + toNumber(row.lesson?.xp)
+        (totalXpByUser.get(row.user_id) || 0) + toNumber(row.lesson?.xp),
       );
     }
 
@@ -117,17 +114,17 @@ const getAllStudents = async (req, res) => {
         studentEnrollments.length > 0
           ? studentEnrollments.reduce(
               (sum, item) => sum + toNumber(item.progress),
-              0
+              0,
             ) / studentEnrollments.length
           : 0;
 
       const completedCourses = studentEnrollments.filter(
-        (item) => toNumber(item.progress) >= 100
+        (item) => toNumber(item.progress) >= 100,
       ).length;
 
       const latestSub = latestSubscriptionByUser.get(student.user_id);
       const hasActiveSubscription = Boolean(
-        latestSub && latestSub.status && latestSub.subscription_end_date > now
+        latestSub && latestSub.status && latestSub.subscription_end_date > now,
       );
 
       return {
@@ -162,10 +159,10 @@ const getAllStudents = async (req, res) => {
             ? Math.round(
                 (formatted.reduce(
                   (sum, s) => sum + (parseFloat(s.avg_progress) || 0),
-                  0
+                  0,
                 ) /
                   formatted.length) *
-                  10
+                  10,
               ) / 10
             : 0,
       },
@@ -247,7 +244,7 @@ const getStudentById = async (req, res) => {
 
     const totalXP = progressRows.reduce(
       (sum, row) => sum + toNumber(row.lesson?.xp),
-      0
+      0,
     );
 
     const latestByCourse = new Map();
@@ -256,7 +253,10 @@ const getStudentById = async (req, res) => {
       if (!courseId) continue;
 
       const current = latestByCourse.get(courseId);
-      if (!current || (row.completed_at && row.completed_at > current.completed_at)) {
+      if (
+        !current ||
+        (row.completed_at && row.completed_at > current.completed_at)
+      ) {
         latestByCourse.set(courseId, {
           lesson_id: row.lesson_id,
           name: row.lesson?.name,
@@ -282,7 +282,8 @@ const getStudentById = async (req, res) => {
       skills: user.skills || [],
       profileimage: user.profileimage,
       courses,
-      exercisesCompleted: new Set(progressRows.map((row) => row.lesson_id)).size,
+      exercisesCompleted: new Set(progressRows.map((row) => row.lesson_id))
+        .size,
       courseXP: totalXP,
       level: calculateLevel(totalXP),
       xpToNextLevel: calculateXPToNextLevel(totalXP),
@@ -325,7 +326,7 @@ const getCoursesByStudentId = async (req, res) => {
       rows.map((row) => ({
         course_name: row.course?.name,
         progress: row.progress,
-      }))
+      })),
     );
   } catch (err) {
     console.error("Error fetching courses for student:", err.message || err);
@@ -397,7 +398,7 @@ const checkXPBadges = async (userId, totalXP) => {
       const badgeAwarded = await badgeController.checkAndAwardBadges(
         userId,
         "xp_update",
-        { totalXp: totalXP }
+        { totalXp: totalXP },
       );
       return badgeAwarded;
     }
@@ -434,7 +435,10 @@ const getStudentStats = async (req, res) => {
       },
     });
 
-    const totalXP = rows.reduce((sum, row) => sum + toNumber(row.lesson?.xp), 0);
+    const totalXP = rows.reduce(
+      (sum, row) => sum + toNumber(row.lesson?.xp),
+      0,
+    );
     const level = calculateLevel(totalXP);
     const xpToNextLevel = calculateXPToNextLevel(totalXP);
 
@@ -494,12 +498,13 @@ const getCourseStats = async (req, res) => {
 
     const courseXP = progressRows.reduce(
       (sum, row) => sum + toNumber(row.lesson?.xp),
-      0
+      0,
     );
 
     res.json({
       courseXP,
-      exercisesCompleted: new Set(progressRows.map((row) => row.lesson_id)).size,
+      exercisesCompleted: new Set(progressRows.map((row) => row.lesson_id))
+        .size,
       streak: Number(user?.streak || 0),
       level: calculateLevel(courseXP),
       xpToNextLevel: calculateXPToNextLevel(courseXP),

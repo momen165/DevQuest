@@ -81,13 +81,18 @@ const getDashboardAnalytics = asyncHandler(async (req, res) => {
     .map((ticket) => {
       const firstReply = ticket.ticket_messages[0]?.sent_at;
       if (!firstReply || !ticket.time_opened) return null;
-      return (new Date(firstReply).getTime() - new Date(ticket.time_opened).getTime()) / 1000;
+      return (
+        (new Date(firstReply).getTime() -
+          new Date(ticket.time_opened).getTime()) /
+        1000
+      );
     })
     .filter((value) => value !== null && value >= 0);
 
   const avgResponseTime =
     responseTimes.length > 0
-      ? responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length
+      ? responseTimes.reduce((sum, value) => sum + value, 0) /
+        responseTimes.length
       : 0;
 
   const priorityOrder = { high: 1, medium: 2, low: 3 };
@@ -148,7 +153,12 @@ const getRecentTicketsForDashboard = asyncHandler(async (req, res) => {
     status: ticket.status,
     time_opened: ticket.time_opened,
     age_seconds: ticket.time_opened
-      ? Math.max(0, Math.floor((now.getTime() - new Date(ticket.time_opened).getTime()) / 1000))
+      ? Math.max(
+          0,
+          Math.floor(
+            (now.getTime() - new Date(ticket.time_opened).getTime()) / 1000,
+          ),
+        )
       : 0,
     is_overdue:
       Boolean(ticket.sla_target) &&
@@ -206,7 +216,7 @@ const getTicketTrends = asyncHandler(async (req, res) => {
   }
 
   const trends = Array.from(trendsMap.values()).sort((a, b) =>
-    a.date > b.date ? 1 : -1
+    a.date > b.date ? 1 : -1,
   );
 
   const summary = {
@@ -214,7 +224,8 @@ const getTicketTrends = asyncHandler(async (req, res) => {
     avgDailyTickets:
       trends.length > 0
         ? (
-            trends.reduce((sum, day) => sum + day.new_tickets, 0) / trends.length
+            trends.reduce((sum, day) => sum + day.new_tickets, 0) /
+            trends.length
           ).toFixed(1)
         : 0,
   };
