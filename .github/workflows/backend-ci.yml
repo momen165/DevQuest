@@ -26,7 +26,6 @@ jobs:
         with:
           node-version: "24"
           cache: "npm"
-          cache-dependency-path: server/package-lock.json
 
       - name: Install deps (runs postinstall -> prisma generate)
         run: npm ci
