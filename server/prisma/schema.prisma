@@ -138,6 +138,7 @@ model lesson_progress {
   @@index([user_id, course_id, completed], map: "idx_lesson_progress_user_course_completed")
   @@index([user_id], map: "idx_lesson_progress_user_id")
   @@index([user_id, lesson_id], map: "idx_lesson_progress_user_lesson")
+  @@index([user_id, completed_at(sort: Desc)], map: "idx_lesson_progress_user_completed_at")
 }
 
 model payment {
@@ -207,6 +208,7 @@ model site_visits {
   @@index([device_type], map: "idx_site_visits_device_type")
   @@index([page_visited], map: "idx_site_visits_page_visited")
   @@index([visit_date(sort: Desc)], map: "idx_site_visits_visit_date")
+  @@index([visit_date, page_visited], map: "idx_site_visits_date_page")
 }
 
 model subscription {
@@ -288,6 +290,7 @@ model user_activity {
   users       users?    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([created_at(sort: Desc)], map: "idx_user_activity_created_at")
+  @@index([user_id], map: "idx_user_activity_user_id")
 }
 
 model user_badges {

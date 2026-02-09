@@ -8,6 +8,9 @@ const {
 const sessionTracker = require("../middleware/sessionTracker");
 const lessonController = require("../controllers/lesson.controller");
 
+// Higher JSON body limit for lesson content (HTML can be large)
+const largeBodyParser = express.json({ limit: "5mb" });
+
 // Unlock hint/solution endpoints
 router.post(
   "/lesson/:lessonId/unlock-hint",
@@ -27,6 +30,7 @@ router.post(
 // CRUD Operations
 router.post(
   "/lesson",
+  largeBodyParser,
   authenticateToken,
   requireAuth,
   requireAdmin,
@@ -53,6 +57,7 @@ router.get(
 ); // Get a lesson by ID
 router.put(
   "/lesson/:lesson_id",
+  largeBodyParser,
   authenticateToken,
   requireAuth,
   requireAdmin,

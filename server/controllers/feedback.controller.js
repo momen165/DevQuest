@@ -10,7 +10,7 @@ const {
 } = require("../utils/authz.utils");
 
 // Initialize cache with 5 minutes TTL
-const cache = new NodeCache({ stdTTL: 300 });
+const cache = new NodeCache({ stdTTL: 300, maxKeys: 2000, useClones: false });
 
 // Cache keys for courses data
 const COURSES_CACHE_KEY = "courses_with_ratings";

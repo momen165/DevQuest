@@ -75,18 +75,18 @@ const createBadgesTable = async () => {
   await initDefaultBadges();
 };
 
-// Initialize default badges
+// Initialize default badges — batch check + createMany instead of sequential queries
 const initDefaultBadges = async () => {
   try {
-    for (const badge of DEFAULT_BADGES) {
-      const existing = await prisma.badges.findFirst({
-        where: { badge_type: badge.badge_type },
-        select: { badge_id: true },
-      });
-
-      if (!existing) {
-        await prisma.badges.create({ data: badge });
-      }
+    const existing = await prisma.badges.findMany({
+      select: { badge_type: true },
+    });
+    const existingTypes = new Set(existing.map((b) => b.badge_type));
+    const missing = DEFAULT_BADGES.filter(
+      (badge) => !existingTypes.has(badge.badge_type),
+    );
+    if (missing.length > 0) {
+      await prisma.badges.createMany({ data: missing, skipDuplicates: true });
     }
   } catch (error) {
     console.error("Error initializing default badges:", error);

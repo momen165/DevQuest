@@ -59,18 +59,20 @@ const trackVisit = async (req, res, next) => {
     // Support both user.userId and user.user_id for compatibility
     const userId = req.user?.userId || req.user?.user_id || null;
     if (userId) {
-      await prisma.users.update({
-        where: { user_id: userId },
-        data: { last_login: new Date() },
-      });
-
-      await prisma.user_activity.create({
-        data: {
-          user_id: userId,
-          action_type: req.method === "GET" ? "page_view" : "api_call",
-          resource_id: null,
-        },
-      });
+      // Run all 3 writes in parallel since they are independent
+      await Promise.all([
+        prisma.users.update({
+          where: { user_id: userId },
+          data: { last_login: new Date() },
+        }),
+        prisma.user_activity.create({
+          data: {
+            user_id: userId,
+            action_type: req.method === "GET" ? "page_view" : "api_call",
+            resource_id: null,
+          },
+        }),
+      ]);
     }
   } catch (err) {
     console.error("Error tracking visit:", err);

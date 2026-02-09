@@ -6,7 +6,7 @@ const {
 } = require("../controllers/subscription.controller");
 
 // Initialize cache for recent sessions with a short TTL (e.g., 5 minutes)
-const sessionCache = new NodeCache({ stdTTL: 300 });
+const sessionCache = new NodeCache({ stdTTL: 300, maxKeys: 5000, useClones: false });
 const SESSION_CACHE_KEY_PREFIX = "session_";
 
 // Batch update buffer - reduces DB writes by batching updates

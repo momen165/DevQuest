@@ -4,6 +4,7 @@
  */
 
 const { sendNotificationEmail } = require("./email.utils");
+const { logger } = require("./logger");
 
 // Common support categories and auto-responses
 const AUTO_RESPONSES = {
@@ -136,10 +137,10 @@ async function sendAutoResponse(ticketId, userEmail, category, autoResponse) {
       isAutoResponse: true,
     });
 
-    console.log(`Auto-response sent for ticket #${ticketId} (${category})`);
+      logger.info(`Auto-response sent for ticket #${ticketId} (${category})`);
     return true;
   } catch (error) {
-    console.error("Auto-response failed:", error);
+      logger.warn("Auto-response failed:", error);
     return false;
   }
 }

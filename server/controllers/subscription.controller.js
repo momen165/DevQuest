@@ -8,6 +8,7 @@ const subscriptionCache = new NodeCache({
   checkperiod: 300,
   useClones: false,
   deleteOnExpire: true,
+  maxKeys: 5000,
 });
 
 const getActiveSubscriptionForUser = async (userId) => {

@@ -2,7 +2,12 @@
 
 const jwt = require("jsonwebtoken");
 const prisma = require("../config/prisma");
+const NodeCache = require("node-cache");
 require("dotenv").config();
+
+// Cache admin status lookups to avoid DB hit on every authenticated request (60s TTL)
+const adminStatusCache = new NodeCache({ stdTTL: 60, maxKeys: 500, useClones: false });
+const ADMIN_CACHE_PREFIX = "admin_status_";
 
 // List of routes that should be publicly accessible without authentication
 const publicRoutePatterns = [
@@ -67,17 +72,23 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Always resolve admin status from DB so stale JWT claims do not block admin actions.
-    const adminRecord = await prisma.admins.findUnique({
-      where: { admin_id: normalizedUserId },
-      select: { admin_id: true },
-    });
+    // Resolve admin status with caching to avoid a DB query on every authenticated request.
+    const adminCacheKey = ADMIN_CACHE_PREFIX + normalizedUserId;
+    let isAdmin = adminStatusCache.get(adminCacheKey);
+    if (isAdmin === undefined) {
+      const adminRecord = await prisma.admins.findUnique({
+        where: { admin_id: normalizedUserId },
+        select: { admin_id: true },
+      });
+      isAdmin = Boolean(adminRecord);
+      adminStatusCache.set(adminCacheKey, isAdmin);
+    }
 
     req.user = {
       ...user,
       userId: normalizedUserId,
       user_id: normalizedUserId,
-      admin: Boolean(adminRecord),
+      admin: isAdmin,
     };
     next(); // Only call next() if token is successfully verified
   } catch (err) {
@@ -133,8 +144,14 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+// Invalidate the admin status cache for a specific user (call after admin role changes)
+const invalidateAdminCache = (userId) => {
+  adminStatusCache.del(ADMIN_CACHE_PREFIX + userId);
+};
+
 module.exports = {
   authenticateToken,
   requireAuth,
   requireAdmin,
+  invalidateAdminCache,
 };

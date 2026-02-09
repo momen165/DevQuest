@@ -434,15 +434,6 @@ const updateLesson = asyncHandler(async (req, res) => {
     auto_detect,
   } = req.body;
 
-  console.log("Updating lesson with data:", {
-    lesson_id,
-    name,
-    xp,
-    test_cases,
-    section_id,
-    auto_detect,
-  });
-
   try {
     // Instead, use the test cases directly
     const result = await lessonQueries.updateLesson(
@@ -641,13 +632,12 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     );
   }
 
-  const totalLessonsResult = await lessonQueries.getTotalLessonsCount(courseId);
+  // Parallelize independent queries: total lessons + completed lessons
+  const [totalLessonsResult, completedLessonsResult] = await Promise.all([
+    lessonQueries.getTotalLessonsCount(courseId),
+    lessonQueries.getCompletedLessonsCount(userId, courseId),
+  ]);
   const totalLessons = parseInt(totalLessonsResult.rows[0].total_lessons, 10);
-
-  const completedLessonsResult = await lessonQueries.getCompletedLessonsCount(
-    userId,
-    courseId,
-  );
   const completedLessons = parseInt(
     completedLessonsResult.rows[0].completed_lessons,
     10,
@@ -664,49 +654,40 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
     throw new AppError("Enrollment not found.", 404);
   }
 
-  // Check and award XP badge if eligible
+  // --- BADGE LOGIC (optimized: fetch user badges + XP in parallel, check in memory) ---
   try {
-    const completedRows = await prisma.lesson_progress.findMany({
-      where: {
-        user_id: Number(userId),
-        completed: true,
-      },
-      select: {
-        lesson: {
-          select: {
-            xp: true,
-          },
-        },
-      },
-    });
-    const xp = completedRows.reduce(
-      (sum, row) => sum + Number(row.lesson?.xp || 0),
-      0,
-    );
-    if (xp >= 100) {
-      await require("../controllers/badge.controller").checkAndAwardBadges(
-        userId,
-        "xp_update",
-        { totalXp: xp },
-      );
-    }
-  } catch (badgeErr) {
-    console.error("[XP Badge] Error checking/awarding XP badge:", badgeErr);
-  }
+    const badgeController = require("../controllers/badge.controller");
 
-  // --- BADGE LOGIC: Perfectionist ---
-  try {
-    // Check if user completed all lessons in the course (Perfectionist)
-    if (completed && completedLessons === totalLessons && totalLessons > 0) {
-      await require("../controllers/badge.controller").checkAndAwardBadges(
-        userId,
-        "perfectionist",
-        { courseCompleted: true },
-      );
+    // Fetch user's existing badge types and total XP in parallel
+    const [userBadges, completedWithXp] = await Promise.all([
+      prisma.user_badges.findMany({
+        where: { user_id: Number(userId) },
+        select: { badges: { select: { badge_type: true } } },
+      }),
+      prisma.lesson_progress.findMany({
+        where: { user_id: Number(userId), completed: true },
+        select: { lesson: { select: { xp: true } } },
+      }),
+    ]);
+
+    // Build a Set of already-owned badge types for O(1) lookups
+    const ownedBadgeTypes = new Set(
+      userBadges.map((ub) => ub.badges.badge_type),
+    );
+    const xp = completedWithXp.reduce((sum, row) => sum + (row.lesson?.xp || 0), 0);
+
+    // XP badge
+    if (xp >= 100 && !ownedBadgeTypes.has("xp_achiever")) {
+      await badgeController.checkAndAwardBadges(userId, "xp_update", { totalXp: xp });
     }
-    // --- BADGE LOGIC: Daily Learner & Marathoner ---
-    if (completed) {
-      // Daily Learner: check for 3 consecutive days
+
+    // Perfectionist badge
+    if (completed && completedLessons === totalLessons && totalLessons > 0 && !ownedBadgeTypes.has("perfectionist")) {
+      await badgeController.checkAndAwardBadges(userId, "perfectionist", { courseCompleted: true });
+    }
+
+    // Daily Learner & Marathoner (only check if lesson was completed and badges not yet earned)
+    if (completed && (!ownedBadgeTypes.has("daily_learner") || !ownedBadgeTypes.has("marathoner"))) {
       const streakRows = await prisma.lesson_progress.findMany({
         where: {
           user_id: Number(userId),
@@ -718,39 +699,32 @@ const updateLessonProgress = asyncHandler(async (req, res) => {
         select: { completed_at: true },
       });
       const days = streakRows.map(
-        (r) =>
-          r.completed_at && new Date(r.completed_at).toISOString().slice(0, 10),
+        (r) => r.completed_at && new Date(r.completed_at).toISOString().slice(0, 10),
       );
-      let consecutive = 1;
-      for (let i = 1; i < days.length; i++) {
-        const prev = new Date(days[i - 1]);
-        const curr = new Date(days[i]);
-        if ((prev - curr) / (1000 * 60 * 60 * 24) === 1) consecutive++;
-        else if (prev.getTime() !== curr.getTime()) break;
+
+      if (!ownedBadgeTypes.has("daily_learner")) {
+        let consecutive = 1;
+        for (let i = 1; i < days.length; i++) {
+          const prev = new Date(days[i - 1]);
+          const curr = new Date(days[i]);
+          if ((prev - curr) / (1000 * 60 * 60 * 24) === 1) consecutive++;
+          else if (prev.getTime() !== curr.getTime()) break;
+        }
+        if (consecutive >= 3) {
+          await badgeController.checkAndAwardBadges(userId, "daily_learner", { consecutiveDays: consecutive });
+        }
       }
-      if (consecutive >= 3) {
-        await require("../controllers/badge.controller").checkAndAwardBadges(
-          userId,
-          "daily_learner",
-          { consecutiveDays: consecutive },
-        );
-      }
-      // Marathoner: check for 5 lessons in a single day
-      const today = new Date().toISOString().slice(0, 10);
-      const todayCount = days.filter((d) => d === today).length;
-      if (todayCount >= 5) {
-        await require("../controllers/badge.controller").checkAndAwardBadges(
-          userId,
-          "marathoner",
-          { lessonsToday: todayCount },
-        );
+
+      if (!ownedBadgeTypes.has("marathoner")) {
+        const today = new Date().toISOString().slice(0, 10);
+        const todayCount = days.filter((d) => d === today).length;
+        if (todayCount >= 5) {
+          await badgeController.checkAndAwardBadges(userId, "marathoner", { lessonsToday: todayCount });
+        }
       }
     }
   } catch (badgeErr) {
-    console.error(
-      "[Extra Badges] Error checking/awarding extra badges:",
-      badgeErr,
-    );
+    console.error("[Badges] Error checking/awarding badges:", badgeErr);
   }
 
   // No caching for mutation endpoints

@@ -541,9 +541,18 @@ const lessonQueries = {
         },
       },
       orderBy: [{ section: { section_order: "asc" } }, { lesson_order: "asc" }],
-      include: {
+      // Return metadata only for course-level listing — exclude heavy content fields
+      select: {
+        lesson_id: true,
+        section_id: true,
+        name: true,
+        xp: true,
+        lesson_order: true,
+        auto_detect: true,
         section: {
-          include: {
+          select: {
+            section_order: true,
+            name: true,
             course: {
               select: {
                 course_id: true,
@@ -636,29 +645,38 @@ const lessonQueries = {
       return { rows: [], rowCount: 0 };
     }
 
+    // Batch: get completed counts per user in a single query instead of N+1
+    const completedCounts = await prisma.lesson_progress.groupBy({
+      by: ["user_id"],
+      where: {
+        course_id: courseId,
+        completed: true,
+      },
+      _count: { lesson_id: true },
+    });
+
+    const completedByUser = new Map(
+      completedCounts.map((row) => [row.user_id, row._count.lesson_id]),
+    );
+
     const enrollments = await prisma.enrollment.findMany({
       where: { course_id: courseId },
       select: { enrollment_id: true, user_id: true },
     });
 
-    await prisma.$transaction(async (tx) => {
-      for (const enrollment of enrollments) {
-        const completedCount = await tx.lesson_progress.count({
-          where: {
-            user_id: enrollment.user_id,
-            course_id: courseId,
-            completed: true,
-          },
-        });
-
-        const progress = (completedCount / totalLessons) * 100;
-
-        await tx.enrollment.update({
-          where: { enrollment_id: enrollment.enrollment_id },
-          data: { progress },
-        });
-      }
-    });
+    // Batch update all enrollments in a single transaction
+    if (enrollments.length > 0) {
+      await prisma.$transaction(
+        enrollments.map((enrollment) => {
+          const completed = completedByUser.get(enrollment.user_id) || 0;
+          const progress = (completed / totalLessons) * 100;
+          return prisma.enrollment.update({
+            where: { enrollment_id: enrollment.enrollment_id },
+            data: { progress },
+          });
+        }),
+      );
+    }
 
     return { rows: [], rowCount: enrollments.length };
   },

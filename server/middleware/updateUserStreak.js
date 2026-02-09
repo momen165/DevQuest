@@ -1,9 +1,10 @@
 const prisma = require("../config/prisma");
 const badgeController = require("../controllers/badge.controller");
+const { logger } = require("../utils/logger");
 
 // Cache to track users already updated today - reduces unnecessary DB checks
 const NodeCache = require("node-cache");
-const streakUpdateCache = new NodeCache({ stdTTL: 86400 }); // 24 hour TTL
+const streakUpdateCache = new NodeCache({ stdTTL: 86400, maxKeys: 10000, useClones: false }); // 24 hour TTL
 
 const dayStartUtc = (value) => {
   const date = new Date(value);
@@ -86,12 +87,12 @@ const updateUserStreak = async (req, res, next) => {
           { streakDays: newStreak },
         );
         if (badgeAwarded?.awarded) {
-          console.log(
+          logger.info(
             `[Badge] User ${userId} earned the Streak Master badge for ${newStreak} day streak`,
           );
         }
       } catch (badgeError) {
-        console.error(
+        logger.warn(
           "[Badge Error] Error while checking streak badge:",
           badgeError,
         );
@@ -100,7 +101,7 @@ const updateUserStreak = async (req, res, next) => {
 
     return next();
   } catch (err) {
-    console.error("[Streak Error]", err);
+    logger.warn("[Streak Error]", err);
     next(err);
   }
 };

@@ -73,7 +73,7 @@ const LANGUAGE_CONFIGS = {
 };
 
 // Initialize cache and rate limiter
-const codeExecutionCache = new NodeCache(CONFIG.cache);
+const codeExecutionCache = new NodeCache({ ...CONFIG.cache, maxKeys: 1000, useClones: false });
 const executionLimiter = rateLimit({
   windowMs: CONFIG.rateLimit.windowMs,
   max: CONFIG.rateLimit.maxRequests,

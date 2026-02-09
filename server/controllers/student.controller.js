@@ -5,11 +5,12 @@ const {
 } = require("../utils/xpCalculator");
 const badgeController = require("../controllers/badge.controller");
 const { canAccessUser, toIntId } = require("../utils/authz.utils");
+const { logger } = require("../utils/logger");
 
 const toNumber = (value) =>
   value === null || value === undefined ? 0 : Number(value);
 
-// Fetch all students
+// Fetch all students (with pagination support)
 const getAllStudents = async (req, res) => {
   try {
     if (!req.user.admin) {
@@ -17,26 +18,35 @@ const getAllStudents = async (req, res) => {
       return res.status(403).json({ error: "Access denied. Admins only." });
     }
 
+    // Pagination params (defaults: page=1, limit=50)
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
+    const offset = (page - 1) * limit;
+
     const adminUsers = await prisma.admins.findMany({
       select: { admin_id: true },
     });
     const adminIds = adminUsers.map((row) => row.admin_id);
 
-    const students = await prisma.users.findMany({
-      where: {
-        user_id: {
-          notIn: adminIds,
+    const whereFilter = { user_id: { notIn: adminIds } };
+
+    // Get total count and paginated students in parallel
+    const [totalCount, students] = await Promise.all([
+      prisma.users.count({ where: whereFilter }),
+      prisma.users.findMany({
+        where: whereFilter,
+        select: {
+          user_id: true,
+          name: true,
+          email: true,
+          created_at: true,
+          is_verified: true,
         },
-      },
-      select: {
-        user_id: true,
-        name: true,
-        email: true,
-        created_at: true,
-        is_verified: true,
-      },
-      orderBy: { created_at: "desc" },
-    });
+        orderBy: { created_at: "desc" },
+        skip: offset,
+        take: limit,
+      }),
+    ]);
 
     const studentIds = students.map((s) => s.user_id);
 
@@ -150,7 +160,10 @@ const getAllStudents = async (req, res) => {
       students: formatted,
       count: formatted.length,
       metadata: {
-        totalStudents: formatted.length,
+        totalStudents: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
         verifiedStudents: formatted.filter((s) => s.is_verified).length,
         activeSubscriptions: formatted.filter((s) => s.has_active_subscription)
           .length,
@@ -551,9 +564,7 @@ const deleteStudentAccount = async (req, res) => {
       await tx.users.delete({ where: { user_id: userId } });
     });
 
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Account deletion successful for user ${userId}`);
-    }
+    logger.info(`Account deletion successful for user ${userId}`);
 
     res.status(200).json({
       success: true,

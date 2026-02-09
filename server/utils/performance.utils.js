@@ -188,10 +188,20 @@ if (
 }
 
 // API Performance tracking functions for middleware
+const MAX_TRACKED_ENTRIES = 200; // Cap to prevent unbounded growth
+
 const apiMetrics = {
   endpoints: new Map(),
   database: new Map(),
   cache: new Map(),
+};
+
+/** Evict the oldest entry from a Map if it exceeds the max size */
+const enforceMapLimit = (map, max = MAX_TRACKED_ENTRIES) => {
+  if (map.size > max) {
+    const firstKey = map.keys().next().value;
+    map.delete(firstKey);
+  }
 };
 
 /**
@@ -217,6 +227,7 @@ const trackAPIPerformance = (
       statusCodes: new Map(),
       lastRequest: null,
     });
+    enforceMapLimit(apiMetrics.endpoints);
   }
 
   const metrics = apiMetrics.endpoints.get(key);
@@ -259,6 +270,7 @@ const trackDatabaseQuery = (queryType, queryTime, success) => {
       failedQueries: 0,
       lastQuery: null,
     });
+    enforceMapLimit(apiMetrics.database);
   }
 
   const metrics = apiMetrics.database.get(queryType);
@@ -296,6 +308,7 @@ const trackCacheHit = (cacheType) => {
       hitRate: 0,
       lastAccess: null,
     });
+    enforceMapLimit(apiMetrics.cache);
   }
 
   const metrics = apiMetrics.cache.get(cacheType);
@@ -313,6 +326,7 @@ const trackCacheMiss = (cacheType) => {
       hitRate: 0,
       lastAccess: null,
     });
+    enforceMapLimit(apiMetrics.cache);
   }
 
   const metrics = apiMetrics.cache.get(cacheType);

@@ -1,6 +1,7 @@
 const prisma = require("../config/prisma");
 const crypto = require("crypto");
 const NodeCache = require("node-cache");
+const { logger } = require("../utils/logger");
 const {
   sendSupportReplyNotification,
   sendSupportTicketConfirmation,
@@ -380,7 +381,7 @@ const closeExpiredTickets = async () => {
     });
 
     if (result.count > 0) {
-      console.log(`Closed ${result.count} expired tickets`);
+      logger.info(`Closed ${result.count} expired tickets`);
     }
   } catch (err) {
     console.error("Error closing expired tickets:", err);

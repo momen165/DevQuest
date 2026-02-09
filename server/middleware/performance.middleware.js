@@ -9,31 +9,26 @@ const {
 const performanceMiddleware = (endpointName) => {
   return (req, res, next) => {
     const startTime = process.hrtime.bigint();
-    const originalSend = res.send;
-    const originalJson = res.json;
+    const originalEnd = res.end;
+    let tracked = false;
 
-    // Track response time when response is sent
-    const trackResponse = () => {
-      const endTime = process.hrtime.bigint();
-      const responseTime = Number(endTime - startTime) / 1000000;
-
-      trackAPIPerformance(
-        endpointName,
-        responseTime,
-        res.statusCode,
-        req.method,
-        req.ip,
-      );
-    };
-
-    res.send = function (...args) {
-      trackResponse();
-      return originalSend.apply(this, args);
-    };
-
-    res.json = function (...args) {
-      trackResponse();
-      return originalJson.apply(this, args);
+    // Use res.end override only — it is always called exactly once,
+    // avoiding double-tracking when both cacheMiddleware and performanceMiddleware
+    // are applied (cacheMiddleware overrides res.json, which calls res.send, which calls res.end).
+    res.end = function (...args) {
+      if (!tracked) {
+        tracked = true;
+        const endTime = process.hrtime.bigint();
+        const responseTime = Number(endTime - startTime) / 1000000;
+        trackAPIPerformance(
+          endpointName,
+          responseTime,
+          res.statusCode,
+          req.method,
+          req.ip,
+        );
+      }
+      return originalEnd.apply(this, args);
     };
 
     next();

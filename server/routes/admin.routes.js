@@ -14,7 +14,7 @@ const {
   getSiteAnalytics,
   grantFreeSubscription,
 } = require("../controllers/admin.controller");
-const trackVisit = require("../middleware/trackVisits");
+// trackVisit removed: it skips all /api paths, so it was a no-op on admin routes
 const {
   authenticateToken,
   requireAuth,
@@ -41,7 +41,6 @@ router.get(
 const sessionTracker = require("../middleware/sessionTracker");
 router.use(authenticateToken);
 router.use(requireAuth);
-router.use(trackVisit); // <-- Add this so all admin routes after this will have trackVisit with req.user set
 router.use(sessionTracker);
 router.get("/status", performanceMiddleware("status"), checkAdminStatus);
 router.get("/activities", requireAdmin, getAdminActivities);

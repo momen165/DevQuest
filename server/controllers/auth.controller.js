@@ -8,10 +8,11 @@ const formData = require("form-data");
 const crypto = require("crypto");
 const NodeCache = require("node-cache");
 const { setCacheHeaders } = require("../utils/cache.utils");
+const { logger } = require("../utils/logger");
 require("dotenv").config();
 
 // Initialize cache for user existence checks
-const userExistenceCache = new NodeCache({ stdTTL: 60 });
+const userExistenceCache = new NodeCache({ stdTTL: 60, maxKeys: 2000, useClones: false });
 const USER_EXISTENCE_CACHE_KEY_PREFIX = "user_exists_";
 
 // Configuration
@@ -150,7 +151,7 @@ const helpers = {
       messageData,
     );
 
-    console.log(
+    logger.info(
       `Email sent successfully to ${recipient}. Message ID: ${response.id}`,
     );
     return true;
@@ -808,7 +809,7 @@ const sendFeedbackReplyEmail = async ({
       messageData,
     );
 
-    console.log(
+    logger.info(
       `Feedback reply email sent successfully to ${email}. Message ID: ${response.id}`,
     );
     return true;

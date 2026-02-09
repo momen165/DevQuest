@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const multer = require("multer");
 const router = express.Router();
 const prisma = require("../config/prisma");
+const { logger } = require("../utils/logger");
 
 // Configure multer to handle multipart/form-data from Mailgun
 const upload = multer();
@@ -44,7 +45,7 @@ const parseSlaToHours = (sla) => {
  */
 router.post("/email-webhook", upload.any(), async (req, res) => {
   try {
-    console.log("Received email webhook:", JSON.stringify(req.body, null, 2));
+    logger.debug("Received email webhook", { body: req.body });
 
     const { token, timestamp, signature } = req.body;
     if (
@@ -60,12 +61,12 @@ router.post("/email-webhook", upload.any(), async (req, res) => {
         signature,
       );
       if (!isValid) {
-        console.warn("Invalid Mailgun webhook signature");
+        logger.warn("Invalid Mailgun webhook signature");
         return res.status(401).json({ error: "Invalid webhook signature" });
       }
-      console.log("Webhook signature verified successfully");
+      logger.debug("Webhook signature verified successfully");
     } else {
-      console.log(
+      logger.debug(
         "Webhook signature verification skipped (no signing key configured)",
       );
     }
@@ -74,7 +75,7 @@ router.post("/email-webhook", upload.any(), async (req, res) => {
 
     res.status(200).json({ success: true, processed: 1 });
   } catch (error) {
-    console.error("Error processing email webhook:", error);
+    logger.error("Error processing email webhook:", error);
     res.status(500).json({ error: "Failed to process email webhook" });
   }
 });
@@ -91,18 +92,18 @@ async function processIncomingEmail(message) {
       message.TextPart ||
       "";
 
-    console.log(`Processing email from: ${from}, subject: "${subject}"`);
+    logger.debug(`Processing email from: ${from}, subject: "${subject}"`);
 
     const ticketIdMatch = subject.match(/#(\d+)/);
 
     if (!ticketIdMatch) {
-      console.log("No ticket ID found in subject, treating as new ticket");
+      logger.debug("No ticket ID found in subject, treating as new ticket");
       await handleNewSupportEmail(from, subject, textContent);
       return;
     }
 
     const ticketId = Number.parseInt(ticketIdMatch[1], 10);
-    console.log(`Found ticket ID: ${ticketId}`);
+    logger.debug(`Found ticket ID: ${ticketId}`);
 
     const ticket = await prisma.support.findUnique({
       where: { ticket_id: ticketId },
@@ -114,12 +115,12 @@ async function processIncomingEmail(message) {
     });
 
     if (!ticket) {
-      console.log(`Ticket #${ticketId} not found`);
+      logger.debug(`Ticket #${ticketId} not found`);
       return;
     }
 
     if (from !== normalizeEmail(ticket.user_email)) {
-      console.log(
+      logger.debug(
         `Email from ${from} doesn't match ticket owner ${ticket.user_email}`,
       );
       return;
@@ -150,7 +151,7 @@ async function processIncomingEmail(message) {
       data: { expiration_time: addHours(new Date(), 24) },
     });
 
-    console.log(`Successfully added email reply to ticket #${ticketId}`);
+    logger.debug(`Successfully added email reply to ticket #${ticketId}`);
   } catch (error) {
     console.error("Error processing individual email:", error);
   }
@@ -173,7 +174,7 @@ async function handleNewSupportEmail(from, subject, content) {
         },
       });
 
-      console.log(
+      logger.debug(
         `Added email to existing ticket #${existingTicket.ticket_id}`,
       );
       return;
@@ -230,7 +231,7 @@ async function handleNewSupportEmail(from, subject, content) {
       });
     }
 
-    console.log(
+    logger.debug(
       `Created new ticket #${newTicket.ticket_id} from email with category: ${analysis.category} (confidence: ${analysis.confidence})`,
     );
   } catch (error) {

@@ -3,42 +3,10 @@ const NodeCache = require("node-cache");
 const { invalidateUserCache } = require("../utils/cache.utils");
 
 // Initialize cache for admin access with a short TTL (e.g., 60 seconds)
-const adminAccessCache = new NodeCache({ stdTTL: 60 });
+const adminAccessCache = new NodeCache({ stdTTL: 60, maxKeys: 500, useClones: false });
 const ADMIN_ACCESS_CACHE_KEY_PREFIX = "admin_access_";
 
 const toInt = (value) => Number.parseInt(value, 10);
-const startOfDay = (date) => {
-  const d = new Date(date);
-  return new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
-  );
-};
-
-const formatDay = (date) => {
-  const d = startOfDay(date);
-  return d.toISOString().slice(0, 10);
-};
-
-const formatMonth = (date) => {
-  const d = new Date(date);
-  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
-  return `${d.getUTCFullYear()}-${month}`;
-};
-
-const aggregateBy = (rows, keyBuilder) => {
-  const map = new Map();
-  for (const row of rows) {
-    const key = keyBuilder(row);
-    if (!key) continue;
-    map.set(key, (map.get(key) || 0) + 1);
-  }
-  return map;
-};
-
-const mapToSortedSeries = (map, keyField) =>
-  Array.from(map.entries())
-    .sort(([a], [b]) => (a > b ? 1 : -1))
-    .map(([key, count]) => ({ [keyField]: key, count: String(count) }));
 
 const getNow = () => new Date();
 
@@ -336,6 +304,33 @@ const getMaintenanceStatusDB = async () => {
   });
 };
 
+// Helper: group rows by a date key and count occurrences
+const aggregateByDate = (rows, dateField, formatFn) => {
+  const map = new Map();
+  for (const row of rows) {
+    const val = row[dateField];
+    if (!val) continue;
+    const key = formatFn(val);
+    map.set(key, (map.get(key) || 0) + 1);
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => (a > b ? 1 : -1))
+    .map(([key, count]) => ({ [dateField === "visit_date" ? "date" : dateField]: key, count: String(count) }));
+};
+
+const formatDateKey = (date) => {
+  const d = new Date(date);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
+    .toISOString()
+    .slice(0, 10);
+};
+
+const formatMonthKey = (date) => {
+  const d = new Date(date);
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${month}`;
+};
+
 // Get site analytics data
 const getSiteAnalyticsDB = async (days) => {
   const now = getNow();
@@ -344,13 +339,6 @@ const getSiteAnalyticsDB = async (days) => {
   const activeUserDays = Math.min(days, 30);
   const activeUserStart = new Date(
     now.getTime() - activeUserDays * 24 * 60 * 60 * 1000,
-  );
-  const monthRangeStart = new Date(
-    Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth() - Math.max(1, Math.ceil(days / 30)) + 1,
-      1,
-    ),
   );
 
   const pageFilter = {
@@ -363,29 +351,52 @@ const getSiteAnalyticsDB = async (days) => {
 
   const [
     totalVisits,
-    visitsInRange,
-    visitsInLast7,
-    monthlyVisitRows,
-    uniqueVisitorRows,
-    topPagesRaw,
+    visitsInRangeCount,
     filteredPageViews,
     totalUsers,
     activeUsers,
     newUsers,
-    newUsersRows,
-    activeUsers24Rows,
-    lessonProgressRows,
     totalCourses,
     totalEnrollments,
     completionRate,
-    sessionsInRange,
     sessionsWithDuration,
+    // For date-based aggregation (in-memory grouping)
+    visitsInRange,
+    visitsInLast7,
+    monthlyVisitRows,
+    newUsersRows,
+    // groupBy queries
+    topPagesRaw,
     topCountriesRaw,
     browserStatsRaw,
     deviceStatsRaw,
-    totalVisitsInRange,
+    // Small result sets
+    activeUsers24Rows,
+    uniqueVisitorRows,
+    lessonProgressRows,
+    sessionsInRange,
   ] = await Promise.all([
+    // --- Scalar counts ---
     prisma.site_visits.count(),
+    prisma.site_visits.count({ where: { visit_date: { gte: dayRangeStart } } }),
+    prisma.site_visits.count({
+      where: { visit_date: { gte: dayRangeStart }, ...pageFilter },
+    }),
+    prisma.users.count(),
+    prisma.users.count({ where: { last_login: { gte: activeUserStart } } }),
+    prisma.users.count({ where: { created_at: { gte: dayRangeStart } } }),
+    prisma.course.count(),
+    prisma.enrollment.count(),
+    prisma.enrollment.aggregate({ _avg: { progress: true } }),
+    prisma.user_sessions.aggregate({
+      where: {
+        created_at: { gte: dayRangeStart },
+        session_duration: { gt: 0 },
+      },
+      _avg: { session_duration: true },
+    }),
+
+    // --- Date rows for in-memory aggregation ---
     prisma.site_visits.findMany({
       where: { visit_date: { gte: dayRangeStart } },
       select: { visit_date: true },
@@ -395,65 +406,21 @@ const getSiteAnalyticsDB = async (days) => {
       select: { visit_date: true },
     }),
     prisma.site_visits.findMany({
-      where: { visit_date: { gte: monthRangeStart } },
+      where: { visit_date: { gte: dayRangeStart } },
       select: { visit_date: true },
     }),
-    prisma.site_visits.findMany({
-      where: { visit_date: { gte: dayRangeStart } },
-      select: { user_id: true, ip_address: true },
-    }),
-    prisma.site_visits.groupBy({
-      by: ["page_visited"],
-      where: {
-        visit_date: { gte: dayRangeStart },
-        ...pageFilter,
-      },
-      _count: { page_visited: true },
-      orderBy: { _count: { page_visited: "desc" } },
-      take: 10,
-    }),
-    prisma.site_visits.count({
-      where: {
-        visit_date: { gte: dayRangeStart },
-        ...pageFilter,
-      },
-    }),
-    prisma.users.count(),
-    prisma.users.count({
-      where: { last_login: { gte: activeUserStart } },
-    }),
-    prisma.users.count({ where: { created_at: { gte: dayRangeStart } } }),
     prisma.users.findMany({
       where: { created_at: { gte: dayRangeStart } },
       select: { created_at: true },
     }),
-    prisma.user_activity.findMany({
-      where: {
-        created_at: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
-      },
-      distinct: ["user_id"],
-      select: { user_id: true },
-    }),
-    prisma.lesson_progress.findMany({
-      where: { completed_at: { gte: dayRangeStart } },
-      select: {
-        lesson_id: true,
-        lesson: { select: { name: true } },
-      },
-    }),
-    prisma.course.count(),
-    prisma.enrollment.count(),
-    prisma.enrollment.aggregate({ _avg: { progress: true } }),
-    prisma.user_sessions.findMany({
-      where: { created_at: { gte: dayRangeStart } },
-      select: { page_views: true, session_id: true },
-    }),
-    prisma.user_sessions.aggregate({
-      where: {
-        created_at: { gte: dayRangeStart },
-        session_duration: { gt: 0 },
-      },
-      _avg: { session_duration: true },
+
+    // --- groupBy queries (Prisma) ---
+    prisma.site_visits.groupBy({
+      by: ["page_visited"],
+      where: { visit_date: { gte: dayRangeStart }, ...pageFilter },
+      _count: { page_visited: true },
+      orderBy: { _count: { page_visited: "desc" } },
+      take: 10,
     }),
     prisma.site_visits.groupBy({
       by: ["country"],
@@ -484,35 +451,68 @@ const getSiteAnalyticsDB = async (days) => {
       _count: { device_type: true },
       orderBy: { _count: { device_type: "desc" } },
     }),
-    prisma.site_visits.count({
+
+    // --- Small result sets ---
+    prisma.user_activity.findMany({
       where: {
-        visit_date: { gte: dayRangeStart },
+        created_at: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
       },
+      distinct: ["user_id"],
+      select: { user_id: true },
+    }),
+    prisma.site_visits.findMany({
+      where: { visit_date: { gte: dayRangeStart } },
+      select: { user_id: true, ip_address: true },
+    }),
+    prisma.lesson_progress.findMany({
+      where: { completed_at: { gte: dayRangeStart } },
+      select: {
+        lesson_id: true,
+        lesson: { select: { name: true } },
+      },
+    }),
+    prisma.user_sessions.findMany({
+      where: { created_at: { gte: dayRangeStart } },
+      select: { page_views: true, session_id: true },
     }),
   ]);
 
+  // Aggregate date-based series in memory
+  const dailyVisits = aggregateByDate(visitsInRange, "visit_date", formatDateKey);
+  const dailyVisitsLast7 = aggregateByDate(visitsInLast7, "visit_date", formatDateKey);
+
+  const monthlyVisits = (() => {
+    const map = new Map();
+    for (const row of monthlyVisitRows) {
+      if (!row.visit_date) continue;
+      const key = formatMonthKey(row.visit_date);
+      map.set(key, (map.get(key) || 0) + 1);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => (a > b ? 1 : -1))
+      .map(([month, count]) => ({ month, count: String(count) }));
+  })();
+
+  const newUsersDaily = (() => {
+    const map = new Map();
+    for (const row of newUsersRows) {
+      if (!row.created_at) continue;
+      const key = formatDateKey(row.created_at);
+      map.set(key, (map.get(key) || 0) + 1);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => (a > b ? 1 : -1))
+      .map(([date, count]) => ({ date, count: String(count) }));
+  })();
+
+  // Unique visitors via in-memory Set
   const uniqueVisitors = new Set(
     uniqueVisitorRows.map((row) =>
       row.user_id ? `user-${row.user_id}` : `ip-${row.ip_address || "unknown"}`,
     ),
   ).size;
 
-  const dailyVisitsMap = aggregateBy(visitsInRange, (row) =>
-    row.visit_date ? formatDay(row.visit_date) : null,
-  );
-
-  const dailyVisitsLast7Map = aggregateBy(visitsInLast7, (row) =>
-    row.visit_date ? formatDay(row.visit_date) : null,
-  );
-
-  const monthlyVisitsMap = aggregateBy(monthlyVisitRows, (row) =>
-    row.visit_date ? formatMonth(row.visit_date) : null,
-  );
-
-  const newUsersDailyMap = aggregateBy(newUsersRows, (row) =>
-    row.created_at ? formatDay(row.created_at) : null,
-  );
-
+  // Most attempted lessons via in-memory aggregation
   const lessonAttemptsMap = new Map();
   for (const row of lessonProgressRows) {
     if (!row.lesson_id) continue;
@@ -523,7 +523,6 @@ const getSiteAnalyticsDB = async (days) => {
     current.attempts += 1;
     lessonAttemptsMap.set(row.lesson_id, current);
   }
-
   const mostAttemptedLessons = Array.from(lessonAttemptsMap.values())
     .sort((a, b) => b.attempts - a.attempts)
     .slice(0, 5)
@@ -542,21 +541,21 @@ const getSiteAnalyticsDB = async (days) => {
 
   return {
     totalVisits: { total_visits: String(totalVisits) },
-    dailyVisitsLast7Days: mapToSortedSeries(dailyVisitsLast7Map, "date"),
+    dailyVisitsLast7Days: dailyVisitsLast7,
     uniqueVisitors: { unique_visitors: String(uniqueVisitors) },
     topPages: topPagesRaw.map((row) => ({
       page_visited: row.page_visited,
       visits: String(row._count.page_visited),
     })),
     filteredPageViews: { page_views: String(filteredPageViews) },
-    dailyVisits: mapToSortedSeries(dailyVisitsMap, "date"),
-    monthlyVisits: mapToSortedSeries(monthlyVisitsMap, "month"),
+    dailyVisits,
+    monthlyVisits,
     userStats: {
       total_users: String(totalUsers),
       active_users: String(activeUsers),
       new_users: String(newUsers),
     },
-    newUsersDaily: mapToSortedSeries(newUsersDailyMap, "date"),
+    newUsersDaily,
     activeUsers24h: { active_users_24h: String(activeUsers24Rows.length) },
     quizzesTaken: { total_quizzes_taken: "0" },
     mostAttemptedLessons,
@@ -577,15 +576,15 @@ const getSiteAnalyticsDB = async (days) => {
       browser: row.browser,
       count: String(row._count.browser),
       percentage:
-        totalVisitsInRange > 0
-          ? (row._count.browser * 100.0) / totalVisitsInRange
+        visitsInRangeCount > 0
+          ? (row._count.browser * 100.0) / visitsInRangeCount
           : 0,
     })),
     deviceBreakdown: deviceStatsRaw.map((row) => ({
       device: row.device_type,
       percentage:
-        totalVisitsInRange > 0
-          ? (row._count.device_type * 100.0) / totalVisitsInRange
+        visitsInRangeCount > 0
+          ? (row._count.device_type * 100.0) / visitsInRangeCount
           : 0,
     })),
   };

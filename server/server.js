@@ -1,10 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const { authenticateToken } = require("./middleware/auth");
 const sanitizeInput = require("./middleware/sanitizeInput");
 const { wrapDatabaseQuery } = require("./middleware/performance.middleware");
+const { logger } = require("./utils/logger");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { closeExpiredTickets } = require("./controllers/support.controller");
@@ -27,12 +29,12 @@ wrapDatabaseQuery(prisma);
 (async () => {
   try {
     await prisma.$connect();
-    console.log("Database connected");
+    logger.info("Database connected");
 
     // Initialize badge data after database connection is successful
     await createBadgesTable();
   } catch (error) {
-    console.error("Database initialization error:", error);
+    logger.error("Database initialization error:", error);
     process.exit(1);
   }
 })();
@@ -121,6 +123,9 @@ const standardLimiter = rateLimit({
 // Disable 'X-Powered-By' header
 app.disable("x-powered-by");
 
+// Enable gzip/brotli compression for all responses
+app.use(compression());
+
 // IMPORTANT: Place this before any middleware that parses the body
 app.post(
   "/api/webhook",
@@ -128,9 +133,9 @@ app.post(
   webhookHandler,
 );
 
-// Middleware for parsing JSON and URL-encoded data
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+// Middleware for parsing JSON and URL-encoded data (1mb default, upload routes use higher limit)
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 // Apply sanitization to all routes
 app.use(sanitizeInput);
@@ -200,7 +205,6 @@ app.get("/api/health", (req, res) => {
 // --- SESSION TRACKER: Ping endpoint for real page loads ---
 const sessionTracker = require("./middleware/sessionTracker");
 app.post("/api/ping-session", express.json(), async (req, res) => {
-  console.log("[Session] Received ping from client");
   try {
     if (req.headers.authorization) {
       // Extract token and add it to req.user for sessionTracker
@@ -217,7 +221,7 @@ app.post("/api/ping-session", express.json(), async (req, res) => {
       res.status(200).json({ ok: false, reason: "No auth token" });
     }
   } catch (err) {
-    console.error("[Session Ping] Error:", err);
+    logger.warn("[Session Ping] Error:", err);
     res.status(200).json({ ok: false, reason: "Error" });
   }
 });
@@ -322,10 +326,18 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Check for expired tickets every 5 minutes
-setInterval(closeExpiredTickets, 5 * 60 * 1000);
+// Check for expired tickets every 5 minutes (wrapped to prevent uncaught exceptions)
+setInterval(() => {
+  try {
+    closeExpiredTickets().catch((err) => {
+      console.error("[closeExpiredTickets] Error:", err.message);
+    });
+  } catch (err) {
+    console.error("[closeExpiredTickets] Sync error:", err.message);
+  }
+}, 5 * 60 * 1000);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  logger.info(`Server is running on port ${PORT}`);
 });

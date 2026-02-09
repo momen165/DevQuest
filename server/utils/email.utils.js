@@ -1,5 +1,6 @@
 const Mailgun = require("mailgun.js");
 const formData = require("form-data");
+const { logger } = require("./logger");
 require("dotenv").config();
 
 // Initialize Mailgun client
@@ -9,15 +10,15 @@ const isMailgunConfigured = Boolean(
 );
 
 // Debug logging for configuration
-console.log("Mailgun Configuration:");
-console.log(
+logger.debug("Mailgun Configuration:");
+logger.debug(
   "- API Key:",
   process.env.MAILGUN_API_KEY
     ? `${process.env.MAILGUN_API_KEY.substring(0, 10)}...`
     : "Not set",
 );
-console.log("- Domain:", process.env.MAILGUN_DOMAIN || "Not set");
-console.log(
+logger.debug("- Domain:", process.env.MAILGUN_DOMAIN || "Not set");
+logger.debug(
   "- API URL:",
   process.env.MAILGUN_API_URL || "https://api.mailgun.net (default)",
 );
@@ -125,7 +126,7 @@ Alternative contact: ${process.env.SENDER_EMAIL_SUPPORT}`;
       messageData,
     );
 
-    console.log(
+    logger.info(
       `Support reply notification sent successfully to ${userEmail} for ticket #${ticketId}. Message ID: ${response.id}`,
     );
     return true;
@@ -217,7 +218,7 @@ Contact: ${process.env.SENDER_EMAIL_SUPPORT}`;
       messageData,
     );
 
-    console.log(
+    logger.info(
       `Support ticket confirmation sent successfully to ${userEmail} for ticket #${ticketId}. Message ID: ${response.id}`,
     );
     return true;

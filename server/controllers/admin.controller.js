@@ -7,16 +7,11 @@ const NodeCache = require("node-cache"); // Import NodeCache
 const { format, subDays } = require("date-fns");
 
 // Initialize cache for maintenance mode with a short TTL (e.g., 10 seconds)
-const maintenanceCache = new NodeCache({ stdTTL: 10 });
+const maintenanceCache = new NodeCache({ stdTTL: 10, maxKeys: 10, useClones: false });
 const MAINTENANCE_CACHE_KEY = "maintenance_mode_status";
 
 const grantFreeSubscription = async (req, res) => {
   try {
-    const isAdmin = await AdminModel.checkAdminAccess(req.user.userId);
-    if (!isAdmin) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
     const { userId } = req.body;
     const freeEndDate = "2099-12-31";
     const subscriptionType = "Free";
@@ -52,10 +47,6 @@ const grantFreeSubscription = async (req, res) => {
 // Original functions from admin.controller.js, now refactored
 const getAdminActivities = async (req, res) => {
   try {
-    const isAdmin = await AdminModel.checkAdminAccess(req.user.userId);
-    if (!isAdmin) {
-      return res.status(403).json({ error: "Access denied" });
-    }
     const activities = await AdminModel.getAdminActivitiesDB(req.user.userId);
     res.status(200).json(activities);
   } catch (error) {
@@ -66,10 +57,6 @@ const getAdminActivities = async (req, res) => {
 
 const getSystemMetrics = async (req, res) => {
   try {
-    const isAdmin = await AdminModel.checkAdminAccess(req.user.userId);
-    if (!isAdmin) {
-      return res.status(403).json({ error: "Access denied" });
-    }
     const metrics = await AdminModel.getSystemMetricsDB();
     res.status(200).json(metrics);
   } catch (error) {
@@ -80,10 +67,6 @@ const getSystemMetrics = async (req, res) => {
 
 const getPerformanceMetrics = async (req, res) => {
   try {
-    const isAdmin = await AdminModel.checkAdminAccess(req.user.userId);
-    if (!isAdmin) {
-      return res.status(403).json({ error: "Access denied" });
-    }
     const metrics = await AdminModel.getPerformanceMetricsDB();
     res.status(200).json(metrics);
   } catch (error) {
@@ -96,11 +79,6 @@ const addAdmin = async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const isRequesterAdmin = await AdminModel.checkAdminAccess(req.user.userId);
-    if (!isRequesterAdmin) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
     // addAdminDB handles user existence and current admin status checks
     const { targetName, requesterName } = await AdminModel.addAdminDB(
       userId,
@@ -142,11 +120,6 @@ const removeAdmin = async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const isRequesterAdmin = await AdminModel.checkAdminAccess(req.user.userId);
-    if (!isRequesterAdmin) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
     if (parseInt(userId) === req.user.userId) {
       return res.status(400).json({ error: "Cannot remove yourself as admin" });
     }
@@ -175,11 +148,6 @@ const removeAdmin = async (req, res) => {
 
 const toggleMaintenanceMode = async (req, res) => {
   try {
-    const isAdmin = await AdminModel.checkAdminAccess(req.user.userId);
-    if (!isAdmin) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
     const { enabled } = req.body;
     const settings = await AdminModel.toggleMaintenanceModeDB(
       enabled,
@@ -207,11 +175,6 @@ const toggleMaintenanceMode = async (req, res) => {
 
 const getSystemSettings = async (req, res) => {
   try {
-    const isAdmin = await AdminModel.checkAdminAccess(req.user.userId);
-    if (!isAdmin) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
     const settings = await AdminModel.getSystemSettingsDB(req.user.userId);
 
     res.status(200).json({
@@ -261,11 +224,6 @@ const getMaintenanceStatus = async (req, res) => {
 
 const getSiteAnalytics = async (req, res) => {
   try {
-    const isAdmin = await AdminModel.checkAdminAccess(req.user.userId);
-    if (!isAdmin) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
     const range = req.query.range || "30days";
     let days = 30;
     if (range === "7days") days = 7;
@@ -328,21 +286,6 @@ const getSiteAnalytics = async (req, res) => {
 };
 
 module.exports = {
-  getAdminActivities,
-  getSystemMetrics,
-  getPerformanceMetrics,
-  addAdmin,
-  removeAdmin,
-  toggleMaintenanceMode,
-  getSystemSettings,
-  checkAdminStatus,
-  getMaintenanceStatus,
-  getSiteAnalytics,
-  grantFreeSubscription,
-};
-
-module.exports = {
-  // Include all existing exports
   getAdminActivities,
   getSystemMetrics,
   getPerformanceMetrics,
