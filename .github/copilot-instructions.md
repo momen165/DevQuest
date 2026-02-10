@@ -1,56 +1,35 @@
-# DevQuest AI Agent Instructions
+## DevQuest AI coding notes
 
-## 🏗 Project Architecture
-- **Type**: Monorepo-style structure with distinct `client` (React/Vite) and `server` (Node/Express) directories.
-- **Root**: Manages concurrent execution of both services via `npm run dev`.
-- **Database**: PostgreSQL accessed via `pg` driver using raw SQL queries. No ORM.
-- **Authentication**: Custom JWT implementation with Access (2h) and Refresh (7d) tokens. Use `server/middleware/auth.js`.
+### Big picture
 
-## 💻 Tech Stack
-- **Frontend**: React 18, Vite, Material-UI, CSS Modules, Axios, formatting via Prettier/ESLint.
-- **Backend**: Express.js, PostgreSQL, Node.js, Stripe, Mailgun, AWS S3.
-- **Services**:
-  - `Stripe`: Payment processing (webhooks in `server/routes/payment.routes.js`).
-  - `Mailgun`: Transactional emails.
-  - `AWS S3`: File storage.
+- Monorepo with two workspaces: React/Vite client in [client/](client/) and Express API in [server/](server/). Root scripts run both via `concurrently` in [package.json](package.json).
+- API base path is `/api` and is mounted in [server/server.js](server/server.js). Public endpoints (health, feedback, courses, maintenance) are defined before auth middleware.
+- Frontend routing is React Router with lazy-loaded pages and layouts in [client/src/app/App.jsx](client/src/app/App.jsx). Maintenance gating uses `MaintenanceCheck`; auth gating uses `ProtectedRoute`.
+- Pageview tracking is client-driven: `AppContent` posts to `/track-pageview` with a normalized path in [client/src/app/App.jsx](client/src/app/App.jsx), handled by [server/routes/pageview.routes.js](server/routes/pageview.routes.js).
 
-## 🛠 Critical Developer Workflows
-- **Start Development**: Run `npm run dev` in the root directory to start both client (port 5173 default) and server (port 5000 default).
-- **Server DB Connection**: Managed in `server/config/database.js`. Exports a `Pool` object.
-- **Frontend API Config**: Primary axios instance at `client/src/shared/lib/apiClient.js`. Prefer using this over local `axios.create` calls.
-- **Scripts & Migrations**: Database migrations and utility scripts are located in `server/scripts/` (e.g., `performance-indexes-migration.sql`).
+### Data and integrations
 
-## 📝 Coding Patterns & Conventions
+- Prisma uses a pooled `pg` adapter and optional SSL cert in [server/config/prisma.js](server/config/prisma.js). Connection is from `DATABASE_URL` or `DB_*` vars; see [README.md](README.md).
+- Stripe webhooks require `express.raw()` before body parsing; keep `/api/webhook` ordering intact in [server/server.js](server/server.js).
+- CORS uses `CLIENT_URL` (preferred) with `FRONTEND_URL` as a fallback in [server/server.js](server/server.js).
+- Sentry is initialized in the client entry point [client/src/main.jsx](client/src/main.jsx) using `VITE_SENTRY_DSN`.
 
-### Backend (Server)
-- **Data Access**: 
-  - Do NOT use an ORM. Use raw SQL strings with parameterized queries: `db.query('SELECT * FROM users WHERE id = $1', [id])`.
-  - "Models" (e.g., `server/models/badge.model.js`) are actually Data Access Objects (DAOs) containing schema setup (`CREATE TABLE`) and helper functions.
-- **Error Handling**: 
-  - Wrap all async controller functions with `asyncHandler` from `server/utils/error.utils.js` (preferred) or `handleAsync`.
-  - Throw `AppError` (from `server/utils/error.utils.js`) for controlled error responses.
-- **Route Structure**: 
-  - Routes defined in `server/routes/`.
-  - Controllers in `server/controllers/`.
-  - Middleware in `server/middleware/`.
+### Project conventions
 
-### Frontend (Client)
-- **Structure**:
-  - `src/app`: App setup, providers, layouts.
-  - `src/features`: Feature-based modules (admin, course, etc).
-  - `src/pages`: Route entry components.
-  - `src/shared`: Reusable logic and UI.
-- **State**: React Context (`AuthContext`) for global auth state.
-- **Styling**: Mixed usage of direct CSS imports and CSS Modules. Prefer consistency with existing file patterns.
+- Route files handle auth explicitly; `authenticateToken` allows anonymous requests and `requireAuth`/`requireAdmin` enforce protection in [server/middleware/auth.js](server/middleware/auth.js).
+- `authenticateToken` caches admin lookups with `node-cache` to reduce DB queries in [server/middleware/auth.js](server/middleware/auth.js).
+- Client import aliases are configured in [client/jsconfig.json](client/jsconfig.json) and [client/vite.config.mjs](client/vite.config.mjs) (for example, `app/*`, `features/*`, `shared/*`).
 
-## 🔍 Key Files
-- **Server Entry**: `server/server.js` (Middleware setup, route mounting).
-- **Database Config**: `server/config/database.js`.
-- **Error Utils**: `server/utils/error.utils.js`.
-- **Frontend Entry**: `client/src/main.jsx`.
-- **API Client**: `client/src/shared/lib/apiClient.js`.
+### Developer workflows
 
-## ⚠️ Gotchas
-- **Database**: Tables are often created/checked in "Model" files (e.g., `createBadgesTable`). Ensure SQL migrations/schema changes are handled there or in `scripts/`.
-- **CORS**: Configured in `server/server.js` to accept `CLIENT_URL` or `FRONTEND_URL`.
-- **Env Vars**: Required in both `client/.env` and `server/.env`.
+- Root dev: `npm run dev` (runs server and client) in [package.json](package.json).
+- Client dev/build: `npm run dev` / `npm run build` in [client/package.json](client/package.json).
+- Server dev/start: `npm run dev` / `npm run start` in [server/package.json](server/package.json).
+- Prisma: `npm run prisma:generate` or `npm run prisma:push` in [server/package.json](server/package.json).
+
+### Where to look first
+
+- API routes: [server/routes/](server/routes/)
+- Controllers: [server/controllers/](server/controllers/)
+- Frontend pages/features: [client/src/pages/](client/src/pages/) and [client/src/features/](client/src/features/)
+- Shared UI and utils: [client/src/shared/](client/src/shared/)

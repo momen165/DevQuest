@@ -61,8 +61,11 @@ asset-manifest.json
 
 
 
-.env
-.env.local
+.env*
+!.env.example
+!client/.env.example
+!server/.env.example
+!client/.env.sentry-build-plugin
 client/.env.sentry-build-plugin
 files_list.txt
 vscode/mcp.json
