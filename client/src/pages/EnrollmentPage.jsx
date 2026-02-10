@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import './EnrollmentPage.css';
-import { useAuth } from 'app/AuthContext';
-import CircularProgress from '@mui/material/CircularProgress';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import "./EnrollmentPage.css";
+import { useAuth } from "app/AuthContext";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const api_url = import.meta.env.VITE_API_URL;
 
@@ -21,7 +21,7 @@ const EnrollmentPage = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/loginPage');
+      navigate("/loginPage");
       return;
     }
 
@@ -42,8 +42,8 @@ const EnrollmentPage = () => {
 
         setLoading(false);
       } catch (err) {
-        console.error('Error:', err);
-        setError('Failed to load course data');
+        console.error("Error:", err);
+        setError("Failed to load course data");
         setLoading(false);
       }
     };
@@ -54,7 +54,7 @@ const EnrollmentPage = () => {
     return (
       <div className="enrollment-page loading">
         <div className="loading-container">
-          <CircularProgress size={60} style={{ color: '#4776c9' }} />
+          <CircularProgress size={60} style={{ color: "#4776c9" }} />
           <p className="loading-text">Loading course details...</p>
         </div>
       </div>
@@ -75,7 +75,7 @@ const EnrollmentPage = () => {
     );
   }
 
-  const fullImageUrl = course.image ? course.image : '/fallback-image.png';
+  const fullImageUrl = course.image ? course.image : "/fallback-image.png";
 
   const handleStartLearning = () => {
     if (!isEnrolled) {
@@ -97,7 +97,7 @@ const EnrollmentPage = () => {
           navigate(`/course/${courseId}`);
         })
         .catch((error) => {
-          console.error('Error enrolling in course:', error);
+          console.error("Error enrolling in course:", error);
         });
     } else {
       navigate(`/course/${courseId}`);
@@ -107,9 +107,9 @@ const EnrollmentPage = () => {
   const handleImageError = (e) => {
     if (!isUsingFallback) {
       setIsUsingFallback(true);
-      e.target.src = '/fallback-image.png';
+      e.target.src = "/fallback-image.png";
     } else {
-      e.target.style.display = 'none';
+      e.target.style.display = "none";
     }
   };
   return (
@@ -127,7 +127,7 @@ const EnrollmentPage = () => {
           <h1 className="course-titl">Master the Language of the Future</h1>
           <p className="course-description">
             {course.description ||
-              'Embark on an exciting journey to master cutting-edge technologies and transform your career. Our comprehensive course is designed to take you from beginner to expert with hands-on projects, real-world applications, and industry-standard practices.'}
+              "Embark on an exciting journey to master cutting-edge technologies and transform your career. Our comprehensive course is designed to take you from beginner to expert with hands-on projects, real-world applications, and industry-standard practices."}
           </p>
 
           {/* Course highlights */}
@@ -148,7 +148,7 @@ const EnrollmentPage = () => {
 
           <button className="start-button" onClick={handleStartLearning}>
             <span className="button-text">
-              {isEnrolled ? 'Continue learning' : 'Start learning'} {course.title}
+              {isEnrolled ? "Continue learning" : "Start learning"} {course.title}
             </span>
             <span className="button-arrow">→</span>
           </button>

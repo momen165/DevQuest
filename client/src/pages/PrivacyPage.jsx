@@ -1,5 +1,4 @@
-import React from 'react';
-import './LegalPages.css';
+import "./LegalPages.css";
 
 const PrivacyPage = () => {
   return (

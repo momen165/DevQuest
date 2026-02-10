@@ -1,13 +1,13 @@
-import React, { Suspense, useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiMove, FiFileText } from 'react-icons/fi';
-import './AdminManage.css';
-import ErrorAlert from './ErrorAlert';
-import { useAuth } from 'app/AuthContext';
-import { useLessons } from 'features/lesson/hooks/useLessons';
-import CircularProgress from '@mui/material/CircularProgress';
+import React, { Suspense, useState } from "react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiMove, FiFileText } from "react-icons/fi";
+import "./AdminManage.css";
+import ErrorAlert from "./ErrorAlert";
+import { useAuth } from "app/AuthContext";
+import { useLessons } from "features/lesson/hooks/useLessons";
+import CircularProgress from "@mui/material/CircularProgress";
 
-const LessonForm = React.lazy(() => import('./LessonForm'));
+const LessonForm = React.lazy(() => import("./LessonForm"));
 
 const LessonList = ({ section, languageId, onClose }) => {
   const [editingLesson, setEditingLesson] = useState(null);
@@ -25,7 +25,7 @@ const LessonList = ({ section, languageId, onClose }) => {
   };
 
   const handleDeleteLesson = async (lessonId) => {
-    if (window.confirm('Are you sure you want to delete this lesson?')) {
+    if (window.confirm("Are you sure you want to delete this lesson?")) {
       await deleteLesson(lessonId);
     }
   };
@@ -41,7 +41,9 @@ const LessonList = ({ section, languageId, onClose }) => {
   };
 
   return (
-    <div className={`manage-container ${isAddingLesson || editingLesson ? 'manage-container-wide' : ''}`}>
+    <div
+      className={`manage-container ${isAddingLesson || editingLesson ? "manage-container-wide" : ""}`}
+    >
       {error && <ErrorAlert message={error} onClose={() => {}} />}
 
       <div className="manage-header">
@@ -98,7 +100,7 @@ const LessonList = ({ section, languageId, onClose }) => {
                     >
                       {(provided, snapshot) => (
                         <div
-                          className={`item-card lesson-card ${snapshot.isDragging ? 'item-card-dragging' : ''}`}
+                          className={`item-card lesson-card ${snapshot.isDragging ? "item-card-dragging" : ""}`}
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                         >

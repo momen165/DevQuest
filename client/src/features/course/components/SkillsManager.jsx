@@ -1,5 +1,3 @@
-import React from 'react';
-
 const SkillsManager = ({ skills, newSkill, setNewSkill, onAddSkill, onRemoveSkill }) => {
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -16,14 +14,11 @@ const SkillsManager = ({ skills, newSkill, setNewSkill, onAddSkill, onRemoveSkil
             skill.trim() && (
               <div key={`${skill.trim()}-${index}`} className="skill-badge">
                 {skill.trim()}
-                <span
-                  className="skill-remove-icon"
-                  onClick={() => onRemoveSkill(index)}
-                >
+                <span className="skill-remove-icon" onClick={() => onRemoveSkill(index)}>
                   x
                 </span>
               </div>
-            ),
+            )
         )}
       </div>
       <div className="skill-input-container">
@@ -35,11 +30,7 @@ const SkillsManager = ({ skills, newSkill, setNewSkill, onAddSkill, onRemoveSkil
           onChange={(e) => setNewSkill(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <button
-          type="button"
-          className="add-skill-btn"
-          onClick={onAddSkill}
-        >
+        <button type="button" className="add-skill-btn" onClick={onAddSkill}>
           +
         </button>
       </div>

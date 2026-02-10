@@ -1,4 +1,4 @@
-import styled from '@emotion/styled';
+import styled from "@emotion/styled";
 
 const CopyNotification = styled.div`
   background: rgba(0, 0, 0, 0.8);

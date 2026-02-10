@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
-import { FaRegCopy, FaCheck } from 'react-icons/fa';
+import { memo } from "react";
+import { FaRegCopy, FaCheck } from "react-icons/fa";
 
 const CodeBlock = memo(({ codeText, language }) => {
   const copyCodeToClipboard = (code, event) => {
@@ -14,12 +14,12 @@ const CodeBlock = memo(({ codeText, language }) => {
         }, 2000);
       })
       .catch((err) => {
-        console.error('Failed to copy code: ', err);
+        console.error("Failed to copy code: ", err);
       });
   };
 
   return (
-    <div className="code-block" style={{ contain: 'layout style paint' }}>
+    <div className="code-block" style={{ contain: "layout style paint" }}>
       <button className="copy" onClick={(e) => copyCodeToClipboard(codeText, e)}>
         <span
           className="tooltip"
@@ -31,13 +31,13 @@ const CodeBlock = memo(({ codeText, language }) => {
           <FaCheck className="checkmark" />
         </span>
       </button>
-      <pre style={{ willChange: 'contents' }}>
+      <pre style={{ willChange: "contents" }}>
         <code className={`hljs language-${language}`}>{codeText}</code>
       </pre>
     </div>
   );
 });
 
-CodeBlock.displayName = 'CodeBlock';
+CodeBlock.displayName = "CodeBlock";
 
 export default CodeBlock;

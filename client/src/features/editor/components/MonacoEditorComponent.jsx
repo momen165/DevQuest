@@ -1,36 +1,36 @@
-﻿import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
-import { Editor } from '@monaco-editor/react';
-import axios from 'axios';
-import { FaPlay, FaCopy, FaCog } from 'react-icons/fa';
-import 'pages/LessonPage.css';
-import CircularProgress from '@mui/material/CircularProgress';
-import './MonacoEditor.css';
+﻿import { useEffect, useRef, useState, useCallback, memo } from "react";
+import { Editor } from "@monaco-editor/react";
+import axios from "axios";
+import { FaPlay, FaCopy, FaCog } from "react-icons/fa";
+import "pages/LessonPage.css";
+import CircularProgress from "@mui/material/CircularProgress";
+import "./MonacoEditor.css";
 
 // Unicode-safe Base64 encoding function
 const encodeUnicode = (str) => {
   return btoa(
     encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(match, p1) {
-      return String.fromCharCode('0x' + p1);
+      return String.fromCharCode("0x" + p1);
     })
   );
 };
 
 const languageCommentMappings = {
-  python: '# Write code below \n', // ID: 100
-  java: '// Write code below \n', // ID: 62
-  cpp: '// Write code below \n', // ID: 105
-  c: '// Write code below \n', // ID: 104
-  javascript: '// Write code below \n', // ID: 102
-  php: '// Write code below \n', // ID: 68
-  ruby: '# Write code below \n', // ID: 72
-  typescript: '// Write code below \n', // ID: 101
-  kotlin: '// Write code below \n', // ID: 78
-  rust: '// Write code below \n', // ID: 73
-  csharp: '// Write code below \n', // ID: 51
-  go: '// Write code below \n', // ID: 95
-  swift: '// Write code below \n', // ID: 83
-  haskell: '-- Write code below \n', // ID: 61
-  plaintext: '// Write code below \n',
+  python: "# Write code below \n", // ID: 100
+  java: "// Write code below \n", // ID: 62
+  cpp: "// Write code below \n", // ID: 105
+  c: "// Write code below \n", // ID: 104
+  javascript: "// Write code below \n", // ID: 102
+  php: "// Write code below \n", // ID: 68
+  ruby: "# Write code below \n", // ID: 72
+  typescript: "// Write code below \n", // ID: 101
+  kotlin: "// Write code below \n", // ID: 78
+  rust: "// Write code below \n", // ID: 73
+  csharp: "// Write code below \n", // ID: 51
+  go: "// Write code below \n", // ID: 95
+  swift: "// Write code below \n", // ID: 83
+  haskell: "-- Write code below \n", // ID: 61
+  plaintext: "// Write code below \n",
 };
 
 const MonacoEditorComponent = ({
@@ -51,22 +51,22 @@ const MonacoEditorComponent = ({
   const [showResetModal, setShowResetModal] = useState(false);
   const [editorSettings, setEditorSettings] = useState(() => {
     try {
-      const savedSettings = localStorage.getItem('editorSettings');
+      const savedSettings = localStorage.getItem("editorSettings");
       return savedSettings
         ? JSON.parse(savedSettings)
         : {
-            theme: 'vs-dark',
+            theme: "vs-dark",
             fontSize: 16,
             minimap: false,
-            lineNumbers: 'on',
+            lineNumbers: "on",
           };
     } catch (error) {
-      console.warn('Failed to load editor settings from localStorage:', error);
+      console.warn("Failed to load editor settings from localStorage:", error);
       return {
-        theme: 'vs-dark',
+        theme: "vs-dark",
         fontSize: 16,
         minimap: false,
-        lineNumbers: 'on',
+        lineNumbers: "on",
       };
     }
   });
@@ -87,7 +87,7 @@ const MonacoEditorComponent = ({
       if (templateCode) {
         setCode(templateCode);
       } else {
-        const initialComment = languageCommentMappings[language] || '// Write code below\n';
+        const initialComment = languageCommentMappings[language] || "// Write code below\n";
         setCode(initialComment);
       }
       initialCommentSet.current = true;
@@ -102,11 +102,11 @@ const MonacoEditorComponent = ({
     try {
       setIsRunning(true);
       setCooldown(true);
-      console.log('Running code for lesson ID:', lessonId);
+      console.log("Running code for lesson ID:", lessonId);
       setConsoleOutput(<CircularProgress />);
 
       if (!user || !user.token) {
-        setConsoleOutput('Authorization token is missing. Please log in again.');
+        setConsoleOutput("Authorization token is missing. Please log in again.");
         return;
       }
 
@@ -119,7 +119,7 @@ const MonacoEditorComponent = ({
         languageId,
       };
 
-      console.log('Sending request to run code with payload:', {
+      console.log("Sending request to run code with payload:", {
         lessonId: parseInt(lessonId, 10),
         languageId: languageId ?? null,
         codeLength: code.length,
@@ -131,12 +131,12 @@ const MonacoEditorComponent = ({
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
 
-      console.log('Code execution response:', {
+      console.log("Code execution response:", {
         status: response.status,
         success: response.data.success,
         badge_awarded: response.data.badge_awarded,
@@ -145,15 +145,15 @@ const MonacoEditorComponent = ({
 
       const { results, success, badge_awarded } = response.data;
       if (!results || results.length === 0) {
-        setConsoleOutput('No results received from the server.');
+        setConsoleOutput("No results received from the server.");
         return;
       }
 
-      let output = '';
+      let output = "";
       let allPassed = true;
       // Log test case results
       console.log(
-        'Test case results:',
+        "Test case results:",
         results.map((r) => ({
           status: r.status,
           auto_detect: r.auto_detect,
@@ -165,7 +165,7 @@ const MonacoEditorComponent = ({
       results.forEach((testCase, index) => {
         const { input, expected_output, actual_output, status, auto_detect, use_pattern, error } =
           testCase;
-        const isCorrect = status === 'Passed';
+        const isCorrect = status === "Passed";
         if (!isCorrect) {
           allPassed = false;
         }
@@ -185,41 +185,41 @@ const MonacoEditorComponent = ({
           }
         } else {
           output += `📋 Test Case ${index + 1}\n`;
-          output += `${'─'.repeat(40)}\n\n`;
+          output += `${"─".repeat(40)}\n\n`;
           output += `📥 Input:\n${input}\n\n`;
           output += `✨ Expected Output:\n${expected_output}\n\n`;
           output += `📤 Your Output:\n${actual_output}\n\n`;
-          output += `${isCorrect ? '✅ Status: Passed' : '❌ Status: Failed'}`;
+          output += `${isCorrect ? "✅ Status: Passed" : "❌ Status: Failed"}`;
           if (!isCorrect && error) {
             output += `\n❗ ${error}`;
           }
-          output += '\n\n';
+          output += "\n\n";
         }
       });
 
       if (allPassed) {
-        output += '✅ All validations passed!\n';
+        output += "✅ All validations passed!\n";
         console.log(`LESSON ${lessonId} COMPLETION: All tests passed, marking as complete`);
 
         // If a badge was awarded, add that to the output
         if (badge_awarded) {
           output +=
-            '\n🎖️ Achievement unlocked: ' +
-            (badge_awarded.badge_type === 'code_novice'
-              ? 'Code Novice'
-              : badge_awarded.badge_type === 'lesson_smasher'
-                ? 'Lesson Smasher'
-                : badge_awarded.badge_type === 'language_explorer'
-                  ? 'Language Explorer'
-                  : badge_awarded.badge_type === 'streak_master'
-                    ? 'Streak Master'
-                    : badge_awarded.badge_type === 'xp_achiever'
-                      ? '100 XP Achieved'
-                      : 'New Badge') +
-            '!\n';
+            "\n🎖️ Achievement unlocked: " +
+            (badge_awarded.badge_type === "code_novice"
+              ? "Code Novice"
+              : badge_awarded.badge_type === "lesson_smasher"
+                ? "Lesson Smasher"
+                : badge_awarded.badge_type === "language_explorer"
+                  ? "Language Explorer"
+                  : badge_awarded.badge_type === "streak_master"
+                    ? "Streak Master"
+                    : badge_awarded.badge_type === "xp_achiever"
+                      ? "100 XP Achieved"
+                      : "New Badge") +
+            "!\n";
         }
       } else {
-        output += '❌ Validation failed. Please check the requirements and try again.';
+        output += "❌ Validation failed. Please check the requirements and try again.";
         console.log(`LESSON ${lessonId} COMPLETION: Tests failed, not marking as complete`);
       }
 
@@ -233,8 +233,8 @@ const MonacoEditorComponent = ({
         onCodeResult(success, response.data);
       }
     } catch (err) {
-      console.error('Error running code:', err.response?.data || err.message);
-      let errorMessage = '❌ Error Running Code\n\n';
+      console.error("Error running code:", err.response?.data || err.message);
+      let errorMessage = "❌ Error Running Code\n\n";
 
       const errorData = err.response?.data;
       if (errorData) {
@@ -243,24 +243,24 @@ const MonacoEditorComponent = ({
           errorMessage += `\n${errorData.details}`;
         }
       } else {
-        errorMessage += err.message || 'An unexpected error occurred.';
+        errorMessage += err.message || "An unexpected error occurred.";
       }
 
       // Add helpful tips based on the error
       if (err.response?.status === 413) {
-        errorMessage += '\n\n💡 Tips:\n';
-        errorMessage += '• Reduce the number of output statements\n';
-        errorMessage += '• Consider using fewer loop iterations\n';
-        errorMessage += '• Check for infinite loops';
+        errorMessage += "\n\n💡 Tips:\n";
+        errorMessage += "• Reduce the number of output statements\n";
+        errorMessage += "• Consider using fewer loop iterations\n";
+        errorMessage += "• Check for infinite loops";
       } else if (err.response?.status === 408) {
-        errorMessage += '\n\n💡 Tips:\n';
-        errorMessage += '• Check for infinite loops\n';
-        errorMessage += '• Reduce the complexity of your code\n';
-        errorMessage += '• Consider using more efficient algorithms';
+        errorMessage += "\n\n💡 Tips:\n";
+        errorMessage += "• Check for infinite loops\n";
+        errorMessage += "• Reduce the complexity of your code\n";
+        errorMessage += "• Consider using more efficient algorithms";
       } else if (err.response?.status === 429) {
-        errorMessage += '\n\n💡 Tips:\n';
-        errorMessage += '• Wait a few minutes before trying again\n';
-        errorMessage += '• Each user is limited to 50 requests per 15 minutes';
+        errorMessage += "\n\n💡 Tips:\n";
+        errorMessage += "• Wait a few minutes before trying again\n";
+        errorMessage += "• Each user is limited to 50 requests per 15 minutes";
       }
 
       setConsoleOutput(errorMessage);
@@ -294,10 +294,10 @@ const MonacoEditorComponent = ({
     navigator.clipboard
       .writeText(code)
       .then(() => {
-        alert('Code copied to clipboard!');
+        alert("Code copied to clipboard!");
       })
       .catch((err) => {
-        console.error('Failed to copy code: ', err);
+        console.error("Failed to copy code: ", err);
       });
   };
 
@@ -310,9 +310,9 @@ const MonacoEditorComponent = ({
     setEditorSettings(newSettings);
 
     try {
-      localStorage.setItem('editorSettings', JSON.stringify(newSettings));
+      localStorage.setItem("editorSettings", JSON.stringify(newSettings));
     } catch (error) {
-      console.warn('Failed to save editor settings to localStorage:', error);
+      console.warn("Failed to save editor settings to localStorage:", error);
     }
 
     if (editorRef.current) {
@@ -326,7 +326,7 @@ const MonacoEditorComponent = ({
   const adjustFontSize = (increment) => {
     const newSize = editorSettings.fontSize + increment;
     if (newSize >= 12 && newSize <= 32) {
-      updateEditorSettings('fontSize', newSize);
+      updateEditorSettings("fontSize", newSize);
     }
   };
 
@@ -335,8 +335,8 @@ const MonacoEditorComponent = ({
   };
 
   const confirmReset = () => {
-    setCode(templateCode || languageCommentMappings[language] || '// Write code below\n');
-    setConsoleOutput('Output will appear here...');
+    setCode(templateCode || languageCommentMappings[language] || "// Write code below\n");
+    setConsoleOutput("Output will appear here...");
     setIsAnswerCorrect(false);
     setShowResetModal(false);
   };
@@ -380,7 +380,7 @@ const MonacoEditorComponent = ({
             <select
               className="settings-select"
               value={editorSettings.theme}
-              onChange={(e) => updateEditorSettings('theme', e.target.value)}
+              onChange={(e) => updateEditorSettings("theme", e.target.value)}
             >
               <option value="vs-dark">Dark</option>
               <option value="light">Light</option>
@@ -406,7 +406,7 @@ const MonacoEditorComponent = ({
             <select
               className="settings-select"
               value={editorSettings.lineNumbers}
-              onChange={(e) => updateEditorSettings('lineNumbers', e.target.value)}
+              onChange={(e) => updateEditorSettings("lineNumbers", e.target.value)}
             >
               <option value="on">Show</option>
               <option value="off">Hide</option>
@@ -417,8 +417,8 @@ const MonacoEditorComponent = ({
             <label className="settings-label">Minimap</label>
             <select
               className="settings-select"
-              value={editorSettings.minimap ? 'on' : 'off'}
-              onChange={(e) => updateEditorSettings('minimap', e.target.value === 'on')}
+              value={editorSettings.minimap ? "on" : "off"}
+              onChange={(e) => updateEditorSettings("minimap", e.target.value === "on")}
             >
               <option value="off">Hide</option>
               <option value="on">Show</option>
@@ -449,19 +449,19 @@ const MonacoEditorComponent = ({
           padding: { top: 16 },
           scrollBeyondLastLine: false,
           smoothScrolling: true,
-          cursorBlinking: 'smooth',
+          cursorBlinking: "smooth",
           cursorSmoothCaretAnimation: true,
           roundedSelection: true,
           automaticLayout: true,
           // Quick Suggestions
           quickSuggestions: true,
           suggestOnTriggerCharacters: true,
-          acceptSuggestionOnEnter: 'on',
-          tabCompletion: 'on',
-          suggestSelection: 'first',
+          acceptSuggestionOnEnter: "on",
+          tabCompletion: "on",
+          suggestSelection: "first",
           formatOnType: true,
           formatOnPaste: true,
-          snippetSuggestions: 'on',
+          snippetSuggestions: "on",
         }}
         value={code}
         onChange={(value) => setCode(value)}
@@ -471,11 +471,11 @@ const MonacoEditorComponent = ({
       />
       <div className="editor-controls">
         <button
-          className={`editor-button run-btn ${isRunning || cooldown ? 'disabled' : ''}`}
+          className={`editor-button run-btn ${isRunning || cooldown ? "disabled" : ""}`}
           onClick={runCode}
           disabled={isRunning || cooldown}
         >
-          {isRunning ? 'Running...' : cooldown ? 'Wait...' : 'Run'} <FaPlay />
+          {isRunning ? "Running..." : cooldown ? "Wait..." : "Run"} <FaPlay />
         </button>
 
         <button className="editor-button copy-btn" onClick={copyCodeToClipboard}>
@@ -487,6 +487,6 @@ const MonacoEditorComponent = ({
 };
 
 const MemoizedMonacoEditor = memo(MonacoEditorComponent);
-MemoizedMonacoEditor.displayName = 'MonacoEditorComponent';
+MemoizedMonacoEditor.displayName = "MonacoEditorComponent";
 
 export default MemoizedMonacoEditor;

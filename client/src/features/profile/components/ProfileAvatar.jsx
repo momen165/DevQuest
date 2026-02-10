@@ -1,4 +1,3 @@
-import React from 'react';
 import { FaCamera } from "react-icons/fa";
 import defaultProfilePic from "assets/images/default-profile-pic.png";
 
@@ -15,10 +14,7 @@ const ProfileAvatar = ({ imageUrl, onImageChange }) => {
           e.target.src = defaultProfilePic;
         }}
       />
-      <label
-        htmlFor="profilePicInput"
-        className="account-settings-profile-pic-buttons"
-      >
+      <label htmlFor="profilePicInput" className="account-settings-profile-pic-buttons">
         <FaCamera size={16} color="#e2e8f0" />
       </label>
       <input

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useAuth } from 'app/AuthContext';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useAuth } from "app/AuthContext";
 import CircularProgress from "@mui/material/CircularProgress";
-import './CourseFeedbackModal.css';
+import "./CourseFeedbackModal.css";
 
 const CourseFeedbackModal = ({ course, onClose }) => {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -14,11 +14,11 @@ const CourseFeedbackModal = ({ course, onClose }) => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/feedback`, {
           headers: { Authorization: `Bearer ${user.token}` },
-          params: { course_id: course.course_id }
+          params: { course_id: course.course_id },
         });
         setFeedbacks(response.data);
       } catch (error) {
-        console.error('Error fetching feedbacks:', error);
+        console.error("Error fetching feedbacks:", error);
       } finally {
         setLoading(false);
       }
@@ -29,12 +29,14 @@ const CourseFeedbackModal = ({ course, onClose }) => {
 
   return (
     <div className="feedback-modal-overlay" onClick={onClose}>
-      <div className="feedback-modal-content" onClick={e => e.stopPropagation()}>
+      <div className="feedback-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="feedback-modal-header">
           <h2>Feedback for {course.title}</h2>
-          <button className="feedback-modal-close" onClick={onClose}>&times;</button>
+          <button className="feedback-modal-close" onClick={onClose}>
+            &times;
+          </button>
         </div>
-        
+
         <div className="feedback-modal-body">
           {loading ? (
             <div className="feedback-loading">
@@ -47,17 +49,22 @@ const CourseFeedbackModal = ({ course, onClose }) => {
                   <div className="feedback-header">
                     <div className="feedback-user">{feedback.student_name}</div>
                     <div className="feedback-rating">
-                      <span className="star-rating">{'★'.repeat(Math.floor(feedback.rating || 0))}</span>
-                      <span className="star-empty">{'☆'.repeat(5 - Math.floor(feedback.rating || 0))}</span>
-                      <span className="rating-value">({Number(feedback.rating || 0).toFixed(1)})</span>
+                      <span className="star-rating">
+                        {"★".repeat(Math.floor(feedback.rating || 0))}
+                      </span>
+                      <span className="star-empty">
+                        {"☆".repeat(5 - Math.floor(feedback.rating || 0))}
+                      </span>
+                      <span className="rating-value">
+                        ({Number(feedback.rating || 0).toFixed(1)})
+                      </span>
                     </div>
                   </div>
-                  {feedback.comment && (
-                    <div className="feedback-comment">{feedback.comment}</div>
-                  )}
+                  {feedback.comment && <div className="feedback-comment">{feedback.comment}</div>}
                   <div className="feedback-status">
-                    Status: <span className={`status-${feedback.status?.toLowerCase()}`}>
-                      {feedback.status || 'Pending'}
+                    Status:{" "}
+                    <span className={`status-${feedback.status?.toLowerCase()}`}>
+                      {feedback.status || "Pending"}
                     </span>
                   </div>
                 </div>
@@ -72,4 +79,4 @@ const CourseFeedbackModal = ({ course, onClose }) => {
   );
 };
 
-export default CourseFeedbackModal; 
+export default CourseFeedbackModal;

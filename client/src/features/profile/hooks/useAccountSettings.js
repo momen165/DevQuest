@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import apiClient from 'shared/lib/apiClient';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import apiClient from "shared/lib/apiClient";
+import toast from "react-hot-toast";
 
 export const useAccountSettings = (user, setUser) => {
   const [name, setName] = useState("");
@@ -19,7 +19,7 @@ export const useAccountSettings = (user, setUser) => {
     const fetchBadges = async () => {
       if (user && user.token) {
         try {
-          const res = await apiClient.get('/badges/user');
+          const res = await apiClient.get("/badges/user");
           if (res.data.success && Array.isArray(res.data.badges)) {
             setBadgesBefore(res.data.badges);
           }
@@ -42,7 +42,7 @@ export const useAccountSettings = (user, setUser) => {
 
   const handleRemoveProfilePic = async () => {
     try {
-      await apiClient.delete('/removeProfilePic');
+      await apiClient.delete("/removeProfilePic");
 
       const updatedUser = { ...user, profileimage: null };
       setUser(updatedUser);
@@ -51,8 +51,7 @@ export const useAccountSettings = (user, setUser) => {
     } catch (error) {
       console.error("[handleRemoveProfilePic] Error:", error);
       toast.error(
-        error.response?.data?.error ||
-        "An error occurred while removing your profile picture"
+        error.response?.data?.error || "An error occurred while removing your profile picture"
       );
     }
   };
@@ -64,7 +63,7 @@ export const useAccountSettings = (user, setUser) => {
     formData.append("profilePic", file);
 
     try {
-      const response = await apiClient.post('/uploadProfilePic', formData, {
+      const response = await apiClient.post("/uploadProfilePic", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -85,8 +84,7 @@ export const useAccountSettings = (user, setUser) => {
     } catch (error) {
       console.error("[handleProfilePicChange] Error:", error);
       toast.error(
-        error.response?.data?.error ||
-        "An error occurred while uploading your profile picture"
+        error.response?.data?.error || "An error occurred while uploading your profile picture"
       );
     }
   };
@@ -100,26 +98,26 @@ export const useAccountSettings = (user, setUser) => {
         .map((skill) => skill.trim())
         .filter((skill) => skill !== "");
 
-      await apiClient.put('/update-profile', {
+      await apiClient.put("/update-profile", {
         name,
         country,
         bio,
         skills: skillsArray,
       });
-      
+
       const updatedUser = { ...user, name, country, bio, skills: skillsArray };
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
       toast.success("Profile updated successfully");
 
       // Fetch badges after update
-      const badgeRes = await apiClient.get('/badges/user');
-      
+      const badgeRes = await apiClient.get("/badges/user");
+
       if (badgeRes.data.success && Array.isArray(badgeRes.data.badges)) {
         const badgesAfter = badgeRes.data.badges;
-        const hadProfileComplete = badgesBefore.some(b => b.badge_type === "profile_complete");
-        const newProfileBadge = badgesAfter.find(b => b.badge_type === "profile_complete");
-        
+        const hadProfileComplete = badgesBefore.some((b) => b.badge_type === "profile_complete");
+        const newProfileBadge = badgesAfter.find((b) => b.badge_type === "profile_complete");
+
         if (!hadProfileComplete && newProfileBadge) {
           setProfileCompleteBadge(newProfileBadge);
           setShowBadgeNotification(true);
@@ -127,10 +125,7 @@ export const useAccountSettings = (user, setUser) => {
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error(
-        error.response?.data?.error ||
-        "An error occurred while updating your profile"
-      );
+      toast.error(error.response?.data?.error || "An error occurred while updating your profile");
     } finally {
       setLoading(false);
     }
@@ -152,18 +147,24 @@ export const useAccountSettings = (user, setUser) => {
   };
 
   return {
-    name, setName,
-    country, setCountry,
-    bio, setBio,
-    skills, setSkills,
-    newSkill, setNewSkill,
+    name,
+    setName,
+    country,
+    setCountry,
+    bio,
+    setBio,
+    skills,
+    setSkills,
+    newSkill,
+    setNewSkill,
     loading,
-    showBadgeNotification, setShowBadgeNotification,
+    showBadgeNotification,
+    setShowBadgeNotification,
     profileCompleteBadge,
     handleRemoveProfilePic,
     handleProfilePicChange,
     handleSaveChanges,
     addSkill,
-    removeSkill
+    removeSkill,
   };
 };

@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState } from "react";
 import {
   FiSave,
   FiTrash2,
@@ -12,18 +12,20 @@ import {
   FiHelpCircle,
   FiCheckCircle,
   FiX,
-} from 'react-icons/fi';
-import './AdminManage.css';
-import TestCaseManager from 'features/editor/components/TestCaseManager';
-import LoadingSpinner from 'shared/ui/LoadingSpinner';
-import ErrorAlert from './ErrorAlert';
-import { decode as decodeEntities } from 'entities';
-import { languageMappings } from 'features/lesson/utils/lessonConstants';
-import { validateRequired, validateNumberRange } from 'shared/utils/formValidation';
-import apiClient from 'shared/lib/apiClient';
+} from "react-icons/fi";
+import "./AdminManage.css";
+import TestCaseManager from "features/editor/components/TestCaseManager";
+import LoadingSpinner from "shared/ui/LoadingSpinner";
+import ErrorAlert from "./ErrorAlert";
+import { decode as decodeEntities } from "entities";
+import { languageMappings } from "features/lesson/utils/lessonConstants";
+import { validateRequired, validateNumberRange } from "shared/utils/formValidation";
+import apiClient from "shared/lib/apiClient";
 
-const CustomEditor = React.lazy(() => import('features/editor/components/CustomEditor'));
-const SimpleMonacoEditor = React.lazy(() => import('features/editor/components/SimpleMonacoEditor'));
+const CustomEditor = React.lazy(() => import("features/editor/components/CustomEditor"));
+const SimpleMonacoEditor = React.lazy(
+  () => import("features/editor/components/SimpleMonacoEditor")
+);
 
 const DEFAULT_LESSON_TEMPLATE = `<div class="lesson-template">
   <h1 class="lesson-template-heading">Exercise</h1>
@@ -33,28 +35,28 @@ const DEFAULT_LESSON_TEMPLATE = `<div class="lesson-template">
 const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDelete }) => {
   // Helper function for default test case
   const getDefaultTestCase = () => ({
-    input: '',
-    expected_output: '',
+    input: "",
+    expected_output: "",
     auto_detect: false,
     use_pattern: false,
-    pattern: '',
+    pattern: "",
   });
 
   // Group related state together
-  const [lessonName, setLessonName] = useState(lesson?.name || '');
+  const [lessonName, setLessonName] = useState(lesson?.name || "");
   const [editorData, setEditorData] = useState(() => lesson?.content || DEFAULT_LESSON_TEMPLATE);
   const [xp, setXp] = useState(lesson?.xp || 0);
   const [templateCode, setTemplateCode] = useState(() => {
     if (lesson?.template_code) {
       return decodeEntities(lesson.template_code);
     }
-    return '';
+    return "";
   });
-  const [hint, setHint] = useState(lesson?.hint || '');
-  const [solution, setSolution] = useState(lesson?.solution || '');
+  const [hint, setHint] = useState(lesson?.hint || "");
+  const [solution, setSolution] = useState(lesson?.solution || "");
 
   // UI state
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   // Test cases state
@@ -65,14 +67,14 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
           ? lesson.test_cases
           : JSON.parse(lesson.test_cases);
         return cases.map((test) => ({
-          input: test.input || '',
-          expected_output: test.auto_detect ? '' : test.expected_output || '',
+          input: test.input || "",
+          expected_output: test.auto_detect ? "" : test.expected_output || "",
           auto_detect: test.auto_detect === true,
           use_pattern: test.use_pattern === true,
-          pattern: test.pattern || '',
+          pattern: test.pattern || "",
         }));
       } catch (error) {
-        console.error('Error parsing test cases:', error);
+        console.error("Error parsing test cases:", error);
         return [getDefaultTestCase()];
       }
     }
@@ -81,13 +83,13 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
 
   // Validation function
   const validate = () => {
-    const nameValidation = validateRequired(lessonName, 'Lesson name');
+    const nameValidation = validateRequired(lessonName, "Lesson name");
     if (!nameValidation.isValid) {
       setError(nameValidation.error);
       return false;
     }
 
-    const xpValidation = validateNumberRange(xp, { min: 0, fieldName: 'XP' });
+    const xpValidation = validateNumberRange(xp, { min: 0, fieldName: "XP" });
     if (!xpValidation.isValid) {
       setError(xpValidation.error);
       return false;
@@ -117,14 +119,14 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
     }
 
     setIsSaving(true);
-    setError('');
+    setError("");
 
     const processedTestCases = test_cases.map((test) => ({
-      input: test.input || '',
+      input: test.input || "",
       auto_detect: test.auto_detect === true,
       use_pattern: test.use_pattern === true,
-      pattern: test.pattern || '',
-      expected_output: test.auto_detect ? '' : test.expected_output || '',
+      pattern: test.pattern || "",
+      expected_output: test.auto_detect ? "" : test.expected_output || "",
     }));
 
     try {
@@ -140,22 +142,22 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
         auto_detect: test_cases[0]?.auto_detect || false,
       };
 
-      const url = lesson ? `/lesson/${lesson.lesson_id}` : '/lesson';
+      const url = lesson ? `/lesson/${lesson.lesson_id}` : "/lesson";
 
-      const method = lesson ? 'put' : 'post';
+      const method = lesson ? "put" : "post";
 
       const response = await apiClient[method](url, lessonData, {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
 
       if (response.status === 200 || response.status === 201) {
         onSave(response.data);
       } else {
-        setError(`Failed to ${lesson ? 'update' : 'create'} lesson`);
+        setError(`Failed to ${lesson ? "update" : "create"} lesson`);
       }
     } catch (err) {
-      console.error('Error saving lesson:', err);
-      setError(err.response?.data?.message || 'An error occurred while saving the lesson');
+      console.error("Error saving lesson:", err);
+      setError(err.response?.data?.message || "An error occurred while saving the lesson");
     } finally {
       setIsSaving(false);
     }
@@ -163,27 +165,27 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
 
   const handleDelete = async () => {
     if (!lesson?.lesson_id) return;
-    if (!window.confirm('Are you sure you want to delete this lesson?')) return;
+    if (!window.confirm("Are you sure you want to delete this lesson?")) return;
     try {
       await apiClient.delete(`/lesson/${lesson.lesson_id}`);
       onDelete(lesson.lesson_id);
     } catch (err) {
-      console.error('Error deleting lesson:', err);
-      alert('Failed to delete lesson.');
+      console.error("Error deleting lesson:", err);
+      alert("Failed to delete lesson.");
     }
   };
 
   const editorFallback = <LoadingSpinner center={false} message="Loading editor..." />;
 
   return (
-    <div className={`form-container ${isSaving ? 'form-loading' : ''}`}>
+    <div className={`form-container ${isSaving ? "form-loading" : ""}`}>
       {isSaving && <LoadingSpinner message="Saving lesson..." fullScreen />}
-      {error && <ErrorAlert message={error} onClose={() => setError('')} />}
+      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
 
       <div className="form-header">
         <h3 className="form-title">
           {lesson ? <FiEdit2 size={20} /> : <FiPlus size={20} />}
-          {lesson ? 'Edit Lesson' : 'Add New Lesson'}
+          {lesson ? "Edit Lesson" : "Add New Lesson"}
         </h3>
       </div>
 
@@ -212,7 +214,7 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
                 onChange={setEditorData}
                 className="lesson-editor"
                 config={{
-                  placeholder: 'Start writing your lesson content here...',
+                  placeholder: "Start writing your lesson content here...",
                 }}
               />
             </Suspense>
@@ -244,12 +246,12 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
           <label className="form-label">
             <FiCode size={14} /> Starter Template Code
           </label>
-          <div className="editor-container" style={{ height: '400px', marginBottom: '1rem' }}>
+          <div className="editor-container" style={{ height: "400px", marginBottom: "1rem" }}>
             <Suspense fallback={editorFallback}>
               <SimpleMonacoEditor
                 code={templateCode}
                 setCode={setTemplateCode}
-                language={languageId ? languageMappings[languageId] || 'plaintext' : 'plaintext'}
+                language={languageId ? languageMappings[languageId] || "plaintext" : "plaintext"}
               />
             </Suspense>
           </div>
@@ -299,7 +301,7 @@ const LessonForm = ({ section, lesson = null, languageId, onSave, onCancel, onDe
             disabled={isSaving}
             className="btn btn-primary"
           >
-            <FiSave size={16} /> {isSaving ? 'Saving...' : 'Save'}
+            <FiSave size={16} /> {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
       </form>

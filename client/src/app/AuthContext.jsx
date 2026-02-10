@@ -1,6 +1,14 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { jwtDecode } from 'jwt-decode';
-import axios from 'axios';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 
 const AuthContext = createContext();
 
@@ -13,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   const parseStoredUser = useCallback(() => {
     try {
-      return JSON.parse(localStorage.getItem('user') || 'null');
+      return JSON.parse(localStorage.getItem("user") || "null");
     } catch {
       return null;
     }
@@ -25,18 +33,18 @@ export const AuthProvider = ({ children }) => {
     }
 
     const pendingRefresh = (async () => {
-      const lastRefreshAttempt = sessionStorage.getItem('lastRefreshAttempt');
+      const lastRefreshAttempt = sessionStorage.getItem("lastRefreshAttempt");
       const currentTime = Date.now();
       if (lastRefreshAttempt && currentTime - Number.parseInt(lastRefreshAttempt, 10) < 10000) {
         return null;
       }
 
-      sessionStorage.setItem('lastRefreshAttempt', currentTime.toString());
+      sessionStorage.setItem("lastRefreshAttempt", currentTime.toString());
 
       try {
-        const storedRefreshToken = localStorage.getItem('refreshToken');
+        const storedRefreshToken = localStorage.getItem("refreshToken");
         if (!storedRefreshToken) {
-          throw new Error('No refresh token available');
+          throw new Error("No refresh token available");
         }
 
         const response = await axios.post(`${import.meta.env.VITE_API_URL}/refresh-token`, {
@@ -49,11 +57,11 @@ export const AuthProvider = ({ children }) => {
           token,
         };
 
-        localStorage.setItem('user', JSON.stringify(updatedUserData));
+        localStorage.setItem("user", JSON.stringify(updatedUserData));
         setUser(updatedUserData);
         return token;
       } catch (error) {
-        console.error('Failed to refresh token:', error);
+        console.error("Failed to refresh token:", error);
         await logoutRef.current?.();
         return null;
       } finally {
@@ -93,7 +101,7 @@ export const AuthProvider = ({ children }) => {
               config.headers.Authorization = `Bearer ${userData.token}`;
             }
           } catch (error) {
-            console.error('Token validation error:', error);
+            console.error("Token validation error:", error);
           }
         }
 
@@ -111,7 +119,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       setLoading(true);
-      const storedUserData = localStorage.getItem('user');
+      const storedUserData = localStorage.getItem("user");
       if (storedUserData) {
         try {
           const parsedData = JSON.parse(storedUserData);
@@ -127,7 +135,7 @@ export const AuthProvider = ({ children }) => {
             });
           }
         } catch (error) {
-          console.error('Error initializing auth from storage:', error);
+          console.error("Error initializing auth from storage:", error);
           await logoutRef.current?.();
         }
       }
@@ -148,40 +156,42 @@ export const AuthProvider = ({ children }) => {
         ...userData,
       };
 
-      localStorage.setItem('user', JSON.stringify(combinedUserData));
+      localStorage.setItem("user", JSON.stringify(combinedUserData));
       if (refreshTokenProp) {
-        localStorage.setItem('refreshToken', refreshTokenProp);
+        localStorage.setItem("refreshToken", refreshTokenProp);
       }
 
       setUser(combinedUserData);
       return true;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       return false;
     }
   }, []);
 
   const logout = useCallback(async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      const lastLogoutAttempt = sessionStorage.getItem('lastLogoutAttempt');
+      const refreshToken = localStorage.getItem("refreshToken");
+      const lastLogoutAttempt = sessionStorage.getItem("lastLogoutAttempt");
       const currentTime = Date.now();
 
-      if (refreshToken &&
-        (!lastLogoutAttempt || currentTime - Number.parseInt(lastLogoutAttempt, 10) > 10000)) {
-        sessionStorage.setItem('lastLogoutAttempt', currentTime.toString());
+      if (
+        refreshToken &&
+        (!lastLogoutAttempt || currentTime - Number.parseInt(lastLogoutAttempt, 10) > 10000)
+      ) {
+        sessionStorage.setItem("lastLogoutAttempt", currentTime.toString());
         await axios.post(`${import.meta.env.VITE_API_URL}/logout`, { refreshToken });
       }
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error("Error during logout:", error);
       if (error.response && error.response.status === 429) {
-        console.log('Rate limited on logout, proceeding with local cleanup only');
+        console.log("Rate limited on logout, proceeding with local cleanup only");
       }
     } finally {
       setUser(null);
-      localStorage.removeItem('user');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('subscriptionStatus');
+      localStorage.removeItem("user");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("subscriptionStatus");
     }
   }, []);
 
@@ -203,11 +213,7 @@ export const AuthProvider = ({ children }) => {
     [user, loading, login, logout, refreshToken]
   );
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState } from "react";
 import {
   FiEdit2,
   FiTrash2,
@@ -8,16 +8,16 @@ import {
   FiStar,
   FiUsers,
   FiFolder,
-} from 'react-icons/fi';
-import './AdminDashboard.css';
-import axios from 'axios';
-import { useAuth } from 'app/AuthContext';
-import CircularProgress from '@mui/material/CircularProgress';
-import useAdminCourses from 'features/admin/hooks/useAdminCourses';
+} from "react-icons/fi";
+import "./AdminDashboard.css";
+import axios from "axios";
+import { useAuth } from "app/AuthContext";
+import CircularProgress from "@mui/material/CircularProgress";
+import useAdminCourses from "features/admin/hooks/useAdminCourses";
 
-const CourseForm = React.lazy(() => import('features/admin/components/CourseForm'));
-const SectionManager = React.lazy(() => import('features/admin/components/SectionManager'));
-const CourseFeedbackModal = React.lazy(() => import('./CourseFeedbackModal'));
+const CourseForm = React.lazy(() => import("features/admin/components/CourseForm"));
+const SectionManager = React.lazy(() => import("features/admin/components/SectionManager"));
+const CourseFeedbackModal = React.lazy(() => import("./CourseFeedbackModal"));
 
 const AdminCourses = () => {
   const { user } = useAuth();
@@ -45,18 +45,18 @@ const AdminCourses = () => {
   const handleFileUpload = async (file) => {
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/upload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
 
       return response.data.fileUrl;
     } catch (err) {
-      console.error('Failed to upload file:', err);
+      console.error("Failed to upload file:", err);
       throw err;
     }
   };
@@ -80,7 +80,7 @@ const AdminCourses = () => {
   };
 
   const handleDeleteCourse = async (courseId) => {
-    if (!window.confirm('Are you sure you want to delete this course?')) return;
+    if (!window.confirm("Are you sure you want to delete this course?")) return;
     await deleteCourse(courseId);
   };
 
@@ -92,8 +92,8 @@ const AdminCourses = () => {
       stars.push(
         <FiStar
           key={i}
-          className={i < fullStars ? 'rating-star' : 'rating-star-empty'}
-          fill={i < fullStars ? 'currentColor' : 'none'}
+          className={i < fullStars ? "rating-star" : "rating-star-empty"}
+          fill={i < fullStars ? "currentColor" : "none"}
         />
       );
     }
@@ -101,10 +101,10 @@ const AdminCourses = () => {
   };
 
   const getPageTitle = () => {
-    if (editingSections) return 'Manage Sections';
-    if (isAddingCourse) return 'Create Course';
-    if (editingCourse) return 'Edit Course';
-    return 'Courses';
+    if (editingSections) return "Manage Sections";
+    if (isAddingCourse) return "Create Course";
+    if (editingCourse) return "Edit Course";
+    return "Courses";
   };
 
   const lazyFallback = (
@@ -164,7 +164,7 @@ const AdminCourses = () => {
                       setSections(sectionsData);
                     }
                   })
-                  .catch((err) => console.error('Failed to reorder sections:', err));
+                  .catch((err) => console.error("Failed to reorder sections:", err));
               }}
               onDeleteSection={handleDeleteSection}
               onClose={handleCloseSections}

@@ -9,16 +9,16 @@
  * @returns {Object} { isValid: boolean, error: string }
  */
 export const validateEmail = (email) => {
-  if (!email || email.trim() === '') {
-    return { isValid: false, error: 'Email is required' };
+  if (!email || email.trim() === "") {
+    return { isValid: false, error: "Email is required" };
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return { isValid: false, error: 'Please enter a valid email address' };
+    return { isValid: false, error: "Please enter a valid email address" };
   }
 
-  return { isValid: true, error: '' };
+  return { isValid: true, error: "" };
 };
 
 /**
@@ -38,11 +38,11 @@ export const validatePassword = (password, options = {}) => {
     requireUppercase = true,
     requireLowercase = true,
     requireNumber = true,
-    requireSpecial = false
+    requireSpecial = false,
   } = options;
 
-  if (!password || password.trim() === '') {
-    return { isValid: false, error: 'Password is required' };
+  if (!password || password.trim() === "") {
+    return { isValid: false, error: "Password is required" };
   }
 
   if (password.length < minLength) {
@@ -50,22 +50,22 @@ export const validatePassword = (password, options = {}) => {
   }
 
   if (requireUppercase && !/[A-Z]/.test(password)) {
-    return { isValid: false, error: 'Password must contain at least one uppercase letter' };
+    return { isValid: false, error: "Password must contain at least one uppercase letter" };
   }
 
   if (requireLowercase && !/[a-z]/.test(password)) {
-    return { isValid: false, error: 'Password must contain at least one lowercase letter' };
+    return { isValid: false, error: "Password must contain at least one lowercase letter" };
   }
 
   if (requireNumber && !/\d/.test(password)) {
-    return { isValid: false, error: 'Password must contain at least one number' };
+    return { isValid: false, error: "Password must contain at least one number" };
   }
 
   if (requireSpecial && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    return { isValid: false, error: 'Password must contain at least one special character' };
+    return { isValid: false, error: "Password must contain at least one special character" };
   }
 
-  return { isValid: true, error: '' };
+  return { isValid: true, error: "" };
 };
 
 /**
@@ -75,15 +75,15 @@ export const validatePassword = (password, options = {}) => {
  * @returns {Object} { isValid: boolean, error: string }
  */
 export const validateConfirmPassword = (password, confirmPassword) => {
-  if (!confirmPassword || confirmPassword.trim() === '') {
-    return { isValid: false, error: 'Please confirm your password' };
+  if (!confirmPassword || confirmPassword.trim() === "") {
+    return { isValid: false, error: "Please confirm your password" };
   }
 
   if (password !== confirmPassword) {
-    return { isValid: false, error: 'Passwords do not match' };
+    return { isValid: false, error: "Passwords do not match" };
   }
 
-  return { isValid: true, error: '' };
+  return { isValid: true, error: "" };
 };
 
 /**
@@ -97,8 +97,8 @@ export const validateConfirmPassword = (password, confirmPassword) => {
 export const validateName = (name, options = {}) => {
   const { minLength = 2, maxLength = 50 } = options;
 
-  if (!name || name.trim() === '') {
-    return { isValid: false, error: 'Name is required' };
+  if (!name || name.trim() === "") {
+    return { isValid: false, error: "Name is required" };
   }
 
   const trimmedName = name.trim();
@@ -113,10 +113,13 @@ export const validateName = (name, options = {}) => {
 
   // Only allow letters, spaces, hyphens, and apostrophes
   if (!/^[a-zA-Z\s'-]+$/.test(trimmedName)) {
-    return { isValid: false, error: 'Name can only contain letters, spaces, hyphens, and apostrophes' };
+    return {
+      isValid: false,
+      error: "Name can only contain letters, spaces, hyphens, and apostrophes",
+    };
   }
 
-  return { isValid: true, error: '' };
+  return { isValid: true, error: "" };
 };
 
 /**
@@ -125,12 +128,12 @@ export const validateName = (name, options = {}) => {
  * @param {string} fieldName - Name of the field for error message
  * @returns {Object} { isValid: boolean, error: string }
  */
-export const validateRequired = (value, fieldName = 'This field') => {
+export const validateRequired = (value, fieldName = "This field") => {
   if (value === null || value === undefined) {
     return { isValid: false, error: `${fieldName} is required` };
   }
 
-  if (typeof value === 'string' && value.trim() === '') {
+  if (typeof value === "string" && value.trim() === "") {
     return { isValid: false, error: `${fieldName} is required` };
   }
 
@@ -138,7 +141,7 @@ export const validateRequired = (value, fieldName = 'This field') => {
     return { isValid: false, error: `${fieldName} is required` };
   }
 
-  return { isValid: true, error: '' };
+  return { isValid: true, error: "" };
 };
 
 /**
@@ -148,18 +151,18 @@ export const validateRequired = (value, fieldName = 'This field') => {
  * @returns {Object} { isValid: boolean, error: string }
  */
 export const validateURL = (url, required = true) => {
-  if (!url || url.trim() === '') {
+  if (!url || url.trim() === "") {
     if (required) {
-      return { isValid: false, error: 'URL is required' };
+      return { isValid: false, error: "URL is required" };
     }
-    return { isValid: true, error: '' };
+    return { isValid: true, error: "" };
   }
 
   try {
     new URL(url);
-    return { isValid: true, error: '' };
+    return { isValid: true, error: "" };
   } catch {
-    return { isValid: false, error: 'Please enter a valid URL' };
+    return { isValid: false, error: "Please enter a valid URL" };
   }
 };
 
@@ -173,9 +176,9 @@ export const validateURL = (url, required = true) => {
  * @returns {Object} { isValid: boolean, error: string }
  */
 export const validateNumberRange = (value, options = {}) => {
-  const { min, max, fieldName = 'Value' } = options;
+  const { min, max, fieldName = "Value" } = options;
 
-  if (value === null || value === undefined || value === '') {
+  if (value === null || value === undefined || value === "") {
     return { isValid: false, error: `${fieldName} is required` };
   }
 
@@ -193,7 +196,7 @@ export const validateNumberRange = (value, options = {}) => {
     return { isValid: false, error: `${fieldName} cannot exceed ${max}` };
   }
 
-  return { isValid: true, error: '' };
+  return { isValid: true, error: "" };
 };
 
 /**
@@ -207,44 +210,39 @@ export const validateNumberRange = (value, options = {}) => {
  * @returns {Object} { isValid: boolean, error: string }
  */
 export const validateTextLength = (text, options = {}) => {
-  const { 
-    minLength, 
-    maxLength, 
-    fieldName = 'This field',
-    required = true 
-  } = options;
+  const { minLength, maxLength, fieldName = "This field", required = true } = options;
 
-  if (!text || text.trim() === '') {
+  if (!text || text.trim() === "") {
     if (required) {
       return { isValid: false, error: `${fieldName} is required` };
     }
-    return { isValid: true, error: '' };
+    return { isValid: true, error: "" };
   }
 
   const trimmedText = text.trim();
 
   if (minLength !== undefined && trimmedText.length < minLength) {
-    return { 
-      isValid: false, 
-      error: `${fieldName} must be at least ${minLength} characters long` 
+    return {
+      isValid: false,
+      error: `${fieldName} must be at least ${minLength} characters long`,
     };
   }
 
   if (maxLength !== undefined && trimmedText.length > maxLength) {
-    return { 
-      isValid: false, 
-      error: `${fieldName} cannot exceed ${maxLength} characters` 
+    return {
+      isValid: false,
+      error: `${fieldName} cannot exceed ${maxLength} characters`,
     };
   }
 
-  return { isValid: true, error: '' };
+  return { isValid: true, error: "" };
 };
 
 /**
  * Validate multiple fields at once
  * @param {Object} fields - Object with field names as keys and validation functions as values
  * @returns {Object} { isValid: boolean, errors: Object }
- * 
+ *
  * @example
  * const result = validateFields({
  *   email: () => validateEmail(email),
@@ -256,7 +254,7 @@ export const validateFields = (fields) => {
   const errors = {};
   let isValid = true;
 
-  Object.keys(fields).forEach(fieldName => {
+  Object.keys(fields).forEach((fieldName) => {
     const validationResult = fields[fieldName]();
     if (!validationResult.isValid) {
       errors[fieldName] = validationResult.error;

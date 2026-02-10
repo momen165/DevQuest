@@ -1,35 +1,35 @@
-import React, { memo, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './CourseCard.css';
+import { memo, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import "./CourseCard.css";
 
 const languageAccents = {
-  71: '48, 105, 152', // Python
-  102: '247, 223, 30', // JavaScript
-  105: '0, 89, 156', // C++
-  62: '248, 152, 32', // Java
-  101: '49, 122, 204', // TypeScript
-  100: '83, 130, 161', // Python alt
-  104: '85, 85, 85', // C
-  28: '0, 172, 215', // Go
-  68: '119, 123, 179', // PHP
-  72: '204, 52, 45', // Ruby
-  78: '147, 82, 204', // Kotlin
-  73: '222, 165, 132', // Rust
+  71: "48, 105, 152", // Python
+  102: "247, 223, 30", // JavaScript
+  105: "0, 89, 156", // C++
+  62: "248, 152, 32", // Java
+  101: "49, 122, 204", // TypeScript
+  100: "83, 130, 161", // Python alt
+  104: "85, 85, 85", // C
+  28: "0, 172, 215", // Go
+  68: "119, 123, 179", // PHP
+  72: "204, 52, 45", // Ruby
+  78: "147, 82, 204", // Kotlin
+  73: "222, 165, 132", // Rust
 };
 
 const languageLabels = {
-  71: 'Python',
-  102: 'JavaScript',
-  105: 'C++',
-  62: 'Java',
-  101: 'TypeScript',
-  100: 'Python',
-  104: 'C',
-  28: 'Go',
-  68: 'PHP',
-  72: 'Ruby',
-  78: 'Kotlin',
-  73: 'Rust',
+  71: "Python",
+  102: "JavaScript",
+  105: "C++",
+  62: "Java",
+  101: "TypeScript",
+  100: "Python",
+  104: "C",
+  28: "Go",
+  68: "PHP",
+  72: "Ruby",
+  78: "Kotlin",
+  73: "Rust",
 };
 
 const CourseCard = memo(
@@ -48,12 +48,12 @@ const CourseCard = memo(
     const navigate = useNavigate();
     const fullImageUrl = image;
     const accentRgb = languageAccents[language_id] || languageAccents[28];
-    const languageLabel = languageLabels[language_id] || 'Course';
+    const languageLabel = languageLabels[language_id] || "Course";
 
     // Memoize expensive calculations
     const cardStyles = useMemo(() => {
       return {
-        '--accent-rgb': accentRgb,
+        "--accent-rgb": accentRgb,
       };
     }, [accentRgb]);
 
@@ -101,7 +101,7 @@ const CourseCard = memo(
                 onClick={handleButtonClick}
                 data-enrolled={isEnrolled}
               >
-                {isEnrolled ? 'Continue learning' : 'Enroll now'}
+                {isEnrolled ? "Continue learning" : "Enroll now"}
               </button>
             </div>
           </div>
@@ -127,6 +127,6 @@ const CourseCard = memo(
   }
 );
 
-CourseCard.displayName = 'CourseCard';
+CourseCard.displayName = "CourseCard";
 
 export default CourseCard;

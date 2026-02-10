@@ -1,10 +1,10 @@
-import React, { useState, useEffect, memo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from 'app/AuthContext';
-import './Footer.css';
-import footerLogo from 'assets/icons/layer1.svg';
-import { FaLinkedin, FaGithub, FaEnvelope } from 'react-icons/fa';
+import { useState, useEffect, memo } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "app/AuthContext";
+import "./Footer.css";
+import footerLogo from "assets/icons/layer1.svg";
+import { FaLinkedin, FaGithub, FaEnvelope } from "react-icons/fa";
 
 const Footer = memo(() => {
   const [courses, setCourses] = useState([]);
@@ -26,7 +26,7 @@ const Footer = memo(() => {
         setCourses(coursesRes.data.courses.slice(0, 5));
         setEnrollments(enrollmentsRes.data || {});
       } catch (err) {
-        console.error('Error fetching footer data:', err);
+        console.error("Error fetching footer data:", err);
       }
     };
 
@@ -130,6 +130,6 @@ const Footer = memo(() => {
   );
 });
 
-Footer.displayName = 'Footer';
+Footer.displayName = "Footer";
 
 export default Footer;

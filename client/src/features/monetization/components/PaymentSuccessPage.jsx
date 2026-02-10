@@ -1,35 +1,35 @@
 ﻿// File: `website/client/src/pages/user/PaymentSuccessPage.js`
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import axios from 'axios';
-import './PaymentSuccessPage.css';
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import axios from "axios";
+import "./PaymentSuccessPage.css";
 
 const PaymentSuccessPage = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-    const sessionId = query.get('session_id');
+    const sessionId = query.get("session_id");
 
     if (sessionId) {
       axios
         .get(`${import.meta.env.VITE_API_URL}/checkout-session/${sessionId}`)
         .then(() => {
-          setMessage('Payment successful! Thank you for your purchase.');
+          setMessage("Payment successful! Thank you for your purchase.");
           setIsSuccess(true);
         })
         .catch(() => {
-          setMessage('There was an issue retrieving your session. Please contact support.');
+          setMessage("There was an issue retrieving your session. Please contact support.");
           setIsSuccess(false);
         })
         .finally(() => {
           setLoading(false);
         });
     } else {
-      setMessage('No session ID found.');
+      setMessage("No session ID found.");
       setIsSuccess(false);
       setLoading(false);
     }
@@ -41,7 +41,7 @@ const PaymentSuccessPage = () => {
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <div className={`message ${isSuccess ? 'success' : 'error'}`}>
+        <div className={`message ${isSuccess ? "success" : "error"}`}>
           <p>{message}</p>
         </div>
       )}

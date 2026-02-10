@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './AuthPages.css';
-import { useAuth } from 'app/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import "./AuthPages.css";
+import { useAuth } from "app/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -14,7 +14,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate("/");
     }
   }, [isAuthenticated, navigate]);
 
@@ -31,10 +31,10 @@ const LoginPage = () => {
       await axios.post(`${import.meta.env.VITE_API_URL}/resend-verification`, {
         email: formData.email,
       });
-      toast.success('Verification email sent! Please check your inbox.');
+      toast.success("Verification email sent! Please check your inbox.");
     } catch (err) {
       toast.error(
-        err.response?.data?.error || 'Failed to resend verification email. Please try again.'
+        err.response?.data?.error || "Failed to resend verification email. Please try again."
       );
     } finally {
       setLoading(false);
@@ -58,19 +58,19 @@ const LoginPage = () => {
       const success = await login(token, refreshToken, user);
 
       if (success) {
-        toast.success('Login successful!');
-        navigate('/');
+        toast.success("Login successful!");
+        navigate("/");
       } else {
-        toast.error('Failed to process login information.');
+        toast.error("Failed to process login information.");
       }
     } catch (err) {
       // Handle verification-specific error
       if (err.response?.data?.needsVerification) {
         setNeedsVerification(true);
-        toast.error('Please verify your email before logging in');
+        toast.error("Please verify your email before logging in");
       } else {
         toast.error(
-          err.response?.data?.error || 'Login failed. Please check your email and password.'
+          err.response?.data?.error || "Login failed. Please check your email and password."
         );
       }
     } finally {
@@ -114,7 +114,7 @@ const LoginPage = () => {
           </label>
 
           <button type="submit" className="button" disabled={loading}>
-            {loading ? 'Authenticating...' : 'Log in'}
+            {loading ? "Authenticating..." : "Log in"}
           </button>
         </form>
 

@@ -1,32 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { useAuth } from 'app/AuthContext';
-import toast, { Toaster } from 'react-hot-toast';
-import { 
-  Shield, 
-  ShieldAlert, 
-  Power, 
-  UserPlus, 
-  UserMinus, 
-  Gift, 
-  RefreshCw, 
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { useAuth } from "app/AuthContext";
+import toast, { Toaster } from "react-hot-toast";
+import {
+  Shield,
+  ShieldAlert,
+  Power,
+  UserPlus,
+  UserMinus,
+  Gift,
+  RefreshCw,
   Terminal,
   Cpu,
   Server,
-  Lock
-} from 'lucide-react';
-import './AdminSettingsPage.css';
+  Lock,
+} from "lucide-react";
+import "./AdminSettingsPage.css";
 
 // --- Components ---
 
 function GrantFreeSubscriptionForm() {
-  const [userId, setUserId] = useState('');
+  const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleGrant = async (e) => {
     e.preventDefault();
     if (!userId || Number.isNaN(userId)) {
-      toast.error('Please enter a valid user ID');
+      toast.error("Please enter a valid user ID");
       return;
     }
     setLoading(true);
@@ -35,10 +35,10 @@ function GrantFreeSubscriptionForm() {
         `${import.meta.env.VITE_API_URL}/admin/grant-free-subscription`,
         { userId: parseInt(userId, 10) }
       );
-      toast.success(response.data.message || 'Free subscription granted');
-      setUserId('');
+      toast.success(response.data.message || "Free subscription granted");
+      setUserId("");
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to grant free subscription');
+      toast.error(err.response?.data?.error || "Failed to grant free subscription");
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ function GrantFreeSubscriptionForm() {
         <h3>Grant Access</h3>
       </div>
       <p className="panel-description">Provide complimentary premium access to a user.</p>
-      
+
       <form className="cmd-form" onSubmit={handleGrant}>
         <div className="input-group">
           <span className="input-prefix">ID:</span>
@@ -65,12 +65,8 @@ function GrantFreeSubscriptionForm() {
             disabled={loading}
           />
         </div>
-        <button
-          className="cmd-btn btn-primary"
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? 'PROCESSING...' : 'EXECUTE GRANT'}
+        <button className="cmd-btn btn-primary" type="submit" disabled={loading}>
+          {loading ? "PROCESSING..." : "EXECUTE GRANT"}
         </button>
       </form>
     </div>
@@ -78,7 +74,7 @@ function GrantFreeSubscriptionForm() {
 }
 
 const AdminSettingsPage = () => {
-  const [newAdminId, setNewAdminId] = useState('');
+  const [newAdminId, setNewAdminId] = useState("");
   const [isAddingAdmin, setIsAddingAdmin] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [adminActivity, setAdminActivity] = useState([]);
@@ -87,14 +83,14 @@ const AdminSettingsPage = () => {
   const [isActivityLoading, setIsActivityLoading] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [error, setError] = useState(null);
-  
+
   // Refs for scrolling to bottom of logs if needed, but we'll stick to top-newest
   const activityEndRef = useRef(null);
 
   useEffect(() => {
-    const userObj = JSON.parse(localStorage.getItem('user'));
+    const userObj = JSON.parse(localStorage.getItem("user"));
     if (userObj?.token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${userObj.token}`;
+      axios.defaults.headers.common["Authorization"] = `Bearer ${userObj.token}`;
       axios.defaults.baseURL = `${import.meta.env.VITE_API_URL}`;
     }
     fetchAdminActivities();
@@ -124,7 +120,7 @@ const AdminSettingsPage = () => {
         setAdminActivity([]);
       }
     } catch (err) {
-      console.error('Error fetching admin activities:', err);
+      console.error("Error fetching admin activities:", err);
     } finally {
       setIsActivityLoading(false);
       setIsLoading(false);
@@ -138,12 +134,12 @@ const AdminSettingsPage = () => {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/admin/status`);
         if (!data.isAdmin) {
-          setError('ACCESS DENIED: INSUFFICIENT PRIVILEGES');
+          setError("ACCESS DENIED: INSUFFICIENT PRIVILEGES");
           return false;
         }
         return true;
       } catch {
-        setError('CONNECTION FAILURE: UNABLE TO VERIFY CREDENTIALS');
+        setError("CONNECTION FAILURE: UNABLE TO VERIFY CREDENTIALS");
         return false;
       }
     };
@@ -162,24 +158,24 @@ const AdminSettingsPage = () => {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/system-settings`);
       setMaintenanceMode(!!response.data.maintenanceMode);
     } catch {
-      console.error('Failed to fetch settings');
+      console.error("Failed to fetch settings");
     }
   };
 
   const handleAdminAction = async (e) => {
     e.preventDefault();
     if (!newAdminId || Number.isNaN(newAdminId)) {
-      toast.error('INVALID INPUT: USER ID REQUIRED');
+      toast.error("INVALID INPUT: USER ID REQUIRED");
       return;
     }
 
-    const action = isAddingAdmin ? 'add' : 'remove';
+    const action = isAddingAdmin ? "add" : "remove";
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/admin/${action}-admin`, {
         userId: parseInt(newAdminId, 10),
       });
       toast.success(response.data.message.toUpperCase());
-      setNewAdminId('');
+      setNewAdminId("");
     } catch (err) {
       toast.error(err.response?.data?.error || `FAILED TO ${action.toUpperCase()} ADMIN`);
     }
@@ -192,9 +188,9 @@ const AdminSettingsPage = () => {
         enabled: newState,
       });
       setMaintenanceMode(newState);
-      toast.success(`SYSTEM STATUS: ${newState ? 'MAINTENANCE' : 'OPERATIONAL'}`);
+      toast.success(`SYSTEM STATUS: ${newState ? "MAINTENANCE" : "OPERATIONAL"}`);
     } catch {
-      toast.error('FAILED TO UPDATE SYSTEM STATUS');
+      toast.error("FAILED TO UPDATE SYSTEM STATUS");
       fetchSystemSettings(); // Revert to server state
     }
   };
@@ -211,18 +207,18 @@ const AdminSettingsPage = () => {
 
   return (
     <div className="admin-console">
-      <Toaster 
+      <Toaster
         toastOptions={{
-          className: 'cmd-toast',
+          className: "cmd-toast",
           style: {
-            background: '#1a1f2e',
-            color: '#fff',
-            border: '1px solid #3b82f6',
-            fontFamily: 'monospace',
+            background: "#1a1f2e",
+            color: "#fff",
+            border: "1px solid #3b82f6",
+            fontFamily: "monospace",
           },
-        }} 
+        }}
       />
-      
+
       {/* Header Bar */}
       <header className="console-header">
         <div className="header-brand">
@@ -233,42 +229,40 @@ const AdminSettingsPage = () => {
           </div>
         </div>
         <div className="header-status">
-          <div className={`status-indicator ${maintenanceMode ? 'warning' : 'active'}`}>
+          <div className={`status-indicator ${maintenanceMode ? "warning" : "active"}`}>
             <span className="dot"></span>
-            {maintenanceMode ? 'MAINTENANCE MODE' : 'SYSTEM OPERATIONAL'}
+            {maintenanceMode ? "MAINTENANCE MODE" : "SYSTEM OPERATIONAL"}
           </div>
           <div className="user-badge">
-             <span className="user-role">ROOT_ACCESS</span>
-             <span className="user-id">ID: {user?.userId || 'UNKNOWN'}</span>
+            <span className="user-role">ROOT_ACCESS</span>
+            <span className="user-id">ID: {user?.userId || "UNKNOWN"}</span>
           </div>
         </div>
       </header>
 
       {/* Main Grid Layout */}
       <main className="console-grid">
-        
         {/* Left Column: Controls */}
         <div className="console-column left-col">
-          
           {/* Admin Management Panel */}
           <section className="panel-card admin-manage-panel">
             <div className="panel-header">
               <Lock size={20} className="panel-icon icon-blue" />
               <h3>Privilege Control</h3>
             </div>
-            
+
             <form className="cmd-form" onSubmit={handleAdminAction}>
               <div className="toggle-group">
                 <button
                   type="button"
-                  className={`toggle-btn ${isAddingAdmin ? 'active' : ''}`}
+                  className={`toggle-btn ${isAddingAdmin ? "active" : ""}`}
                   onClick={() => setIsAddingAdmin(true)}
                 >
                   <UserPlus size={16} /> ADD
                 </button>
                 <button
                   type="button"
-                  className={`toggle-btn ${!isAddingAdmin ? 'active' : ''}`}
+                  className={`toggle-btn ${!isAddingAdmin ? "active" : ""}`}
                   onClick={() => setIsAddingAdmin(false)}
                 >
                   <UserMinus size={16} /> REVOKE
@@ -287,11 +281,8 @@ const AdminSettingsPage = () => {
                 />
               </div>
 
-              <button
-                className={`cmd-btn ${isAddingAdmin ? 'btn-blue' : 'btn-red'}`}
-                type="submit"
-              >
-                {isAddingAdmin ? 'GRANT PRIVILEGES' : 'REVOKE ACCESS'}
+              <button className={`cmd-btn ${isAddingAdmin ? "btn-blue" : "btn-red"}`} type="submit">
+                {isAddingAdmin ? "GRANT PRIVILEGES" : "REVOKE ACCESS"}
               </button>
             </form>
           </section>
@@ -305,11 +296,15 @@ const AdminSettingsPage = () => {
               <Server size={20} className="panel-icon icon-orange" />
               <h3>System State</h3>
             </div>
-            
+
             <div className="system-status-row">
               <div className="status-info">
-                 <span className="status-label">Maintenance Protocol</span>
-                 <p className="status-desc">{maintenanceMode ? 'ACTIVE - User access restricted' : 'INACTIVE - Normal operations'}</p>
+                <span className="status-label">Maintenance Protocol</span>
+                <p className="status-desc">
+                  {maintenanceMode
+                    ? "ACTIVE - User access restricted"
+                    : "INACTIVE - Normal operations"}
+                </p>
               </div>
               <label className="cyber-switch">
                 <input
@@ -333,13 +328,13 @@ const AdminSettingsPage = () => {
                 <Terminal size={20} className="panel-icon icon-green" />
                 <h3>System Logs</h3>
               </div>
-              <button 
-                className="refresh-icon-btn" 
-                onClick={fetchAdminActivities} 
+              <button
+                className="refresh-icon-btn"
+                onClick={fetchAdminActivities}
                 title="Refresh Logs"
                 disabled={isActivityLoading}
               >
-                <RefreshCw size={16} className={isActivityLoading ? 'spin' : ''} />
+                <RefreshCw size={16} className={isActivityLoading ? "spin" : ""} />
               </button>
             </div>
 
@@ -355,26 +350,27 @@ const AdminSettingsPage = () => {
                 </div>
               ) : (
                 <div className="log-feed">
-                   {adminActivity.map((activity) => (
-                     <div key={`${activity.id}_${activity.created_at}`} className="log-entry" onClick={() => setSelectedActivity(activity)}>
-                       <span className="log-timestamp">
-                         [{new Date(activity.created_at).toLocaleTimeString([], { hour12: false })}]
-                       </span>
-                       <span className={`log-type type-${activity.type?.toLowerCase()}`}>
-                         {activity.type?.toUpperCase()}
-                       </span>
-                       <span className="log-message">
-                         {activity.description}
-                       </span>
-                     </div>
-                   ))}
-                   <div ref={activityEndRef} />
+                  {adminActivity.map((activity) => (
+                    <div
+                      key={`${activity.id}_${activity.created_at}`}
+                      className="log-entry"
+                      onClick={() => setSelectedActivity(activity)}
+                    >
+                      <span className="log-timestamp">
+                        [{new Date(activity.created_at).toLocaleTimeString([], { hour12: false })}]
+                      </span>
+                      <span className={`log-type type-${activity.type?.toLowerCase()}`}>
+                        {activity.type?.toUpperCase()}
+                      </span>
+                      <span className="log-message">{activity.description}</span>
+                    </div>
+                  ))}
+                  <div ref={activityEndRef} />
                 </div>
               )}
             </div>
           </section>
         </div>
-
       </main>
 
       {/* Activity Detail Modal */}
@@ -396,9 +392,11 @@ const AdminSettingsPage = () => {
               </div>
               <div className="detail-row">
                 <span className="label">CONTEXT:</span>
-                <span className="value highlight">{selectedActivity.is_course_activity ? 'COURSE_MOD' : 'SYSTEM_MOD'}</span>
+                <span className="value highlight">
+                  {selectedActivity.is_course_activity ? "COURSE_MOD" : "SYSTEM_MOD"}
+                </span>
               </div>
-               <div className="detail-block">
+              <div className="detail-block">
                 <span className="label">DESCRIPTION:</span>
                 <p className="value block-text">{selectedActivity.description}</p>
               </div>

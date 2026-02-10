@@ -1,5 +1,5 @@
 // src/pages/NotFoundPage.js
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const NotFoundPage = () => {
@@ -12,8 +12,9 @@ const NotFoundPage = () => {
     const glitchChars = ["4", "0", "4", "█", "▓", "▒", "░"];
     const interval = setInterval(() => {
       if (Math.random() > 0.8) {
-        const randomChars = Array.from({ length: 3 }, () => 
-          glitchChars[Math.floor(Math.random() * glitchChars.length)]
+        const randomChars = Array.from(
+          { length: 3 },
+          () => glitchChars[Math.floor(Math.random() * glitchChars.length)]
         ).join("");
         setGlitchText(randomChars);
         setTimeout(() => setGlitchText("404"), 100);
@@ -207,7 +208,7 @@ const NotFoundPage = () => {
   return (
     <div style={styles.container}>
       <div style={styles.backgroundOverlay}></div>
-      
+
       {/* Floating Elements */}
       <div style={styles.floatingElements}>
         {[...Array(20)].map((_, i) => (
@@ -226,20 +227,18 @@ const NotFoundPage = () => {
 
       <div style={styles.content}>
         <div style={styles.errorCode}>{glitchText}</div>
-        
-        <h1 style={styles.title}>
-          Oops! Page Not Found
-        </h1>
-        
+
+        <h1 style={styles.title}>Oops! Page Not Found</h1>
+
         <p style={styles.subtitle}>
-          The page you&apos;re looking for seems to have ventured into the digital void. 
-          Don&apos;t worry though – your coding journey continues here at DevQuest!
+          The page you&apos;re looking for seems to have ventured into the digital void. Don&apos;t
+          worry though – your coding journey continues here at DevQuest!
         </p>
 
         <div style={styles.buttonContainer}>
           <button
             onClick={handleGoHome}
-            style={{...styles.button, ...styles.primaryButton}}
+            style={{ ...styles.button, ...styles.primaryButton }}
             onMouseEnter={(e) => {
               e.target.style.transform = "translateY(-2px)";
               e.target.style.boxShadow = "0 8px 25px rgba(52, 152, 219, 0.3)";
@@ -251,10 +250,10 @@ const NotFoundPage = () => {
           >
             🏠 Back to Home
           </button>
-          
+
           <button
             onClick={handleBrowseCourses}
-            style={{...styles.button, ...styles.secondaryButton}}
+            style={{ ...styles.button, ...styles.secondaryButton }}
             onMouseEnter={(e) => {
               e.target.style.transform = "translateY(-2px)";
               e.target.style.background = "rgba(255, 255, 255, 0.2)";
@@ -271,11 +270,13 @@ const NotFoundPage = () => {
 
       {/* Code block decoration */}
       <div style={styles.codeBlock}>
-        <div>if (page.exists()) {'{'}</div>
+        <div>if (page.exists()) {"{"}</div>
         <div>&nbsp;&nbsp;render(page);</div>
-        <div>{'}'} else {'{'}</div>
+        <div>
+          {"}"} else {"{"}
+        </div>
         <div>&nbsp;&nbsp;return &lt;NotFoundPage /&gt;;</div>
-        <div>{'}'}</div>
+        <div>{"}"}</div>
       </div>
     </div>
   );

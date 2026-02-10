@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 
 // Component Imports
@@ -29,121 +28,127 @@ const HomePage = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
-    "name": "DevQuest",
-    "description": "Interactive coding education platform offering comprehensive programming courses",
-    "url": "https://www.dev-quest.me",
-    "logo": "https://www.dev-quest.me/websiteicon.ico",
-    "sameAs": [],
-    "contactPoint": {
+    name: "DevQuest",
+    description: "Interactive coding education platform offering comprehensive programming courses",
+    url: "https://www.dev-quest.me",
+    logo: "https://www.dev-quest.me/websiteicon.ico",
+    sameAs: [],
+    contactPoint: {
       "@type": "ContactPoint",
-      "contactType": "customer service",
-      "availableLanguage": "English"
+      contactType: "customer service",
+      availableLanguage: "English",
     },
-    "hasOfferCatalog": {
+    hasOfferCatalog: {
       "@type": "OfferCatalog",
-      "name": "Programming Courses",
-      "itemListElement": [
+      name: "Programming Courses",
+      itemListElement: [
         {
           "@type": "Course",
-          "name": "Python Programming",
-          "description": "Comprehensive Python programming course with hands-on exercises",
-          "provider": {
+          name: "Python Programming",
+          description: "Comprehensive Python programming course with hands-on exercises",
+          provider: {
             "@type": "EducationalOrganization",
-            "name": "DevQuest",
-            "url": "https://www.dev-quest.me"
+            name: "DevQuest",
+            url: "https://www.dev-quest.me",
           },
-          "hasCourseInstance": [{
-            "@type": "CourseInstance",
-            "courseMode": "online",
-            "instructor": {
-              "@type": "Person",
-              "name": "DevQuest Team"
+          hasCourseInstance: [
+            {
+              "@type": "CourseInstance",
+              courseMode: "online",
+              instructor: {
+                "@type": "Person",
+                name: "DevQuest Team",
+              },
+              startDate: "2025-01-01",
+              endDate: "2025-12-31",
+              courseWorkload: "PT20H",
+              location: {
+                "@type": "VirtualLocation",
+                url: "https://www.dev-quest.me",
+              },
             },
-            "startDate": "2025-01-01",
-            "endDate": "2025-12-31",
-            "courseWorkload": "PT20H",
-            "location": {
-              "@type": "VirtualLocation",
-              "url": "https://www.dev-quest.me"
-            }
-          }],
-          "offers": {
+          ],
+          offers: {
             "@type": "Offer",
-            "category": "Education",
-            "url": "https://www.dev-quest.me/courses",
-            "price": "0",
-            "priceCurrency": "USD",
-            "availability": "https://schema.org/InStock"
-          }
-        },
-        {
-          "@type": "Course", 
-          "name": "JavaScript Development",
-          "description": "Interactive JavaScript course for web development",
-          "provider": {
-            "@type": "EducationalOrganization",
-            "name": "DevQuest",
-            "url": "https://www.dev-quest.me"
+            category: "Education",
+            url: "https://www.dev-quest.me/courses",
+            price: "0",
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
           },
-          "hasCourseInstance": [{
-            "@type": "CourseInstance",
-            "courseMode": "online",
-            "instructor": {
-              "@type": "Person",
-              "name": "DevQuest Team"
-            },
-            "startDate": "2025-01-01",
-            "endDate": "2025-12-31",
-            "courseWorkload": "PT25H",
-            "location": {
-              "@type": "VirtualLocation",
-              "url": "https://www.dev-quest.me"
-            }
-          }],
-          "offers": {
-            "@type": "Offer",
-            "category": "Education",
-            "url": "https://www.dev-quest.me/courses",
-            "price": "0",
-            "priceCurrency": "USD",
-            "availability": "https://schema.org/InStock"
-          }
         },
         {
           "@type": "Course",
-          "name": "Java Programming", 
-          "description": "Object-oriented programming with Java",
-          "provider": {
+          name: "JavaScript Development",
+          description: "Interactive JavaScript course for web development",
+          provider: {
             "@type": "EducationalOrganization",
-            "name": "DevQuest",
-            "url": "https://www.dev-quest.me"
+            name: "DevQuest",
+            url: "https://www.dev-quest.me",
           },
-          "hasCourseInstance": [{
-            "@type": "CourseInstance",
-            "courseMode": "online",
-            "instructor": {
-              "@type": "Person",
-              "name": "DevQuest Team"
+          hasCourseInstance: [
+            {
+              "@type": "CourseInstance",
+              courseMode: "online",
+              instructor: {
+                "@type": "Person",
+                name: "DevQuest Team",
+              },
+              startDate: "2025-01-01",
+              endDate: "2025-12-31",
+              courseWorkload: "PT25H",
+              location: {
+                "@type": "VirtualLocation",
+                url: "https://www.dev-quest.me",
+              },
             },
-            "startDate": "2025-01-01",
-            "endDate": "2025-12-31",
-            "courseWorkload": "PT30H",
-            "location": {
-              "@type": "VirtualLocation",
-              "url": "https://www.dev-quest.me"
-            }
-          }],
-          "offers": {
+          ],
+          offers: {
             "@type": "Offer",
-            "category": "Education",
-            "url": "https://www.dev-quest.me/courses",
-            "price": "0",
-            "priceCurrency": "USD",
-            "availability": "https://schema.org/InStock"
-          }
-        }
-      ]
-    }
+            category: "Education",
+            url: "https://www.dev-quest.me/courses",
+            price: "0",
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+          },
+        },
+        {
+          "@type": "Course",
+          name: "Java Programming",
+          description: "Object-oriented programming with Java",
+          provider: {
+            "@type": "EducationalOrganization",
+            name: "DevQuest",
+            url: "https://www.dev-quest.me",
+          },
+          hasCourseInstance: [
+            {
+              "@type": "CourseInstance",
+              courseMode: "online",
+              instructor: {
+                "@type": "Person",
+                name: "DevQuest Team",
+              },
+              startDate: "2025-01-01",
+              endDate: "2025-12-31",
+              courseWorkload: "PT30H",
+              location: {
+                "@type": "VirtualLocation",
+                url: "https://www.dev-quest.me",
+              },
+            },
+          ],
+          offers: {
+            "@type": "Offer",
+            category: "Education",
+            url: "https://www.dev-quest.me/courses",
+            price: "0",
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+          },
+        },
+      ],
+    },
   };
 
   return (
@@ -155,7 +160,7 @@ const HomePage = () => {
         canonical="/"
         structuredData={structuredData}
       />
-      
+
       {/* Decorative background elements */}
       <div className="home-bg-decoration">
         <div className="home-grid-pattern" />
@@ -173,33 +178,37 @@ const HomePage = () => {
               Unlock Your <span className="hero-gradient-text">Coding Potential</span>
             </h1>
             <p className="hero-section-para">
-              Explore our wide range of courses and take your skills to the next
-              level.
+              Explore our wide range of courses and take your skills to the next level.
             </p>
 
             {/* Action Buttons */}
             <div className="hero-buttons">
               <button className="btn browse-btn" onClick={handleBrowseCourses}>
                 <span>Browse courses</span>
-                <svg className="btn-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  className="btn-arrow"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5 12H19M19 12L12 5M19 12L12 19"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
 
               {!isAuthenticated && (
-                <button
-                  className="btn create-btn"
-                  onClick={handleCreateAccount}
-                >
+                <button className="btn create-btn" onClick={handleCreateAccount}>
                   Create account
                 </button>
               )}
 
               {isAuthenticated && (
-                <button
-                  className="btn continue-btn"
-                  onClick={handleContinueLearning}
-                >
+                <button className="btn continue-btn" onClick={handleContinueLearning}>
                   Continue learning
                 </button>
               )}
@@ -209,7 +218,10 @@ const HomePage = () => {
           {/* Hero Image */}
           <div className="hero-image">
             <div className="hero-image-glow"></div>
-            <img src={heroimg} alt="DevQuest interactive coding platform illustration showing programming interface and learning elements" />
+            <img
+              src={heroimg}
+              alt="DevQuest interactive coding platform illustration showing programming interface and learning elements"
+            />
           </div>
         </div>
       </div>
@@ -219,7 +231,17 @@ const HomePage = () => {
       </div>
 
       {/* Ad Unit - Between course slider and feedback */}
-      <div style={{ margin: '40px auto', maxWidth: '1200px', minWidth: '300px', width: '100%', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+      <div
+        style={{
+          margin: "40px auto",
+          maxWidth: "1200px",
+          minWidth: "300px",
+          width: "100%",
+          textAlign: "center",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
         <AdSense />
       </div>
 

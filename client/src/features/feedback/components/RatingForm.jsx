@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo } from "react";
 import axios from "axios";
 import { useAuth } from "app/AuthContext";
 import "./RatingForm.css";
@@ -24,8 +24,6 @@ const RatingForm = memo(({ courseId }) => {
       }
 
       try {
-        
-
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/feedback/eligibility/${courseId}`,
           {
@@ -35,10 +33,9 @@ const RatingForm = memo(({ courseId }) => {
             validateStatus: function (status) {
               return status < 500;
             },
-          },
+          }
         );
 
-        
         if (response.data.error) {
           throw new Error(response.data.error);
         }
@@ -46,20 +43,14 @@ const RatingForm = memo(({ courseId }) => {
         setCourseProgress(response.data.progress);
         setHasExistingFeedback(response.data.hasExistingFeedback);
       } catch (error) {
-        console.error(
-          "Error checking eligibility:",
-          error.response?.data || error,
-        );
-        setMessage(
-          error.response?.data?.error || "Error checking feedback eligibility",
-        );
+        console.error("Error checking eligibility:", error.response?.data || error);
+        setMessage(error.response?.data?.error || "Error checking feedback eligibility");
       }
     };
 
     checkEligibility();
   }, [user, courseId]);
 
- 
   // Handle rating selection
   const handleRating = (star) => setRating(star);
 
@@ -92,10 +83,7 @@ const RatingForm = memo(({ courseId }) => {
       setComment("");
       setHasExistingFeedback(true);
     } catch (error) {
-      setMessage(
-        error.response?.data?.error ||
-        "Error submitting feedback. Please try again.",
-      );
+      setMessage(error.response?.data?.error || "Error submitting feedback. Please try again.");
       console.error("Error submitting feedback:", error);
     }
   };
@@ -114,14 +102,14 @@ const RatingForm = memo(({ courseId }) => {
               <p>Please log in to provide feedback.</p>
             ) : courseProgress < 30 ? (
               <p>
-                Complete at least 30% of the course to provide feedback. (
-                {courseProgress}% completed)
+                Complete at least 30% of the course to provide feedback. ({courseProgress}%
+                completed)
               </p>
             ) : (
               <p>
-                You&apos;ve already submitted feedback for this course. Complete the
-                entire course to provide additional feedback, or contact us at
-                support@mail.dev-quest.me for any other thoughts.
+                You&apos;ve already submitted feedback for this course. Complete the entire course
+                to provide additional feedback, or contact us at support@mail.dev-quest.me for any
+                other thoughts.
               </p>
             )}
             <p className="progress-info">Current Progress: {courseProgress}%</p>
@@ -175,6 +163,6 @@ const RatingForm = memo(({ courseId }) => {
   );
 });
 
-RatingForm.displayName = 'RatingForm';
+RatingForm.displayName = "RatingForm";
 
 export default RatingForm;

@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import LessonList from 'features/lesson/components/LessonSection';
-import RatingForm from 'features/feedback/components/RatingForm';
-import axios from 'axios';
-import './CourseSections.css';
-import { useAuth } from 'app/AuthContext';
-import { calculateLevel, calculateLevelProgress } from 'features/profile/hooks/xpCalculator';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import LessonList from "features/lesson/components/LessonSection";
+import RatingForm from "features/feedback/components/RatingForm";
+import axios from "axios";
+import "./CourseSections.css";
+import { useAuth } from "app/AuthContext";
+import { calculateLevel, calculateLevelProgress } from "features/profile/hooks/xpCalculator";
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   timeout: 10000,
 });
 
@@ -38,38 +38,39 @@ const CourseSection = () => {
   const location = useLocation();
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [stats, setStats] = useState({
     courseXP: 0,
     exercisesCompleted: 0,
     streak: 0,
-    name: '',
-    profileImage: '',
+    name: "",
+    profileImage: "",
     totalXP: 0,
     level: 0,
     xpToNextLevel: 0,
   });
-  const [courseName, setCourseName] = useState('');
+  const [courseName, setCourseName] = useState("");
   const [profileData, setProfileData] = useState(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);  const FREE_LESSON_LIMIT = 5;
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const FREE_LESSON_LIMIT = 5;
 
   useEffect(() => {
     const fetchOptimizedCourseSectionData = async () => {
       setLoading(true);
-      setError('');
+      setError("");
       try {
         const config = {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
-        };        // Use the new optimized endpoint that combines all data in one request
+        }; // Use the new optimized endpoint that combines all data in one request
         const response = await fetchWithRetry(`/optimized-course-section/${courseId}`, config);
-        
+
         if (response.data) {
           const { course, subscription, profile, sections, stats } = response.data;
-          
+
           // Set all state from the optimized response
           setCourseName(course.title);
           setHasActiveSubscription(subscription.hasActiveSubscription);
@@ -77,23 +78,21 @@ const CourseSection = () => {
             name: profile.name,
             profileimage: profile.profileimage,
             streak: profile.streak,
-            exercisesCompleted: profile.exercisesCompleted
+            exercisesCompleted: profile.exercisesCompleted,
           });
-          
+
           // Ensure lessons array exists and is properly formatted
           const formattedSections = sections.map((section) => ({
             ...section,
             lessons: Array.isArray(section.lessons) ? section.lessons : [],
           }));
           setSections(formattedSections);
-          
+
           setStats(stats);
-          
-          
         }
       } catch (err) {
-        console.error('Error loading optimized course section data:', err);
-        
+        console.error("Error loading optimized course section data:", err);
+
         // Fallback to original approach if optimized endpoint fails
         await fetchDataFallback();
       } finally {
@@ -118,10 +117,10 @@ const CourseSection = () => {
         } catch (err) {
           if (err.response?.status === 404 || err.response?.status === 403) {
             setError(
-              err.response?.data?.error || 'Course not available. Redirecting to home page...'
+              err.response?.data?.error || "Course not available. Redirecting to home page..."
             );
             setTimeout(() => {
-              navigate('/');
+              navigate("/");
             }, 2000);
             return;
           }
@@ -130,7 +129,7 @@ const CourseSection = () => {
 
         // Check subscription status and load profile in parallel
         const [subscriptionResponse, profileResponse] = await Promise.all([
-          fetchWithRetry('/check', config),
+          fetchWithRetry("/check", config),
           fetchWithRetry(`/students/${user.user_id}`, config),
         ]);
         setHasActiveSubscription(subscriptionResponse.data.hasActiveSubscription);
@@ -167,10 +166,11 @@ const CourseSection = () => {
           });
         }
       } catch (err) {
-        console.error('Fallback error details:', err.response?.data || err.message);
-        setError('Failed to fetch course data. Please try again.');
+        console.error("Fallback error details:", err.response?.data || err.message);
+        setError("Failed to fetch course data. Please try again.");
       }
-    };    if (courseId && user?.user_id) {
+    };
+    if (courseId && user?.user_id) {
       fetchOptimizedCourseSectionData();
     }
   }, [courseId, user, navigate]);
@@ -187,7 +187,8 @@ const CourseSection = () => {
       }, 5000);
 
       return () => clearTimeout(timer);
-    }  }, [location]);
+    }
+  }, [location]);
 
   return (
     <div className="course-section-wrapper">
@@ -245,10 +246,10 @@ const CourseSection = () => {
           {/* The "rating" div is now outside and after the "course-header" div, but still within "Section" as per new.txt initial structure.
               To match old.txt, "rating" div should be a sibling to "Section" div.
               The following change moves the "rating" div to be a sibling of "Section" */}
-        </div>{' '}
+        </div>{" "}
         {/* End of "Section" div */}
         <div className="rating">
-          {' '}
+          {" "}
           {/* "rating" div is now a sibling to "Section" */}
           <div className="user-sidebar">
             <p className="status-title">My Status</p>
@@ -258,7 +259,7 @@ const CourseSection = () => {
                   <img src={user.profileimage} alt="Profile" className="profile-image" />
                 ) : (
                   <div className="default-avatar">
-                    {stats.name ? stats.name[0].toUpperCase() : '?'}
+                    {stats.name ? stats.name[0].toUpperCase() : "?"}
                   </div>
                 )}
               </div>

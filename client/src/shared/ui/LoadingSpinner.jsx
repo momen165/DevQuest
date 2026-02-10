@@ -1,6 +1,5 @@
-import React from 'react';
-import CircularProgress from '@mui/material/CircularProgress';
-import './LoadingSpinner.css';
+import CircularProgress from "@mui/material/CircularProgress";
+import "./LoadingSpinner.css";
 
 /**
  * Reusable loading spinner component
@@ -11,17 +10,17 @@ import './LoadingSpinner.css';
  * @param {boolean} props.fullScreen - Use full screen overlay (default: false)
  * @param {string} props.color - MUI color prop: 'primary', 'secondary', 'inherit' (default: 'primary')
  */
-const LoadingSpinner = ({ 
-  center = true, 
-  size = 'medium', 
-  message = '', 
+const LoadingSpinner = ({
+  center = true,
+  size = "medium",
+  message = "",
   fullScreen = false,
-  color = 'primary'
+  color = "primary",
 }) => {
   const sizeMap = {
     small: 24,
     medium: 40,
-    large: 60
+    large: 60,
   };
 
   const spinnerSize = sizeMap[size] || sizeMap.medium;

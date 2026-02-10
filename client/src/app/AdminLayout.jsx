@@ -1,7 +1,7 @@
-import React, { Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
-import AdminSidebar from 'features/admin/components/AdminSidebar';
-import LoadingSpinner from 'shared/ui/LoadingSpinner';
+import { Suspense } from "react";
+import { Outlet } from "react-router-dom";
+import AdminSidebar from "features/admin/components/AdminSidebar";
+import LoadingSpinner from "shared/ui/LoadingSpinner";
 
 const AdminLayout = () => {
   return (

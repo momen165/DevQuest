@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import styles from "./ProfilePage.module.css";
 import { useAuth } from "app/AuthContext";
 import defaultProfilePic from "assets/images/default-profile-pic.png";
@@ -14,13 +14,7 @@ import {
 
 function ProfilePage() {
   const { user } = useAuth();
-  const {
-    profileData,
-    loading,
-    error,
-    badges,
-    loadingBadges
-  } = useProfile(user);
+  const { profileData, loading, error, badges, loadingBadges } = useProfile(user);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("inProgress");
 
@@ -59,9 +53,7 @@ function ProfilePage() {
               />
               <h2 className={styles.profileName}>{profileData?.name}</h2>
               <p className={styles.bioTitle}>Bio</p>
-              <div className={styles.bioText}>
-                {profileData?.bio || "No bio available"}
-              </div>
+              <div className={styles.bioText}>{profileData?.bio || "No bio available"}</div>
               <button
                 className={styles.editProfileBtn}
                 onClick={() => navigate("/AccountSettings")}
@@ -115,13 +107,7 @@ function ProfilePage() {
                     transform="rotate(-90 60 60)"
                   />
                   <defs>
-                    <linearGradient
-                      id="levelGradient"
-                      x1="0%"
-                      y1="0%"
-                      x2="100%"
-                      y2="0%"
-                    >
+                    <linearGradient id="levelGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#10b981" />
                       <stop offset="50%" stopColor="#6366f1" />
                       <stop offset="100%" stopColor="#ec4899" />
@@ -134,34 +120,25 @@ function ProfilePage() {
                 </div>
               </div>
               <p className={styles.xpToNextLevel}>
-                {Math.round(calculateXPToNextLevel(profileData?.courseXP || 0))}{" "}
-                XP TO NEXT LEVEL
+                {Math.round(calculateXPToNextLevel(profileData?.courseXP || 0))} XP TO NEXT LEVEL
               </p>
 
               {/* Stats Grid */}
               <div className={styles.statsGrid}>
                 <div className={styles.statItem}>
-                  <span className={styles.statValue}>
-                    {profileData?.courseXP || 0}+
-                  </span>
+                  <span className={styles.statValue}>{profileData?.courseXP || 0}+</span>
                   <span className={styles.statLabel}>COURSE XP</span>
                 </div>
                 <div className={styles.statItem}>
-                  <span className={styles.statValue}>
-                    {profileData?.exercisesCompleted || 0}
-                  </span>
+                  <span className={styles.statValue}>{profileData?.exercisesCompleted || 0}</span>
                   <span className={styles.statLabel}>EXERCISES</span>
                 </div>
                 <div className={styles.statItem}>
-                  <span className={styles.statValue}>
-                    {profileData?.streak || 0}
-                  </span>
+                  <span className={styles.statValue}>{profileData?.streak || 0}</span>
                   <span className={styles.statLabel}>STREAK</span>
                 </div>
                 <div className={styles.statItem}>
-                  <span className={styles.statValue}>
-                    {profileData?.completedCourses || 0}
-                  </span>
+                  <span className={styles.statValue}>{profileData?.completedCourses || 0}</span>
                   <span className={styles.statLabel}>COURSES</span>
                 </div>
               </div>
@@ -192,18 +169,12 @@ function ProfilePage() {
                 <div className={styles.inProgressTab}>
                   {inProgressCourses.length > 0 ? (
                     inProgressCourses.map((course) => (
-                      <div
-                        key={course.course_id}
-                        className={styles.courseCardInProgress}
-                      >
+                      <div key={course.course_id} className={styles.courseCardInProgress}>
                         <div className={styles.courseCardLeft}>
                           <p className={styles.courseLabel}>COURSE</p>
-                          <h3 className={styles.courseTitle}>
-                            {course.course_name}
-                          </h3>
+                          <h3 className={styles.courseTitle}>{course.course_name}</h3>
                           <p className={styles.continueLesson}>
-                            Continue Lesson{" "}
-                            {course.last_lesson?.name || "Introduction"}
+                            Continue Lesson {course.last_lesson?.name || "Introduction"}
                           </p>
                         </div>
                         <div className={styles.courseCardRight}>
@@ -252,17 +223,10 @@ function ProfilePage() {
                 <div className={styles.completedTab}>
                   {completedCourses.length > 0 ? (
                     completedCourses.map((course) => (
-                      <div
-                        key={course.course_id}
-                        className={styles.courseCardCompleted}
-                      >
+                      <div key={course.course_id} className={styles.courseCardCompleted}>
                         <div className={styles.completedCourseInfo}>
-                          <h3 className={styles.completedCourseName}>
-                            {course.course_name}
-                          </h3>
-                          <span className={styles.completedBadge}>
-                            Completed
-                          </span>
+                          <h3 className={styles.completedCourseName}>{course.course_name}</h3>
+                          <span className={styles.completedBadge}>Completed</span>
                         </div>
                         <button
                           className={styles.reviewCourseBtn}

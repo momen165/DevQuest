@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 import {
   FaMoneyCheckAlt,
   FaChalkboardTeacher,
@@ -10,10 +10,10 @@ import {
   FaArrowLeft,
   FaChartLine, // Add chart icon
   FaTachometerAlt, // Add dashboard icon
-} from 'react-icons/fa';
-import { Link, useLocation } from 'react-router-dom';
-import './Sidebar.css';
-import { useAuth } from 'app/AuthContext';
+} from "react-icons/fa";
+import { Link, useLocation } from "react-router-dom";
+import "./Sidebar.css";
+import { useAuth } from "app/AuthContext";
 
 const AdminSidebar = ({ children }) => {
   const location = useLocation();
@@ -39,43 +39,43 @@ const AdminSidebar = ({ children }) => {
         <h2>Admin Dashboard</h2>
         <ul>
           <Link to="/Dashboard" className="link">
-            <li className={`sidebar-item ${location.pathname === '/Dashboard' ? 'active' : ''}`}>
+            <li className={`sidebar-item ${location.pathname === "/Dashboard" ? "active" : ""}`}>
               <FaHome /> <span>Dashboard</span>
             </li>
           </Link>
 
           <Link to="/Students" className="link">
-            <li className={`sidebar-item ${location.pathname === '/Students' ? 'active' : ''}`}>
+            <li className={`sidebar-item ${location.pathname === "/Students" ? "active" : ""}`}>
               <FaUser /> <span>Students</span>
             </li>
           </Link>
 
           <Link to="/AdminCourses" className="link">
-            <li className={`sidebar-item ${location.pathname === '/AdminCourses' ? 'active' : ''}`}>
+            <li className={`sidebar-item ${location.pathname === "/AdminCourses" ? "active" : ""}`}>
               <FaChalkboardTeacher /> <span>Courses</span>
             </li>
           </Link>
 
           {/* Add Analytics link */}
           <Link to="/Analytics" className="link">
-            <li className={`sidebar-item ${location.pathname === '/Analytics' ? 'active' : ''}`}>
+            <li className={`sidebar-item ${location.pathname === "/Analytics" ? "active" : ""}`}>
               <FaChartLine /> <span>Analytics</span>
             </li>
           </Link>
 
           <Link to="/PaymentInfo" className="link">
-            <li className={`sidebar-item ${location.pathname === '/PaymentInfo' ? 'active' : ''}`}>
+            <li className={`sidebar-item ${location.pathname === "/PaymentInfo" ? "active" : ""}`}>
               <FaMoneyCheckAlt /> <span>Payment</span>
             </li>
           </Link>
 
           <Link to="/Feedback" className="link">
-            <li className={`sidebar-item ${location.pathname === '/Feedback' ? 'active' : ''}`}>
+            <li className={`sidebar-item ${location.pathname === "/Feedback" ? "active" : ""}`}>
               <FaComment /> <span>Feedback</span>
             </li>
           </Link>
           <Link to="/Support" className="link">
-            <li className={`sidebar-item ${location.pathname === '/Support' ? 'active' : ''}`}>
+            <li className={`sidebar-item ${location.pathname === "/Support" ? "active" : ""}`}>
               <FaComment /> <span>Support</span>
             </li>
           </Link>
@@ -83,7 +83,7 @@ const AdminSidebar = ({ children }) => {
           <Link to="/SupportDashboard" className="link">
             <li
               className={`sidebar-item ${
-                location.pathname === '/SupportDashboard' ? 'active' : ''
+                location.pathname === "/SupportDashboard" ? "active" : ""
               }`}
             >
               <FaTachometerAlt /> <span>Support Analytics</span>
@@ -93,7 +93,7 @@ const AdminSidebar = ({ children }) => {
           <Link to="/AdminSettingsPage" className="link">
             <li
               className={`sidebar-item ${
-                location.pathname === '/AdminSettingsPage' ? 'active' : ''
+                location.pathname === "/AdminSettingsPage" ? "active" : ""
               }`}
             >
               <FaCog /> <span>Settings</span>

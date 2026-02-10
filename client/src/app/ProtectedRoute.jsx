@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from 'app/AuthContext';
+import { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "app/AuthContext";
 import CircularProgress from "@mui/material/CircularProgress";
-import axios from 'axios';
+import axios from "axios";
 
 const ProtectedRoute = ({ children, adminRequired = false }) => {
   const { user, loading: authLoading } = useAuth();
@@ -21,14 +21,14 @@ const ProtectedRoute = ({ children, adminRequired = false }) => {
 
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/check-auth`, {
           headers: {
-            'Authorization': `Bearer ${user.token}`,
+            Authorization: `Bearer ${user.token}`,
           },
         });
 
         setIsAuthenticated(response.data.isAuthenticated);
         setIsAdmin(response.data.isAdmin);
       } catch (error) {
-        console.error('Failed to check server authentication:', error);
+        console.error("Failed to check server authentication:", error);
         setIsAuthenticated(false);
       } finally {
         setLoading(false);
@@ -42,9 +42,11 @@ const ProtectedRoute = ({ children, adminRequired = false }) => {
   }, [authLoading, user?.token]);
 
   if (loading) {
-      return <div className="centered-loader">
-          <CircularProgress/>
-      </div>;
+    return (
+      <div className="centered-loader">
+        <CircularProgress />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

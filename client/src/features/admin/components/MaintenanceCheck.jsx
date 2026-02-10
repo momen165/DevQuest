@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from 'app/AuthContext';
-import './MaintenanceCheck.css';
+import { useEffect, useState, useMemo } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "app/AuthContext";
+import "./MaintenanceCheck.css";
 
 const MaintenanceCheck = ({ children }) => {
   const [isInMaintenance, setIsInMaintenance] = useState(false);
@@ -14,14 +14,14 @@ const MaintenanceCheck = ({ children }) => {
   const axiosInstance = useMemo(() => {
     const baseURL = import.meta.env.VITE_API_URL;
     if (!baseURL) {
-      console.error('VITE_API_URL is not defined. Please check your environment variables.');
+      console.error("VITE_API_URL is not defined. Please check your environment variables.");
     }
     return axios.create({
       baseURL,
       timeout: 8000, // Increase timeout for slower connections
       headers: {
-        'Content-Type': 'application/json'
-      }
+        "Content-Type": "application/json",
+      },
     });
   }, []);
 
@@ -30,22 +30,19 @@ const MaintenanceCheck = ({ children }) => {
 
     const checkMaintenanceStatus = async () => {
       try {
-        
         let response;
         try {
           // Use relative path, not full URL
-          response = await axiosInstance.get('/admin/system-settings');
+          response = await axiosInstance.get("/admin/system-settings");
         } catch {
-          
-          response = await axiosInstance.get('/admin/maintenance-status');
+          response = await axiosInstance.get("/admin/maintenance-status");
         }
 
         if (isMounted) {
-         
           setIsInMaintenance(!!response.data.maintenanceMode);
         }
       } catch (err) {
-        console.error('Error checking maintenance status:', err);
+        console.error("Error checking maintenance status:", err);
         if (isMounted) {
           // In case of error, assume system is not in maintenance mode
           setIsInMaintenance(false);
@@ -73,7 +70,7 @@ const MaintenanceCheck = ({ children }) => {
   useEffect(() => {
     if (isInMaintenance && user && !user.admin) {
       // Save the current path for redirect after login
-      sessionStorage.setItem('redirectPath', window.location.pathname);
+      sessionStorage.setItem("redirectPath", window.location.pathname);
       logout();
     }
   }, [isInMaintenance, user, logout]);
@@ -81,8 +78,8 @@ const MaintenanceCheck = ({ children }) => {
   const handleAdminLogin = (e) => {
     e.preventDefault();
     // Save the current path for redirect after login
-    sessionStorage.setItem('redirectPath', window.location.pathname);
-    navigate('/LoginPage');
+    sessionStorage.setItem("redirectPath", window.location.pathname);
+    navigate("/LoginPage");
   };
 
   // Always render children while we're doing the initial check
@@ -107,7 +104,7 @@ const MaintenanceCheck = ({ children }) => {
         </div>
         <div className="admin-login-section">
           <p>
-            Administrators can{' '}
+            Administrators can{" "}
             <button
               onClick={handleAdminLogin}
               className="login-link"

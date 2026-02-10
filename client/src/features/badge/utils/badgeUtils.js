@@ -9,13 +9,13 @@
  */
 export const getBadgeName = (badgeType) => {
   const badgeNames = {
-    'code_novice': 'Code Novice',
-    'lesson_smasher': 'Lesson Smasher',
-    'language_explorer': 'Language Explorer',
-    'streak_master': 'Streak Master',
-    'xp_achiever': '100 XP Achieved'
+    code_novice: "Code Novice",
+    lesson_smasher: "Lesson Smasher",
+    language_explorer: "Language Explorer",
+    streak_master: "Streak Master",
+    xp_achiever: "100 XP Achieved",
   };
-  return badgeNames[badgeType] || 'Achievement';
+  return badgeNames[badgeType] || "Achievement";
 };
 
 /**
@@ -25,13 +25,13 @@ export const getBadgeName = (badgeType) => {
  */
 export const getBadgeDescription = (badgeType) => {
   const badgeDescriptions = {
-    'code_novice': 'Unlocked after submitting your first code',
-    'lesson_smasher': 'Unlocked after completing 10 lessons successfully',
-    'language_explorer': 'Unlocked after using 3 different programming languages',
-    'streak_master': 'Unlocked after maintaining a 7-day learning streak',
-    'xp_achiever': 'Unlocked after reaching 100 XP'
+    code_novice: "Unlocked after submitting your first code",
+    lesson_smasher: "Unlocked after completing 10 lessons successfully",
+    language_explorer: "Unlocked after using 3 different programming languages",
+    streak_master: "Unlocked after maintaining a 7-day learning streak",
+    xp_achiever: "Unlocked after reaching 100 XP",
   };
-  return badgeDescriptions[badgeType] || 'You achieved something special!';
+  return badgeDescriptions[badgeType] || "You achieved something special!";
 };
 
 /**
@@ -50,11 +50,11 @@ export const getBadgeImagePath = (badgeType) => {
  */
 export const formatBadge = (badge) => {
   if (!badge) return null;
-  
+
   return {
     ...badge,
     name: badge.name || getBadgeName(badge.badge_type),
     description: badge.description || getBadgeDescription(badge.badge_type),
-    image_path: badge.image_path || getBadgeImagePath(badge.badge_type)
+    image_path: badge.image_path || getBadgeImagePath(badge.badge_type),
   };
 };

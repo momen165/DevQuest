@@ -1,12 +1,11 @@
-import React from 'react';
-import './CoursesPage.css';
-import CourseCard from 'features/course/components/CourseCard';
-import FilterTabs from 'shared/ui/FilterTabs';
-import SEOHead from 'shared/seo/SEOHead';
-import AdSense from 'shared/ui/AdSense';
-import { useAuth } from 'app/AuthContext';
-import LoadingSpinner from 'shared/ui/LoadingSpinner';
-import { useCourses } from 'features/course/hooks/useCourses';
+import "./CoursesPage.css";
+import CourseCard from "features/course/components/CourseCard";
+import FilterTabs from "shared/ui/FilterTabs";
+import SEOHead from "shared/seo/SEOHead";
+import AdSense from "shared/ui/AdSense";
+import { useAuth } from "app/AuthContext";
+import LoadingSpinner from "shared/ui/LoadingSpinner";
+import { useCourses } from "features/course/hooks/useCourses";
 
 const CoursesPage = () => {
   const { user } = useAuth();
@@ -24,24 +23,24 @@ const CoursesPage = () => {
 
   // Structured data for courses page
   const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'Course',
-    name: 'Programming Courses',
-    description: 'Comprehensive collection of interactive programming courses',
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: "Programming Courses",
+    description: "Comprehensive collection of interactive programming courses",
     provider: {
-      '@type': 'EducationalOrganization',
-      name: 'DevQuest',
-      url: 'https://www.dev-quest.me',
+      "@type": "EducationalOrganization",
+      name: "DevQuest",
+      url: "https://www.dev-quest.me",
     },
-    courseMode: 'online',
-    educationalLevel: 'beginner to advanced',
+    courseMode: "online",
+    educationalLevel: "beginner to advanced",
     teaches: [
-      'Python Programming',
-      'JavaScript Development',
-      'Java Programming',
-      'C++ Programming',
-      'Web Development',
-      'Software Engineering',
+      "Python Programming",
+      "JavaScript Development",
+      "Java Programming",
+      "C++ Programming",
+      "Web Development",
+      "Software Engineering",
     ],
   };
 
@@ -65,39 +64,39 @@ const CoursesPage = () => {
 
   // Structured data for each course (JSON-LD)
   const courseStructuredDataList = filteredCourses.map((course) => ({
-    '@context': 'https://schema.org',
-    '@type': 'Course',
+    "@context": "https://schema.org",
+    "@type": "Course",
     name: course.name,
     description: course.description,
     provider: {
-      '@type': 'EducationalOrganization',
-      name: 'DevQuest',
-      url: 'https://www.dev-quest.me',
+      "@type": "EducationalOrganization",
+      name: "DevQuest",
+      url: "https://www.dev-quest.me",
     },
     hasCourseInstance: [
       {
-        '@type': 'CourseInstance',
-        courseMode: 'online',
+        "@type": "CourseInstance",
+        courseMode: "online",
         instructor: {
-          '@type': 'Person',
-          name: 'DevQuest Team',
+          "@type": "Person",
+          name: "DevQuest Team",
         },
-        startDate: '2025-01-01',
-        endDate: '2025-12-31',
-        courseWorkload: 'PT20H',
+        startDate: "2025-01-01",
+        endDate: "2025-12-31",
+        courseWorkload: "PT20H",
         location: {
-          '@type': 'VirtualLocation',
-          url: 'https://www.dev-quest.me',
+          "@type": "VirtualLocation",
+          url: "https://www.dev-quest.me",
         },
       },
     ],
     offers: {
-      '@type': 'Offer',
-      category: 'Education',
+      "@type": "Offer",
+      category: "Education",
       url: `https://www.dev-quest.me/courses/${course.course_id}`,
-      price: course.price ?? '0',
-      priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
+      price: course.price ?? "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
     },
   }));
 
@@ -126,11 +125,11 @@ const CoursesPage = () => {
       {/* Ad Unit - Below header, above courses */}
       <div
         style={{
-          margin: '30px auto',
-          maxWidth: '1220px',
-          minWidth: '300px',
-          width: '100%',
-          textAlign: 'center',
+          margin: "30px auto",
+          maxWidth: "1220px",
+          minWidth: "300px",
+          width: "100%",
+          textAlign: "center",
         }}
       >
         <AdSense />
@@ -143,8 +142,8 @@ const CoursesPage = () => {
               key={course.course_id}
               courseId={course.course_id}
               title={course.name}
-              level={course.difficulty || 'Unknown'}
-              rating={course.rating || 'N/A'}
+              level={course.difficulty || "Unknown"}
+              rating={course.rating || "N/A"}
               students={userscount[course.course_id] || 0}
               description={course.description}
               image={course.image}

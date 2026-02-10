@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Editor } from "@monaco-editor/react";
 import { FaCog } from "react-icons/fa";
 import "./SimpleMonacoEditor.css";
@@ -15,7 +15,6 @@ const SimpleMonacoEditor = ({ code, setCode, language }) => {
     editorRef.current = editor;
 
     // Log language information
-    
 
     // Configure editor for the specific language
     if (language) {
@@ -34,8 +33,6 @@ const SimpleMonacoEditor = ({ code, setCode, language }) => {
 
   // Map language to Monaco's language identifier
   const getMonacoLanguage = () => {
-   
-
     switch (language?.toLowerCase()) {
       case "cpp":
         return "cpp";
@@ -64,7 +61,6 @@ const SimpleMonacoEditor = ({ code, setCode, language }) => {
       case "kotlin":
         return "kotlin";
       default:
-      
         return "plaintext";
     }
   };
@@ -85,10 +81,7 @@ const SimpleMonacoEditor = ({ code, setCode, language }) => {
             <div className="settings-panel">
               <div className="setting-item">
                 <label>Theme:</label>
-                <select
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value)}
-                >
+                <select value={theme} onChange={(e) => setTheme(e.target.value)}>
                   <option value="vs-dark">Dark</option>
                   <option value="light">Light</option>
                 </select>

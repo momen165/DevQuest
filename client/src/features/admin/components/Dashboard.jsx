@@ -1,5 +1,5 @@
-import DashboardContent from './DashboardContent';
-import './Dashboard.css';
+import DashboardContent from "./DashboardContent";
+import "./Dashboard.css";
 
 const Dashboard = () => {
   return (

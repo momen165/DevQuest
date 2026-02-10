@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import apiClient from 'shared/lib/apiClient';
+import { useState, useEffect } from "react";
+import apiClient from "shared/lib/apiClient";
 
 const deduplicateStudents = (students) => {
   const seen = new Set();
@@ -21,12 +21,12 @@ export const useStudents = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get('/students');
+      const response = await apiClient.get("/students");
       const uniqueStudents = deduplicateStudents(response.data.students || []);
       setStudents(uniqueStudents);
     } catch (err) {
-      console.error('Error fetching students:', err.response?.data || err.message);
-      setError(err.response?.data?.error || 'Failed to fetch students.');
+      console.error("Error fetching students:", err.response?.data || err.message);
+      setError(err.response?.data?.error || "Failed to fetch students.");
       setStudents([]);
     } finally {
       setLoading(false);

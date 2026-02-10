@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './AuthPages.css';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from 'app/AuthContext';
-import { toast } from 'react-hot-toast';
-import { validateEmail, validatePassword, validateName } from 'shared/utils/formValidation';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import "./AuthPages.css";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "app/AuthContext";
+import { toast } from "react-hot-toast";
+import { validateEmail, validatePassword, validateName } from "shared/utils/formValidation";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -13,15 +13,15 @@ const SignupPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate("/");
     }
   }, [isAuthenticated, navigate]);
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    country: 'Palestine', // Set default country
+    name: "",
+    email: "",
+    password: "",
+    country: "Palestine", // Set default country
   });
 
   const handleChange = (e) => {
@@ -34,7 +34,7 @@ const SignupPage = () => {
 
   const validateForm = () => {
     const { name, email, password } = formData;
-    
+
     const nameValid = validateName(name);
     if (!nameValid.isValid) {
       toast.error(nameValid.error);
@@ -59,18 +59,18 @@ const SignupPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    
+
     setLoading(true);
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/signup`, formData);
-      toast.success('Signup successful! Check your email for verification.');
-      console.log('Signup successful:', response.data);
+      toast.success("Signup successful! Check your email for verification.");
+      console.log("Signup successful:", response.data);
 
-      navigate('/LoginPage');
+      navigate("/LoginPage");
     } catch (error) {
-      const errorMsg = error.response?.data?.error || 'Signup failed. Please try again.';
+      const errorMsg = error.response?.data?.error || "Signup failed. Please try again.";
       toast.error(errorMsg);
-      console.error('Signup failed:', errorMsg);
+      console.error("Signup failed:", errorMsg);
     } finally {
       setLoading(false);
     }
@@ -152,11 +152,11 @@ const SignupPage = () => {
             <label htmlFor="robot-check">I&apos;m not a robot 🤖</label>
           </div>
           <button type="submit" className="button" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Begin Your Journey'}
+            {loading ? "Creating Account..." : "Begin Your Journey"}
           </button>
         </form>
         <p>
-          By creating an account, you agree to our <Link to="/terms">Terms of Service</Link> and{' '}
+          By creating an account, you agree to our <Link to="/terms">Terms of Service</Link> and{" "}
           <Link to="/privacy">Privacy Policy</Link>
         </p>
       </div>

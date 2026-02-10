@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "app/AuthContext";
 import defaultProfilePic from "assets/images/default-profile-pic.png";
@@ -24,28 +24,28 @@ const Navbar = memo(() => {
     if (isMobileMenuOpen) {
       // Save scroll position
       const scrollY = window.scrollY;
-      
+
       // Lock body scroll
       document.body.classList.add("menu-open");
       document.body.style.top = `-${scrollY}px`;
-      
+
       // Prevent touchmove on body
       const preventScroll = (e) => {
-        if (!e.target.closest('.navbar-mobile-panel-content')) {
+        if (!e.target.closest(".navbar-mobile-panel-content")) {
           e.preventDefault();
         }
       };
-      document.body.addEventListener('touchmove', preventScroll, { passive: false });
-      
+      document.body.addEventListener("touchmove", preventScroll, { passive: false });
+
       return () => {
         document.body.classList.remove("menu-open");
-        document.body.style.top = '';
+        document.body.style.top = "";
         window.scrollTo(0, scrollY);
-        document.body.removeEventListener('touchmove', preventScroll);
+        document.body.removeEventListener("touchmove", preventScroll);
       };
     } else {
       document.body.classList.remove("menu-open");
-      document.body.style.top = '';
+      document.body.style.top = "";
     }
   }, [isMobileMenuOpen]);
 
@@ -70,9 +70,9 @@ const Navbar = memo(() => {
   // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const mobileMenu = document.getElementById('navbar-mobile-panel');
-      const menuButton = document.querySelector('.navbar-mobile-toggle-btn');
-      
+      const mobileMenu = document.getElementById("navbar-mobile-panel");
+      const menuButton = document.querySelector(".navbar-mobile-toggle-btn");
+
       if (
         isMobileMenuOpen &&
         mobileMenu &&
@@ -85,11 +85,11 @@ const Navbar = memo(() => {
     };
 
     if (isMobileMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
-    
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMobileMenuOpen]);
 
@@ -153,7 +153,7 @@ const Navbar = memo(() => {
               role="button"
               aria-label="User menu"
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === "Enter" || e.key === " ") {
                   setIsProfileMenuOpen(!isProfileMenuOpen);
                   e.preventDefault();
                 }
@@ -161,7 +161,7 @@ const Navbar = memo(() => {
             >
               <img
                 src={user.profileimage || defaultProfilePic}
-                alt={`${user.name || 'User'}'s profile`}
+                alt={`${user.name || "User"}'s profile`}
                 className="profile-avatar"
                 onError={(e) => {
                   console.error("[Navbar] Error loading profile image:", e);
@@ -235,18 +235,18 @@ const Navbar = memo(() => {
         id="navbar-mobile-panel"
         aria-hidden={!isMobileMenuOpen}
         style={{
-          position: 'fixed',
-          top: '70px',
+          position: "fixed",
+          top: "70px",
           left: 0,
           right: 0,
           bottom: 0,
-          height: 'calc(100vh - 70px)',
+          height: "calc(100vh - 70px)",
           zIndex: 999999,
-          visibility: isMobileMenuOpen ? 'visible' : 'hidden',
+          visibility: isMobileMenuOpen ? "visible" : "hidden",
           opacity: isMobileMenuOpen ? 1 : 0,
-          pointerEvents: isMobileMenuOpen ? 'auto' : 'none',
-          transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(100%)',
-          display: isMobileMenuOpen ? 'block' : 'none'
+          pointerEvents: isMobileMenuOpen ? "auto" : "none",
+          transform: isMobileMenuOpen ? "translateX(0)" : "translateX(100%)",
+          display: isMobileMenuOpen ? "block" : "none",
         }}
       >
         <div className="navbar-mobile-panel-content">
@@ -254,7 +254,7 @@ const Navbar = memo(() => {
             <div className="navbar-mobile-user-info">
               <img
                 src={user.profileimage || defaultProfilePic}
-                alt={`${user.name || 'User'}'s profile`}
+                alt={`${user.name || "User"}'s profile`}
                 className="profile-avatar"
                 onError={(e) => {
                   console.error("[Navbar] Error loading profile image:", e);
@@ -348,6 +348,6 @@ const Navbar = memo(() => {
   );
 });
 
-Navbar.displayName = 'Navbar';
+Navbar.displayName = "Navbar";
 
 export default Navbar;

@@ -1,6 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import './LegalPages.css';
+import { Link } from "react-router-dom";
+import "./LegalPages.css";
 
 const TermsPage = () => {
   return (
@@ -199,8 +198,8 @@ const TermsPage = () => {
             <h2>⚖️ Privacy and Data Protection</h2>
             <div className="section-content">
               <p>
-                Your privacy is important to us. Our data practices are detailed in our{' '}
-                <Link to="/privacy" style={{ color: '#91EAE4', textDecoration: 'none' }}>
+                Your privacy is important to us. Our data practices are detailed in our{" "}
+                <Link to="/privacy" style={{ color: "#91EAE4", textDecoration: "none" }}>
                   Privacy Policy
                 </Link>
                 .
@@ -239,8 +238,8 @@ const TermsPage = () => {
 
               <h3>Limitation of Liability</h3>
               <p>
-                DevQuest provides educational services &quot;as is&quot; without warranties. We are not liable
-                for:
+                DevQuest provides educational services &quot;as is&quot; without warranties. We are
+                not liable for:
               </p>
               <ul>
                 <li>

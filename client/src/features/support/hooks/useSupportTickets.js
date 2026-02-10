@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import apiClient from 'shared/lib/apiClient';
-import { useAuth } from 'app/AuthContext';
+import { useState, useEffect, useCallback } from "react";
+import apiClient from "shared/lib/apiClient";
+import { useAuth } from "app/AuthContext";
 
 export const useSupportTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -12,17 +12,17 @@ export const useSupportTickets = () => {
   const fetchTickets = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/support-tickets', {
+      const response = await apiClient.get("/support-tickets", {
         timeout: 5000,
       });
       setTickets(response.data);
       setError(null);
     } catch (err) {
-      console.error('Error details:', err);
-      if (err.code === 'ECONNREFUSED') {
-        setError('Unable to connect to server. Please check if the server is running.');
+      console.error("Error details:", err);
+      if (err.code === "ECONNREFUSED") {
+        setError("Unable to connect to server. Please check if the server is running.");
       } else {
-        setError('Failed to load support tickets. Please try again later.');
+        setError("Failed to load support tickets. Please try again later.");
       }
     } finally {
       setLoading(false);
@@ -36,8 +36,8 @@ export const useSupportTickets = () => {
   }, [user?.token, fetchTickets]);
 
   const handleReply = async (ticketId, replyMessage) => {
-    if (!replyMessage || replyMessage.trim() === '') {
-      throw new Error('Reply message cannot be empty');
+    if (!replyMessage || replyMessage.trim() === "") {
+      throw new Error("Reply message cannot be empty");
     }
 
     try {
@@ -48,12 +48,12 @@ export const useSupportTickets = () => {
       );
 
       // Clear the reply input for this ticket
-      setReply(prev => ({ ...prev, [ticketId]: '' }));
+      setReply((prev) => ({ ...prev, [ticketId]: "" }));
 
       // Refetch tickets to get the latest data
       await fetchTickets();
     } catch (err) {
-      console.error('Error sending reply:', err);
+      console.error("Error sending reply:", err);
       throw err;
     }
   };
@@ -67,15 +67,13 @@ export const useSupportTickets = () => {
       );
 
       // Update local state
-      setTickets(prevTickets =>
-        prevTickets.map(ticket =>
-          ticket.ticket_id === ticketId
-            ? { ...ticket, status: newStatus }
-            : ticket
+      setTickets((prevTickets) =>
+        prevTickets.map((ticket) =>
+          ticket.ticket_id === ticketId ? { ...ticket, status: newStatus } : ticket
         )
       );
     } catch (err) {
-      console.error('Error updating ticket status:', err);
+      console.error("Error updating ticket status:", err);
       throw err;
     }
   };
@@ -87,11 +85,9 @@ export const useSupportTickets = () => {
       });
 
       // Update local state
-      setTickets(prevTickets =>
-        prevTickets.filter(ticket => ticket.ticket_id !== ticketId)
-      );
+      setTickets((prevTickets) => prevTickets.filter((ticket) => ticket.ticket_id !== ticketId));
     } catch (err) {
-      console.error('Error deleting ticket:', err);
+      console.error("Error deleting ticket:", err);
       throw err;
     }
   };

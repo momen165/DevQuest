@@ -1,19 +1,19 @@
-import { useEffect, useState, useRef } from 'react';
-import apiClient from 'shared/lib/apiClient';
-import { FREE_LESSON_LIMIT } from 'features/lesson/utils/lessonConstants';
-import { decode as decodeEntities } from 'entities';
+import { useEffect, useState, useRef } from "react";
+import apiClient from "shared/lib/apiClient";
+import { FREE_LESSON_LIMIT } from "features/lesson/utils/lessonConstants";
+import { decode as decodeEntities } from "entities";
 
 export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [languageId, setLanguageId] = useState(null);
   const [lessonsForNav, setLessonsForNav] = useState([]); // Will be populated by /lesson?course_id=...
   const [totalLessons, setTotalLessons] = useState(0);
   const [sectionsForNav, setSectionsForNav] = useState([]); // Will be populated by /sections/course/...
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [completedLessonsCount, setCompletedLessonsCount] = useState(0);
-  const [initialCode, setInitialCode] = useState('');
+  const [initialCode, setInitialCode] = useState("");
   const [courseIdForNav, setCourseIdForNav] = useState(null);
   const [currentLessonProgress, setCurrentLessonProgress] = useState(null);
   const hasFetched = useRef({}); // Stores { 'lessonId-userId': true }
@@ -39,7 +39,7 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
             setCurrentLessonProgress(progressResponse.data);
           }
         } catch (err) {
-          console.error('Failed to refresh lesson progress:', err);
+          console.error("Failed to refresh lesson progress:", err);
         }
       };
 
@@ -55,14 +55,14 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
       // Prevent redundant fetches for the same lessonId and user
 
       setLoading(true);
-      setError('');
+      setError("");
 
       try {
         // --- BLOCK 1: Subscription & Core Lesson ---
         //console.log(`Attempting to fetch lesson ${lessonId} for user ${user?.user_id}`);
 
         const [subscriptionResponse, lessonResponse] = await Promise.all([
-          apiClient.get('/check', { headers: { Authorization: `Bearer ${user?.token}` } }),
+          apiClient.get("/check", { headers: { Authorization: `Bearer ${user?.token}` } }),
           apiClient.get(`/lesson/${lessonId}`, {
             headers: { Authorization: `Bearer ${user?.token}` },
           }),
@@ -78,7 +78,7 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
           return;
         }
         if (subscriptionResponse.status !== 200) {
-          if (isMounted) navigate('/pricing');
+          if (isMounted) navigate("/pricing");
           return;
         }
         const { hasActiveSubscription: activeSub, completedLessons: compLessons } =
@@ -88,17 +88,17 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
           setCompletedLessonsCount(compLessons || 0);
         }
         if (!activeSub && compLessons >= FREE_LESSON_LIMIT) {
-          if (isMounted) navigate('/pricing', { state: { message: 'Free limit reached.' } });
+          if (isMounted) navigate("/pricing", { state: { message: "Free limit reached." } });
           return;
         }
         if (lessonResponse.status === 403) {
           console.log(`LESSON ${lessonId} ACCESS DENIED (403):`, lessonResponse.data);
 
-          if (lessonResponse.data?.status === 'subscription_required') {
+          if (lessonResponse.data?.status === "subscription_required") {
             console.log(`LESSON ${lessonId}: Subscription required`);
-            if (isMounted) navigate('/pricing', { state: { message: 'Subscription required.' } });
+            if (isMounted) navigate("/pricing", { state: { message: "Subscription required." } });
             return;
-          } else if (lessonResponse.data?.status === 'locked') {
+          } else if (lessonResponse.data?.status === "locked") {
             // console.log(`LESSON ${lessonId}: Locked - Need to complete previous lessons`);
             // console.log(`Section ID from locked response:`, lessonResponse.data?.section_id);
 
@@ -115,19 +115,19 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
             if (isMounted) {
               if (lockedSectionResponse.status === 200 && lockedSectionResponse.data?.course_id) {
                 navigate(`/course/${lockedSectionResponse.data.course_id}`, {
-                  state: { errorMessage: lessonResponse.data?.message || 'Complete previous.' },
+                  state: { errorMessage: lessonResponse.data?.message || "Complete previous." },
                 });
               } else {
-                navigate('/');
+                navigate("/");
               }
             }
             return;
           }
-          if (isMounted) navigate('/');
+          if (isMounted) navigate("/");
           return;
         }
         if (lessonResponse.status !== 200) {
-          if (isMounted) navigate('/');
+          if (isMounted) navigate("/");
           return;
         }
 
@@ -173,7 +173,7 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
           /* ... */ return;
         }
         if (sectionResponse.status !== 200 || !sectionResponse.data) {
-          /* ... */ if (isMounted) navigate('/');
+          /* ... */ if (isMounted) navigate("/");
           return;
         }
 
@@ -195,7 +195,7 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
             // This fetches sections
             headers: { Authorization: `Bearer ${user?.token}` },
           }),
-          apiClient.get('/lesson', {
+          apiClient.get("/lesson", {
             // This fetches the flat list of all lessons
             params: { course_id: fetchedCourseId },
             headers: { Authorization: `Bearer ${user?.token}` },
@@ -221,19 +221,19 @@ export const useLessonData = (lessonId, user, navigate, refreshTrigger = 0) => {
             setInitialCode(progressResponse.data.submitted_code);
           } else if (lessonData) {
             setInitialCode(
-              lessonData.template_code ? decodeEntities(lessonData.template_code) : ''
+              lessonData.template_code ? decodeEntities(lessonData.template_code) : ""
             );
           }
         }
       } catch (err) {
-        console.error(`%cuseLessonData: fetchLesson error:`, 'color: red; font-weight: bold;', err);
+        console.error(`%cuseLessonData: fetchLesson error:`, "color: red; font-weight: bold;", err);
         console.log(`LESSON ${lessonId} ERROR DETAILS:`, {
           status: err.response?.status,
           message: err.response?.data?.message || err.message,
           data: err.response?.data,
         });
 
-        if (isMounted) navigate('/');
+        if (isMounted) navigate("/");
       } finally {
         if (isMounted) {
           setLoading(false);

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { FaUserGraduate, FaUserPlus, FaBook } from 'react-icons/fa';
-import './DashboardContent.css';
-import axios from 'axios';
-import { useAuth } from 'app/AuthContext';
-import { Link } from 'react-router-dom';
-import ActivityWindow from 'features/admin/components/ActivityWindow';
+import { useState, useEffect } from "react";
+import { FaUserGraduate, FaUserPlus, FaBook } from "react-icons/fa";
+import "./DashboardContent.css";
+import axios from "axios";
+import { useAuth } from "app/AuthContext";
+import { Link } from "react-router-dom";
+import ActivityWindow from "features/admin/components/ActivityWindow";
 
 const DashboardContent = () => {
   const [studentsCount, setStudentsCount] = useState(0);
@@ -19,14 +19,14 @@ const DashboardContent = () => {
   const [recentFeedback, setRecentFeedback] = useState([]);
   const [recentTickets, setRecentTickets] = useState([]);
 
-  const token = JSON.parse(localStorage.getItem('user'))?.token;
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (!token) {
-          throw new Error('No token found. Please log in again.');
+          throw new Error("No token found. Please log in again.");
         }
 
         const authToken = user?.token || token;
@@ -43,8 +43,8 @@ const DashboardContent = () => {
           axios.get(`${import.meta.env.VITE_API_URL}/courses`, {
             headers: {
               ...headers,
-              'Cache-Control': 'no-cache',
-              Pragma: 'no-cache',
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
             },
             params: { _ts: Date.now() },
           }),
@@ -56,7 +56,7 @@ const DashboardContent = () => {
         const { students = [], count = 0 } = studentsResponse.data || {};
 
         if (!Array.isArray(students)) {
-          throw new Error('Invalid students data received');
+          throw new Error("Invalid students data received");
         }
 
         setStudentsCount(count);
@@ -78,8 +78,8 @@ const DashboardContent = () => {
         setRecentFeedback(feedbackResponse.data);
         setRecentTickets(ticketsResponse.data);
       } catch (err) {
-        console.error('Error fetching dashboard data:', err.response?.data || err.message);
-        setError(err.response?.data?.error || 'Failed to fetch dashboard data.');
+        console.error("Error fetching dashboard data:", err.response?.data || err.message);
+        setError(err.response?.data?.error || "Failed to fetch dashboard data.");
       }
     };
 
@@ -108,9 +108,9 @@ const DashboardContent = () => {
     const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
 
     if (diffInHours < 1) {
-      return 'Just now';
+      return "Just now";
     } else if (diffInHours === 1) {
-      return '1 hour ago';
+      return "1 hour ago";
     } else {
       return `${diffInHours} hours ago`;
     }

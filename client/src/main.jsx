@@ -1,11 +1,11 @@
 // src/index.js
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from 'app/App';
-import { AuthProvider } from 'app/AuthContext';
-import { HelmetProvider } from 'react-helmet-async';
-import * as Sentry from '@sentry/react';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "app/App";
+import { AuthProvider } from "app/AuthContext";
+import { HelmetProvider } from "react-helmet-async";
+import * as Sentry from "@sentry/react";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -16,7 +16,7 @@ Sentry.init({
   profilesSampleRate: 1.0,
 });
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <HelmetProvider>

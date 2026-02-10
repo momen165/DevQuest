@@ -1,14 +1,21 @@
-import React, { Suspense, useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { FiEye, FiTrash2, FiPlus, FiEdit2, FiArrowLeft, FiMove, FiFolder } from 'react-icons/fi';
-import SectionForm from './SectionForm';
-import './AdminManage.css';
-import ErrorAlert from './ErrorAlert';
-import { useSections } from 'features/course/hooks/useSections';
+import React, { Suspense, useState } from "react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { FiEye, FiTrash2, FiPlus, FiEdit2, FiArrowLeft, FiMove, FiFolder } from "react-icons/fi";
+import SectionForm from "./SectionForm";
+import "./AdminManage.css";
+import ErrorAlert from "./ErrorAlert";
+import { useSections } from "features/course/hooks/useSections";
 
-const LessonList = React.lazy(() => import('./LessonList'));
+const LessonList = React.lazy(() => import("./LessonList"));
 
-const SectionManager = ({ sections, courseId, languageId, onSectionUpdate, onDeleteSection, onClose }) => {
+const SectionManager = ({
+  sections,
+  courseId,
+  languageId,
+  onSectionUpdate,
+  onDeleteSection,
+  onClose,
+}) => {
   const [editingSection, setEditingSection] = useState(null);
   const [viewingSection, setViewingSection] = useState(null);
   const { error: sectionError, saveSection, reorderSections } = useSections();
@@ -95,7 +102,7 @@ const SectionManager = ({ sections, courseId, languageId, onSectionUpdate, onDel
                   >
                     {(provided, snapshot) => (
                       <div
-                        className={`item-card section-card ${snapshot.isDragging ? 'item-card-dragging' : ''}`}
+                        className={`item-card section-card ${snapshot.isDragging ? "item-card-dragging" : ""}`}
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                       >

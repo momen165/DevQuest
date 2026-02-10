@@ -1,21 +1,23 @@
-import React, { Suspense, useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from 'app/AuthContext';
-import LessonNavigation from 'features/lesson/components/LessonNavigation';
-import LessonContent from 'features/lesson/components/LessonContent';
-import LoadingSpinner from 'shared/ui/LoadingSpinner';
-import BadgeNotification from 'features/badge/components/BadgeNotification';
-import { languageMappings as LSLanguageMappings } from 'features/lesson/utils/lessonConstants';
-import { formatBadge } from 'features/badge/utils/badgeUtils';
-import { useLessonData } from 'features/lesson/hooks/useLessonData';
-import { useResizablePanes } from 'features/editor/hooks/useResizablePanes';
-import './LessonPage.css';
+import React, { Suspense, useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "app/AuthContext";
+import LessonNavigation from "features/lesson/components/LessonNavigation";
+import LessonContent from "features/lesson/components/LessonContent";
+import LoadingSpinner from "shared/ui/LoadingSpinner";
+import BadgeNotification from "features/badge/components/BadgeNotification";
+import { languageMappings as LSLanguageMappings } from "features/lesson/utils/lessonConstants";
+import { formatBadge } from "features/badge/utils/badgeUtils";
+import { useLessonData } from "features/lesson/hooks/useLessonData";
+import { useResizablePanes } from "features/editor/hooks/useResizablePanes";
+import "./LessonPage.css";
 
-const MonacoEditorComponent = React.lazy(() => import('features/editor/components/MonacoEditorComponent'));
+const MonacoEditorComponent = React.lazy(
+  () => import("features/editor/components/MonacoEditorComponent")
+);
 
 const LessonPage = () => {
   const { lessonId } = useParams();
- 
+
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -30,18 +32,18 @@ const LessonPage = () => {
     lessonsForNav,
     sectionsForNav,
     initialCode,
-    currentLessonProgress 
-  } = useLessonData(lessonId, !authLoading && user ? user : null, navigate, lessonDataRefreshTrigger);
+    currentLessonProgress,
+  } = useLessonData(
+    lessonId,
+    !authLoading && user ? user : null,
+    navigate,
+    lessonDataRefreshTrigger
+  );
 
-  const {
-    firstPaneStyle,
-    gutterProps,
-    containerStyle,
-    isDragging
-  } = useResizablePanes();
+  const { firstPaneStyle, gutterProps, containerStyle, isDragging } = useResizablePanes();
 
-  const [code, setCode] = useState('');
-  const [consoleOutput, setConsoleOutput] = useState('Output will appear here...');
+  const [code, setCode] = useState("");
+  const [consoleOutput, setConsoleOutput] = useState("Output will appear here...");
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
   const [failedAttemptsByLesson, setFailedAttemptsByLesson] = useState({});
   const currentFailedAttempts = failedAttemptsByLesson[lessonId] || 0;
@@ -53,7 +55,7 @@ const LessonPage = () => {
   }, [initialCode]);
 
   const resetState = () => {
-    setConsoleOutput('Output will appear here...');
+    setConsoleOutput("Output will appear here...");
     setIsAnswerCorrect(false);
   };
 
@@ -66,56 +68,62 @@ const LessonPage = () => {
     } else if (resultData?.badge_awarded) {
       setEarnedBadge(formatBadge(resultData.badge_awarded));
     }
-  };  
-  
+  };
+
   const handleRequestProgressRefresh = () => {
-    setLessonDataRefreshTrigger(prev => prev + 1);
+    setLessonDataRefreshTrigger((prev) => prev + 1);
   };
 
   const handleCloseBadgeNotification = () => {
     setEarnedBadge(null);
   };
-  
+
   if (authLoading || lessonLoading) {
     return <LoadingSpinner fullScreen message="Loading lesson..." />;
   }
 
   if (!user) {
-    return <p className="error">Please log in to view this lesson.</p>; 
+    return <p className="error">Please log in to view this lesson.</p>;
   }
 
   if (lessonError) return <p className="error">{lessonError}</p>;
-  if (!lesson) return null; 
+  if (!lesson) return null;
 
   const secondPaneStyle = {
     flex: 1,
     minWidth: 200,
     minHeight: 150,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    transition: isDragging ? 'none' : containerStyle.flexDirection === 'row' ? 'width 0.2s' : 'height 0.2s',
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    transition: isDragging
+      ? "none"
+      : containerStyle.flexDirection === "row"
+        ? "width 0.2s"
+        : "height 0.2s",
   };
 
   const paneTransitionStyle = {
-    transition: isDragging ? 'none' : containerStyle.flexDirection === 'row' ? 'width 0.2s' : 'height 0.2s',
+    transition: isDragging
+      ? "none"
+      : containerStyle.flexDirection === "row"
+        ? "width 0.2s"
+        : "height 0.2s",
   };
 
   return (
     <div className="lesson-page-wrapper">
-      <div
-        className="lesson-page"
-        style={{ ...containerStyle, height: 'calc(100vh - 144px)' }}
-      >
+      <div className="lesson-page" style={{ ...containerStyle, height: "calc(100vh - 144px)" }}>
         <div
           className="lesson-instructions"
           style={{
             ...firstPaneStyle,
             ...paneTransitionStyle,
-            overflow: 'auto',
+            overflow: "auto",
           }}
         >
-          <h1>{lesson.name}</h1>          <LessonContent
+          <h1>{lesson.name}</h1>{" "}
+          <LessonContent
             content={lesson.content}
             hint={lesson.hint}
             solution={lesson.solution}
@@ -125,19 +133,13 @@ const LessonPage = () => {
           />
         </div>
 
-        <div
-          className="custom-gutter"
-          {...gutterProps}
-        />
+        <div className="custom-gutter" {...gutterProps} />
 
-        <div
-          className="lesson-code-area"
-          style={secondPaneStyle}
-        >
+        <div className="lesson-code-area" style={secondPaneStyle}>
           <div className="code-editor">
             <Suspense fallback={<LoadingSpinner message="Loading editor..." />}>
               <MonacoEditorComponent
-                language={LSLanguageMappings[lessonLanguageId] || 'plaintext'}
+                language={LSLanguageMappings[lessonLanguageId] || "plaintext"}
                 code={code}
                 setCode={setCode}
                 user={user}
@@ -166,16 +168,13 @@ const LessonPage = () => {
         isAnswerCorrect={isAnswerCorrect}
         onNext={resetState}
         code={code}
-        currentSectionId={lesson.section_id} 
+        currentSectionId={lesson.section_id}
         lessonXp={lesson.xp}
         currentLessonProgress={currentLessonProgress}
       />
-      
+
       {earnedBadge && (
-        <BadgeNotification 
-          badge={earnedBadge} 
-          onClose={handleCloseBadgeNotification} 
-        />
+        <BadgeNotification badge={earnedBadge} onClose={handleCloseBadgeNotification} />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './StudentDetailModal.css';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import "./StudentDetailModal.css";
 
 const StudentDetailTable = ({ studentId, onClose }) => {
   const [student, setStudent] = useState(null);
@@ -11,18 +11,18 @@ const StudentDetailTable = ({ studentId, onClose }) => {
 
   useEffect(() => {
     if (!studentId) {
-      setError('Invalid student ID.');
+      setError("Invalid student ID.");
       setLoading(false);
       return;
     }
 
     const fetchStudentDetails = async () => {
       try {
-        const userData = JSON.parse(localStorage.getItem('user'));
+        const userData = JSON.parse(localStorage.getItem("user"));
         const token = userData?.token;
 
         if (!token) {
-          setError('No token found. Please log in again.');
+          setError("No token found. Please log in again.");
           return;
         }
 
@@ -39,8 +39,8 @@ const StudentDetailTable = ({ studentId, onClose }) => {
         setCourses(coursesResponse.data);
         setSubscriptionStatus(subscriptionResponse.data);
       } catch (err) {
-        console.error('Error fetching student details:', err);
-        setError(err.response?.data?.message || 'Failed to load student details.');
+        console.error("Error fetching student details:", err);
+        setError(err.response?.data?.message || "Failed to load student details.");
       } finally {
         setLoading(false);
       }
@@ -50,7 +50,7 @@ const StudentDetailTable = ({ studentId, onClose }) => {
   }, [studentId]);
 
   const handleOverlayClick = (e) => {
-    if (e.target.classList.contains('student-modal-overlay')) {
+    if (e.target.classList.contains("student-modal-overlay")) {
       onClose();
     }
   };
@@ -60,8 +60,10 @@ const StudentDetailTable = ({ studentId, onClose }) => {
   return (
     <div className="student-modal-overlay" onClick={handleOverlayClick}>
       <div className="student-modal-content">
-        <button className="student-modal-close" onClick={onClose}>×</button>
-        
+        <button className="student-modal-close" onClick={onClose}>
+          ×
+        </button>
+
         {loading ? (
           <div className="student-modal-loading">
             <div className="student-modal-spinner"></div>
@@ -74,8 +76,10 @@ const StudentDetailTable = ({ studentId, onClose }) => {
             <div className="student-modal-header">
               <h3 className="student-modal-title">Student Details</h3>
               <div className="student-status-badge">
-                <span className={`student-status-dot student-status-dot--${subscriptionStatus?.hasActiveSubscription ? 'active' : 'inactive'}`}></span>
-                {subscriptionStatus?.hasActiveSubscription ? 'Active' : 'Inactive'}
+                <span
+                  className={`student-status-dot student-status-dot--${subscriptionStatus?.hasActiveSubscription ? "active" : "inactive"}`}
+                ></span>
+                {subscriptionStatus?.hasActiveSubscription ? "Active" : "Inactive"}
               </div>
             </div>
 
@@ -98,12 +102,15 @@ const StudentDetailTable = ({ studentId, onClose }) => {
                   {subscriptionStatus?.hasActiveSubscription ? (
                     <>
                       {subscriptionStatus.subscription?.subscription_type}
-                      <small style={{ display: 'block', fontSize: '0.85em', color: '#64748b' }}>
-                        Expires: {new Date(subscriptionStatus.subscription?.subscription_end_date).toLocaleDateString()}
+                      <small style={{ display: "block", fontSize: "0.85em", color: "#64748b" }}>
+                        Expires:{" "}
+                        {new Date(
+                          subscriptionStatus.subscription?.subscription_end_date
+                        ).toLocaleDateString()}
                       </small>
                     </>
                   ) : (
-                    'No active subscription'
+                    "No active subscription"
                   )}
                 </span>
               </div>
@@ -115,18 +122,22 @@ const StudentDetailTable = ({ studentId, onClose }) => {
                 <div className="student-courses-grid">
                   {courses.map((course, index) => (
                     <div
-                      key={`${course.course_id ?? course.course_name ?? 'course'}-${index}`}
+                      key={`${course.course_id ?? course.course_name ?? "course"}-${index}`}
                       className="student-course-item"
                     >
                       <div className="student-course-header">
-                        <h5 className="student-course-title">{course.course_name || 'Unnamed Course'}</h5>
-                        <span className={`student-course-status student-course-status--${course.progress >= 100 ? 'completed' : 'in-progress'}`}>
-                          {course.progress >= 100 ? 'Completed' : 'In Progress'}
+                        <h5 className="student-course-title">
+                          {course.course_name || "Unnamed Course"}
+                        </h5>
+                        <span
+                          className={`student-course-status student-course-status--${course.progress >= 100 ? "completed" : "in-progress"}`}
+                        >
+                          {course.progress >= 100 ? "Completed" : "In Progress"}
                         </span>
                       </div>
                       <div className="student-course-progress">
                         <div className="student-progress-bar">
-                          <div 
+                          <div
                             className="student-progress-fill"
                             style={{ width: `${course.progress || 0}%` }}
                           />

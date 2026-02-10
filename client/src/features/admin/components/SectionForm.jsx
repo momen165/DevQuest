@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import './SectionEditComponent.css';
-import ErrorAlert from './ErrorAlert';
+import { useState } from "react";
+import "./SectionEditComponent.css";
+import ErrorAlert from "./ErrorAlert";
 
 const SectionForm = ({ section, courseId, onSave, onCancel }) => {
-  const [sectionName, setSectionName] = useState(section?.name || '');
-  const [sectionDescription, setSectionDescription] = useState(section?.description || '');
-  const [error, setError] = useState('');
+  const [sectionName, setSectionName] = useState(section?.name || "");
+  const [sectionDescription, setSectionDescription] = useState(section?.description || "");
+  const [error, setError] = useState("");
 
   const handleSave = () => {
     if (sectionName.trim()) {
@@ -16,14 +16,14 @@ const SectionForm = ({ section, courseId, onSave, onCancel }) => {
         description: sectionDescription,
       });
     } else {
-      setError('Section name is required.');
+      setError("Section name is required.");
     }
   };
 
   return (
     <div className="edit-course-form">
-      <h2>{section?.section_id ? 'Edit Section' : 'Add Section'}</h2>
-      {error && <ErrorAlert message={error} onClose={() => setError('')} />}
+      <h2>{section?.section_id ? "Edit Section" : "Add Section"}</h2>
+      {error && <ErrorAlert message={error} onClose={() => setError("")} />}
       <label>Section Name</label>
       <input
         type="text"

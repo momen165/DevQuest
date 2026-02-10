@@ -1,5 +1,4 @@
 // /src/components/FAQSection.js
-import React from "react";
 import "./FAQSection.css";
 import { useNavigate } from "react-router-dom";
 

@@ -1,5 +1,5 @@
 // /src/pages/FAQPage.js
-import React, { useState } from "react";
+import { useState } from "react";
 import "./FAQPage.css";
 import SEOHead from "shared/seo/SEOHead";
 
@@ -57,14 +57,14 @@ const FAQPage = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": faqs.map(faq => ({
+    mainEntity: faqs.map((faq) => ({
       "@type": "Question",
-      "name": faq.question,
-      "acceptedAnswer": {
+      name: faq.question,
+      acceptedAnswer: {
         "@type": "Answer",
-        "text": faq.answer
-      }
-    }))
+        text: faq.answer,
+      },
+    })),
   };
 
   return (
@@ -87,10 +87,12 @@ const FAQPage = () => {
         <div className="faq-container">
           <div className="faq-header">
             <span className="faq-badge">Help Center</span>
-            <h1>Frequently Asked <span className="hero-gradient-text">Questions</span></h1>
+            <h1>
+              Frequently Asked <span className="hero-gradient-text">Questions</span>
+            </h1>
             <p className="faq-subtitle">
-              Everything you need to know about DevQuest. Can&apos;t find the answer you&apos;re looking for? 
-              Feel free to contact our support team.
+              Everything you need to know about DevQuest. Can&apos;t find the answer you&apos;re
+              looking for? Feel free to contact our support team.
             </p>
           </div>
 
@@ -105,18 +107,18 @@ const FAQPage = () => {
                 <div className="faq-question">
                   {faq.question}
                   <div className="faq-icon-wrapper">
-                    <svg 
-                      width="14" 
-                      height="14" 
-                      viewBox="0 0 14 14" 
-                      fill="none" 
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path 
-                        d="M1 4L7 10L13 4" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
+                      <path
+                        d="M1 4L7 10L13 4"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                     </svg>

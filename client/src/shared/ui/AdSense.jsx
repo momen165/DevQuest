@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 const MAX_RETRIES = 50; // Maximum 5 seconds of retries (50 * 100ms)
 
-const AdSense = ({ 
-  adSlot = '7973755487', 
-  adFormat = 'auto',
+const AdSense = ({
+  adSlot = "7973755487",
+  adFormat = "auto",
   fullWidthResponsive = true,
-  style = { display: 'block', minWidth: '250px', minHeight: '50px' }
+  style = { display: "block", minWidth: "250px", minHeight: "50px" },
 }) => {
   const adRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -23,16 +23,16 @@ const AdSense = ({
       try {
         // Check if the element exists and has width
         if (!adRef.current) {
-          console.warn('AdSense: Ad container ref not available');
+          console.warn("AdSense: Ad container ref not available");
           return;
         }
 
         const rect = adRef.current.getBoundingClientRect();
-        
+
         // Only load the ad if container has a proper width
         if (rect.width === 0) {
           if (retryCountRef.current >= MAX_RETRIES) {
-            console.warn('AdSense: Max retries reached, container still has zero width');
+            console.warn("AdSense: Max retries reached, container still has zero width");
             setHasError(true);
             return;
           }
@@ -45,9 +45,9 @@ const AdSense = ({
         }
 
         // Check if adsbygoogle script is loaded
-        if (typeof window.adsbygoogle === 'undefined') {
+        if (typeof window.adsbygoogle === "undefined") {
           if (retryCountRef.current >= MAX_RETRIES) {
-            console.warn('AdSense: Max retries reached, script not loaded');
+            console.warn("AdSense: Max retries reached, script not loaded");
             setHasError(true);
             return;
           }
@@ -62,7 +62,7 @@ const AdSense = ({
         (window.adsbygoogle = window.adsbygoogle || []).push({});
         setIsLoaded(true);
       } catch (error) {
-        console.error('AdSense error:', error);
+        console.error("AdSense error:", error);
         setHasError(true);
       }
     };
@@ -82,7 +82,7 @@ const AdSense = ({
           }
         });
       },
-      { rootMargin: '100px' } // Load ad 100px before it comes into view
+      { rootMargin: "100px" } // Load ad 100px before it comes into view
     );
 
     if (adRef.current) {
@@ -91,9 +91,9 @@ const AdSense = ({
 
     return () => {
       // Clean up all pending timeouts
-      timeoutIdsRef.current.forEach(timeoutId => clearTimeout(timeoutId));
+      timeoutIdsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
       timeoutIdsRef.current = [];
-      
+
       // Clean up observer
       if (observerRef.current) {
         observerRef.current.disconnect();

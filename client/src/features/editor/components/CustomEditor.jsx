@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
+import { useState, useEffect, useRef } from "react";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
 import {
   ClassicEditor,
   AccessibilityHelp,
@@ -57,81 +57,81 @@ import {
   ImageResizeButtons,
   List,
   PasteFromMarkdownExperimental,
-} from 'ckeditor5';
+} from "ckeditor5";
 
-import 'ckeditor5/ckeditor5.css';
+import "ckeditor5/ckeditor5.css";
 
-import './CustomEditor.css';
+import "./CustomEditor.css";
 
 // Removed unused import: import { getFontClass } from "features/editor/utils/editorUtils";
-import { useAuth } from 'app/AuthContext';
-import { FaQuestionCircle } from 'react-icons/fa';
+import { useAuth } from "app/AuthContext";
+import { FaQuestionCircle } from "react-icons/fa";
 
 // const LICENSE_KEY =
 // 	'[REDACTED]';
 
-const LICENSE_KEY = 'GPL';
+const LICENSE_KEY = "GPL";
 
 const DEFAULT_CONFIG = {
   codeBlock: {
     languages: [
-      { language: 'plaintext', label: 'Plain text' },
-      { language: 'javascript', label: 'JavaScript' },
-      { language: 'css', label: 'CSS' },
-      { language: 'html', label: 'HTML' },
-      { language: 'python', label: 'Python' },
-      { language: 'java', label: 'Java' },
-      { language: 'csharp', label: 'C#' },
-      { language: 'php', label: 'PHP' },
-      { language: 'ruby', label: 'Ruby' },
-      { language: 'typescript', label: 'TypeScript' },
+      { language: "plaintext", label: "Plain text" },
+      { language: "javascript", label: "JavaScript" },
+      { language: "css", label: "CSS" },
+      { language: "html", label: "HTML" },
+      { language: "python", label: "Python" },
+      { language: "java", label: "Java" },
+      { language: "csharp", label: "C#" },
+      { language: "php", label: "PHP" },
+      { language: "ruby", label: "Ruby" },
+      { language: "typescript", label: "TypeScript" },
 
-      { language: 'go', label: 'Go' },
-      { language: 'swift', label: 'Swift' },
-      { language: 'kotlin', label: 'Kotlin' },
-      { language: 'rust', label: 'Rust' },
-      { language: 'c', label: 'C' },
-      { language: 'c++', label: 'C++' },
-      { language: 'sql', label: 'SQL' },
-      { language: 'bash', label: 'Bash' },
-      { language: 'powershell', label: 'PowerShell' },
-      { language: 'markdown', label: 'Markdown' },
+      { language: "go", label: "Go" },
+      { language: "swift", label: "Swift" },
+      { language: "kotlin", label: "Kotlin" },
+      { language: "rust", label: "Rust" },
+      { language: "c", label: "C" },
+      { language: "c++", label: "C++" },
+      { language: "sql", label: "SQL" },
+      { language: "bash", label: "Bash" },
+      { language: "powershell", label: "PowerShell" },
+      { language: "markdown", label: "Markdown" },
     ],
   },
   toolbar: {
     items: [
-      'undo',
-      'redo',
-      '|',
-      'showBlocks',
-      '|',
-      'heading',
-      'style',
-      '|',
-      'fontSize',
-      'fontFamily',
-      'fontColor',
-      'fontBackgroundColor',
-      '|',
-      'bold',
-      'italic',
-      'underline',
-      '|',
-      'bulletedList',
-      'numberedList',
-      '|',
-      'link',
-      'insertTable',
-      'highlight',
-      'blockQuote',
-      'codeBlock',
-      '|',
-      'alignment',
-      '|',
-      'outdent',
-      'indent',
-      'uploadImage',
-      '|',
+      "undo",
+      "redo",
+      "|",
+      "showBlocks",
+      "|",
+      "heading",
+      "style",
+      "|",
+      "fontSize",
+      "fontFamily",
+      "fontColor",
+      "fontBackgroundColor",
+      "|",
+      "bold",
+      "italic",
+      "underline",
+      "|",
+      "bulletedList",
+      "numberedList",
+      "|",
+      "link",
+      "insertTable",
+      "highlight",
+      "blockQuote",
+      "codeBlock",
+      "|",
+      "alignment",
+      "|",
+      "outdent",
+      "indent",
+      "uploadImage",
+      "|",
     ],
     shouldNotGroupWhenFull: false,
   },
@@ -194,80 +194,80 @@ const DEFAULT_CONFIG = {
   ],
   fontFamily: {
     options: [
-      'Source Sans Pro, sans-serif',
-      'Nunito Sans, sans-serif',
-      'Inter, sans-serif',
-      'Lato, sans-serif',
-      'Open Sans, sans-serif',
-      'Roboto, sans-serif',
+      "Source Sans Pro, sans-serif",
+      "Nunito Sans, sans-serif",
+      "Inter, sans-serif",
+      "Lato, sans-serif",
+      "Open Sans, sans-serif",
+      "Roboto, sans-serif",
     ],
     supportAllValues: true,
-    defaultValue: 'Source Sans Pro, sans-serif',
+    defaultValue: "Source Sans Pro, sans-serif",
   },
   fontSize: {
     options: [
       {
-        title: '12px',
-        model: '12px',
+        title: "12px",
+        model: "12px",
         view: {
-          name: 'span',
-          styles: { 'font-size': '12px' },
+          name: "span",
+          styles: { "font-size": "12px" },
         },
       },
       {
-        title: '14px',
-        model: '14px',
+        title: "14px",
+        model: "14px",
         view: {
-          name: 'span',
-          styles: { 'font-size': '14px' },
+          name: "span",
+          styles: { "font-size": "14px" },
         },
       },
       {
-        title: '16px',
-        model: '16px',
+        title: "16px",
+        model: "16px",
         view: {
-          name: 'span',
-          styles: { 'font-size': '16px' },
+          name: "span",
+          styles: { "font-size": "16px" },
         },
       },
       {
-        title: '18px',
-        model: '18px',
+        title: "18px",
+        model: "18px",
         view: {
-          name: 'span',
-          styles: { 'font-size': '18px' },
+          name: "span",
+          styles: { "font-size": "18px" },
         },
       },
       {
-        title: '20px',
-        model: '20px',
+        title: "20px",
+        model: "20px",
         view: {
-          name: 'span',
-          styles: { 'font-size': '20px' },
+          name: "span",
+          styles: { "font-size": "20px" },
         },
       },
       {
-        title: '24px',
-        model: '24px',
+        title: "24px",
+        model: "24px",
         view: {
-          name: 'span',
-          styles: { 'font-size': '24px' },
+          name: "span",
+          styles: { "font-size": "24px" },
         },
       },
       {
-        title: '28px',
-        model: '28px',
+        title: "28px",
+        model: "28px",
         view: {
-          name: 'span',
-          styles: { 'font-size': '28px' },
+          name: "span",
+          styles: { "font-size": "28px" },
         },
       },
       {
-        title: '32px',
-        model: '32px',
+        title: "32px",
+        model: "32px",
         view: {
-          name: 'span',
-          styles: { 'font-size': '32px' },
+          name: "span",
+          styles: { "font-size": "32px" },
         },
       },
     ],
@@ -276,36 +276,34 @@ const DEFAULT_CONFIG = {
   heading: {
     options: [
       {
-        model: 'paragraph',
-        title: 'Paragraph',
-        class: 'ck-heading_paragraph',
+        model: "paragraph",
+        title: "Paragraph",
+        class: "ck-heading_paragraph",
       },
       {
-        model: 'heading1',
+        model: "heading1",
         view: {
-          name: 'h1',
-
+          name: "h1",
         },
-        title: 'Heading 1',
-        class: 'ck-heading_heading1',
+        title: "Heading 1",
+        class: "ck-heading_heading1",
       },
       {
-        model: 'heading2',
+        model: "heading2",
         view: {
-          name: 'h2',
-
+          name: "h2",
         },
-        title: 'Heading 2',
-        class: 'ck-heading_heading2',
+        title: "Heading 2",
+        class: "ck-heading_heading2",
       },
       {
-        model: 'heading3',
+        model: "heading3",
         view: {
-          name: 'h3',
-          classes: ['editor-subtitle'],
+          name: "h3",
+          classes: ["editor-subtitle"],
         },
-        title: 'Heading 3',
-        class: 'ck-heading_heading3',
+        title: "Heading 3",
+        class: "ck-heading_heading3",
       },
     ],
   },
@@ -315,33 +313,33 @@ const DEFAULT_CONFIG = {
         name: /.*/,
         attributes: true,
         classes: [
-          'editor-font-nunito',
-          'editor-font-inter',
-          'editor-font-source',
-          'editor-font-lato',
-          'editor-font-opensans',
-          'editor-font-roboto',
+          "editor-font-nunito",
+          "editor-font-inter",
+          "editor-font-source",
+          "editor-font-lato",
+          "editor-font-opensans",
+          "editor-font-roboto",
         ],
         styles: {
-          'font-family': true,
-          'font-size': true,
+          "font-family": true,
+          "font-size": true,
           // ... other styles
         },
       },
     ],
   },
-  initialData: '',
+  initialData: "",
 
   licenseKey: LICENSE_KEY,
   link: {
     addTargetToExternalLinks: true,
-    defaultProtocol: 'https://',
+    defaultProtocol: "https://",
     decorators: {
       toggleDownloadable: {
-        mode: 'manual',
-        label: 'Downloadable',
+        mode: "manual",
+        label: "Downloadable",
         attributes: {
-          download: 'file',
+          download: "file",
         },
       },
     },
@@ -350,67 +348,66 @@ const DEFAULT_CONFIG = {
   menuBar: {
     isVisible: true,
   },
-  placeholder: 'Type or paste your content here!',
+  placeholder: "Type or paste your content here!",
   style: {
     definitions: [
       {
-        name: 'Article category',
-        element: 'h3',
-        classes: ['editor-category'],
+        name: "Article category",
+        element: "h3",
+        classes: ["editor-category"],
       },
       {
-        name: 'Title',
-        element: 'h2',
-
+        name: "Title",
+        element: "h2",
       },
       {
-        name: 'Subtitle',
-        element: 'h3',
-        classes: ['editor-subtitle'],
+        name: "Subtitle",
+        element: "h3",
+        classes: ["editor-subtitle"],
       },
       {
-        name: 'Info box',
-        element: 'p',
-        classes: ['editor-info-box'],
+        name: "Info box",
+        element: "p",
+        classes: ["editor-info-box"],
       },
       {
-        name: 'Side quote',
-        element: 'blockquote',
-        classes: ['editor-side-quote'],
+        name: "Side quote",
+        element: "blockquote",
+        classes: ["editor-side-quote"],
       },
       {
-        name: 'Marker',
-        element: 'span',
-        classes: ['editor-marker'],
+        name: "Marker",
+        element: "span",
+        classes: ["editor-marker"],
       },
       {
-        name: 'Spoiler',
-        element: 'span',
-        classes: ['editor-spoiler'],
+        name: "Spoiler",
+        element: "span",
+        classes: ["editor-spoiler"],
       },
       {
-        name: 'Code (dark)',
-        element: 'pre',
-        classes: ['editor-code', 'editor-code--dark'],
+        name: "Code (dark)",
+        element: "pre",
+        classes: ["editor-code", "editor-code--dark"],
       },
       {
-        name: 'Code (bright)',
-        element: 'pre',
-        classes: ['editor-code', 'editor-code--light'],
+        name: "Code (bright)",
+        element: "pre",
+        classes: ["editor-code", "editor-code--light"],
       },
     ],
   },
   table: {
     contentToolbar: [
-      'tableColumn',
-      'tableRow',
-      'mergeTableCells',
-      'tableProperties',
-      'tableCellProperties',
+      "tableColumn",
+      "tableRow",
+      "mergeTableCells",
+      "tableProperties",
+      "tableCellProperties",
     ],
   },
   output: {
-    dataIndentChar: ' ',
+    dataIndentChar: " ",
     dataIndent: 2,
     presetStyles: true,
   },
@@ -421,67 +418,67 @@ const DEFAULT_CONFIG = {
         attributes: true,
         classes: true,
         styles: {
-          'font-size': true,
+          "font-size": true,
         },
       },
     ],
   },
   image: {
     toolbar: [
-      'imageStyle:inline',
-      'imageStyle:block',
-      'imageStyle:side',
-      '|',
-      'toggleImageCaption',
-      'imageTextAlternative',
-      '|',
-      'resizeImage',
+      "imageStyle:inline",
+      "imageStyle:block",
+      "imageStyle:side",
+      "|",
+      "toggleImageCaption",
+      "imageTextAlternative",
+      "|",
+      "resizeImage",
     ],
     upload: {
-      types: ['jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'svg'],
+      types: ["jpeg", "png", "gif", "bmp", "webp", "tiff", "svg"],
     },
     resizeOptions: [
       {
-        name: 'resizeImage:original',
+        name: "resizeImage:original",
         value: null,
-        label: 'Original',
+        label: "Original",
       },
       {
-        name: 'resizeImage:50',
-        value: '50',
-        label: '50%',
+        name: "resizeImage:50",
+        value: "50",
+        label: "50%",
       },
       {
-        name: 'resizeImage:75',
-        value: '75',
-        label: '75%',
+        name: "resizeImage:75",
+        value: "75",
+        label: "75%",
       },
     ],
-    styles: ['full', 'side', 'alignLeft', 'alignCenter', 'alignRight'],
+    styles: ["full", "side", "alignLeft", "alignCenter", "alignRight"],
   },
   keystrokes: [
-    ['CTRL+ALT+J', 'codeBlock'],
-    ['CTRL+ALT+P', 'codeBlock'],
-    ['CTRL+ALT+H', 'codeBlock'],
+    ["CTRL+ALT+J", "codeBlock"],
+    ["CTRL+ALT+P", "codeBlock"],
+    ["CTRL+ALT+H", "codeBlock"],
   ],
 
   // Add custom handlers for the code block shortcuts
   customConfig: {
     keystrokes: {
-      'CTRL+ALT+I': (editor) => {
+      "CTRL+ALT+I": (editor) => {
         // Get the upload image command and execute it
-        const imageUploadCommand = editor.commands.get('uploadImage');
+        const imageUploadCommand = editor.commands.get("uploadImage");
         if (imageUploadCommand.isEnabled) {
           // Create a hidden file input
-          const input = document.createElement('input');
-          input.type = 'file';
-          input.accept = 'image/*';
-          input.style.display = 'none';
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = "image/*";
+          input.style.display = "none";
 
           input.onchange = () => {
             const file = input.files[0];
             if (file) {
-              editor.execute('uploadImage', { file });
+              editor.execute("uploadImage", { file });
             }
           };
 
@@ -490,29 +487,29 @@ const DEFAULT_CONFIG = {
           document.body.removeChild(input);
         }
       },
-      'CTRL+ALT+J': (editor) => {
-        const codeBlockCommand = editor.commands.get('codeBlock');
+      "CTRL+ALT+J": (editor) => {
+        const codeBlockCommand = editor.commands.get("codeBlock");
         if (codeBlockCommand.isEnabled) {
-          editor.execute('codeBlock', { language: 'javascript' });
+          editor.execute("codeBlock", { language: "javascript" });
         }
       },
-      'CTRL+ALT+P': (editor) => {
-        const codeBlockCommand = editor.commands.get('codeBlock');
+      "CTRL+ALT+P": (editor) => {
+        const codeBlockCommand = editor.commands.get("codeBlock");
         if (codeBlockCommand.isEnabled) {
-          editor.execute('codeBlock', { language: 'python' });
+          editor.execute("codeBlock", { language: "python" });
         }
       },
-      'CTRL+ALT+H': (editor) => {
-        const codeBlockCommand = editor.commands.get('codeBlock');
+      "CTRL+ALT+H": (editor) => {
+        const codeBlockCommand = editor.commands.get("codeBlock");
         if (codeBlockCommand.isEnabled) {
-          editor.execute('codeBlock', { language: 'html' });
+          editor.execute("codeBlock", { language: "html" });
         }
       },
     },
   },
 };
 
-const CustomEditor = ({ initialData = '', config = {}, onChange, className, disabled }) => {
+const CustomEditor = ({ initialData = "", config = {}, onChange, className, disabled }) => {
   const { user } = useAuth();
   const editorContainerRef = useRef(null);
   const editorRef = useRef(null);
@@ -546,9 +543,9 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
 
     // Clean <p>&nbsp;</p> and variants of empty paragraphs
     const cleaned = html
-      .replace(/<p[^>]*>(\s|&nbsp;|<br\s*\/?>)*<\/p>/g, '')
-      .replace(/<p><span>(\s|&nbsp;)*<\/span><\/p>/g, '')
-      .replace(/<p[^>]*>\s*<\/p>/g, '');
+      .replace(/<p[^>]*>(\s|&nbsp;|<br\s*\/?>)*<\/p>/g, "")
+      .replace(/<p><span>(\s|&nbsp;)*<\/span><\/p>/g, "")
+      .replace(/<p[^>]*>\s*<\/p>/g, "");
 
     // console.log('EDITOR - Cleaned HTML:', cleaned);
 
@@ -574,11 +571,11 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
     }
 
     // Image upload adapter setup
-    editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+    editor.plugins.get("FileRepository").createUploadAdapter = (loader) => {
       return new ImageUploadAdapter(loader, user?.token);
     };
 
-    editor.model.document.on('change:data', () => {
+    editor.model.document.on("change:data", () => {
       const data = editor.getData();
 
       // Debug: Log when content changes
@@ -604,9 +601,9 @@ const CustomEditor = ({ initialData = '', config = {}, onChange, className, disa
   };
 
   return (
-    <div className={`custom-editor ${className || ''}`}>
+    <div className={`custom-editor ${className || ""}`}>
       {/* Debug message visible in the DOM */}
-  
+
       <div className="main-container">
         <div
           className="editor-container editor-container_classic-editor editor-container_include-style"
@@ -662,15 +659,15 @@ class ImageUploadAdapter {
     try {
       const file = await this.loader.file;
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
       if (!this.token) {
-        throw new Error('Authentication token not found');
+        throw new Error("Authentication token not found");
       }
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/editor`, {
         // Corrected URL
-        method: 'POST',
+        method: "POST",
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
@@ -678,7 +675,7 @@ class ImageUploadAdapter {
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error("Upload failed");
       }
 
       const data = await response.json();
@@ -686,7 +683,7 @@ class ImageUploadAdapter {
         default: data.fileUrl,
       };
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error("Upload failed:", error);
       throw error;
     }
   }

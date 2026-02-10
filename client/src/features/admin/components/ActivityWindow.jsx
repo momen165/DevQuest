@@ -1,6 +1,5 @@
-﻿import React from 'react';
-import './ActivityWindow.css';
-import parse from 'html-react-parser';
+﻿import "./ActivityWindow.css";
+import parse from "html-react-parser";
 
 const ActivityWindow = ({ activities, onClose }) => {
   return (

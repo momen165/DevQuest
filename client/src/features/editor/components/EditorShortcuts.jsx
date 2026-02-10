@@ -1,5 +1,3 @@
-import React from "react";
-
 const EditorShortcuts = () => {
   const shortcuts = [
     { keys: "Ctrl + Alt + I", description: "Insert Image" },

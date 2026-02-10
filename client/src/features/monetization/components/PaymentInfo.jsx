@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './PaymentInfo.css';
-import { useAuth } from 'app/AuthContext';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import "./PaymentInfo.css";
+import { useAuth } from "app/AuthContext";
 
 const PaymentDetails = () => {
   const [subscriptions, setSubscriptions] = useState([]);
   const { user } = useAuth();
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchSubscriptions = async () => {
@@ -14,23 +14,20 @@ const PaymentDetails = () => {
         const token = user?.token;
 
         if (!token) {
-          setError('No token found. Please log in again.');
+          setError("No token found. Please log in again.");
           return;
         }
 
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/list-subscriptions`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/list-subscriptions`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         setSubscriptions(response.data); // With axios, we can directly use response.data
       } catch (err) {
-        console.error('Error fetching subscriptions:', err); // Log the error
-        setError('Failed to fetch subscription details. Please try again later.');
+        console.error("Error fetching subscriptions:", err); // Log the error
+        setError("Failed to fetch subscription details. Please try again later.");
       }
     };
 
@@ -67,8 +64,10 @@ const PaymentDetails = () => {
                   <td>{new Date(subscription.subscription_start_date).toLocaleDateString()}</td>
                   <td>{new Date(subscription.subscription_end_date).toLocaleDateString()}</td>
                   <td>${subscription.amount_paid}</td>
-                  <td className={`admin-payment-status-${String(subscription.status || 'unknown').toLowerCase()}`}>
-                    {subscription.status ?? 'N/A'}
+                  <td
+                    className={`admin-payment-status-${String(subscription.status || "unknown").toLowerCase()}`}
+                  >
+                    {subscription.status ?? "N/A"}
                   </td>
                   <td>{subscription.user_email}</td>
                   <td>{subscription.user_id}</td>

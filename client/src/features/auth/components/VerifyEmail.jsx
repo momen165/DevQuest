@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -40,11 +40,9 @@ const VerifyEmail = () => {
         let errorMessage = "An error occurred while verifying your email.";
 
         if (error.response?.data?.error === "Token has expired") {
-          errorMessage =
-            "Your verification link has expired. Please request a new one.";
+          errorMessage = "Your verification link has expired. Please request a new one.";
         } else if (error.response?.data?.error === "Email already verified") {
-          errorMessage =
-            "Your email is already verified. You can proceed to login.";
+          errorMessage = "Your email is already verified. You can proceed to login.";
           // Auto-redirect to login for already verified emails
           setTimeout(() => {
             navigate("/loginPage");
@@ -98,7 +96,9 @@ const VerifyEmail = () => {
         email: resendEmail,
       });
       setResendStatus("sent");
-      setMessage("A new verification email has been sent to " + resendEmail + ". Please check your inbox.");
+      setMessage(
+        "A new verification email has been sent to " + resendEmail + ". Please check your inbox."
+      );
       setStatus("success");
       setShowResendInput(false);
     } catch (error) {
@@ -120,9 +120,7 @@ const VerifyEmail = () => {
         <div>
           <h2 style={styles.success}>Email Verified Successfully!</h2>
           <p>{message}</p>
-          <p style={styles.redirectMessage}>
-            Redirecting to login page in a few seconds...
-          </p>
+          <p style={styles.redirectMessage}>Redirecting to login page in a few seconds...</p>
           <button onClick={handleRedirect} style={styles.button}>
             Go to Login Now
           </button>
@@ -131,21 +129,15 @@ const VerifyEmail = () => {
       {status === "error" && (
         <div>
           <h2 style={styles.error}>
-            {message.includes("already verified")
-              ? "Email Status"
-              : "Verification Failed"}
+            {message.includes("already verified") ? "Email Status" : "Verification Failed"}
           </h2>
           <p>{message}</p>
           {message.includes("already verified") && (
-            <p style={styles.redirectMessage}>
-              Redirecting to login page in a few seconds...
-            </p>
+            <p style={styles.redirectMessage}>Redirecting to login page in a few seconds...</p>
           )}
           <div style={styles.buttonContainer}>
             <button onClick={handleRedirect} style={styles.button}>
-              {message.includes("already verified")
-                ? "Go to Login Now"
-                : "Back to Sign Up"}
+              {message.includes("already verified") ? "Go to Login Now" : "Back to Sign Up"}
             </button>
             {!message.includes("already verified") && !showResendInput && (
               <button
@@ -153,9 +145,7 @@ const VerifyEmail = () => {
                 style={styles.secondaryButton}
                 disabled={resendStatus === "sending"}
               >
-                {resendStatus === "sending"
-                  ? "Sending..."
-                  : "Resend Verification Email"}
+                {resendStatus === "sending" ? "Sending..." : "Resend Verification Email"}
               </button>
             )}
 

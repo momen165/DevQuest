@@ -1,8 +1,8 @@
-import React, { useRef, useState, useEffect, memo } from 'react';
-import axios from 'axios';
-import { useAuth } from 'app/AuthContext';
-import CourseCard from 'features/course/components/CourseCard';
-import './Slider.css';
+import { useRef, useState, useEffect, memo } from "react";
+import axios from "axios";
+import { useAuth } from "app/AuthContext";
+import CourseCard from "features/course/components/CourseCard";
+import "./Slider.css";
 
 const SCROLL_SPEED = 0.5; // Pixels per frame
 
@@ -36,7 +36,7 @@ const CoursesSlider = () => {
           .slice(0, 5);
         setCourses(topCourses);
       } catch (err) {
-        console.error('Error fetching courses:', err);
+        console.error("Error fetching courses:", err);
       }
     };
 
@@ -123,7 +123,7 @@ const CoursesSlider = () => {
               <div key={`${course.course_id}-${index}`} className="home-slider__item">
                 <CourseCard
                   title={course.name}
-                  level={course.difficulty || 'All Levels'}
+                  level={course.difficulty || "All Levels"}
                   rating={Number(course.rating || 0).toFixed(1)}
                   students={course.userscount || 0}
                   description={course.description}
@@ -143,6 +143,6 @@ const CoursesSlider = () => {
 };
 
 const MemoizedCoursesSlider = memo(CoursesSlider);
-MemoizedCoursesSlider.displayName = 'CoursesSlider';
+MemoizedCoursesSlider.displayName = "CoursesSlider";
 
 export default MemoizedCoursesSlider;

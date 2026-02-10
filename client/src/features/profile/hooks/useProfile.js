@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 const api_url = import.meta.env.VITE_API_URL;
 
@@ -13,15 +13,12 @@ export const useProfile = (user) => {
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!user || !user.user_id) return;
-      
+
       try {
         setLoading(true);
-        const profileResponse = await axios.get(
-          `${api_url}/students/${user.user_id}`,
-          {
-            headers: { Authorization: `Bearer ${user.token}` },
-          },
-        );
+        const profileResponse = await axios.get(`${api_url}/students/${user.user_id}`, {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
 
         setProfileData(profileResponse.data);
         setError(null);
@@ -38,13 +35,10 @@ export const useProfile = (user) => {
 
       try {
         setLoadingBadges(true);
-        const badgeResponse = await axios.get(
-          `${api_url}/badges/user`,
-          {
-            headers: { Authorization: `Bearer ${user.token}` },
-          }
-        );
-        
+        const badgeResponse = await axios.get(`${api_url}/badges/user`, {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+
         if (badgeResponse.data.success && badgeResponse.data.badges) {
           setBadges(badgeResponse.data.badges);
         }
@@ -64,6 +58,6 @@ export const useProfile = (user) => {
     loading,
     error,
     badges,
-    loadingBadges
+    loadingBadges,
   };
 };

@@ -1,11 +1,11 @@
-import React, { useState, useEffect, memo } from 'react';
-import './FilterTabs.css';
+import { useState, useEffect, memo } from "react";
+import "./FilterTabs.css";
 
-import AnimatedLogoMain from 'assets/icons/Dev.svg';
-import AnimatedLogoSecond from 'assets/icons/Quest.svg';
+import AnimatedLogoMain from "assets/icons/Dev.svg";
+import AnimatedLogoSecond from "assets/icons/Quest.svg";
 
 const FilterTabs = memo(({ onFilterChange, onSearch, searchTerm }) => {
-  const [activeTab, setActiveTab] = useState('All Courses');
+  const [activeTab, setActiveTab] = useState("All Courses");
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ const FilterTabs = memo(({ onFilterChange, onSearch, searchTerm }) => {
 
   return (
     <>
-      <div className={`animated-logo-card ${animate ? 'animate' : ''}`}>
+      <div className={`animated-logo-card ${animate ? "animate" : ""}`}>
         <div className="animated-logo-tools">
           <div className="animated-logo-circle">
             <span className="animated-logo-red animated-logo-box"></span>
@@ -36,9 +36,9 @@ const FilterTabs = memo(({ onFilterChange, onSearch, searchTerm }) => {
             <span className="animated-logo-green animated-logo-box"></span>
           </div>
         </div>
-        <div className="animated-logo-border"></div>{' '}
+        <div className="animated-logo-border"></div>{" "}
         <div className="animated-logo-content">
-          {' '}
+          {" "}
           <div className="animated-logo">
             <div className="animated-logo1">
               <img src={AnimatedLogoMain} alt="Dev" width="110" height="70" />
@@ -73,10 +73,10 @@ const FilterTabs = memo(({ onFilterChange, onSearch, searchTerm }) => {
         </div>
 
         <div className="filter-tabs">
-          {['All Courses', 'Popular', 'Difficulty', 'Beginner', 'rating'].map((tab) => (
+          {["All Courses", "Popular", "Difficulty", "Beginner", "rating"].map((tab) => (
             <button
               key={tab}
-              className={`filter-tab ${activeTab === tab ? 'active' : ''}`}
+              className={`filter-tab ${activeTab === tab ? "active" : ""}`}
               onClick={() => handleTabClick(tab)}
             >
               {tab}
@@ -88,6 +88,6 @@ const FilterTabs = memo(({ onFilterChange, onSearch, searchTerm }) => {
   );
 });
 
-FilterTabs.displayName = 'FilterTabs';
+FilterTabs.displayName = "FilterTabs";
 
 export default FilterTabs;

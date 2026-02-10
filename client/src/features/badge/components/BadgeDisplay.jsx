@@ -1,5 +1,5 @@
-import React, { useState, memo } from 'react';
-import styles from './BadgeDisplay.module.css';
+import { useState, memo } from "react";
+import styles from "./BadgeDisplay.module.css";
 
 /**
  * Component to display user badges with pagination (next set) functionality
@@ -51,21 +51,21 @@ const BadgeDisplay = ({ badges = [], loading = false, itemsPerPage = 4 }) => {
     <div className={styles.badgeContainer}>
       <div className={styles.badgeGrid}>
         {displayedBadges.map((badge, index) => (
-          <div 
-            key={badge.badge_id || `${currentPage}-${index}`} 
+          <div
+            key={badge.badge_id || `${currentPage}-${index}`}
             className={styles.badgeItem}
-            style={{ 
+            style={{
               animation: `${styles.fadeIn} 0.4s ease-out forwards`,
-              animationDelay: `${index * 0.05}s`
+              animationDelay: `${index * 0.05}s`,
             }}
           >
             <div className={styles.badgeImageContainer}>
-              <img 
-                src={badge.image_path} 
-                alt={badge.name} 
+              <img
+                src={badge.image_path}
+                alt={badge.name}
                 className={styles.badgeImage}
                 onError={(e) => {
-                  e.target.src = 'https://cdn.dev-quest.me/badges/default_badge.png';
+                  e.target.src = "https://cdn.dev-quest.me/badges/default_badge.png";
                 }}
               />
             </div>
@@ -81,32 +81,50 @@ const BadgeDisplay = ({ badges = [], loading = false, itemsPerPage = 4 }) => {
           </div>
         ))}
       </div>
-      
+
       {totalPages > 1 && (
         <div className={styles.paginationControls}>
-          <button 
-            className={styles.pageButton} 
+          <button
+            className={styles.pageButton}
             onClick={prevPage}
             disabled={currentPage === 0}
             aria-label="Previous set"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6"/>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
-          
+
           <div className={styles.pageIndicator}>
             {currentPage + 1} / {totalPages}
           </div>
-          
-          <button 
-            className={styles.pageButton} 
+
+          <button
+            className={styles.pageButton}
             onClick={nextPage}
             disabled={currentPage === totalPages - 1}
             aria-label="Next set"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18l6-6-6-6"/>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
         </div>

@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import './FeedbackPage.css';
-import { useAuth } from 'app/AuthContext';
-import CircularProgress from '@mui/material/CircularProgress';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import "./FeedbackPage.css";
+import { useAuth } from "app/AuthContext";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const FeedbackPage = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuth();
-  const [reply, setReply] = useState('');
+  const [reply, setReply] = useState("");
   const [selectedFeedback, setSelectedFeedback] = useState(null);
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortOrder, setSortOrder] = useState("asc");
   const [viewingReply, setViewingReply] = useState(null);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const FeedbackPage = () => {
         setLoading(true);
 
         if (!user.token) {
-          setError('No token found. Please log in again.');
+          setError("No token found. Please log in again.");
           setLoading(false);
           return;
         }
@@ -30,18 +30,18 @@ const FeedbackPage = () => {
         });
 
         if (response.data.length === 0) {
-          console.warn('No feedback found.');
+          console.warn("No feedback found.");
           setFeedbacks([]);
         } else {
           setFeedbacks(response.data);
         }
         setError(null);
       } catch (err) {
-        console.error('Error fetching feedback:', err.message);
+        console.error("Error fetching feedback:", err.message);
         if (err.response?.status === 403) {
-          setError('Access denied. Admins only.');
+          setError("Access denied. Admins only.");
         } else {
-          setError('Failed to load feedback.');
+          setError("Failed to load feedback.");
         }
       } finally {
         setLoading(false);
@@ -70,16 +70,16 @@ const FeedbackPage = () => {
       setFeedbacks(
         feedbacks.map((feedback) =>
           feedback.feedback_id === selectedFeedback.feedback_id
-            ? { ...feedback, status: 'closed' }
+            ? { ...feedback, status: "closed" }
             : feedback
         )
       );
 
-      setReply('');
+      setReply("");
       setSelectedFeedback(null);
-      alert('Reply sent successfully.');
+      alert("Reply sent successfully.");
     } catch (err) {
-      console.error('Error sending reply:', err.response?.data?.error || err.message);
+      console.error("Error sending reply:", err.response?.data?.error || err.message);
       alert(`Failed to send reply: ${err.response?.data?.error || err.message}`);
     }
   };
@@ -94,20 +94,20 @@ const FeedbackPage = () => {
 
       setFeedbacks(
         feedbacks.map((feedback) =>
-          feedback.feedback_id === feedbackId ? { ...feedback, status: 'open' } : feedback
+          feedback.feedback_id === feedbackId ? { ...feedback, status: "open" } : feedback
         )
       );
 
-      alert('Feedback reopened successfully.');
+      alert("Feedback reopened successfully.");
     } catch (err) {
-      console.error('Error reopening feedback:', err.message);
+      console.error("Error reopening feedback:", err.message);
       alert(`Failed to reopen feedback: ${err.response?.data?.error || err.message}`);
     }
   };
 
   const handleStatusSort = () => {
     const sortedFeedbacks = [...feedbacks].sort((a, b) => {
-      if (sortOrder === 'asc') {
+      if (sortOrder === "asc") {
         return a.status.localeCompare(b.status);
       } else {
         return b.status.localeCompare(a.status);
@@ -115,7 +115,7 @@ const FeedbackPage = () => {
     });
 
     setFeedbacks(sortedFeedbacks);
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
   const ReplyModal = ({ feedback, onClose }) => {
@@ -174,7 +174,7 @@ const FeedbackPage = () => {
                 <th>Rating</th>
                 <th>Course Name</th>
                 <th className="sortable" onClick={handleStatusSort}>
-                  Status {sortOrder === 'asc' ? '↑' : '↓'}
+                  Status {sortOrder === "asc" ? "↑" : "↓"}
                 </th>
                 <th>Actions</th>
               </tr>
@@ -189,7 +189,7 @@ const FeedbackPage = () => {
                   <td>{feedback.course_name}</td>
                   <td className={`status ${feedback.status}`}>{feedback.status}</td>
                   <td>
-                    {feedback.status === 'open' ? (
+                    {feedback.status === "open" ? (
                       <button
                         className="feedback-btn reply-btn"
                         onClick={() => setSelectedFeedback(feedback)}

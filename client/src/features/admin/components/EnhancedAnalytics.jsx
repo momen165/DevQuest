@@ -1,11 +1,11 @@
 // Enhanced Analytics Component
-import React, { useState, useEffect } from 'react';
-import Select from 'react-select';
-import axios from 'axios';
-import { useAuth } from 'app/AuthContext';
-import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, registerables } from 'chart.js';
-import './EnhancedAnalytics.css';
+import { useState, useEffect } from "react";
+import Select from "react-select";
+import axios from "axios";
+import { useAuth } from "app/AuthContext";
+import { Line, Bar, Pie, Doughnut } from "react-chartjs-2";
+import { Chart as ChartJS, registerables } from "chart.js";
+import "./EnhancedAnalytics.css";
 import {
   CircularProgress,
   Table,
@@ -15,9 +15,9 @@ import {
   TableHead,
   TableRow,
   Paper,
-} from '@mui/material';
-import { MdDevices, MdPeople, MdDashboard } from 'react-icons/md';
-import { FaGlobe, FaMobile, FaDesktop, FaTablet } from 'react-icons/fa';
+} from "@mui/material";
+import { MdDevices, MdPeople, MdDashboard } from "react-icons/md";
+import { FaGlobe, FaMobile, FaDesktop, FaTablet } from "react-icons/fa";
 
 // Register ChartJS components
 ChartJS.register(...registerables);
@@ -26,8 +26,8 @@ const Analytics = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [timeRange, setTimeRange] = useState('30days');
-  const [activeTab, setActiveTab] = useState('basic'); // basic, users, environment
+  const [timeRange, setTimeRange] = useState("30days");
+  const [activeTab, setActiveTab] = useState("basic"); // basic, users, environment
   const [analytics, setAnalytics] = useState({
     visits: {
       daily: [],
@@ -72,7 +72,7 @@ const Analytics = () => {
       const token = user?.token;
 
       if (!token) {
-        throw new Error('Authentication token not found');
+        throw new Error("Authentication token not found");
       }
 
       const headers = {
@@ -87,8 +87,8 @@ const Analytics = () => {
 
       setAnalytics(response.data);
     } catch (err) {
-      console.error('Error fetching analytics data:', err);
-      setError(err.response?.data?.error || 'Failed to fetch analytics data');
+      console.error("Error fetching analytics data:", err);
+      setError(err.response?.data?.error || "Failed to fetch analytics data");
     } finally {
       setLoading(false);
     }
@@ -105,11 +105,11 @@ const Analytics = () => {
     labels: analytics.visits?.daily?.map((item) => item.date) || [],
     datasets: [
       {
-        label: 'Daily Visits',
+        label: "Daily Visits",
         data: analytics.visits?.daily?.map((item) => item.count) || [],
         fill: false,
-        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        borderColor: "rgba(75, 192, 192, 1)",
         tension: 0.2,
       },
     ],
@@ -119,7 +119,7 @@ const Analytics = () => {
     datasets: [
       {
         data: (analytics.deviceBreakdown || []).map((item) => parseFloat(item.percentage)),
-        backgroundColor: ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
+        backgroundColor: ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"],
         borderWidth: 0,
       },
     ],
@@ -130,11 +130,11 @@ const Analytics = () => {
     labels: analytics.userEngagement?.newUsersDaily?.map((item) => item.date) || [],
     datasets: [
       {
-        label: 'New Users',
+        label: "New Users",
         data: analytics.userEngagement?.newUsersDaily?.map((item) => item.count) || [],
         fill: false,
-        backgroundColor: 'rgba(79, 70, 229, 0.6)',
-        borderColor: 'rgba(79, 70, 229, 1)',
+        backgroundColor: "rgba(79, 70, 229, 0.6)",
+        borderColor: "rgba(79, 70, 229, 1)",
         tension: 0.2,
       },
     ],
@@ -148,13 +148,13 @@ const Analytics = () => {
         data:
           analytics.environmentInfo?.browserStats?.map((item) => parseFloat(item.percentage)) || [],
         backgroundColor: [
-          '#4F46E5',
-          '#10B981',
-          '#F59E0B',
-          '#EF4444',
-          '#8B5CF6',
-          '#EC4899',
-          '#0EA5E9',
+          "#4F46E5",
+          "#10B981",
+          "#F59E0B",
+          "#EF4444",
+          "#8B5CF6",
+          "#EC4899",
+          "#0EA5E9",
         ],
         borderWidth: 0,
       },
@@ -167,7 +167,7 @@ const Analytics = () => {
     datasets: [
       {
         data: analytics.environmentInfo?.topCountries?.map((item) => parseInt(item.visits)) || [],
-        backgroundColor: ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
+        backgroundColor: ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"],
         borderWidth: 0,
       },
     ],
@@ -203,20 +203,20 @@ const Analytics = () => {
           <div className="analytics-controls">
             <div className="analytics-tabs">
               <button
-                className={`tab-button ${activeTab === 'basic' ? 'active' : ''}`}
-                onClick={() => setActiveTab('basic')}
+                className={`tab-button ${activeTab === "basic" ? "active" : ""}`}
+                onClick={() => setActiveTab("basic")}
               >
                 <MdDashboard /> Basic Stats
               </button>
               <button
-                className={`tab-button ${activeTab === 'users' ? 'active' : ''}`}
-                onClick={() => setActiveTab('users')}
+                className={`tab-button ${activeTab === "users" ? "active" : ""}`}
+                onClick={() => setActiveTab("users")}
               >
                 <MdPeople /> User Engagement
               </button>
               <button
-                className={`tab-button ${activeTab === 'environment' ? 'active' : ''}`}
-                onClick={() => setActiveTab('environment')}
+                className={`tab-button ${activeTab === "environment" ? "active" : ""}`}
+                onClick={() => setActiveTab("environment")}
               >
                 <MdDevices /> Environment
               </button>
@@ -226,50 +226,50 @@ const Analytics = () => {
               <Select
                 classNamePrefix="time-range-selector"
                 value={[
-                  { value: '7days', label: 'Last 7 days' },
-                  { value: '30days', label: 'Last 30 days' },
-                  { value: '90days', label: 'Last 90 days' },
+                  { value: "7days", label: "Last 7 days" },
+                  { value: "30days", label: "Last 30 days" },
+                  { value: "90days", label: "Last 90 days" },
                 ].find((opt) => opt.value === timeRange)}
                 onChange={(opt) => setTimeRange(opt.value)}
                 options={[
-                  { value: '7days', label: 'Last 7 days' },
-                  { value: '30days', label: 'Last 30 days' },
-                  { value: '90days', label: 'Last 90 days' },
+                  { value: "7days", label: "Last 7 days" },
+                  { value: "30days", label: "Last 30 days" },
+                  { value: "90days", label: "Last 90 days" },
                 ]}
                 isSearchable={false}
                 styles={{
                   control: (provided) => ({
                     ...provided,
-                    backgroundColor: '#282f40',
-                    color: 'white',
-                    borderColor: '#282f40',
+                    backgroundColor: "#282f40",
+                    color: "white",
+                    borderColor: "#282f40",
                   }),
                   singleValue: (provided) => ({
                     ...provided,
-                    color: 'white',
+                    color: "white",
                   }),
                   menu: (provided) => ({
                     ...provided,
-                    backgroundColor: '#282f40',
-                    color: 'white',
+                    backgroundColor: "#282f40",
+                    color: "white",
                   }),
                   option: (provided, state) => ({
                     ...provided,
-                    backgroundColor: state.isFocused ? '#1a1f2b' : '#282f40',
-                    color: 'white',
-                    cursor: 'pointer',
+                    backgroundColor: state.isFocused ? "#1a1f2b" : "#282f40",
+                    color: "white",
+                    cursor: "pointer",
                   }),
                   input: (provided) => ({
                     ...provided,
-                    color: 'white',
+                    color: "white",
                   }),
                   dropdownIndicator: (provided) => ({
                     ...provided,
-                    color: 'white',
+                    color: "white",
                   }),
                   indicatorSeparator: (provided) => ({
                     ...provided,
-                    backgroundColor: 'white',
+                    backgroundColor: "white",
                   }),
                 }}
               />
@@ -291,11 +291,11 @@ const Analytics = () => {
         </header>
 
         {/* BASIC STATS TAB */}
-        {activeTab === 'basic' && (
+        {activeTab === "basic" && (
           <>
             <div className="analytics-metrics">
               <div className="metric-card">
-                <h3>Total Visits</h3>{' '}
+                <h3>Total Visits</h3>{" "}
                 <p className="metric-value">{(analytics.visits.total || 0).toLocaleString()}</p>
                 <p className="metric-subtext">
                   {(analytics.visits.unique || 0).toLocaleString()} unique visitors
@@ -303,7 +303,7 @@ const Analytics = () => {
               </div>
 
               <div className="metric-card">
-                <h3>Total Users</h3>{' '}
+                <h3>Total Users</h3>{" "}
                 <p className="metric-value">{analytics.userStats?.totalUsers || 0}</p>
                 <p className="metric-change positive">
                   +{analytics.userStats?.newUsers || 0} new this month
@@ -311,7 +311,7 @@ const Analytics = () => {
               </div>
 
               <div className="metric-card">
-                <h3>Active Users</h3>{' '}
+                <h3>Active Users</h3>{" "}
                 <p className="metric-value">{analytics.userStats?.activeUsers || 0}</p>
                 <p className="metric-subtext">
                   {Math.round(
@@ -324,10 +324,10 @@ const Analytics = () => {
               </div>
 
               <div className="metric-card">
-                <h3>Avg. Session</h3>{' '}
+                <h3>Avg. Session</h3>{" "}
                 <p className="metric-value">
                   {Math.round((analytics.engagementStats?.averageSessionTime || 0) / 60)} min
-                </p>{' '}
+                </p>{" "}
                 <p className="metric-subtext">
                   {(analytics.engagementStats?.pageViews || 0).toLocaleString()} page views
                 </p>
@@ -349,8 +349,8 @@ const Analytics = () => {
                       options={{
                         responsive: true,
                         plugins: {
-                          legend: { position: 'top' },
-                          tooltip: { mode: 'index' },
+                          legend: { position: "top" },
+                          tooltip: { mode: "index" },
                         },
                         scales: {
                           y: { beginAtZero: true },
@@ -383,9 +383,9 @@ const Analytics = () => {
                             .filter(
                               (page) =>
                                 page.page_visited &&
-                                !page.page_visited.startsWith('/admin/analytics') &&
-                                !page.page_visited.startsWith('/getCoursesWithRatings') &&
-                                !page.page_visited.startsWith('/api')
+                                !page.page_visited.startsWith("/admin/analytics") &&
+                                !page.page_visited.startsWith("/getCoursesWithRatings") &&
+                                !page.page_visited.startsWith("/api")
                             )
                             .map((page, index) => (
                               <TableRow key={`${page.page_visited}-${index}`}>
@@ -404,7 +404,7 @@ const Analytics = () => {
         )}
 
         {/* USER ENGAGEMENT TAB */}
-        {activeTab === 'users' && (
+        {activeTab === "users" && (
           <>
             <div className="analytics-metrics">
               <div className="metric-card">
@@ -435,7 +435,7 @@ const Analytics = () => {
               </div>
 
               <div className="metric-card">
-                <h3>Course Enrollments</h3>{' '}
+                <h3>Course Enrollments</h3>{" "}
                 <p className="metric-value">{analytics.courseStats?.totalEnrollments || 0}</p>
                 <p className="metric-subtext">
                   {Math.round(analytics.courseStats?.completionRate || 0)}% completion rate
@@ -458,8 +458,8 @@ const Analytics = () => {
                       options={{
                         responsive: true,
                         plugins: {
-                          legend: { position: 'top' },
-                          tooltip: { mode: 'index' },
+                          legend: { position: "top" },
+                          tooltip: { mode: "index" },
                         },
                         scales: {
                           y: { beginAtZero: true },
@@ -505,45 +505,45 @@ const Analytics = () => {
         )}
 
         {/* ENVIRONMENT TAB */}
-        {activeTab === 'environment' && (
+        {activeTab === "environment" && (
           <>
             <div className="analytics-metrics">
-              {' '}
+              {" "}
               <div className="metric-card">
                 <h3>Desktop Users</h3>
                 <p className="metric-value">
-                  {(analytics.deviceBreakdown || []).find((d) => d.device === 'Desktop')?.percentage
+                  {(analytics.deviceBreakdown || []).find((d) => d.device === "Desktop")?.percentage
                     ? parseFloat(
-                        (analytics.deviceBreakdown || []).find((d) => d.device === 'Desktop')
+                        (analytics.deviceBreakdown || []).find((d) => d.device === "Desktop")
                           ?.percentage
                       ).toFixed(1)
-                    : '0.0'}
+                    : "0.0"}
                   %
                 </p>
                 <FaDesktop className="metric-icon" />
-              </div>{' '}
+              </div>{" "}
               <div className="metric-card">
-                <h3>Mobile Users</h3>{' '}
+                <h3>Mobile Users</h3>{" "}
                 <p className="metric-value">
-                  {(analytics.deviceBreakdown || []).find((d) => d.device === 'Mobile')?.percentage
+                  {(analytics.deviceBreakdown || []).find((d) => d.device === "Mobile")?.percentage
                     ? parseFloat(
-                        (analytics.deviceBreakdown || []).find((d) => d.device === 'Mobile')
+                        (analytics.deviceBreakdown || []).find((d) => d.device === "Mobile")
                           ?.percentage
                       ).toFixed(1)
-                    : '0.0'}
+                    : "0.0"}
                   %
                 </p>
                 <FaMobile className="metric-icon" />
-              </div>{' '}
+              </div>{" "}
               <div className="metric-card">
                 <h3>Tablet Users</h3>
                 <p className="metric-value">
-                  {(analytics.deviceBreakdown || []).find((d) => d.device === 'Tablet')?.percentage
+                  {(analytics.deviceBreakdown || []).find((d) => d.device === "Tablet")?.percentage
                     ? parseFloat(
-                        (analytics.deviceBreakdown || []).find((d) => d.device === 'Tablet')
+                        (analytics.deviceBreakdown || []).find((d) => d.device === "Tablet")
                           ?.percentage
                       ).toFixed(1)
-                    : '0.0'}
+                    : "0.0"}
                   %
                 </p>
                 <FaTablet className="metric-icon" />
@@ -551,7 +551,7 @@ const Analytics = () => {
               <div className="metric-card">
                 <h3>Top Country</h3>
                 <p className="metric-value">
-                  {analytics.environmentInfo?.topCountries?.[0]?.country || 'Unknown'}
+                  {analytics.environmentInfo?.topCountries?.[0]?.country || "Unknown"}
                 </p>
                 <FaGlobe className="metric-icon" />
               </div>
@@ -573,7 +573,7 @@ const Analytics = () => {
                         options={{
                           responsive: true,
                           plugins: {
-                            legend: { position: 'right' },
+                            legend: { position: "right" },
                           },
                         }}
                       />
@@ -595,7 +595,7 @@ const Analytics = () => {
                         options={{
                           responsive: true,
                           plugins: {
-                            legend: { position: 'right' },
+                            legend: { position: "right" },
                           },
                         }}
                       />
@@ -618,7 +618,7 @@ const Analytics = () => {
                         data={countriesChartData}
                         options={{
                           responsive: true,
-                          indexAxis: 'y',
+                          indexAxis: "y",
                           plugins: {
                             legend: { display: false },
                           },
@@ -646,7 +646,7 @@ const Analytics = () => {
                             {analytics.environmentInfo?.topCountries?.map((country, index) => (
                               <TableRow key={`${country.country}-${index}`}>
                                 <TableCell>{country.country}</TableCell>
-                                <TableCell align="right">{country.visits}</TableCell>{' '}
+                                <TableCell align="right">{country.visits}</TableCell>{" "}
                                 <TableCell align="right">
                                   {(
                                     (country.visits / (analytics.visits?.total || 1)) *

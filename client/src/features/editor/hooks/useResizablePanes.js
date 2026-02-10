@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 export const useResizablePanes = (
   initialDividerPercent = 50,
@@ -27,25 +27,25 @@ export const useResizablePanes = (
         setDividerPosition(newIsVertical ? 42 : initialDividerPercent);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [isVerticalLayout, initialDividerPercent, isVerticalLayoutThreshold]);
   const handleDragStart = useCallback((e) => {
     e.preventDefault(); // Always prevent default to avoid text selection
     setIsDragging(true);
 
     // Disable text selection on the document during drag
-    document.body.style.userSelect = 'none';
-    document.body.style.webkitUserSelect = 'none';
-    document.body.style.msUserSelect = 'none';
+    document.body.style.userSelect = "none";
+    document.body.style.webkitUserSelect = "none";
+    document.body.style.msUserSelect = "none";
   }, []);
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
 
     // Re-enable text selection on the document after drag
-    document.body.style.userSelect = '';
-    document.body.style.webkitUserSelect = '';
-    document.body.style.msUserSelect = '';
+    document.body.style.userSelect = "";
+    document.body.style.webkitUserSelect = "";
+    document.body.style.msUserSelect = "";
   }, []);
 
   const handleDrag = useCallback(
@@ -99,18 +99,18 @@ export const useResizablePanes = (
     if (!isDragging) return;
 
     // Add mouse events
-    window.addEventListener('mousemove', handleDrag);
-    window.addEventListener('mouseup', handleDragEnd);
+    window.addEventListener("mousemove", handleDrag);
+    window.addEventListener("mouseup", handleDragEnd);
 
     // Add touch events with passive: false
-    window.addEventListener('touchmove', handleDrag, { passive: false });
-    window.addEventListener('touchend', handleDragEnd, { passive: false });
+    window.addEventListener("touchmove", handleDrag, { passive: false });
+    window.addEventListener("touchend", handleDragEnd, { passive: false });
 
     return () => {
-      window.removeEventListener('mousemove', handleDrag);
-      window.removeEventListener('mouseup', handleDragEnd);
-      window.removeEventListener('touchmove', handleDrag, { passive: false });
-      window.removeEventListener('touchend', handleDragEnd, { passive: false });
+      window.removeEventListener("mousemove", handleDrag);
+      window.removeEventListener("mouseup", handleDragEnd);
+      window.removeEventListener("touchmove", handleDrag, { passive: false });
+      window.removeEventListener("touchend", handleDragEnd, { passive: false });
     };
   }, [isDragging, handleDrag, handleDragEnd]);
 
@@ -127,36 +127,36 @@ export const useResizablePanes = (
     if (!isVerticalLayout) {
       // Side by side
       return {
-        firstPaneStyle: { width: firstPaneSize, flex: 'none', minWidth: 0, minHeight: 0 },
+        firstPaneStyle: { width: firstPaneSize, flex: "none", minWidth: 0, minHeight: 0 },
         // secondPaneStyle: { width: `calc(100% - ${firstPaneSize} - 8px)`, flex: 'none', minWidth: 0, minHeight: 0 }, // Example with fixed gutter
         gutterStyle: {
-          cursor: 'col-resize',
+          cursor: "col-resize",
           width: 8,
           minWidth: 8,
-          background: isDragging ? '#377ef0' : '#23263a',
+          background: isDragging ? "#377ef0" : "#23263a",
           zIndex: 10,
-          flex: 'none',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          msUserSelect: 'none',
-          MozUserSelect: 'none',
+          flex: "none",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          msUserSelect: "none",
+          MozUserSelect: "none",
         },
-        containerStyle: { flexDirection: 'row', display: 'flex' },
+        containerStyle: { flexDirection: "row", display: "flex" },
       };
     } else {
       // Top and bottom
       return {
-        firstPaneStyle: { height: firstPaneSize, flex: 'none', minWidth: 0, minHeight: 0 },
+        firstPaneStyle: { height: firstPaneSize, flex: "none", minWidth: 0, minHeight: 0 },
         // secondPaneStyle: { height: `calc(100% - ${firstPaneSize} - 8px)`, flex: 'none', minWidth: 0, minHeight: 0 }, // Example with fixed gutter
         gutterStyle: {
-          cursor: 'row-resize',
+          cursor: "row-resize",
           height: 8,
           minHeight: 8,
-          background: isDragging ? '#377ef0' : '#23263a',
+          background: isDragging ? "#377ef0" : "#23263a",
           zIndex: 10,
-          flex: 'none',
+          flex: "none",
         },
-        containerStyle: { flexDirection: 'column', display: 'flex' },
+        containerStyle: { flexDirection: "column", display: "flex" },
       };
     }
   };

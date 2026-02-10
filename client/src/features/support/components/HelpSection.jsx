@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
-import parse from 'html-react-parser';
-import { useAuth } from 'app/AuthContext';
-import { useParams } from 'react-router-dom';
-import apiClient from 'shared/lib/apiClient';
-import './HelpSection.css';
+import { useState, useEffect, useRef, memo } from "react";
+import parse from "html-react-parser";
+import { useAuth } from "app/AuthContext";
+import { useParams } from "react-router-dom";
+import apiClient from "shared/lib/apiClient";
+import "./HelpSection.css";
 
 const HINT_THRESHOLD = 2;
 const SOLUTION_THRESHOLD = 4;
 
-const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonProgress, onRequestProgressRefresh }) => {
+const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonProgress }) => {
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [dynamicHint, setDynamicHint] = useState(hint);
@@ -16,7 +16,7 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
   const [isUnlockingHint, setIsUnlockingHint] = useState(false);
   const [isUnlockingSolution, setIsUnlockingSolution] = useState(false);
   const lessonUiStateRef = useRef({});
-  
+
   const { user } = useAuth();
   const { lessonId } = useParams();
 
@@ -58,11 +58,11 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
 
   // Keep local dynamic content in sync with latest props from lesson fetches.
   useEffect(() => {
-    setDynamicHint(hint || '');
+    setDynamicHint(hint || "");
   }, [hint]);
 
   useEffect(() => {
-    setDynamicSolution(solution || '');
+    setDynamicSolution(solution || "");
   }, [solution]);
   // Handle hint button click
   const handleHintClick = async (event) => {
@@ -83,25 +83,22 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
             {
               headers: {
                 Authorization: `Bearer ${user?.token}`,
-                'Cache-Control': 'no-cache',
-                Pragma: 'no-cache',
+                "Cache-Control": "no-cache",
+                Pragma: "no-cache",
               },
             }
           );
         }
 
         // Step 2: Fetch fresh lesson data including hint.
-        const lessonResponse = await apiClient.get(
-          `/lesson/${lessonId}`,
-          {
-            params: { showHint: true, _ts: Date.now() },
-            headers: {
-              Authorization: `Bearer ${user?.token}`,
-              'Cache-Control': 'no-cache',
-              Pragma: 'no-cache',
-            },
-          }
-        );
+        const lessonResponse = await apiClient.get(`/lesson/${lessonId}`, {
+          params: { showHint: true, _ts: Date.now() },
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
 
         if (lessonResponse.data?.hint) {
           setDynamicHint(lessonResponse.data.hint);
@@ -109,7 +106,6 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
           // Fallback to original hint prop if present.
           setDynamicHint(hint);
         }
-
       } catch (e) {
         console.error("Failed to unlock hint:", e);
         // Fallback to original hint.
@@ -140,25 +136,22 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
             {
               headers: {
                 Authorization: `Bearer ${user?.token}`,
-                'Cache-Control': 'no-cache',
-                Pragma: 'no-cache',
+                "Cache-Control": "no-cache",
+                Pragma: "no-cache",
               },
             }
           );
         }
 
         // Step 2: Fetch fresh lesson data including solution.
-        const lessonResponse = await apiClient.get(
-          `/lesson/${lessonId}`,
-          {
-            params: { showSolution: true, _ts: Date.now() },
-            headers: {
-              Authorization: `Bearer ${user?.token}`,
-              'Cache-Control': 'no-cache',
-              Pragma: 'no-cache',
-            },
-          }
-        );
+        const lessonResponse = await apiClient.get(`/lesson/${lessonId}`, {
+          params: { showSolution: true, _ts: Date.now() },
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
 
         if (lessonResponse.data?.solution) {
           setDynamicSolution(lessonResponse.data.solution);
@@ -166,7 +159,6 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
           // Fallback to original solution prop if present.
           setDynamicSolution(solution);
         }
-
       } catch (e) {
         console.error("Failed to unlock solution:", e);
         // Fallback to original solution.
@@ -180,16 +172,16 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
   };
 
   return (
-    <div className="help-section" style={{ contain: 'layout style' }}>
-      <div className={`hint-section ${!canShowHint ? 'disabled' : ''}`}>
+    <div className="help-section" style={{ contain: "layout style" }}>
+      <div className={`hint-section ${!canShowHint ? "disabled" : ""}`}>
         <button
           type="button"
           onClick={handleHintClick}
-          className={`hint-button ${canShowHint ? 'available' : ''}`}
+          className={`hint-button ${canShowHint ? "available" : ""}`}
           disabled={!canShowHint || isUnlockingHint}
         >
-          💡 {showHint ? 'Hide Hint' : 'Show Hint'}
-          {isUnlockingHint && ' (Loading...)'}
+          💡 {showHint ? "Hide Hint" : "Show Hint"}
+          {isUnlockingHint && " (Loading...)"}
           {!canShowHint && (
             <span className="attempts-needed">
               (Available after {HINT_THRESHOLD - failedAttempts} more failed attempts)
@@ -201,15 +193,15 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
         )}
       </div>
 
-      <div className={`solution-section ${!canShowSolution ? 'disabled' : ''}`}>
+      <div className={`solution-section ${!canShowSolution ? "disabled" : ""}`}>
         <button
           type="button"
           onClick={handleSolutionClick}
-          className={`solution-button ${canShowSolution ? 'available' : ''}`}
+          className={`solution-button ${canShowSolution ? "available" : ""}`}
           disabled={!canShowSolution || isUnlockingSolution}
         >
-          ✨ {showSolution ? 'Hide Solution' : 'Show Solution'}
-          {isUnlockingSolution && ' (Loading...)'}
+          ✨ {showSolution ? "Hide Solution" : "Show Solution"}
+          {isUnlockingSolution && " (Loading...)"}
           {!canShowSolution && (
             <span className="attempts-needed">
               (Available after {SOLUTION_THRESHOLD - failedAttempts} more failed attempts)
@@ -224,6 +216,6 @@ const HelpSection = memo(({ hint, solution, failedAttempts = 0, currentLessonPro
   );
 });
 
-HelpSection.displayName = 'HelpSection';
+HelpSection.displayName = "HelpSection";
 
 export default HelpSection;

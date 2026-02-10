@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import "./PricingPage.css";
 import SEOHead from "shared/seo/SEOHead";
 import { useAuth } from "app/AuthContext";
 import { loadStripe } from "@stripe/stripe-js";
 import { useNavigate } from "react-router-dom";
-import { 
-  HiOutlineBookOpen, 
-  HiOutlineChartBar, 
-  HiOutlineCode, 
+import {
+  HiOutlineBookOpen,
+  HiOutlineChartBar,
+  HiOutlineCode,
   HiOutlineStar,
   HiOutlineLightningBolt,
-  HiOutlineDeviceMobile 
+  HiOutlineDeviceMobile,
 } from "react-icons/hi";
 
 // Initialize Stripe - only if key is available
@@ -22,12 +22,36 @@ const api_url = import.meta.env.VITE_API_URL;
 
 // Feature list for the pricing card
 const features = [
-  { icon: HiOutlineBookOpen, title: "Unlimited Courses", description: "Access our entire library of coding courses" },
-  { icon: HiOutlineChartBar, title: "Progress Tracking", description: "Keep your streak and monitor your growth" },
-  { icon: HiOutlineCode, title: "Interactive Exercises", description: "Practice with hands-on coding challenges" },
-  { icon: HiOutlineStar, title: "Achievement Badges", description: "Earn rewards as you master new skills" },
-  { icon: HiOutlineLightningBolt, title: "Priority Support", description: "Get help when you need it most" },
-  { icon: HiOutlineDeviceMobile, title: "Learn Anywhere", description: "Access on desktop, tablet, or mobile" },
+  {
+    icon: HiOutlineBookOpen,
+    title: "Unlimited Courses",
+    description: "Access our entire library of coding courses",
+  },
+  {
+    icon: HiOutlineChartBar,
+    title: "Progress Tracking",
+    description: "Keep your streak and monitor your growth",
+  },
+  {
+    icon: HiOutlineCode,
+    title: "Interactive Exercises",
+    description: "Practice with hands-on coding challenges",
+  },
+  {
+    icon: HiOutlineStar,
+    title: "Achievement Badges",
+    description: "Earn rewards as you master new skills",
+  },
+  {
+    icon: HiOutlineLightningBolt,
+    title: "Priority Support",
+    description: "Get help when you need it most",
+  },
+  {
+    icon: HiOutlineDeviceMobile,
+    title: "Learn Anywhere",
+    description: "Access on desktop, tablet, or mobile",
+  },
 ];
 
 const PricingPage = () => {
@@ -102,15 +126,13 @@ const PricingPage = () => {
       const { data } = await axios.post(
         `${api_url}/create-checkout-session`,
         {
-          priceId: isMonthly
-            ? "price_1QV9vuHxgK7P1VPXGB14mjGT"
-            : "price_1QVBWXHxgK7P1VPX5pSXWJbG",
+          priceId: isMonthly ? "price_1QV9vuHxgK7P1VPXGB14mjGT" : "price_1QVBWXHxgK7P1VPX5pSXWJbG",
         },
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
-        },
+        }
       );
 
       if (!data || !data.id) {
@@ -152,34 +174,34 @@ const PricingPage = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": "DevQuest Premium Subscription",
-    "description": "Unlock unlimited access to all programming courses and premium features",
-    "brand": {
+    name: "DevQuest Premium Subscription",
+    description: "Unlock unlimited access to all programming courses and premium features",
+    brand: {
       "@type": "Brand",
-      "name": "DevQuest"
+      name: "DevQuest",
     },
-    "offers": [
+    offers: [
       {
         "@type": "Offer",
-        "priceSpecification": {
+        priceSpecification: {
           "@type": "PriceSpecification",
-          "price": "9.99",
-          "priceCurrency": "USD",
-          "billingDuration": "P1M"
+          price: "9.99",
+          priceCurrency: "USD",
+          billingDuration: "P1M",
         },
-        "availability": "https://schema.org/InStock"
+        availability: "https://schema.org/InStock",
       },
       {
-        "@type": "Offer", 
-        "priceSpecification": {
+        "@type": "Offer",
+        priceSpecification: {
           "@type": "PriceSpecification",
-          "price": "99.99",
-          "priceCurrency": "USD",
-          "billingDuration": "P1Y"
+          price: "99.99",
+          priceCurrency: "USD",
+          billingDuration: "P1Y",
         },
-        "availability": "https://schema.org/InStock"
-      }
-    ]
+        availability: "https://schema.org/InStock",
+      },
+    ],
   };
 
   return (
@@ -191,7 +213,7 @@ const PricingPage = () => {
         canonical="/pricing"
         structuredData={structuredData}
       />
-      
+
       {/* Decorative background elements */}
       <div className="pricing-bg-decoration">
         <div className="pricing-orb pricing-orb--1"></div>
@@ -225,10 +247,7 @@ const PricingPage = () => {
             <div className="pricing-active-icon">✓</div>
             <h2>You&apos;re Already a Premium Member!</h2>
             <p>Enjoy unlimited access to all courses and features.</p>
-            <button 
-              className="pricing-manage-btn"
-              onClick={() => navigate('/account')}
-            >
+            <button className="pricing-manage-btn" onClick={() => navigate("/account")}>
               Manage Subscription
             </button>
           </div>
@@ -236,15 +255,15 @@ const PricingPage = () => {
           <div className="pricing-main">
             {/* Billing Toggle */}
             <div className="pricing-toggle-wrapper">
-              <span className={`pricing-toggle-label ${isMonthly ? 'active' : ''}`}>Monthly</span>
-              <button 
+              <span className={`pricing-toggle-label ${isMonthly ? "active" : ""}`}>Monthly</span>
+              <button
                 className="pricing-toggle-switch"
                 onClick={() => setIsMonthly(!isMonthly)}
                 aria-label="Toggle billing period"
               >
-                <span className={`pricing-toggle-slider ${!isMonthly ? 'yearly' : ''}`}></span>
+                <span className={`pricing-toggle-slider ${!isMonthly ? "yearly" : ""}`}></span>
               </button>
-              <span className={`pricing-toggle-label ${!isMonthly ? 'active' : ''}`}>
+              <span className={`pricing-toggle-label ${!isMonthly ? "active" : ""}`}>
                 Yearly
                 <span className="pricing-save-tag">Save 17%</span>
               </span>
@@ -253,7 +272,7 @@ const PricingPage = () => {
             {/* Main Pricing Card */}
             <div className="pricing-card">
               <div className="pricing-card-glow"></div>
-              
+
               <div className="pricing-card-header">
                 <div className="pricing-plan-badge">Most Popular</div>
                 <h2 className="pricing-plan-name">DevQuest Premium</h2>
@@ -263,11 +282,11 @@ const PricingPage = () => {
               <div className="pricing-price-section">
                 <div className="pricing-price-container">
                   <span className="pricing-currency">$</span>
-                  <span className="pricing-amount">{isMonthly ? '10' : '100'}</span>
+                  <span className="pricing-amount">{isMonthly ? "10" : "100"}</span>
                   <div className="pricing-period-info">
-                    <span className="pricing-period">/{isMonthly ? 'month' : 'year'}</span>
+                    <span className="pricing-period">/{isMonthly ? "month" : "year"}</span>
                     <span className="pricing-billing-note">
-                      {isMonthly ? 'Billed monthly' : 'Billed annually'}
+                      {isMonthly ? "Billed monthly" : "Billed annually"}
                     </span>
                   </div>
                 </div>
@@ -279,19 +298,33 @@ const PricingPage = () => {
                 )}
               </div>
 
-              <button 
-                className="pricing-cta-button" 
-                onClick={openPopup}
-              >
+              <button className="pricing-cta-button" onClick={openPopup}>
                 <span>Get Started Now</span>
-                <svg className="pricing-cta-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  className="pricing-cta-arrow"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5 12H19M19 12L12 5M19 12L12 19"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
 
               <div className="pricing-guarantee">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path
+                    d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 <span>Cancel anytime, no questions asked</span>
               </div>
@@ -338,29 +371,43 @@ const PricingPage = () => {
           <div className="pricing-modal" onClick={(e) => e.stopPropagation()}>
             <button className="pricing-modal-close" onClick={closePopup}>
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
-            
+
             <div className="pricing-modal-icon">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path
+                  d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
-            
+
             <h2 className="pricing-modal-title">Complete Your Purchase</h2>
-            
+
             <div className="pricing-modal-plan">
               <div className="pricing-modal-plan-info">
                 <span className="pricing-modal-plan-name">DevQuest Premium</span>
-                <span className="pricing-modal-plan-period">{isMonthly ? 'Monthly' : 'Yearly'} Plan</span>
+                <span className="pricing-modal-plan-period">
+                  {isMonthly ? "Monthly" : "Yearly"} Plan
+                </span>
               </div>
               <div className="pricing-modal-plan-price">
-                ${isMonthly ? '10' : '100'}
-                <span>/{isMonthly ? 'mo' : 'yr'}</span>
+                ${isMonthly ? "10" : "100"}
+                <span>/{isMonthly ? "mo" : "yr"}</span>
               </div>
             </div>
-            
+
             <div className="pricing-modal-actions">
               <button
                 className="pricing-modal-confirm"
@@ -373,26 +420,38 @@ const PricingPage = () => {
                     Processing...
                   </>
                 ) : (
-                  'Proceed to Checkout'
+                  "Proceed to Checkout"
                 )}
               </button>
               <button className="pricing-modal-cancel" onClick={closePopup}>
                 Cancel
               </button>
             </div>
-            
+
             {errorMessage && (
               <div className="pricing-modal-error">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path
+                    d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 {errorMessage}
               </div>
             )}
-            
+
             <p className="pricing-modal-secure">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path
+                  d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
               Secure checkout powered by Stripe
             </p>

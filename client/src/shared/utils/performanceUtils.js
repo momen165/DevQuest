@@ -23,7 +23,7 @@ export const debounce = (func, wait) => {
 export const createIntersectionObserver = (callback, options = {}) => {
   const defaultOptions = {
     root: null,
-    rootMargin: '50px',
+    rootMargin: "50px",
     threshold: 0.1,
   };
 
@@ -34,7 +34,7 @@ export const createIntersectionObserver = (callback, options = {}) => {
  * Polyfill for requestIdleCallback
  */
 export const requestIdleCallback = (() => {
-  if (typeof window !== 'undefined' && window.requestIdleCallback) {
+  if (typeof window !== "undefined" && window.requestIdleCallback) {
     return window.requestIdleCallback;
   }
 
@@ -57,7 +57,7 @@ export const requestIdleCallback = (() => {
  * Polyfill for cancelIdleCallback
  */
 export const cancelIdleCallback = (() => {
-  if (typeof window !== 'undefined' && window.cancelIdleCallback) {
+  if (typeof window !== "undefined" && window.cancelIdleCallback) {
     return window.cancelIdleCallback;
   }
 
@@ -146,8 +146,8 @@ export const createCache = (maxSize = 100, ttl = 5 * 60 * 1000) => {
  * Preload critical resources
  */
 export const preloadResource = (href, as, type = null, crossOrigin = null) => {
-  const link = document.createElement('link');
-  link.rel = 'preload';
+  const link = document.createElement("link");
+  link.rel = "preload";
   link.href = href;
   link.as = as;
 
@@ -162,12 +162,12 @@ export const preloadResource = (href, as, type = null, crossOrigin = null) => {
  * Defer non-critical CSS loading
  */
 export const loadCSSAsync = (href) => {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
   link.href = href;
-  link.media = 'print';
+  link.media = "print";
   link.onload = () => {
-    link.media = 'all';
+    link.media = "all";
   };
 
   document.head.appendChild(link);

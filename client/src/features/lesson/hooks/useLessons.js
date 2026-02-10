@@ -1,34 +1,34 @@
-import { useState, useEffect } from 'react';
-import apiClient from 'shared/lib/apiClient';
+import { useState, useEffect } from "react";
+import apiClient from "shared/lib/apiClient";
 
 export const useLessons = (sectionId, token) => {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const fetchLessons = async () => {
     if (!sectionId || !token) return;
-    
+
     setLoading(true);
-    setError('');
+    setError("");
     try {
-      const response = await apiClient.get('/admin/lessons', {
+      const response = await apiClient.get("/admin/lessons", {
         params: { section_id: sectionId },
         headers: {
-          'Cache-Control': 'no-cache',
-          Pragma: 'no-cache'
-        }
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+        },
       });
 
-      const lessonsWithFormattedContent = response.data.map(lesson => ({
+      const lessonsWithFormattedContent = response.data.map((lesson) => ({
         ...lesson,
-        content: lesson.content || '',
-        template_code: lesson.template_code || ''
+        content: lesson.content || "",
+        template_code: lesson.template_code || "",
       }));
 
       setLessons(lessonsWithFormattedContent || []);
     } catch (err) {
-      setError(err.message || 'Failed to fetch lessons');
+      setError(err.message || "Failed to fetch lessons");
       setLessons([]);
     } finally {
       setLoading(false);
@@ -41,24 +41,21 @@ export const useLessons = (sectionId, token) => {
 
   const saveLesson = async (lessonData) => {
     setLoading(true);
-    setError('');
+    setError("");
     try {
-      const response = await apiClient.put(
-        `/lesson/${lessonData.lesson_id}`,
-        lessonData
-      );
+      const response = await apiClient.put(`/lesson/${lessonData.lesson_id}`, lessonData);
 
       if (response.status === 200) {
-        const updatedLessons = lessons.map(lesson =>
+        const updatedLessons = lessons.map((lesson) =>
           lesson.lesson_id === lessonData.lesson_id ? response.data : lesson
         );
         setLessons(updatedLessons);
         return { success: true, data: response.data };
       }
-      return { success: false, error: 'Failed to update lesson' };
+      return { success: false, error: "Failed to update lesson" };
     } catch (err) {
-      console.error('Error saving lesson:', err);
-      const errorMsg = err.response?.data?.message || 'An error occurred while saving the lesson';
+      console.error("Error saving lesson:", err);
+      const errorMsg = err.response?.data?.message || "An error occurred while saving the lesson";
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -68,14 +65,14 @@ export const useLessons = (sectionId, token) => {
 
   const deleteLesson = async (lessonId) => {
     setLoading(true);
-    setError('');
+    setError("");
     try {
       await apiClient.delete(`/lesson/${lessonId}`);
-      setLessons(lessons.filter(lesson => lesson.lesson_id !== lessonId));
+      setLessons(lessons.filter((lesson) => lesson.lesson_id !== lessonId));
       return { success: true };
     } catch (err) {
-      console.error('Error deleting lesson:', err);
-      const errorMsg = err.response?.data?.message || 'Failed to delete lesson';
+      console.error("Error deleting lesson:", err);
+      const errorMsg = err.response?.data?.message || "Failed to delete lesson";
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -85,18 +82,18 @@ export const useLessons = (sectionId, token) => {
 
   const addLesson = async (lessonData) => {
     setLoading(true);
-    setError('');
+    setError("");
     try {
-      const response = await apiClient.post('/lesson', lessonData);
+      const response = await apiClient.post("/lesson", lessonData);
 
       if (response.status === 201 || response.status === 200) {
         setLessons([...lessons, response.data]);
         return { success: true, data: response.data };
       }
-      return { success: false, error: 'Failed to add lesson' };
+      return { success: false, error: "Failed to add lesson" };
     } catch (err) {
-      console.error('Error adding lesson:', err);
-      const errorMsg = err.response?.data?.message || 'Failed to add lesson';
+      console.error("Error adding lesson:", err);
+      const errorMsg = err.response?.data?.message || "Failed to add lesson";
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -112,10 +109,10 @@ export const useLessons = (sectionId, token) => {
         order: index,
       }));
 
-      await apiClient.post('/lessons/reorder', { lessons: payload });
+      await apiClient.post("/lessons/reorder", { lessons: payload });
     } catch (err) {
-      console.error('Error reordering lessons:', err);
-      setError('Failed to reorder lessons');
+      console.error("Error reordering lessons:", err);
+      setError("Failed to reorder lessons");
       fetchLessons(); // Revert on error
     }
   };
@@ -128,6 +125,6 @@ export const useLessons = (sectionId, token) => {
     saveLesson,
     deleteLesson,
     addLesson,
-    reorderLessons
+    reorderLessons,
   };
 };

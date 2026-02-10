@@ -1,5 +1,5 @@
 // Billing.js
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "app/AuthContext";
@@ -22,17 +22,13 @@ function Billing() {
 
   const fetchSubscriptionDetails = async () => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/check`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/check`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
         },
-      );
+      });
 
       const data = response.data;
-     
 
       if (data.hasActiveSubscription && data.subscription) {
         setSubscriptionDetails(data.subscription);
@@ -41,9 +37,7 @@ function Billing() {
       }
     } catch (err) {
       console.error("Error:", err);
-      setError(
-        err.response?.data?.error || "Error fetching subscription details",
-      );
+      setError(err.response?.data?.error || "Error fetching subscription details");
     } finally {
       setLoading(false);
     }
@@ -58,92 +52,74 @@ function Billing() {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
-        },
+        }
       );
 
       window.location.href = response.data.url;
     } catch (error) {
       console.error("Error:", error);
-      setError(
-        error.response?.data?.error || "Failed to redirect to billing portal",
-      );
+      setError(error.response?.data?.error || "Failed to redirect to billing portal");
     }
   };
 
   return (
     <>
       <div className="billing-main">
-          <h1 className="billing-main-title">Billing & Subscription</h1>
+        <h1 className="billing-main-title">Billing & Subscription</h1>
 
-          {error && <div className="billing-error-message">{error}</div>}
+        {error && <div className="billing-error-message">{error}</div>}
 
-          {loading ? (
-            <div className="billing-loading-text">
-              Loading subscription details...
-            </div>
-          ) : (
-            <div className="billing-details-container">
-              {subscriptionDetails ? (
-                <>
-                  <div className="billing-subscription-card">
-                    <h2 className="billing-subscription-title">Current Plan</h2>
-                    <div className="billing-subscription-info">
-                      <div className="billing-info-row">
-                        <span className="billing-info-label">Plan Type:</span>
-                        <span className="billing-info-value">
-                          {subscriptionDetails.subscription_type}
-                        </span>
-                      </div>
-                      <div className="billing-info-row">
-                        <span className="billing-info-label">Status:</span>
-                        <span className="billing-info-value">
-                          {subscriptionDetails.status}
-                        </span>
-                      </div>
-                      <div className="billing-info-row">
-                        <span className="billing-info-label">
-                          Next Billing Date:
-                        </span>
-                        <span className="billing-info-value">
-                          {new Date(
-                            subscriptionDetails.subscription_end_date,
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="billing-info-row">
-                        <span className="billing-info-label">Amount:</span>
-                        <span className="billing-info-value">
-                          ${subscriptionDetails.amount_paid}/month
-                        </span>
-                      </div>
+        {loading ? (
+          <div className="billing-loading-text">Loading subscription details...</div>
+        ) : (
+          <div className="billing-details-container">
+            {subscriptionDetails ? (
+              <>
+                <div className="billing-subscription-card">
+                  <h2 className="billing-subscription-title">Current Plan</h2>
+                  <div className="billing-subscription-info">
+                    <div className="billing-info-row">
+                      <span className="billing-info-label">Plan Type:</span>
+                      <span className="billing-info-value">
+                        {subscriptionDetails.subscription_type}
+                      </span>
                     </div>
-                    <button
-                      className="billing-button"
-                      onClick={handleManageSubscription}
-                    >
-                      Manage Subscription
-                    </button>
+                    <div className="billing-info-row">
+                      <span className="billing-info-label">Status:</span>
+                      <span className="billing-info-value">{subscriptionDetails.status}</span>
+                    </div>
+                    <div className="billing-info-row">
+                      <span className="billing-info-label">Next Billing Date:</span>
+                      <span className="billing-info-value">
+                        {new Date(subscriptionDetails.subscription_end_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="billing-info-row">
+                      <span className="billing-info-label">Amount:</span>
+                      <span className="billing-info-value">
+                        ${subscriptionDetails.amount_paid}/month
+                      </span>
+                    </div>
                   </div>
-                </>
-              ) : (
-                <div className="billing-no-subscription">
-                  <h2 className="billing-no-subscription-title">
-                    No Active Subscription
-                  </h2>
-                  <p className="billing-no-subscription-text">
-                    You currently don&apos;t have an active subscription.
-                  </p>
-                  <button
-                    className="billing-button"
-                    onClick={() => navigate("/pricing")}
-                  >
-                    View Available Plans
+                  <button className="billing-button" onClick={handleManageSubscription}>
+                    Manage Subscription
                   </button>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+              </>
+            ) : (
+              <div className="billing-no-subscription">
+                <h2 className="billing-no-subscription-title">No Active Subscription</h2>
+                <p className="billing-no-subscription-text">
+                  You currently don&apos;t have an active subscription.
+                </p>
+                <button className="billing-button" onClick={() => navigate("/pricing")}>
+                  View Available Plans
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </>
   );
 }

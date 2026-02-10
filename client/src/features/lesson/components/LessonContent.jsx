@@ -1,15 +1,15 @@
 // LessonContent.js
-import React, { useEffect, useState, memo } from 'react';
-import parse, { domToReact } from 'html-react-parser';
-import './LessonContent.css';
+import { useEffect, useState, memo } from "react";
+import parse, { domToReact } from "html-react-parser";
+import "./LessonContent.css";
 
-import { getFontClass } from 'features/editor/utils/editorUtils';
-import { useOptimizedHighlighting } from 'features/editor/hooks/useOptimizedHighlighting';
-import { loadCSSAsync } from 'shared/utils/performanceUtils';
-import { loadAdditionalFonts } from 'shared/utils/fontLoader';
+import { getFontClass } from "features/editor/utils/editorUtils";
+import { useOptimizedHighlighting } from "features/editor/hooks/useOptimizedHighlighting";
+import { loadCSSAsync } from "shared/utils/performanceUtils";
+import { loadAdditionalFonts } from "shared/utils/fontLoader";
 
-import CodeBlock from 'shared/ui/CodeBlock'; // Import the new CodeBlock component
-import HelpSection from 'features/support/components/HelpSection'; // Import the new HelpSection component
+import CodeBlock from "shared/ui/CodeBlock"; // Import the new CodeBlock component
+import HelpSection from "features/support/components/HelpSection"; // Import the new HelpSection component
 
 const LessonContent = ({
   content,
@@ -26,10 +26,10 @@ const LessonContent = ({
   // Lazy load highlight.js CSS only when needed
   useEffect(() => {
     if (content && !highlightCSSLoaded) {
-      const hasCodeBlocks = content.includes('<pre') || content.includes('<code');
+      const hasCodeBlocks = content.includes("<pre") || content.includes("<code");
       if (hasCodeBlocks) {
         loadCSSAsync(
-          'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/srcery.min.css'
+          "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/srcery.min.css"
         );
         setHighlightCSSLoaded(true);
       }
@@ -53,7 +53,7 @@ const LessonContent = ({
       { threshold: 0.1 }
     );
 
-    const contentElement = document.querySelector('.lesson-content');
+    const contentElement = document.querySelector(".lesson-content");
     if (contentElement) {
       observer.observe(contentElement);
     }
@@ -82,18 +82,18 @@ const LessonContent = ({
 
     let hasContent = false;
     for (const child of node.children) {
-      if (child.type === 'text') {
-        if (child.data && child.data.replace(/\s|\u00A0/g, '').length > 0) {
+      if (child.type === "text") {
+        if (child.data && child.data.replace(/\s|\u00A0/g, "").length > 0) {
           hasContent = true;
           break;
         }
-      } else if (child.name === 'br') {
+      } else if (child.name === "br") {
         continue;
       } else if (child.name) {
         if (
           child.attribs &&
           (Object.keys(child.attribs).length > 1 ||
-            (child.attribs.class && child.attribs.class !== 'empty'))
+            (child.attribs.class && child.attribs.class !== "empty"))
         ) {
           hasContent = true;
           break;
@@ -102,9 +102,9 @@ const LessonContent = ({
           let hasSubContent = false;
           for (const subChild of child.children) {
             if (
-              subChild.type === 'text' &&
+              subChild.type === "text" &&
               subChild.data &&
-              subChild.data.replace(/\s|\u00A0/g, '').length > 0
+              subChild.data.replace(/\s|\u00A0/g, "").length > 0
             ) {
               hasSubContent = true;
               break;
@@ -121,9 +121,9 @@ const LessonContent = ({
   };
 
   const replaceFigures = (node) => {
-    if (node.attribs && node.attribs.class === 'table') {
+    if (node.attribs && node.attribs.class === "table") {
       for (const child of node.children || []) {
-        if (child.name === 'table') {
+        if (child.name === "table") {
           return (
             <table className="lesson-table">
               {child.children && domToReact(child.children, options)}
@@ -136,9 +136,9 @@ const LessonContent = ({
   };
 
   const applyFontClasses = (node) => {
-    if (node.attribs && node.attribs.style && node.attribs.style.includes('font-family')) {
+    if (node.attribs && node.attribs.style && node.attribs.style.includes("font-family")) {
       const fontFamily = node.attribs.style.match(/font-family:\s*([^;]+)/)[1];
-      const fontClass = getFontClass(fontFamily.split(',')[0].replace(/['"]/g, '').trim());
+      const fontClass = getFontClass(fontFamily.split(",")[0].replace(/['"]/g, "").trim());
 
       if (fontClass) {
         node.attribs.class = node.attribs.class ? `${node.attribs.class} ${fontClass}` : fontClass;
@@ -148,28 +148,28 @@ const LessonContent = ({
   };
 
   const replaceTables = (node) => {
-    if (node.name === 'table') {
+    if (node.name === "table") {
       return (
         <table className="lesson-table">
           {node.children && domToReact(node.children, options)}
         </table>
       );
     }
-    if (node.name === 'thead') {
+    if (node.name === "thead") {
       return <thead>{node.children && domToReact(node.children, options)}</thead>;
     }
-    if (node.name === 'tbody') {
+    if (node.name === "tbody") {
       return <tbody>{node.children && domToReact(node.children, options)}</tbody>;
     }
-    if (node.name === 'tr') {
+    if (node.name === "tr") {
       return <tr>{node.children && domToReact(node.children, options)}</tr>;
     }
-    if (node.name === 'th') {
+    if (node.name === "th") {
       return (
         <th className="lesson-table-th">{node.children && domToReact(node.children, options)}</th>
       );
     }
-    if (node.name === 'td') {
+    if (node.name === "td") {
       return (
         <td className="lesson-table-td">{node.children && domToReact(node.children, options)}</td>
       );
@@ -178,14 +178,14 @@ const LessonContent = ({
   };
 
   const replaceCodeBlocks = (node) => {
-    if (node.name === 'pre' && node.children?.length > 0) {
+    if (node.name === "pre" && node.children?.length > 0) {
       const codeNode = node.children[0];
       if (!codeNode) return;
 
-      let codeText = '';
+      let codeText = "";
       if (codeNode.children && codeNode.children.length > 0) {
-        codeText = codeNode.children[0]?.data || '';
-      } else if (typeof codeNode === 'string') {
+        codeText = codeNode.children[0]?.data || "";
+      } else if (typeof codeNode === "string") {
         codeText = codeNode;
       }
 
@@ -193,8 +193,8 @@ const LessonContent = ({
         codeText = node.children[0].data;
       }
 
-      const className = codeNode.attribs?.class || '';
-      const language = className.replace('language-', '') || 'plaintext';
+      const className = codeNode.attribs?.class || "";
+      const language = className.replace("language-", "") || "plaintext";
       return <CodeBlock codeText={codeText} language={language} />;
     }
     return undefined;
@@ -206,15 +206,15 @@ const LessonContent = ({
 
       // Order matters for replacements
       const replacements = [
-        { name: 'p', handler: replaceParagraphs },
-        { name: 'figure', handler: replaceFigures },
-        { name: 'table', handler: replaceTables },
-        { name: 'thead', handler: replaceTables },
-        { name: 'tbody', handler: replaceTables },
-        { name: 'tr', handler: replaceTables },
-        { name: 'th', handler: replaceTables },
-        { name: 'td', handler: replaceTables },
-        { name: 'pre', handler: replaceCodeBlocks },
+        { name: "p", handler: replaceParagraphs },
+        { name: "figure", handler: replaceFigures },
+        { name: "table", handler: replaceTables },
+        { name: "thead", handler: replaceTables },
+        { name: "tbody", handler: replaceTables },
+        { name: "tr", handler: replaceTables },
+        { name: "th", handler: replaceTables },
+        { name: "td", handler: replaceTables },
+        { name: "pre", handler: replaceCodeBlocks },
       ];
 
       for (const replacement of replacements) {
@@ -227,7 +227,7 @@ const LessonContent = ({
       }
 
       // Apply font classes to span elements with inline styles
-      if (node.name === 'span' && node.attribs && node.attribs.style) {
+      if (node.name === "span" && node.attribs && node.attribs.style) {
         applyFontClasses(node);
       }
 
@@ -237,9 +237,9 @@ const LessonContent = ({
 
   return (
     <div className="lesson-content">
-      <div className="content-section" style={{ contain: 'layout style' }}>
+      <div className="content-section" style={{ contain: "layout style" }}>
         {parse(content, options)}
-      </div>{' '}
+      </div>{" "}
       {showHelpSection && (
         <HelpSection
           hint={hint}

@@ -1,16 +1,20 @@
-import React from 'react';
-import { FiTrash2, FiPlus, FiTerminal } from 'react-icons/fi';
-import './TestCaseManager.css';
+import { FiTrash2, FiPlus, FiTerminal } from "react-icons/fi";
+import "./TestCaseManager.css";
 
 const TestCaseManager = ({ testCases = [], onChange }) => {
   // Ensure we always have at least one test case if none provided
-  const cases = testCases.length > 0 ? testCases : [{
-    input: '',
-    expected_output: '',
-    auto_detect: false,
-    use_pattern: false,
-    pattern: ''
-  }];
+  const cases =
+    testCases.length > 0
+      ? testCases
+      : [
+          {
+            input: "",
+            expected_output: "",
+            auto_detect: false,
+            use_pattern: false,
+            pattern: "",
+          },
+        ];
 
   const handleTestCaseChange = (index, field, value) => {
     const updated = [...cases];
@@ -19,13 +23,16 @@ const TestCaseManager = ({ testCases = [], onChange }) => {
   };
 
   const addTestCase = () => {
-    const updated = [...cases, {
-      input: '',
-      expected_output: '',
-      auto_detect: false,
-      use_pattern: false,
-      pattern: ''
-    }];
+    const updated = [
+      ...cases,
+      {
+        input: "",
+        expected_output: "",
+        auto_detect: false,
+        use_pattern: false,
+        pattern: "",
+      },
+    ];
     onChange(updated);
   };
 
@@ -62,7 +69,7 @@ const TestCaseManager = ({ testCases = [], onChange }) => {
               <input
                 type="checkbox"
                 checked={testCase.auto_detect || false}
-                onChange={(e) => handleTestCaseChange(index, 'auto_detect', e.target.checked)}
+                onChange={(e) => handleTestCaseChange(index, "auto_detect", e.target.checked)}
               />
               <span className="checkbox-label">Auto-detect Output</span>
             </label>
@@ -70,7 +77,7 @@ const TestCaseManager = ({ testCases = [], onChange }) => {
               <input
                 type="checkbox"
                 checked={testCase.use_pattern || false}
-                onChange={(e) => handleTestCaseChange(index, 'use_pattern', e.target.checked)}
+                onChange={(e) => handleTestCaseChange(index, "use_pattern", e.target.checked)}
               />
               <span className="checkbox-label">Use Pattern Matching</span>
             </label>
@@ -80,8 +87,8 @@ const TestCaseManager = ({ testCases = [], onChange }) => {
             <label className="test-case-label">Input</label>
             <textarea
               className="test-case-textarea"
-              value={testCase.input || ''}
-              onChange={(e) => handleTestCaseChange(index, 'input', e.target.value)}
+              value={testCase.input || ""}
+              onChange={(e) => handleTestCaseChange(index, "input", e.target.value)}
               placeholder="Enter test input..."
               rows={3}
             />
@@ -92,8 +99,8 @@ const TestCaseManager = ({ testCases = [], onChange }) => {
               <label className="test-case-label">Expected Output</label>
               <textarea
                 className="test-case-textarea"
-                value={testCase.expected_output || ''}
-                onChange={(e) => handleTestCaseChange(index, 'expected_output', e.target.value)}
+                value={testCase.expected_output || ""}
+                onChange={(e) => handleTestCaseChange(index, "expected_output", e.target.value)}
                 placeholder="Enter expected output..."
                 rows={3}
               />
@@ -106,8 +113,8 @@ const TestCaseManager = ({ testCases = [], onChange }) => {
               <input
                 type="text"
                 className="test-case-input"
-                value={testCase.pattern || ''}
-                onChange={(e) => handleTestCaseChange(index, 'pattern', e.target.value)}
+                value={testCase.pattern || ""}
+                onChange={(e) => handleTestCaseChange(index, "pattern", e.target.value)}
                 placeholder="Enter regex pattern..."
               />
             </div>
@@ -115,11 +122,7 @@ const TestCaseManager = ({ testCases = [], onChange }) => {
         </div>
       ))}
 
-      <button
-        type="button"
-        onClick={addTestCase}
-        className="test-case-add"
-      >
+      <button type="button" onClick={addTestCase} className="test-case-add">
         <FiPlus size={16} />
         Add Test Case
       </button>

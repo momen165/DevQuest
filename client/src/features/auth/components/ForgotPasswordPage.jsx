@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
-import './AuthPages.css';
+import { useState } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
+import "./AuthPages.css";
 
 const ForgotPasswordPage = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const validateEmail = (email) => {
     return email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
@@ -15,21 +15,21 @@ const ForgotPasswordPage = () => {
 
   const handleChange = (e) => {
     setEmail(e.target.value);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
+      setError("Please enter a valid email address");
       return;
     }
 
     setLoading(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
 
     try {
       const response = await axios.post(
@@ -38,29 +38,29 @@ const ForgotPasswordPage = () => {
         {
           withCredentials: true,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
 
-      setMessage(response.data.message || 'Password reset instructions sent to your email');
-      setEmail('');
+      setMessage(response.data.message || "Password reset instructions sent to your email");
+      setEmail("");
     } catch (err) {
-      console.error('Password reset error:', err);
+      console.error("Password reset error:", err);
 
       if (err.response) {
         // Handle specific status codes
         if (err.response.status === 404) {
-          setError('Email address not found');
+          setError("Email address not found");
         } else if (err.response.status === 500) {
-          setError('Server error. Please try again later');
+          setError("Server error. Please try again later");
         } else {
           setError(
-            err.response.data.error || 'Failed to send reset instructions. Please try again.'
+            err.response.data.error || "Failed to send reset instructions. Please try again."
           );
         }
       } else {
-        setError('Network error. Please check your connection and try again.');
+        setError("Network error. Please check your connection and try again.");
       }
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ const ForgotPasswordPage = () => {
             />
           </label>
           <button type="submit" className="button" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Reset Link'}
+            {loading ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
         <p>

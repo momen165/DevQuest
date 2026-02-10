@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaCheck, FaBars, FaLock } from 'react-icons/fa';
-import './LessonNavigation.css'; // Assuming this file exists and contains necessary styles
-import axios from 'axios';
-import { useAuth } from 'app/AuthContext'; // Assuming this context provides user and token
-import SuccessNotification from 'shared/ui/SuccessNotification'; // Import the SuccessNotification component
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaCheck, FaBars, FaLock } from "react-icons/fa";
+import "./LessonNavigation.css"; // Assuming this file exists and contains necessary styles
+import axios from "axios";
+import { useAuth } from "app/AuthContext"; // Assuming this context provides user and token
+import SuccessNotification from "shared/ui/SuccessNotification"; // Import the SuccessNotification component
 
 const LessonNavigation = ({
   currentLessonId,
@@ -24,9 +24,9 @@ const LessonNavigation = ({
   const [isCompleted, setIsCompleted] = useState(currentLessonProgress?.completed || false); // Use prop for initial value
   const [showSuccessMessage, setShowSuccessMessage] = useState(false); // Controls visibility of SuccessNotification
   const [showErrorMessage, setShowErrorMessage] = useState(false); // Controls visibility of error messages
-  const [errorMessageText, setErrorMessageText] = useState(''); // Text for error messages
+  const [errorMessageText, setErrorMessageText] = useState(""); // Text for error messages
   const [menuSections, setMenuSections] = useState([]); // Sections and their lessons for the navigation menu
-  const [courseName, setCourseName] = useState('');
+  const [courseName, setCourseName] = useState("");
   const [courseId, setCourseId] = useState(null);
   const [openSectionId, setOpenSectionId] = useState(currentSectionId); // Tracks which section is expanded in the menu
   const [loadingMenu, setLoadingMenu] = useState(false); // Loading state for menu data
@@ -35,7 +35,7 @@ const LessonNavigation = ({
 
   // Define showNotification early so it can be used in useEffects
   const showNotification = useCallback((type, text) => {
-    if (type === 'success') {
+    if (type === "success") {
       setShowSuccessMessage(true);
       setShowErrorMessage(false);
     } else {
@@ -125,8 +125,8 @@ const LessonNavigation = ({
           }
         }
       } catch (error) {
-        console.error('Error fetching menu data:', error);
-        showNotification('error', 'Could not load course navigation.');
+        console.error("Error fetching menu data:", error);
+        showNotification("error", "Could not load course navigation.");
       } finally {
         setLoadingMenu(false);
       }
@@ -196,7 +196,7 @@ const LessonNavigation = ({
         redirectLessonId = menuSections[0].lessons[0].lesson_id;
       }
 
-      showNotification('error', 'You need to complete previous lessons first.');
+      showNotification("error", "You need to complete previous lessons first.");
       navigate(`/lesson/${redirectLessonId}`);
     }
   }, [menuSections, currentLessonId, loadingMenu, navigate, showNotification]); // Added showNotification to dependency array
@@ -236,7 +236,7 @@ const LessonNavigation = ({
 
   const completeLesson = async () => {
     if (!user) {
-      showNotification('error', 'You must be logged in to complete a lesson.');
+      showNotification("error", "You must be logged in to complete a lesson.");
       return;
     }
 
@@ -257,7 +257,7 @@ const LessonNavigation = ({
 
       if (response.status === 200) {
         setIsCompleted(true);
-        showNotification('success', '');
+        showNotification("success", "");
 
         setMenuSections((prevMenuSections) =>
           prevMenuSections.map((section) => ({
@@ -269,15 +269,15 @@ const LessonNavigation = ({
         );
       } else {
         showNotification(
-          'error',
-          response.data?.message || 'Unable to update lesson progress. Please try again.'
+          "error",
+          response.data?.message || "Unable to update lesson progress. Please try again."
         );
       }
     } catch (err) {
-      console.error('Error completing lesson:', err);
+      console.error("Error completing lesson:", err);
       const errorMsg =
-        err.response?.data?.message || err.message || 'An unexpected error occurred.';
-      showNotification('error', `Error: ${errorMsg}`);
+        err.response?.data?.message || err.message || "An unexpected error occurred.";
+      showNotification("error", `Error: ${errorMsg}`);
     }
   };
 
@@ -286,7 +286,7 @@ const LessonNavigation = ({
     const menuSectionIndex = menuSections.findIndex((section) =>
       section.lessons.some((lesson) => lesson.lesson_id === currentLessonId)
     );
-    
+
     if (menuSectionIndex !== -1) {
       const menuSection = menuSections[menuSectionIndex];
       const menuLessonIndex = menuSection.lessons.findIndex(
@@ -297,7 +297,7 @@ const LessonNavigation = ({
         // Previous lesson in same section
         const prevLesson = menuSection.lessons[menuLessonIndex - 1];
         if (!prevLesson.completed) {
-          showNotification('error', 'Previous lesson is not completed yet.');
+          showNotification("error", "Previous lesson is not completed yet.");
           return;
         }
         navigate(`/lesson/${prevLesson.lesson_id}`);
@@ -307,12 +307,12 @@ const LessonNavigation = ({
         const previousSection = menuSections[menuSectionIndex - 1];
         const previousSectionLessons = previousSection?.lessons || [];
         if (previousSectionLessons.length === 0) {
-          showNotification('error', 'Previous section has no lessons.');
+          showNotification("error", "Previous section has no lessons.");
           return;
         }
         const lastLesson = previousSectionLessons[previousSectionLessons.length - 1];
         if (!lastLesson.completed) {
-          showNotification('error', 'You need to complete the previous section first.');
+          showNotification("error", "You need to complete the previous section first.");
           return;
         }
         navigate(`/lesson/${lastLesson.lesson_id}`);
@@ -327,7 +327,7 @@ const LessonNavigation = ({
       const previousSection = organizedSections[currentSectionIndex - 1];
       const previousSectionLessons = previousSection.lessons || [];
       if (previousSectionLessons.length === 0) {
-        showNotification('error', 'Previous section has no lessons.');
+        showNotification("error", "Previous section has no lessons.");
         return;
       }
       const lastLessonInPreviousSection = previousSectionLessons[previousSectionLessons.length - 1];
@@ -341,7 +341,7 @@ const LessonNavigation = ({
     if (currentSectionIndex === 0 && lessonIndexInSection === 0) {
       return false;
     }
-    
+
     // If menuSections not loaded yet, allow navigation (will be validated on click)
     if (!menuSections.length) {
       return currentSectionIndex > 0 || lessonIndexInSection > 0;
@@ -351,7 +351,7 @@ const LessonNavigation = ({
     const menuSectionIndex = menuSections.findIndex((section) =>
       section.lessons.some((lesson) => lesson.lesson_id === currentLessonId)
     );
-    
+
     if (menuSectionIndex === -1) {
       return currentSectionIndex > 0 || lessonIndexInSection > 0;
     }
@@ -378,7 +378,7 @@ const LessonNavigation = ({
 
   const goToNextLesson = () => {
     if (!isCompleted) {
-      showNotification('error', 'Please complete the current lesson before moving to the next.');
+      showNotification("error", "Please complete the current lesson before moving to the next.");
       return;
     }
 
@@ -400,7 +400,10 @@ const LessonNavigation = ({
           (lesson) => lesson.completed === true
         );
         if (!allCurrentSectionCompleted) {
-          showNotification('error', 'Complete all lessons in this section before moving to the next section.');
+          showNotification(
+            "error",
+            "Complete all lessons in this section before moving to the next section."
+          );
           return;
         }
       }
@@ -409,7 +412,7 @@ const LessonNavigation = ({
       const nextSectionLessons = nextSection.lessons || [];
 
       if (nextSectionLessons.length === 0) {
-        showNotification('error', 'Next section has no lessons.');
+        showNotification("error", "Next section has no lessons.");
         return;
       }
       const firstLessonInNextSection = nextSectionLessons[0];
@@ -417,8 +420,8 @@ const LessonNavigation = ({
       navigate(`/lesson/${firstLessonInNextSection.lesson_id}`);
     } else {
       showNotification(
-        'success',
-        'Congratulations! You have completed all lessons in this course!'
+        "success",
+        "Congratulations! You have completed all lessons in this course!"
       );
     }
   };
@@ -431,7 +434,7 @@ const LessonNavigation = ({
     // Get the section
     const section = menuSections[sectionIndex];
     if (!section || !section.lessons) {
-      console.error('Invalid section data in isLessonAccessible:', { sectionIndex, section });
+      console.error("Invalid section data in isLessonAccessible:", { sectionIndex, section });
       return false;
     }
 
@@ -441,7 +444,7 @@ const LessonNavigation = ({
     // Not the first lesson - check if previous lesson in this section is completed
     const prevLesson = section.lessons[lessonIndex - 1];
     if (!prevLesson) {
-      console.error('Previous lesson not found:', {
+      console.error("Previous lesson not found:", {
         sectionIndex,
         lessonIndex,
         sectionLessonsCount: section.lessons.length,
@@ -454,7 +457,7 @@ const LessonNavigation = ({
 
   return (
     <>
-      <div className={`lesson-nav-menu ${isMenuOpen ? 'open' : ''}`}>
+      <div className={`lesson-nav-menu ${isMenuOpen ? "open" : ""}`}>
         {loadingMenu && <div className="loading-menu-indicator">Loading course...</div>}
         {!loadingMenu && courseName && (
           <div
@@ -473,12 +476,12 @@ const LessonNavigation = ({
                 onClick={() => toggleSection(section.section_id)}
               >
                 <span>{section.name}</span>
-                <span className={`arrow ${openSectionId === section.section_id ? 'open' : ''}`}>
+                <span className={`arrow ${openSectionId === section.section_id ? "open" : ""}`}>
                   ▼
                 </span>
               </div>
               <div
-                className={`lesson-nav-section-content ${openSectionId === section.section_id ? 'open' : ''}`}
+                className={`lesson-nav-section-content ${openSectionId === section.section_id ? "open" : ""}`}
               >
                 {section.lessons?.map((lesson, lessonIndex) => {
                   const accessible = isLessonAccessible(sectionIndex, lessonIndex);
@@ -486,17 +489,17 @@ const LessonNavigation = ({
                     <div
                       key={lesson.lesson_id}
                       className={`lesson-nav-item 
-                        ${lesson.lesson_id === currentLessonId ? 'active' : ''} 
-                        ${lesson.completed ? 'completed' : ''} 
-                        ${!accessible ? 'locked' : ''}`}
+                        ${lesson.lesson_id === currentLessonId ? "active" : ""} 
+                        ${lesson.completed ? "completed" : ""} 
+                        ${!accessible ? "locked" : ""}`}
                       onClick={() => {
                         if (accessible) {
                           navigate(`/lesson/${lesson.lesson_id}`);
                           setIsMenuOpen(false);
                         } else {
                           showNotification(
-                            'error',
-                            'Complete previous lessons first to unlock this lesson.'
+                            "error",
+                            "Complete previous lessons first to unlock this lesson."
                           );
                         }
                       }}
@@ -517,21 +520,21 @@ const LessonNavigation = ({
       {showSuccessMessage && <SuccessNotification xp={lessonXp || 0} />}
 
       {showErrorMessage && (
-        <div  
+        <div
           className="floating-message error"
           style={{
-            position: 'fixed',
-            top: '120px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(231, 76, 60, 0.95)',
-            color: 'white',
-            padding: '20px 30px',
-            borderRadius: '12px',
-            zIndex: '9999',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
-            textAlign: 'center',
-            minWidth: '320px',
+            position: "fixed",
+            top: "120px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "rgba(231, 76, 60, 0.95)",
+            color: "white",
+            padding: "20px 30px",
+            borderRadius: "12px",
+            zIndex: "9999",
+            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)",
+            textAlign: "center",
+            minWidth: "320px",
           }}
         >
           <div>{errorMessageText}</div>
@@ -540,9 +543,9 @@ const LessonNavigation = ({
 
       <div className="lesson-navigation">
         <button
-          className={`lesson-menu-toggle ${isMenuOpen ? 'active' : ''}`}
+          className={`lesson-menu-toggle ${isMenuOpen ? "active" : ""}`}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMenuOpen}
         >
           <FaBars />
@@ -560,7 +563,7 @@ const LessonNavigation = ({
             onClick={completeLesson}
             disabled={isCompleted || !isAnswerCorrect}
           >
-            {isCompleted ? 'Completed' : 'Complete'}
+            {isCompleted ? "Completed" : "Complete"}
           </button>
           {!(
             lessonIndexInSection >= currentSectionLessonsForNav.length - 1 &&

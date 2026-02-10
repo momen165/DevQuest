@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import LoadingSpinner from 'shared/ui/LoadingSpinner';
-import StudentDetailTable from 'features/admin/components/StudentDetailTable';
-import './Students.css';
-import useStudents from 'features/admin/hooks/useStudents';
+import { useState } from "react";
+import LoadingSpinner from "shared/ui/LoadingSpinner";
+import StudentDetailTable from "features/admin/components/StudentDetailTable";
+import "./Students.css";
+import useStudents from "features/admin/hooks/useStudents";
 
 const deduplicateStudents = (students) => {
   const seen = new Set();
@@ -16,7 +16,7 @@ const deduplicateStudents = (students) => {
 };
 
 const StudentSubscriptionTable = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -29,8 +29,8 @@ const StudentSubscriptionTable = () => {
   const filteredStudents = deduplicateStudents(
     Array.isArray(students)
       ? students.filter((student) => {
-          const name = student.name ? student.name.toLowerCase() : '';
-          const email = student.email ? student.email.toLowerCase() : '';
+          const name = student.name ? student.name.toLowerCase() : "";
+          const email = student.email ? student.email.toLowerCase() : "";
           const search = searchTerm.toLowerCase();
           return name.includes(search) || email.includes(search);
         })
@@ -83,15 +83,15 @@ const StudentSubscriptionTable = () => {
                 <tr
                   key={student.user_id}
                   onClick={() => handleRowClick(student)}
-                  className={selectedStudent?.user_id === student.user_id ? 'selected' : ''}
+                  className={selectedStudent?.user_id === student.user_id ? "selected" : ""}
                 >
                   <td>{student.user_id}</td>
-                  <td>{student.name || 'Unknown'}</td>
-                  <td>{student.email || 'Unknown'}</td>
-                  <td>{student.subscription_type || 'N/A'}</td>
+                  <td>{student.name || "Unknown"}</td>
+                  <td>{student.email || "Unknown"}</td>
+                  <td>{student.subscription_type || "N/A"}</td>
                   <td>
-                    <span className={`status-badge ${student.is_verified ? 'active' : 'inactive'}`}>
-                      {student.is_verified ? 'Verified' : 'Unverified'}
+                    <span className={`status-badge ${student.is_verified ? "active" : "inactive"}`}>
+                      {student.is_verified ? "Verified" : "Unverified"}
                     </span>
                   </td>
                 </tr>
@@ -100,7 +100,7 @@ const StudentSubscriptionTable = () => {
           </table>
         ) : (
           <div className="no-results">
-            {searchTerm ? 'No students found matching your search.' : 'No students available.'}
+            {searchTerm ? "No students found matching your search." : "No students available."}
           </div>
         )}
 
