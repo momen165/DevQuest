@@ -11,12 +11,7 @@ const isMailgunConfigured = Boolean(
 
 // Debug logging for configuration
 logger.debug("Mailgun Configuration:");
-logger.debug(
-  "- API Key:",
-  process.env.MAILGUN_API_KEY
-    ? `${process.env.MAILGUN_API_KEY.substring(0, 10)}...`
-    : "Not set",
-);
+
 logger.debug("- Domain:", process.env.MAILGUN_DOMAIN || "Not set");
 logger.debug(
   "- API URL:",

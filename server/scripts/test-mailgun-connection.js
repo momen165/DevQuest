@@ -11,13 +11,7 @@ async function testMailgunConnection() {
 
   // Check environment variables
   console.log("📋 Configuration:");
-  console.log(
-    `API Key: ${
-      process.env.MAILGUN_API_KEY
-        ? `${process.env.MAILGUN_API_KEY.substring(0, 15)}...`
-        : "❌ Missing"
-    }`,
-  );
+
   console.log(`Domain: ${process.env.MAILGUN_DOMAIN || "❌ Missing"}`);
   console.log(
     `API URL: ${

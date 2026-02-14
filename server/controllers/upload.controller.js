@@ -7,17 +7,35 @@ const {
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const prisma = require("../config/prisma");
-const { s3Client } = require("../utils/s3.utils"); // Import the shared S3 client
-
-const R2_PUBLIC_BASE_URL =
-  "https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev";
+const {
+  s3Client,
+  R2_API_ENDPOINT,
+  R2_PUBLIC_BASE_URL,
+  buildPublicUrl,
+  isLikelyR2AuthError,
+} = require("../utils/s3.utils");
 
 const getR2KeyFromPublicUrl = (url) => {
   if (!url || typeof url !== "string") return null;
+  try {
+    const parsed = new URL(url);
+    const key = parsed.pathname.replace(/^\/+/, "");
+    return key || null;
+  } catch {
+    // Fallback for malformed historical values.
+  }
   const prefix = `${R2_PUBLIC_BASE_URL}/`;
   if (!url.startsWith(prefix)) return null;
   const key = url.slice(prefix.length);
   return key || null;
+};
+
+const buildR2UploadErrorMessage = (error) => {
+  if (isLikelyR2AuthError(error)) {
+    return `R2 authentication failed (401). Check R2 credentials and ensure R2_ENDPOINT_URL points to the API endpoint (https://<accountid>.r2.cloudflarestorage.com), not a public/custom domain. Current endpoint: ${R2_API_ENDPOINT || "<unset>"}`;
+  }
+
+  return `Failed to upload file to R2: ${error?.message || "Unknown R2 error"}`;
 };
 
 // Set up Multer with file validation
@@ -81,7 +99,7 @@ const uploadFile = [
         await s3Client.send(command);
 
         // Use the CDN URL directly
-        const fileUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fileKey}`;
+        const fileUrl = buildPublicUrl(fileKey);
 
         // Send success response
         res.status(200).json({
@@ -92,7 +110,7 @@ const uploadFile = [
         console.error("R2 Upload Error:", s3Error);
         res
           .status(500)
-          .json({ error: `Failed to upload file to R2: ${s3Error.message}` });
+          .json({ error: buildR2UploadErrorMessage(s3Error) });
       }
     } catch (error) {
       console.error("Unexpected Upload Error:", error);
@@ -168,7 +186,7 @@ const uploadProfilePic = [
       await s3Client.send(command);
 
       // Direct CDN URL
-      const profileimage = `${R2_PUBLIC_BASE_URL}/${fullKey}`;
+      const profileimage = buildPublicUrl(fullKey);
 
       // Save the URL in the database
       await prisma.users.update({
@@ -294,7 +312,7 @@ const uploadEditorImage = [
         await s3Client.send(command);
 
         // Use the CDN URL directly
-        const fileUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fileKey}`;
+        const fileUrl = buildPublicUrl(fileKey);
 
         res.status(200).json({
           uploaded: 1,
@@ -305,7 +323,7 @@ const uploadEditorImage = [
         console.error("R2 Upload Error:", s3Error);
         res.status(500).json({
           uploaded: 0,
-          error: `Failed to upload file to R2: ${s3Error.message}`,
+          error: buildR2UploadErrorMessage(s3Error),
         });
       }
     } catch (error) {
@@ -360,7 +378,7 @@ const uploadBadgeImage = [
       await s3Client.send(command);
 
       // Direct CDN URL
-      const badgeUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
+      const badgeUrl = buildPublicUrl(fullKey);
 
       // Update the badge image in the database if it exists
       await prisma.badges.updateMany({
@@ -422,7 +440,7 @@ const uploadCourseImage = [
       await s3Client.send(command);
 
       // Direct CDN URL
-      const imageUrl = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
+      const imageUrl = buildPublicUrl(fullKey);
 
       // Update the course image in the database
       await prisma.course.update({
@@ -481,7 +499,7 @@ const uploadProfileImage = [
       await s3Client.send(command);
 
       // Direct CDN URL
-      const profileImage = `https://pub-7f487491f13f461f98c43d8f13580a44.r2.dev/${fullKey}`;
+      const profileImage = buildPublicUrl(fullKey);
 
       // Save the URL in the database
       await prisma.users.update({

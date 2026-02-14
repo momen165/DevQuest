@@ -12,8 +12,8 @@ export default defineConfig({
       app: path.resolve(__dirname, './src/app'),
       features: path.resolve(__dirname, './src/features'),
       shared: path.resolve(__dirname, './src/shared'),
-      react: path.resolve(__dirname, './node_modules/react'),
-      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+      react: path.resolve(__dirname, '../node_modules/react'),
+      'react-dom': path.resolve(__dirname, '../node_modules/react-dom'),
       components: path.resolve(__dirname, './src/shared/ui'),
       pages: path.resolve(__dirname, './src/pages'),
       utils: path.resolve(__dirname, './src/shared/utils'),
@@ -33,7 +33,7 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
 
-          if (id.includes('ckeditor5') || id.includes('@ckeditor')) return 'vendor-ckeditor';
+          if (id.includes('@tiptap')) return 'vendor-tiptap';
           if (id.includes('monaco-editor') || id.includes('@monaco-editor')) return 'vendor-monaco';
           if (id.includes('chart.js') || id.includes('react-chartjs-2')) return 'vendor-charts';
           if (id.includes('@sentry')) return 'vendor-sentry';

@@ -55,7 +55,7 @@ DevQuest is an interactive coding education platform that combines hands-on lear
   - React Icons
   - Lucide React
   - React Hot Toast
-  - CKEditor 5
+  - Tiptap
 - **Code Editor**: Monaco Editor
 - **Styling**: CSS and component-scoped styles
 
@@ -145,10 +145,13 @@ SENDER_EMAIL=your_sender_email
 SENDER_EMAIL_SUPPORT=your_support_sender_email
 
 # Storage (Cloudflare R2, S3 compatible)
-R2_ENDPOINT_URL=your_r2_endpoint_url
+R2_ENDPOINT_URL=https://<accountid>.r2.cloudflarestorage.com
 R2_ACCESS_KEY_ID=your_r2_access_key_id
 R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
 R2_BUCKET_NAME=your_r2_bucket_name
+R2_PUBLIC_BASE_URL=https://<public-subdomain>.r2.dev
+# Optional: used to derive API endpoint when R2_ENDPOINT_URL is not API endpoint
+R2_ACCOUNT_ID=your_cloudflare_account_id
 
 # Code execution
 RAPIDAPI_KEY=your_rapidapi_key

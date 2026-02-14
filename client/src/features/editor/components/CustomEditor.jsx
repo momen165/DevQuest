@@ -1,617 +1,650 @@
-import { useState, useEffect, useRef } from "react";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
+import Highlight from "@tiptap/extension-highlight";
+import TextAlign from "@tiptap/extension-text-align";
+import Link from "@tiptap/extension-link";
+import TextStyle from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
+import FontFamily from "@tiptap/extension-font-family";
+import Placeholder from "@tiptap/extension-placeholder";
+import Table from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import { createLowlight, common } from "lowlight";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 import {
-  ClassicEditor,
-  AccessibilityHelp,
-  Alignment,
-  Autoformat,
-  AutoLink,
-  Autosave,
-  BlockQuote,
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
   Bold,
-  Code,
-  CodeBlock,
-  Essentials,
-  FindAndReplace,
-  FontBackgroundColor,
-  FontColor,
-  FontFamily,
-  FontSize,
-  GeneralHtmlSupport,
-  Heading,
-  Highlight,
-  HorizontalLine,
-  Indent,
-  IndentBlock,
+  ChevronDown,
+  CheckSquare,
+  CircleHelp,
+  Code2,
+  Download,
+  Eraser,
+  Eye,
+  ImagePlus,
+  IndentDecrease,
+  IndentIncrease,
   Italic,
-  Link,
-  Paragraph,
-  RemoveFormat,
-  SelectAll,
-  ShowBlocks,
-  SpecialCharacters,
-  SpecialCharactersArrows,
-  SpecialCharactersCurrency,
-  SpecialCharactersEssentials,
-  SpecialCharactersLatin,
-  SpecialCharactersMathematical,
-  SpecialCharactersText,
-  Strikethrough,
-  Style,
-  Subscript,
-  Superscript,
-  Table,
-  TableCaption,
-  TableCellProperties,
-  TableColumnResize,
-  TableProperties,
-  TableToolbar,
-  TextTransformation,
-  Underline,
-  Undo,
-  Image,
-  ImageUpload,
-  ImageToolbar,
-  ImageStyle,
-  ImageResizeEditing,
-  ImageResizeButtons,
+  Link2,
   List,
-  PasteFromMarkdownExperimental,
-} from "ckeditor5";
+  ListOrdered,
+  Minus,
+  Paintbrush2,
+  Palette,
+  Pilcrow,
+  Quote,
+  Redo2,
+  Search,
+  Sigma,
+  Strikethrough,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
+  Table2,
+  Type,
+  Underline as UnderlineIcon,
+  Undo2,
+} from "lucide-react";
 
-import "ckeditor5/ckeditor5.css";
+import { useAuth } from "app/AuthContext";
+import { CODE_BLOCK_LANGUAGES, FONT_FAMILIES, FONT_SIZES, SPECIAL_CHARACTERS, STYLE_DEFINITIONS } from "features/editor/tiptap/constants";
+import { DraggableImage } from "features/editor/tiptap/extensions/DraggableImage";
+import { FontSize } from "features/editor/tiptap/extensions/FontSize";
+import { GlobalClassStyle } from "features/editor/tiptap/extensions/GlobalClassStyle";
+import { LabeledCodeBlock } from "features/editor/tiptap/extensions/LabeledCodeBlock";
+import { StyledTableCell } from "features/editor/tiptap/extensions/StyledTableCell";
+import { StyledTableHeader } from "features/editor/tiptap/extensions/StyledTableHeader";
+import { cleanEmptyParagraphs, escapeRegExp, normalizeLegacyCkHtml } from "features/editor/tiptap/utils/editorHtml";
 
+import "highlight.js/styles/github-dark.css";
 import "./CustomEditor.css";
 
-// Removed unused import: import { getFontClass } from "features/editor/utils/editorUtils";
-import { useAuth } from "app/AuthContext";
-import { FaQuestionCircle } from "react-icons/fa";
-
-// const LICENSE_KEY =
-// 	'[REDACTED]';
-
-const LICENSE_KEY = "GPL";
+const lowlight = createLowlight(common);
 
 const DEFAULT_CONFIG = {
   codeBlock: {
-    languages: [
-      { language: "plaintext", label: "Plain text" },
-      { language: "javascript", label: "JavaScript" },
-      { language: "css", label: "CSS" },
-      { language: "html", label: "HTML" },
-      { language: "python", label: "Python" },
-      { language: "java", label: "Java" },
-      { language: "csharp", label: "C#" },
-      { language: "php", label: "PHP" },
-      { language: "ruby", label: "Ruby" },
-      { language: "typescript", label: "TypeScript" },
-
-      { language: "go", label: "Go" },
-      { language: "swift", label: "Swift" },
-      { language: "kotlin", label: "Kotlin" },
-      { language: "rust", label: "Rust" },
-      { language: "c", label: "C" },
-      { language: "c++", label: "C++" },
-      { language: "sql", label: "SQL" },
-      { language: "bash", label: "Bash" },
-      { language: "powershell", label: "PowerShell" },
-      { language: "markdown", label: "Markdown" },
-    ],
+    languages: CODE_BLOCK_LANGUAGES,
   },
-  toolbar: {
-    items: [
-      "undo",
-      "redo",
-      "|",
-      "showBlocks",
-      "|",
-      "heading",
-      "style",
-      "|",
-      "fontSize",
-      "fontFamily",
-      "fontColor",
-      "fontBackgroundColor",
-      "|",
-      "bold",
-      "italic",
-      "underline",
-      "|",
-      "bulletedList",
-      "numberedList",
-      "|",
-      "link",
-      "insertTable",
-      "highlight",
-      "blockQuote",
-      "codeBlock",
-      "|",
-      "alignment",
-      "|",
-      "outdent",
-      "indent",
-      "uploadImage",
-      "|",
-    ],
-    shouldNotGroupWhenFull: false,
-  },
-  plugins: [
-    AccessibilityHelp,
-    Alignment,
-    Autoformat,
-    AutoLink,
-    Autosave,
-    BlockQuote,
-    Bold,
-    Code,
-    CodeBlock,
-    Essentials,
-    FindAndReplace,
-    FontBackgroundColor,
-    FontColor,
-    FontFamily,
-    FontSize,
-    GeneralHtmlSupport,
-    Heading,
-    Highlight,
-    HorizontalLine,
-    Indent,
-    IndentBlock,
-    Italic,
-    Link,
-    Paragraph,
-    RemoveFormat,
-    SelectAll,
-    ShowBlocks,
-    SpecialCharacters,
-    SpecialCharactersArrows,
-    SpecialCharactersCurrency,
-    SpecialCharactersEssentials,
-    SpecialCharactersLatin,
-    SpecialCharactersMathematical,
-    SpecialCharactersText,
-    Strikethrough,
-    Style,
-    Subscript,
-    Superscript,
-    Table,
-    TableCaption,
-    TableCellProperties,
-    TableColumnResize,
-    TableProperties,
-    TableToolbar,
-    TextTransformation,
-    Underline,
-    Undo,
-    Image,
-    ImageUpload,
-    ImageToolbar,
-    ImageStyle,
-    ImageResizeEditing,
-    ImageResizeButtons,
-    List,
-    PasteFromMarkdownExperimental,
-  ],
   fontFamily: {
-    options: [
-      "Source Sans Pro, sans-serif",
-      "Nunito Sans, sans-serif",
-      "Inter, sans-serif",
-      "Lato, sans-serif",
-      "Open Sans, sans-serif",
-      "Roboto, sans-serif",
-    ],
-    supportAllValues: true,
+    options: FONT_FAMILIES,
     defaultValue: "Source Sans Pro, sans-serif",
   },
   fontSize: {
-    options: [
-      {
-        title: "12px",
-        model: "12px",
-        view: {
-          name: "span",
-          styles: { "font-size": "12px" },
-        },
-      },
-      {
-        title: "14px",
-        model: "14px",
-        view: {
-          name: "span",
-          styles: { "font-size": "14px" },
-        },
-      },
-      {
-        title: "16px",
-        model: "16px",
-        view: {
-          name: "span",
-          styles: { "font-size": "16px" },
-        },
-      },
-      {
-        title: "18px",
-        model: "18px",
-        view: {
-          name: "span",
-          styles: { "font-size": "18px" },
-        },
-      },
-      {
-        title: "20px",
-        model: "20px",
-        view: {
-          name: "span",
-          styles: { "font-size": "20px" },
-        },
-      },
-      {
-        title: "24px",
-        model: "24px",
-        view: {
-          name: "span",
-          styles: { "font-size": "24px" },
-        },
-      },
-      {
-        title: "28px",
-        model: "28px",
-        view: {
-          name: "span",
-          styles: { "font-size": "28px" },
-        },
-      },
-      {
-        title: "32px",
-        model: "32px",
-        view: {
-          name: "span",
-          styles: { "font-size": "32px" },
-        },
-      },
-    ],
-    supportAllValues: true,
+    options: FONT_SIZES,
   },
-  heading: {
-    options: [
-      {
-        model: "paragraph",
-        title: "Paragraph",
-        class: "ck-heading_paragraph",
-      },
-      {
-        model: "heading1",
-        view: {
-          name: "h1",
-        },
-        title: "Heading 1",
-        class: "ck-heading_heading1",
-      },
-      {
-        model: "heading2",
-        view: {
-          name: "h2",
-        },
-        title: "Heading 2",
-        class: "ck-heading_heading2",
-      },
-      {
-        model: "heading3",
-        view: {
-          name: "h3",
-          classes: ["editor-subtitle"],
-        },
-        title: "Heading 3",
-        class: "ck-heading_heading3",
-      },
-    ],
-  },
-  htmlSupport: {
-    allow: [
-      {
-        name: /.*/,
-        attributes: true,
-        classes: [
-          "editor-font-nunito",
-          "editor-font-inter",
-          "editor-font-source",
-          "editor-font-lato",
-          "editor-font-opensans",
-          "editor-font-roboto",
-        ],
-        styles: {
-          "font-family": true,
-          "font-size": true,
-          // ... other styles
-        },
-      },
-    ],
-  },
-  initialData: "",
-
-  licenseKey: LICENSE_KEY,
-  link: {
-    addTargetToExternalLinks: true,
-    defaultProtocol: "https://",
-    decorators: {
-      toggleDownloadable: {
-        mode: "manual",
-        label: "Downloadable",
-        attributes: {
-          download: "file",
-        },
-      },
-    },
-  },
-
-  menuBar: {
-    isVisible: true,
+  style: {
+    definitions: STYLE_DEFINITIONS,
   },
   placeholder: "Type or paste your content here!",
-  style: {
-    definitions: [
-      {
-        name: "Article category",
-        element: "h3",
-        classes: ["editor-category"],
-      },
-      {
-        name: "Title",
-        element: "h2",
-      },
-      {
-        name: "Subtitle",
-        element: "h3",
-        classes: ["editor-subtitle"],
-      },
-      {
-        name: "Info box",
-        element: "p",
-        classes: ["editor-info-box"],
-      },
-      {
-        name: "Side quote",
-        element: "blockquote",
-        classes: ["editor-side-quote"],
-      },
-      {
-        name: "Marker",
-        element: "span",
-        classes: ["editor-marker"],
-      },
-      {
-        name: "Spoiler",
-        element: "span",
-        classes: ["editor-spoiler"],
-      },
-      {
-        name: "Code (dark)",
-        element: "pre",
-        classes: ["editor-code", "editor-code--dark"],
-      },
-      {
-        name: "Code (bright)",
-        element: "pre",
-        classes: ["editor-code", "editor-code--light"],
-      },
-    ],
-  },
-  table: {
-    contentToolbar: [
-      "tableColumn",
-      "tableRow",
-      "mergeTableCells",
-      "tableProperties",
-      "tableCellProperties",
-    ],
-  },
-  output: {
-    dataIndentChar: " ",
-    dataIndent: 2,
-    presetStyles: true,
-  },
-  generalhtmlsupport: {
-    allow: [
-      {
-        name: /.*/,
-        attributes: true,
-        classes: true,
-        styles: {
-          "font-size": true,
-        },
-      },
-    ],
-  },
-  image: {
-    toolbar: [
-      "imageStyle:inline",
-      "imageStyle:block",
-      "imageStyle:side",
-      "|",
-      "toggleImageCaption",
-      "imageTextAlternative",
-      "|",
-      "resizeImage",
-    ],
-    upload: {
-      types: ["jpeg", "png", "gif", "bmp", "webp", "tiff", "svg"],
-    },
-    resizeOptions: [
-      {
-        name: "resizeImage:original",
-        value: null,
-        label: "Original",
-      },
-      {
-        name: "resizeImage:50",
-        value: "50",
-        label: "50%",
-      },
-      {
-        name: "resizeImage:75",
-        value: "75",
-        label: "75%",
-      },
-    ],
-    styles: ["full", "side", "alignLeft", "alignCenter", "alignRight"],
-  },
-  keystrokes: [
-    ["CTRL+ALT+J", "codeBlock"],
-    ["CTRL+ALT+P", "codeBlock"],
-    ["CTRL+ALT+H", "codeBlock"],
-  ],
-
-  // Add custom handlers for the code block shortcuts
-  customConfig: {
-    keystrokes: {
-      "CTRL+ALT+I": (editor) => {
-        // Get the upload image command and execute it
-        const imageUploadCommand = editor.commands.get("uploadImage");
-        if (imageUploadCommand.isEnabled) {
-          // Create a hidden file input
-          const input = document.createElement("input");
-          input.type = "file";
-          input.accept = "image/*";
-          input.style.display = "none";
-
-          input.onchange = () => {
-            const file = input.files[0];
-            if (file) {
-              editor.execute("uploadImage", { file });
-            }
-          };
-
-          document.body.appendChild(input);
-          input.click();
-          document.body.removeChild(input);
-        }
-      },
-      "CTRL+ALT+J": (editor) => {
-        const codeBlockCommand = editor.commands.get("codeBlock");
-        if (codeBlockCommand.isEnabled) {
-          editor.execute("codeBlock", { language: "javascript" });
-        }
-      },
-      "CTRL+ALT+P": (editor) => {
-        const codeBlockCommand = editor.commands.get("codeBlock");
-        if (codeBlockCommand.isEnabled) {
-          editor.execute("codeBlock", { language: "python" });
-        }
-      },
-      "CTRL+ALT+H": (editor) => {
-        const codeBlockCommand = editor.commands.get("codeBlock");
-        if (codeBlockCommand.isEnabled) {
-          editor.execute("codeBlock", { language: "html" });
-        }
-      },
-    },
-  },
+  initialData: "",
 };
+
+const looksLikeMarkdown = (text) => {
+  if (!text || typeof text !== "string") return false;
+  return /(^#{1,6}\s)|(^\s*[-*+]\s)|(^\s*\d+\.\s)|(```)|(`[^`]+`)|(\[[^\]]+\]\([^)]+\))/m.test(
+    text
+  );
+};
+
+const normalizeUrl = (value) => {
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://${value}`;
+};
+
+const mergeConfig = (config = {}) => ({
+  ...DEFAULT_CONFIG,
+  ...config,
+  codeBlock: {
+    ...DEFAULT_CONFIG.codeBlock,
+    ...(config.codeBlock || {}),
+  },
+  fontFamily: {
+    ...DEFAULT_CONFIG.fontFamily,
+    ...(config.fontFamily || {}),
+  },
+  fontSize: {
+    ...DEFAULT_CONFIG.fontSize,
+    ...(config.fontSize || {}),
+  },
+  style: {
+    ...DEFAULT_CONFIG.style,
+    ...(config.style || {}),
+  },
+});
+
+const IMAGE_ALIGNMENT_CLASS_MAP = {
+  left: "image-style-align-left",
+  center: "image-style-align-center",
+  right: "image-style-align-right",
+  inline: "image-style-inline",
+};
+
+const IMAGE_ALIGNMENT_CLASSES = Object.values(IMAGE_ALIGNMENT_CLASS_MAP);
+
+const upsertInlineStyle = (styleValue, property, nextValue) => {
+  const style = styleValue || "";
+  const propertyPattern = new RegExp(`${property}\\s*:[^;]+;?`, "gi");
+  const cleaned = style.replace(propertyPattern, "").replace(/\s{2,}/g, " ").trim();
+  const normalized = cleaned.replace(/;\s*$/, "");
+
+  if (!nextValue) {
+    return normalized || null;
+  }
+
+  return `${normalized}${normalized ? "; " : ""}${property}: ${nextValue};`;
+};
+
+const withImageAlignmentClass = (classValue, alignmentClass) => {
+  const filtered = (classValue || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((className) => !IMAGE_ALIGNMENT_CLASSES.includes(className));
+
+  return [...filtered, alignmentClass].join(" ");
+};
+
+const parseImageWidthPercent = (styleValue) => {
+  const match = (styleValue || "").match(/width:\s*(\d+(?:\.\d+)?)%/i);
+  if (!match) return 100;
+  const width = Number(match[1]);
+  if (Number.isNaN(width)) return 100;
+  return Math.max(10, Math.min(100, Math.round(width)));
+};
+
+const ToolbarButton = ({ active, disabled, onClick, children, title, icon: Icon, showLabel = true }) => (
+  <button
+    type="button"
+    className={`toolbar-btn ${active ? "active" : ""} ${showLabel ? "" : "icon-only"}`}
+    disabled={disabled}
+    title={title}
+    aria-label={title || (typeof children === "string" ? children : undefined)}
+    onClick={onClick}
+  >
+    {Icon && <Icon size={14} />}
+    {showLabel && children}
+  </button>
+);
+
+const ToolbarMenu = ({ icon: Icon, label, children }) => (
+  <details className="toolbar-menu">
+    <summary className="toolbar-menu-trigger" aria-label={`${label} menu`}>
+      {Icon && <Icon size={14} />}
+      <span>{label}</span>
+      <ChevronDown size={12} />
+    </summary>
+    <div className="toolbar-menu-panel">{children}</div>
+  </details>
+);
 
 const CustomEditor = ({ initialData = "", config = {}, onChange, className, disabled }) => {
   const { user } = useAuth();
-  const editorContainerRef = useRef(null);
+  const fileInputRef = useRef(null);
   const editorRef = useRef(null);
-  const [isLayoutReady, setIsLayoutReady] = useState(false);
   const [error, setError] = useState(null);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showSpecialChars, setShowSpecialChars] = useState(false);
+  const [showFindReplace, setShowFindReplace] = useState(false);
+  const [showBlocks, setShowBlocks] = useState(false);
+  const [findValue, setFindValue] = useState("");
+  const [replaceValue, setReplaceValue] = useState("");
+  const [matchCase, setMatchCase] = useState(false);
+  const [useRegex, setUseRegex] = useState(false);
+  const [matchCount, setMatchCount] = useState(0);
+
+  const mergedConfig = useMemo(() => mergeConfig(config), [config]);
+
+  const uploadImage = useCallback(
+    async (file) => {
+      if (!file) return null;
+      if (!user?.token) {
+        throw new Error("Authentication token not found");
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/editor`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      return data?.fileUrl || data?.url || null;
+    },
+    [user]
+  );
+
+  const insertImageFromFile = useCallback(
+    async (file) => {
+      const currentEditor = editorRef.current;
+      if (!currentEditor) return;
+      try {
+        const url = await uploadImage(file);
+        if (!url) {
+          throw new Error("No URL returned from upload");
+        }
+
+        currentEditor
+          .chain()
+          .focus()
+          .setImage({
+            src: url,
+            alt: file?.name || "Uploaded image",
+            class: "image-style-align-center",
+          })
+          .run();
+      } catch (uploadError) {
+        setError(uploadError);
+      }
+    },
+    [uploadImage]
+  );
+
+  const extensions = useMemo(
+    () => [
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+        codeBlock: false,
+      }),
+      LabeledCodeBlock.configure({ lowlight }),
+      Underline,
+      Subscript,
+      Superscript,
+      Highlight.configure({ multicolor: true }),
+      TextStyle,
+      Color,
+      FontFamily,
+      FontSize,
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: "https",
+        HTMLAttributes: {
+          rel: "noopener noreferrer",
+          target: "_blank",
+        },
+      }),
+      Placeholder.configure({
+        placeholder: mergedConfig.placeholder,
+      }),
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      StyledTableHeader,
+      StyledTableCell,
+      DraggableImage,
+      GlobalClassStyle,
+    ],
+    [mergedConfig.placeholder]
+  );
+
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions,
+    content: normalizeLegacyCkHtml(initialData || mergedConfig.initialData),
+    editable: !disabled,
+    onUpdate: ({ editor: currentEditor }) => {
+      if (!onChange) return;
+      const cleaned = cleanEmptyParagraphs(currentEditor.getHTML());
+      onChange(cleaned);
+    },
+    editorProps: {
+      attributes: {
+        class: "tiptap-prosemirror",
+      },
+      handlePaste: (view, event) => {
+        const file = event.clipboardData?.files?.[0];
+        if (file && file.type?.startsWith("image/")) {
+          event.preventDefault();
+          insertImageFromFile(file);
+          return true;
+        }
+
+        const html = event.clipboardData?.getData("text/html");
+        const text = event.clipboardData?.getData("text/plain") || "";
+
+        if (!html && looksLikeMarkdown(text)) {
+          event.preventDefault();
+          const rendered = marked.parse(text, { async: false });
+          const safeHtml = DOMPurify.sanitize(rendered);
+          editorRef.current?.chain().focus().insertContent(safeHtml).run();
+          return true;
+        }
+
+        return false;
+      },
+      handleDrop: (view, event) => {
+        const file = event.dataTransfer?.files?.[0];
+        if (file && file.type?.startsWith("image/")) {
+          event.preventDefault();
+          insertImageFromFile(file);
+          return true;
+        }
+        return false;
+      },
+    },
+  });
 
   useEffect(() => {
-    setIsLayoutReady(true);
-    return () => setIsLayoutReady(false);
-  }, []);
-
-  const handleChange = (event, editor) => {
-    const data = editor.getData();
-
-    // Debug: Log when handler is called
-    //console.log('EDITOR - handleChange called');
-
-    if (onChange) {
-      // Clean up empty paragraphs before sending data back
-      const cleanedData = cleanEmptyParagraphs(data);
-      onChange(cleanedData);
-    }
-  };
-
-  // Function to clean empty paragraphs from editor output
-  const cleanEmptyParagraphs = (html) => {
-    if (!html) return html;
-
-    // Debug: Show original HTML
-    //console.log('EDITOR - Original HTML:', html);
-
-    // Clean <p>&nbsp;</p> and variants of empty paragraphs
-    const cleaned = html
-      .replace(/<p[^>]*>(\s|&nbsp;|<br\s*\/?>)*<\/p>/g, "")
-      .replace(/<p><span>(\s|&nbsp;)*<\/span><\/p>/g, "")
-      .replace(/<p[^>]*>\s*<\/p>/g, "");
-
-    // console.log('EDITOR - Cleaned HTML:', cleaned);
-
-    return cleaned;
-  };
-
-  const handleReady = (editor) => {
     editorRef.current = editor;
+  }, [editor]);
 
-    // Debug: Log when editor is ready
-    // console.log('EDITOR - CKEditor instance ready');
+  useEffect(() => {
+    if (!editor) return;
+    editor.setEditable(!disabled);
+  }, [disabled, editor]);
 
-    // Set up custom keystroke handlers with preventDefault
-    const customConfig = mergedConfig.customConfig || {};
-    if (customConfig.keystrokes) {
-      Object.entries(customConfig.keystrokes).forEach(([keystroke, handler]) => {
-        editor.keystrokes.set(keystroke, (keyEvtData, cancel) => {
-          keyEvtData.preventDefault(); // Prevent browser default
-          cancel();
-          handler(editor);
-        });
-      });
+  useEffect(() => {
+    if (!editor) return;
+    const normalized = normalizeLegacyCkHtml(initialData || "");
+    const current = editor.getHTML();
+    if (normalized !== current) {
+      editor.commands.setContent(normalized, false);
     }
+  }, [editor, initialData]);
 
-    // Image upload adapter setup
-    editor.plugins.get("FileRepository").createUploadAdapter = (loader) => {
-      return new ImageUploadAdapter(loader, user?.token);
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleShortcut = (event) => {
+      if (!event.ctrlKey || !event.altKey) return;
+
+      const key = event.key.toLowerCase();
+      if (!["i", "j", "p", "h"].includes(key)) return;
+
+      event.preventDefault();
+
+      if (key === "i") {
+        fileInputRef.current?.click();
+        return;
+      }
+
+      if (key === "j") {
+        editor.chain().focus().toggleCodeBlock({ language: "javascript" }).run();
+      }
+
+      if (key === "p") {
+        editor.chain().focus().toggleCodeBlock({ language: "python" }).run();
+      }
+
+      if (key === "h") {
+        editor.chain().focus().toggleCodeBlock({ language: "html" }).run();
+      }
     };
 
-    editor.model.document.on("change:data", () => {
-      const data = editor.getData();
+    const domNode = editor.view?.dom;
+    if (!domNode) return;
 
-      // Debug: Log when content changes
-      // console.log('EDITOR - Content changed');
+    domNode.addEventListener("keydown", handleShortcut);
+    return () => {
+      domNode.removeEventListener("keydown", handleShortcut);
+    };
+  }, [editor]);
 
-      if (onChange) {
-        // Clean up empty paragraphs before sending data back
-        const cleanedData = cleanEmptyParagraphs(data);
-        onChange(cleanedData);
-      }
-    });
+  useEffect(() => {
+    if (!editor || !findValue.trim()) {
+      setMatchCount(0);
+      return;
+    }
+
+    try {
+      const regex = useRegex
+        ? new RegExp(findValue, matchCase ? "g" : "gi")
+        : new RegExp(escapeRegExp(findValue), matchCase ? "g" : "gi");
+
+      const text = editor.getText();
+      const matches = text.match(regex);
+      setMatchCount(matches ? matches.length : 0);
+    } catch {
+      setMatchCount(0);
+    }
+  }, [editor, findValue, matchCase, useRegex]);
+
+  const handleHeadingChange = (value) => {
+    if (!editor) return;
+    if (value === "paragraph") {
+      editor.chain().focus().setParagraph().run();
+      return;
+    }
+
+    editor
+      .chain()
+      .focus()
+      .setHeading({ level: Number(value) })
+      .run();
   };
 
-  if (error) {
-    return <div className="editor-error">Error: {error.message}</div>;
+  const handleStyleDefinition = (name) => {
+    if (!editor) return;
+    const definition = mergedConfig.style.definitions.find((item) => item.name === name);
+    if (!definition) return;
+
+    if (definition.element === "span") {
+      editor.chain().focus().setTextStyleClass(definition.className).run();
+      return;
+    }
+
+    if (definition.element === "h2") {
+      editor.chain().focus().setHeading({ level: 2 }).updateAttributes("heading", { class: definition.className || null }).run();
+      return;
+    }
+
+    if (definition.element === "h3") {
+      editor.chain().focus().setHeading({ level: 3 }).updateAttributes("heading", { class: definition.className || null }).run();
+      return;
+    }
+
+    if (definition.element === "p") {
+      editor.chain().focus().setParagraph().updateAttributes("paragraph", { class: definition.className || null }).run();
+      return;
+    }
+
+    if (definition.element === "blockquote") {
+      editor.chain().focus().setBlockquote().updateAttributes("blockquote", { class: definition.className || null }).run();
+      return;
+    }
+
+    if (definition.element === "pre") {
+      editor.chain().focus().toggleCodeBlock({ language: "plaintext" }).updateAttributes("codeBlock", { class: definition.className || null }).run();
+    }
+  };
+
+  const handleSetLink = () => {
+    if (!editor) return;
+
+    const previous = editor.getAttributes("link")?.href || "";
+    const raw = window.prompt("Enter URL", previous);
+
+    if (raw === null) return;
+
+    if (!raw.trim()) {
+      editor.chain().focus().unsetLink().run();
+      return;
+    }
+
+    const href = normalizeUrl(raw.trim());
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href, target: "_blank", rel: "noopener noreferrer" })
+      .run();
+  };
+
+  const handleToggleDownloadableLink = () => {
+    if (!editor) return;
+    editor.chain().focus().toggleLinkDownloadable().run();
+  };
+
+  const handleIndent = () => {
+    if (!editor) return;
+    if (editor.isActive("listItem")) {
+      editor.chain().focus().sinkListItem("listItem").run();
+      return;
+    }
+
+    const target = editor.isActive("heading") ? "heading" : "paragraph";
+    const attributes = editor.getAttributes(target);
+    const style = attributes.style || "";
+    const match = style.match(/margin-left:\s*(\d+)px/);
+    const current = match ? Number(match[1]) : 0;
+    const next = Math.min(current + 40, 240);
+    const updated = style.replace(/margin-left:\s*\d+px;?/g, "").trim();
+    editor
+      .chain()
+      .focus()
+      .updateAttributes(target, {
+        style: `${updated}${updated ? "; " : ""}margin-left: ${next}px;`,
+      })
+      .run();
+  };
+
+  const handleOutdent = () => {
+    if (!editor) return;
+    if (editor.isActive("listItem")) {
+      editor.chain().focus().liftListItem("listItem").run();
+      return;
+    }
+
+    const target = editor.isActive("heading") ? "heading" : "paragraph";
+    const attributes = editor.getAttributes(target);
+    const style = attributes.style || "";
+    const match = style.match(/margin-left:\s*(\d+)px/);
+    const current = match ? Number(match[1]) : 0;
+    const next = Math.max(current - 40, 0);
+    const stripped = style.replace(/margin-left:\s*\d+px;?/g, "").trim();
+    const composed = next > 0 ? `${stripped}${stripped ? "; " : ""}margin-left: ${next}px;` : stripped;
+
+    editor.chain().focus().updateAttributes(target, { style: composed || null }).run();
+  };
+
+  const handleReplaceAll = () => {
+    if (!editor || !findValue.trim()) return;
+
+    try {
+      const pattern = useRegex
+        ? new RegExp(findValue, matchCase ? "g" : "gi")
+        : new RegExp(escapeRegExp(findValue), matchCase ? "g" : "gi");
+
+      const nextHtml = editor.getHTML().replace(pattern, replaceValue);
+      editor.commands.setContent(nextHtml, true);
+    } catch (replaceError) {
+      setError(replaceError);
+    }
+  };
+
+  const handleRemoveFormatting = () => {
+    if (!editor) return;
+    editor.chain().focus().unsetAllMarks().clearNodes().run();
+  };
+
+  const handleApplyAlignment = (alignment) => {
+    if (!editor) return;
+    editor.chain().focus().setTextAlign(alignment).run();
+  };
+
+  const handleImageFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    insertImageFromFile(file);
+    event.target.value = "";
+  };
+
+  const runMenuAction = (action) => (event) => {
+    action();
+    const details = event.currentTarget.closest("details");
+    if (details) {
+      details.open = false;
+    }
+  };
+
+  const setImageAlignment = (alignment) => {
+    if (!editor || !editor.isActive("image")) return;
+    const alignmentClass = IMAGE_ALIGNMENT_CLASS_MAP[alignment];
+    if (!alignmentClass) return;
+
+    const imageAttrs = editor.getAttributes("image");
+    editor
+      .chain()
+      .focus()
+      .updateAttributes("image", {
+        class: withImageAlignmentClass(imageAttrs.class, alignmentClass),
+      })
+      .run();
+  };
+
+  const setImageWidthPercent = (widthPercent) => {
+    if (!editor || !editor.isActive("image")) return;
+    const width = Math.max(10, Math.min(100, Number(widthPercent) || 100));
+    const imageAttrs = editor.getAttributes("image");
+    const styleWithWidth = upsertInlineStyle(imageAttrs.style, "width", `${width}%`);
+    const nextStyle = upsertInlineStyle(styleWithWidth, "height", "auto");
+
+    editor.chain().focus().updateAttributes("image", { style: nextStyle }).run();
+  };
+
+  const resetImageWidth = () => {
+    if (!editor || !editor.isActive("image")) return;
+    const imageAttrs = editor.getAttributes("image");
+    const styleWithoutWidth = upsertInlineStyle(imageAttrs.style, "width", null);
+    const nextStyle = upsertInlineStyle(styleWithoutWidth, "height", null);
+
+    editor.chain().focus().updateAttributes("image", { style: nextStyle }).run();
+  };
+
+  const activeHeading = editor?.isActive("heading", { level: 1 })
+    ? "1"
+    : editor?.isActive("heading", { level: 2 })
+      ? "2"
+      : editor?.isActive("heading", { level: 3 })
+        ? "3"
+        : "paragraph";
+  const isImageActive = editor?.isActive("image") ?? false;
+  const imageAttrs = isImageActive ? editor.getAttributes("image") : {};
+  const activeImageWidth = parseImageWidthPercent(imageAttrs.style);
+
+  if (!editor) {
+    return <div className={`custom-editor ${className || ""}`}>Loading editor...</div>;
   }
 
-  const mergedConfig = {
-    ...DEFAULT_CONFIG,
-    ...config,
-    initialData: initialData || DEFAULT_CONFIG.initialData,
-    disabled,
-  };
-
   return (
-    <div className={`custom-editor ${className || ""}`}>
-      {/* Debug message visible in the DOM */}
+    <div className={`custom-editor ${className || ""} ${showBlocks ? "show-blocks" : ""}`}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden-file-input"
+        onChange={handleImageFileChange}
+      />
 
       <div className="main-container">
-        <div
-          className="editor-container editor-container_classic-editor editor-container_include-style"
-          ref={editorContainerRef}
-        >
-          <div className="editor-container__editor">
-            <div className="editor-help-tooltip">
-              <FaQuestionCircle className="help-icon" />
+        <div className="editor-shell">
+          <div className="editor-help-tooltip">
+            <CircleHelp
+              className="help-icon"
+              onMouseEnter={() => setShowShortcutsHelp(true)}
+              onMouseLeave={() => setShowShortcutsHelp(false)}
+            />
+            {showShortcutsHelp && (
               <div className="tooltip-content">
                 <h4>Keyboard Shortcuts</h4>
                 <ul>
@@ -629,68 +662,376 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
                   </li>
                 </ul>
               </div>
+            )}
+          </div>
+
+          <div className="editor-menubar" role="menubar" aria-label="Editor menu bar">
+            <button type="button" className="menu-btn" onClick={() => setShowFindReplace((prev) => !prev)}>
+              <Search size={13} />
+              Edit
+            </button>
+            <button type="button" className="menu-btn" onClick={() => setShowBlocks((prev) => !prev)}>
+              <Eye size={13} />
+              View
+            </button>
+            <button type="button" className="menu-btn" onClick={() => fileInputRef.current?.click()}>
+              <ImagePlus size={13} />
+              Insert
+            </button>
+            <button type="button" className="menu-btn" onClick={() => handleStyleDefinition("Title")}>
+              <Paintbrush2 size={13} />
+              Format
+            </button>
+            <button type="button" className="menu-btn" onClick={() => setShowShortcutsHelp((prev) => !prev)}>
+              <CircleHelp size={13} />
+              Help
+            </button>
+          </div>
+
+          <div className="editor-toolbar" role="toolbar" aria-label="Editor toolbar">
+            <div className="toolbar-row toolbar-row--compact">
+              <div className="toolbar-primary-controls">
+              <ToolbarButton
+                title="Undo"
+                icon={Undo2}
+                showLabel={false}
+                onClick={() => editor.chain().focus().undo().run()}
+                disabled={!editor.can().undo()}
+              />
+              <ToolbarButton
+                title="Redo"
+                icon={Redo2}
+                showLabel={false}
+                onClick={() => editor.chain().focus().redo().run()}
+                disabled={!editor.can().redo()}
+              />
+
+              <span className="toolbar-divider" aria-hidden="true" />
+
+              <select value={activeHeading} onChange={(event) => handleHeadingChange(event.target.value)} className="toolbar-select compact">
+                <option value="paragraph">Paragraph</option>
+                <option value="1">Heading 1</option>
+                <option value="2">Heading 2</option>
+                <option value="3">Heading 3</option>
+              </select>
+
+              <select defaultValue="" onChange={(event) => event.target.value && handleStyleDefinition(event.target.value)} className="toolbar-select compact">
+                <option value="">Styles</option>
+                {mergedConfig.style.definitions.map((definition) => (
+                  <option key={definition.name} value={definition.name}>
+                    {definition.name}
+                  </option>
+                ))}
+              </select>
+
+              <span className="toolbar-divider" aria-hidden="true" />
+
+              <select
+                defaultValue=""
+                onChange={(event) => event.target.value && editor.chain().focus().setFontFamily(event.target.value).run()}
+                className="toolbar-select compact"
+                title="Font family"
+              >
+                <option value="">Font family</option>
+                {mergedConfig.fontFamily.options.map((font) => (
+                  <option key={font} value={font}>
+                    {font}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                defaultValue=""
+                onChange={(event) => event.target.value && editor.chain().focus().setFontSize(event.target.value).run()}
+                className="toolbar-select compact toolbar-select--small"
+                title="Font size"
+              >
+                <option value="">Size</option>
+                {mergedConfig.fontSize.options.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+
+              <label className="toolbar-color" title="Text color">
+                <Type size={13} />
+                <input type="color" onChange={(event) => editor.chain().focus().setColor(event.target.value).run()} />
+              </label>
+              <label className="toolbar-color" title="Highlight color">
+                <Palette size={13} />
+                <input type="color" onChange={(event) => editor.chain().focus().setHighlight({ color: event.target.value }).run()} />
+              </label>
+
+              <span className="toolbar-divider" aria-hidden="true" />
+
+              <ToolbarButton icon={Bold} showLabel={false} active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold" />
+              <ToolbarButton icon={Italic} showLabel={false} active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic" />
+              <ToolbarButton icon={UnderlineIcon} showLabel={false} active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline" />
+              <ToolbarButton icon={Strikethrough} showLabel={false} active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()} title="Strikethrough" />
+              <ToolbarButton icon={Code2} showLabel={false} active={editor.isActive("code")} onClick={() => editor.chain().focus().toggleCode().run()} title="Inline code" />
+              <ToolbarButton icon={SubscriptIcon} showLabel={false} active={editor.isActive("subscript")} onClick={() => editor.chain().focus().toggleSubscript().run()} title="Subscript" />
+              <ToolbarButton icon={SuperscriptIcon} showLabel={false} active={editor.isActive("superscript")} onClick={() => editor.chain().focus().toggleSuperscript().run()} title="Superscript" />
+
+              <span className="toolbar-divider" aria-hidden="true" />
+
+              <ToolbarButton icon={List} showLabel={false} active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bulleted list" />
+              <ToolbarButton icon={ListOrdered} showLabel={false} active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Numbered list" />
+              <ToolbarButton icon={Link2} showLabel={false} active={editor.isActive("link")} onClick={handleSetLink} title="Link" />
+              <ToolbarButton icon={Download} showLabel={false} active={Boolean(editor.getAttributes("link")?.download)} onClick={handleToggleDownloadableLink} title="Toggle downloadable link" />
+              <ToolbarButton icon={Quote} showLabel={false} active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()} title="Block quote" />
+              <ToolbarButton icon={Minus} showLabel={false} onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Horizontal line" />
+
+              <span className="toolbar-divider" aria-hidden="true" />
+
+              <select
+                defaultValue="javascript"
+                onChange={(event) => editor.chain().focus().toggleCodeBlock({ language: event.target.value }).run()}
+                className="toolbar-select compact toolbar-select--small"
+                title="Code block language"
+              >
+                {mergedConfig.codeBlock.languages.map((language) => (
+                  <option key={language.language} value={language.language}>
+                    {language.label}
+                  </option>
+                ))}
+              </select>
+              <span className="toolbar-divider" aria-hidden="true" />
+              </div>
+
+              <div className="toolbar-menus-right">
+                <ToolbarMenu icon={AlignLeft} label="Align">
+                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => handleApplyAlignment("left"))}>
+                    <AlignLeft size={14} />
+                    Align left
+                  </button>
+                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => handleApplyAlignment("center"))}>
+                    <AlignCenter size={14} />
+                    Align center
+                  </button>
+                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => handleApplyAlignment("right"))}>
+                    <AlignRight size={14} />
+                    Align right
+                  </button>
+                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => handleApplyAlignment("justify"))}>
+                    <AlignJustify size={14} />
+                    Align justify
+                  </button>
+                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(handleOutdent)}>
+                    <IndentDecrease size={14} />
+                    Outdent
+                  </button>
+                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(handleIndent)}>
+                    <IndentIncrease size={14} />
+                    Indent
+                  </button>
+                </ToolbarMenu>
+
+                <ToolbarMenu icon={ImagePlus} label="Insert">
+                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => fileInputRef.current?.click())}>
+                    <ImagePlus size={14} />
+                    Upload image
+                  </button>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run())}
+                  >
+                    <Table2 size={14} />
+                    Insert table
+                  </button>
+                  <button
+                    type="button"
+                    className={`toolbar-menu-item ${showSpecialChars ? "active" : ""}`}
+                    onClick={runMenuAction(() => setShowSpecialChars((prev) => !prev))}
+                  >
+                    <Sigma size={14} />
+                    Special chars
+                  </button>
+                </ToolbarMenu>
+
+                <ToolbarMenu icon={Search} label="Tools">
+                  <button
+                    type="button"
+                    className={`toolbar-menu-item ${showFindReplace ? "active" : ""}`}
+                    onClick={runMenuAction(() => setShowFindReplace((prev) => !prev))}
+                  >
+                    <Search size={14} />
+                    Find/replace
+                  </button>
+                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => editor.chain().focus().selectAll().run())}>
+                    <CheckSquare size={14} />
+                    Select all
+                  </button>
+                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(handleRemoveFormatting)}>
+                    <Eraser size={14} />
+                    Remove format
+                  </button>
+                  <button
+                    type="button"
+                    className={`toolbar-menu-item ${showBlocks ? "active" : ""}`}
+                    onClick={runMenuAction(() => setShowBlocks((prev) => !prev))}
+                  >
+                    <Eye size={14} />
+                    Show blocks
+                  </button>
+                </ToolbarMenu>
+              </div>
             </div>
-            <div ref={editorRef}>
-              {isLayoutReady && (
-                <CKEditor
-                  editor={ClassicEditor}
-                  config={mergedConfig}
-                  onChange={handleChange}
-                  onReady={handleReady}
-                  onError={(error) => setError(error)}
+
+            {isImageActive && (
+              <div className="toolbar-row image-toolbar">
+                <span className="toolbar-label">Image</span>
+                <ToolbarButton
+                  title="Align left"
+                  icon={AlignLeft}
+                  active={(imageAttrs.class || "").includes("image-style-align-left")}
+                  onClick={() => setImageAlignment("left")}
+                >
+                  Left
+                </ToolbarButton>
+                <ToolbarButton
+                  title="Align center"
+                  icon={AlignCenter}
+                  active={(imageAttrs.class || "").includes("image-style-align-center")}
+                  onClick={() => setImageAlignment("center")}
+                >
+                  Center
+                </ToolbarButton>
+                <ToolbarButton
+                  title="Align right"
+                  icon={AlignRight}
+                  active={(imageAttrs.class || "").includes("image-style-align-right")}
+                  onClick={() => setImageAlignment("right")}
+                >
+                  Right
+                </ToolbarButton>
+                <ToolbarButton
+                  title="Inline image"
+                  icon={Pilcrow}
+                  active={(imageAttrs.class || "").includes("image-style-inline")}
+                  onClick={() => setImageAlignment("inline")}
+                >
+                  Inline
+                </ToolbarButton>
+                <label className="toolbar-range">
+                  Width
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    step="5"
+                    value={activeImageWidth}
+                    onChange={(event) => setImageWidthPercent(event.target.value)}
+                  />
+                  <span>{activeImageWidth}%</span>
+                </label>
+                <ToolbarButton onClick={() => setImageWidthPercent(25)}>25%</ToolbarButton>
+                <ToolbarButton onClick={() => setImageWidthPercent(50)}>50%</ToolbarButton>
+                <ToolbarButton onClick={() => setImageWidthPercent(75)}>75%</ToolbarButton>
+                <ToolbarButton onClick={() => setImageWidthPercent(100)}>100%</ToolbarButton>
+                <ToolbarButton title="Use intrinsic image size" onClick={resetImageWidth}>
+                  Original
+                </ToolbarButton>
+              </div>
+            )}
+
+            {editor.isActive("table") && (
+              <div className="toolbar-row table-toolbar">
+                <ToolbarButton onClick={() => editor.chain().focus().addColumnBefore().run()}>+Col Before</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().addColumnAfter().run()}>+Col After</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().deleteColumn().run()}>-Col</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().addRowBefore().run()}>+Row Before</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().addRowAfter().run()}>+Row After</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().deleteRow().run()}>-Row</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().mergeCells().run()}>Merge</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().splitCell().run()}>Split</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().toggleHeaderRow().run()}>Header Row</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>Header Col</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().deleteTable().run()}>Delete Table</ToolbarButton>
+                <label className="toolbar-color">
+                  Cell BG
+                  <input
+                    type="color"
+                    onChange={(event) =>
+                      editor.chain().focus().setCellAttribute("backgroundColor", event.target.value).run()
+                    }
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+
+          {showSpecialChars && (
+            <div className="editor-popover">
+              {Object.entries(SPECIAL_CHARACTERS).map(([group, chars]) => (
+                <div key={group} className="char-group">
+                  <h5>{group}</h5>
+                  <div className="char-grid">
+                    {chars.map((char) => (
+                      <button
+                        type="button"
+                        key={`${group}-${char}`}
+                        className="char-btn"
+                        onClick={() => editor.chain().focus().insertContent(char).run()}
+                      >
+                        {char}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {showFindReplace && (
+            <div className="editor-popover">
+              <div className="find-grid">
+                <input
+                  type="text"
+                  placeholder="Find"
+                  value={findValue}
+                  onChange={(event) => setFindValue(event.target.value)}
                 />
-              )}
+                <input
+                  type="text"
+                  placeholder="Replace"
+                  value={replaceValue}
+                  onChange={(event) => setReplaceValue(event.target.value)}
+                />
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={matchCase}
+                    onChange={(event) => setMatchCase(event.target.checked)}
+                  />
+                  Match case
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={useRegex}
+                    onChange={(event) => setUseRegex(event.target.checked)}
+                  />
+                  Regex
+                </label>
+                <button type="button" onClick={handleReplaceAll}>
+                  Replace All
+                </button>
+                <span>{matchCount} match(es)</span>
+              </div>
             </div>
+          )}
+
+          <div className="tiptap-editor">
+            <EditorContent editor={editor} />
           </div>
         </div>
       </div>
+
+      {error && <div className="editor-error">Error: {error.message}</div>}
     </div>
   );
 };
-
-// Update ImageUploadAdapter to accept token in constructor
-class ImageUploadAdapter {
-  constructor(loader, token) {
-    this.loader = loader;
-    this.token = token;
-  }
-
-  async upload() {
-    try {
-      const file = await this.loader.file;
-      const formData = new FormData();
-      formData.append("file", file);
-
-      if (!this.token) {
-        throw new Error("Authentication token not found");
-      }
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/editor`, {
-        // Corrected URL
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const data = await response.json();
-      return {
-        default: data.fileUrl,
-      };
-    } catch (error) {
-      console.error("Upload failed:", error);
-      throw error;
-    }
-  }
-
-  abort() {
-    // Abort upload if needed
-  }
-}
 
 export default CustomEditor;

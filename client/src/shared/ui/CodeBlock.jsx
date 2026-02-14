@@ -1,7 +1,34 @@
 import { memo } from "react";
 import { FaRegCopy, FaCheck } from "react-icons/fa";
 
+const toLanguageLabel = (language) => {
+  if (!language) return "Plain text";
+
+  const labels = {
+    plaintext: "Plain text",
+    javascript: "JavaScript",
+    typescript: "TypeScript",
+    python: "Python",
+    html: "HTML",
+    css: "CSS",
+    sql: "SQL",
+    bash: "Bash",
+    powershell: "PowerShell",
+    cpp: "C++",
+    csharp: "C#",
+  };
+
+  return (
+    labels[language] ||
+    language
+      .replace(/[-_]+/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+  );
+};
+
 const CodeBlock = memo(({ codeText, language }) => {
+  const languageLabel = toLanguageLabel(language);
+
   const copyCodeToClipboard = (code, event) => {
     const button = event.currentTarget;
 
@@ -20,6 +47,7 @@ const CodeBlock = memo(({ codeText, language }) => {
 
   return (
     <div className="code-block" style={{ contain: "layout style paint" }}>
+      <span className="code-language-label">{languageLabel}</span>
       <button className="copy" onClick={(e) => copyCodeToClipboard(codeText, e)}>
         <span
           className="tooltip"

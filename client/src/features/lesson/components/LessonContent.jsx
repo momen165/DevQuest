@@ -194,7 +194,21 @@ const LessonContent = ({
       }
 
       const className = codeNode.attribs?.class || "";
-      const language = className.replace("language-", "") || "plaintext";
+      const preClassName = node.attribs?.class || "";
+      const languageClass = className
+        .split(" ")
+        .find((item) => item.startsWith("language-"));
+      const language = languageClass ? languageClass.replace("language-", "") : "plaintext";
+
+      // Keep authored themed code blocks untouched so lesson styling classes still apply.
+      if (preClassName.includes("editor-code")) {
+        return (
+          <pre className={preClassName}>
+            <code className={className}>{codeText}</code>
+          </pre>
+        );
+      }
+
       return <CodeBlock codeText={codeText} language={language} />;
     }
     return undefined;
