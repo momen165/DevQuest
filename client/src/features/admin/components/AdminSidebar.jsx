@@ -19,7 +19,18 @@ const AdminSidebar = ({ children }) => {
   const location = useLocation();
   const { logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const isActivePath = (path) => {
+    const currentPath = location.pathname.toLowerCase();
+    const targetPath = path.toLowerCase();
 
+    // Exact match
+    if (currentPath === targetPath) {
+      return true;
+    }
+
+    // Match nested routes (e.g., "/support" active for "/support/tickets")
+    return currentPath.startsWith(`${targetPath}/`);
+  };
   const handleLogout = () => {
     setShowLogoutConfirm(true);
   };
@@ -39,63 +50,55 @@ const AdminSidebar = ({ children }) => {
         <h2>Admin Dashboard</h2>
         <ul>
           <Link to="/Dashboard" className="link">
-            <li className={`sidebar-item ${location.pathname === "/Dashboard" ? "active" : ""}`}>
+            <li className={`sidebar-item ${isActivePath("/Dashboard") ? "active" : ""}`}>
               <FaHome /> <span>Dashboard</span>
             </li>
           </Link>
 
           <Link to="/Students" className="link">
-            <li className={`sidebar-item ${location.pathname === "/Students" ? "active" : ""}`}>
+            <li className={`sidebar-item ${isActivePath("/Students") ? "active" : ""}`}>
               <FaUser /> <span>Students</span>
             </li>
           </Link>
 
           <Link to="/AdminCourses" className="link">
-            <li className={`sidebar-item ${location.pathname === "/AdminCourses" ? "active" : ""}`}>
+            <li className={`sidebar-item ${isActivePath("/AdminCourses") ? "active" : ""}`}>
               <FaChalkboardTeacher /> <span>Courses</span>
             </li>
           </Link>
 
           {/* Add Analytics link */}
           <Link to="/Analytics" className="link">
-            <li className={`sidebar-item ${location.pathname === "/Analytics" ? "active" : ""}`}>
+            <li className={`sidebar-item ${isActivePath("/Analytics") ? "active" : ""}`}>
               <FaChartLine /> <span>Analytics</span>
             </li>
           </Link>
 
           <Link to="/PaymentInfo" className="link">
-            <li className={`sidebar-item ${location.pathname === "/PaymentInfo" ? "active" : ""}`}>
+            <li className={`sidebar-item ${isActivePath("/PaymentInfo") ? "active" : ""}`}>
               <FaMoneyCheckAlt /> <span>Payment</span>
             </li>
           </Link>
 
           <Link to="/Feedback" className="link">
-            <li className={`sidebar-item ${location.pathname === "/Feedback" ? "active" : ""}`}>
+            <li className={`sidebar-item ${isActivePath("/Feedback") ? "active" : ""}`}>
               <FaComment /> <span>Feedback</span>
             </li>
           </Link>
           <Link to="/Support" className="link">
-            <li className={`sidebar-item ${location.pathname === "/Support" ? "active" : ""}`}>
+            <li className={`sidebar-item ${isActivePath("/Support") ? "active" : ""}`}>
               <FaComment /> <span>Support</span>
             </li>
           </Link>
 
           <Link to="/SupportDashboard" className="link">
-            <li
-              className={`sidebar-item ${
-                location.pathname === "/SupportDashboard" ? "active" : ""
-              }`}
-            >
+            <li className={`sidebar-item ${isActivePath("/SupportDashboard") ? "active" : ""}`}>
               <FaTachometerAlt /> <span>Support Analytics</span>
             </li>
           </Link>
 
           <Link to="/AdminSettingsPage" className="link">
-            <li
-              className={`sidebar-item ${
-                location.pathname === "/AdminSettingsPage" ? "active" : ""
-              }`}
-            >
+            <li className={`sidebar-item ${isActivePath("/AdminSettingsPage") ? "active" : ""}`}>
               <FaCog /> <span>Settings</span>
             </li>
           </Link>

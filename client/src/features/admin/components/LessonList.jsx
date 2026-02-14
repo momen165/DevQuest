@@ -1,6 +1,14 @@
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { FiEdit2, FiTrash2, FiPlus, FiArrowLeft, FiMove, FiFileText } from "react-icons/fi";
+import {
+  FiEdit2,
+  FiTrash2,
+  FiPlus,
+  FiArrowLeft,
+  FiMove,
+  FiFileText,
+  FiAlertCircle,
+} from "react-icons/fi";
 import "./AdminManage.css";
 import ErrorAlert from "./ErrorAlert";
 import { useAuth } from "app/AuthContext";
@@ -9,8 +17,14 @@ import CircularProgress from "@mui/material/CircularProgress";
 
 const LessonForm = React.lazy(() => import("./LessonForm"));
 
-const LessonList = ({ section, languageId, onClose }) => {
-  const [editingLesson, setEditingLesson] = useState(null);
+const LessonList = ({
+  section,
+  languageId,
+  selectedLessonId,
+  onOpenLesson,
+  onCloseLesson,
+  onClose,
+}) => {
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const { user } = useAuth();
 
@@ -18,15 +32,29 @@ const LessonList = ({ section, languageId, onClose }) => {
     section?.section_id,
     user?.token
   );
+
+  const editingLesson = useMemo(() => {
+    if (!selectedLessonId) return null;
+    return lessons.find((lesson) => String(lesson.lesson_id) === String(selectedLessonId));
+  }, [lessons, selectedLessonId]);
+
+  const isEditingLesson = Boolean(selectedLessonId);
+
   const handleSaveLesson = async () => {
-    setEditingLesson(null);
-    setIsAddingLesson(false);
     await fetchLessons();
+    if (isEditingLesson) {
+      onCloseLesson?.();
+    } else {
+      setIsAddingLesson(false);
+    }
   };
 
   const handleDeleteLesson = async (lessonId) => {
     if (window.confirm("Are you sure you want to delete this lesson?")) {
-      await deleteLesson(lessonId);
+      const result = await deleteLesson(lessonId);
+      if (result?.success && String(selectedLessonId) === String(lessonId)) {
+        onCloseLesson?.();
+      }
     }
   };
 
@@ -42,7 +70,7 @@ const LessonList = ({ section, languageId, onClose }) => {
 
   return (
     <div
-      className={`manage-container ${isAddingLesson || editingLesson ? "manage-container-wide" : ""}`}
+      className={`manage-container ${isAddingLesson || isEditingLesson ? "manage-container-wide" : ""}`}
     >
       {error && <ErrorAlert message={error} onClose={() => {}} />}
 
@@ -54,7 +82,7 @@ const LessonList = ({ section, languageId, onClose }) => {
         <div className="manage-header-title">
           <h2 className="manage-title">{section.name}</h2>
         </div>
-        {!isAddingLesson && !editingLesson && (
+        {!isAddingLesson && !isEditingLesson && (
           <button className="btn btn-primary" onClick={() => setIsAddingLesson(true)}>
             <FiPlus size={18} />
             Add Lesson
@@ -66,7 +94,17 @@ const LessonList = ({ section, languageId, onClose }) => {
         <div className="manage-loading">
           <CircularProgress className="manage-loading-spinner" />
         </div>
-      ) : isAddingLesson || editingLesson ? (
+      ) : isEditingLesson && !editingLesson ? (
+        <div className="list-empty">
+          <FiAlertCircle className="list-empty-icon" />
+          <h3 className="list-empty-title">Lesson not found</h3>
+          <p className="list-empty-text">This lesson URL is invalid or the lesson was removed.</p>
+          <button className="manage-back-btn" onClick={onCloseLesson}>
+            <FiArrowLeft size={18} />
+            Back to Lessons
+          </button>
+        </div>
+      ) : isAddingLesson || isEditingLesson ? (
         <Suspense fallback={<div className="manage-loading">Loading lesson form...</div>}>
           <LessonForm
             section={section}
@@ -75,8 +113,11 @@ const LessonList = ({ section, languageId, onClose }) => {
             onSave={handleSaveLesson}
             onDelete={handleDeleteLesson}
             onCancel={() => {
-              setEditingLesson(null);
-              setIsAddingLesson(false);
+              if (isEditingLesson) {
+                onCloseLesson?.();
+              } else {
+                setIsAddingLesson(false);
+              }
             }}
           />
         </Suspense>
@@ -109,12 +150,20 @@ const LessonList = ({ section, languageId, onClose }) => {
                           </div>
                           <div className="item-content">
                             <span className="item-order">{index + 1}</span>
-                            <span className="item-name">{lesson.name}</span>
+                            <button
+                              type="button"
+                              className="item-name-button"
+                              onClick={() =>
+                                onOpenLesson?.(section.section_id, lesson.lesson_id)
+                              }
+                            >
+                              {lesson.name}
+                            </button>
                           </div>
                           <div className="item-actions">
                             <button
                               className="action-btn action-btn-edit"
-                              onClick={() => setEditingLesson(lesson)}
+                              onClick={() => onOpenLesson?.(section.section_id, lesson.lesson_id)}
                               title="Edit Lesson"
                             >
                               <FiEdit2 size={16} />

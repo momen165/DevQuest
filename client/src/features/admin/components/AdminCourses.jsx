@@ -1,10 +1,11 @@
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import {
   FiEdit2,
   FiTrash2,
   FiPlus,
   FiLayers,
   FiAlertCircle,
+  FiArrowLeft,
   FiStar,
   FiUsers,
   FiFolder,
@@ -12,6 +13,7 @@ import {
 import "./AdminDashboard.css";
 import axios from "axios";
 import { useAuth } from "app/AuthContext";
+import { useLocation, useNavigate } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
 import useAdminCourses from "features/admin/hooks/useAdminCourses";
 
@@ -22,24 +24,75 @@ const CourseFeedbackModal = React.lazy(() => import("./CourseFeedbackModal"));
 const AdminCourses = () => {
   const { user } = useAuth();
   const token = user?.token;
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const { courses, loading, error, fetchCourses, deleteCourse, fetchSections, deleteSection } =
     useAdminCourses(token);
 
   const [editingCourse, setEditingCourse] = useState(null);
-  const [editingSections, setEditingSections] = useState(false);
   const [sections, setSections] = useState([]);
   const [isAddingCourse, setIsAddingCourse] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [feedbackCourse, setFeedbackCourse] = useState(null);
 
-  const handleEditSections = async (course) => {
-    setEditingCourse(course);
-    setEditingSections(true);
+  const adminCoursesBasePath = location.pathname.startsWith("/admincourses")
+    ? "/admincourses"
+    : "/AdminCourses";
 
-    const sectionsData = await fetchSections(course.course_id);
-    if (sectionsData) {
-      setSections(sectionsData);
+  const [courseIdParam, sectionIdParam, lessonIdParam] = useMemo(() => {
+    const match = location.pathname.match(/^\/admincourses\/?(.*)$/i);
+    const routeSegments = match?.[1] ? match[1].split("/").filter(Boolean) : [];
+    return [routeSegments[0], routeSegments[1], routeSegments[2]];
+  }, [location.pathname]);
+
+  const activeCourse = useMemo(
+    () => courses.find((course) => String(course.course_id) === String(courseIdParam)),
+    [courses, courseIdParam]
+  );
+
+  const isManagingSections = Boolean(courseIdParam);
+  const hasInvalidCourseRoute = isManagingSections && !loading && !activeCourse;
+
+  useEffect(() => {
+    if (!isManagingSections) {
+      setSections([]);
+      return;
     }
+
+    setIsAddingCourse(false);
+    setEditingCourse(null);
+
+    let isMounted = true;
+    const loadSections = async () => {
+      const sectionsData = await fetchSections(courseIdParam);
+      if (!isMounted) return;
+      setSections(Array.isArray(sectionsData) ? sectionsData : []);
+    };
+    void loadSections();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [courseIdParam, isManagingSections]);
+
+  const goToCoursesHome = () => {
+    navigate(adminCoursesBasePath);
+  };
+
+  const goToCourseSections = (courseId) => {
+    navigate(`${adminCoursesBasePath}/${courseId}`);
+  };
+
+  const goToSectionLessons = (courseId, sectionId) => {
+    navigate(`${adminCoursesBasePath}/${courseId}/${sectionId}`);
+  };
+
+  const goToLessonEditor = (courseId, sectionId, lessonId) => {
+    navigate(`${adminCoursesBasePath}/${courseId}/${sectionId}/${lessonId}`);
+  };
+
+  const handleEditSections = (course) => {
+    goToCourseSections(course.course_id);
   };
 
   const handleFileUpload = async (file) => {
@@ -62,16 +115,10 @@ const AdminCourses = () => {
   };
 
   const handleDeleteSection = async (sectionId) => {
-    const success = await deleteSection(sectionId);
-    if (success) {
+    const result = await deleteSection(sectionId);
+    if (result?.success) {
       setSections((prev) => prev.filter((section) => section.section_id !== sectionId));
     }
-  };
-
-  const handleCloseSections = () => {
-    setEditingSections(false);
-    setEditingCourse(null);
-    setSections([]);
   };
 
   const handleAddCourseClick = () => {
@@ -101,7 +148,11 @@ const AdminCourses = () => {
   };
 
   const getPageTitle = () => {
-    if (editingSections) return "Manage Sections";
+    if (isManagingSections) {
+      if (lessonIdParam) return "Edit Lesson";
+      if (sectionIdParam) return "Manage Lessons";
+      return "Manage Sections";
+    }
     if (isAddingCourse) return "Create Course";
     if (editingCourse) return "Edit Course";
     return "Courses";
@@ -121,7 +172,7 @@ const AdminCourses = () => {
             <h1 className="admin-title">{getPageTitle()}</h1>
           </div>
 
-          {!editingCourse && !editingSections && (
+          {!editingCourse && !isManagingSections && !isAddingCourse && (
             <button className="btn btn-primary" onClick={handleAddCourseClick}>
               <FiPlus size={18} />
               Add Course
@@ -140,14 +191,36 @@ const AdminCourses = () => {
           <div className="admin-loading">
             <CircularProgress className="admin-loading-spinner" />
           </div>
-        ) : editingSections ? (
+        ) : hasInvalidCourseRoute ? (
+          <div className="admin-card">
+            <div className="admin-empty">
+              <FiAlertCircle className="admin-empty-icon" />
+              <h3 className="admin-empty-title">Course not found</h3>
+              <p className="admin-empty-text">
+                The course in this URL no longer exists or you do not have access to it.
+              </p>
+              <button className="btn btn-secondary" onClick={goToCoursesHome}>
+                <FiArrowLeft size={18} />
+                Back to Courses
+              </button>
+            </div>
+          </div>
+        ) : isManagingSections ? (
           <Suspense fallback={lazyFallback}>
             <SectionManager
               sections={sections}
-              courseId={editingCourse?.course_id}
-              languageId={editingCourse?.language_id}
-              courseName={editingCourse?.title}
+              courseId={activeCourse?.course_id || courseIdParam}
+              languageId={activeCourse?.language_id}
+              courseName={activeCourse?.title}
+              selectedSectionId={sectionIdParam}
+              selectedLessonId={lessonIdParam}
+              onOpenSection={(section) => goToSectionLessons(courseIdParam, section.section_id)}
+              onOpenLesson={(sectionId, lessonId) =>
+                goToLessonEditor(courseIdParam, sectionId, lessonId)
+              }
+              onCloseLesson={() => goToSectionLessons(courseIdParam, sectionIdParam)}
               onSectionUpdate={(updatedSections) => {
+                setSections(updatedSections);
                 const payload = updatedSections.map((section, index) => ({
                   section_id: section.section_id,
                   order: index,
@@ -159,15 +232,16 @@ const AdminCourses = () => {
                     { headers: { Authorization: `Bearer ${token}` } }
                   )
                   .then(async () => {
-                    const sectionsData = await fetchSections(editingCourse?.course_id);
-                    if (sectionsData) {
+                    const sectionsData = await fetchSections(courseIdParam);
+                    if (Array.isArray(sectionsData)) {
                       setSections(sectionsData);
                     }
                   })
                   .catch((err) => console.error("Failed to reorder sections:", err));
               }}
               onDeleteSection={handleDeleteSection}
-              onClose={handleCloseSections}
+              onCloseSection={() => goToCourseSections(courseIdParam)}
+              onClose={goToCoursesHome}
             />
           </Suspense>
         ) : editingCourse || isAddingCourse ? (
@@ -215,7 +289,7 @@ const AdminCourses = () => {
                         <td>
                           <span
                             className="table-cell-name"
-                            onClick={() => setSelectedCourse(course)}
+                            onClick={() => setFeedbackCourse(course)}
                           >
                             {course.title}
                           </span>
@@ -268,9 +342,9 @@ const AdminCourses = () => {
           </div>
         )}
 
-        {selectedCourse && (
+        {feedbackCourse && (
           <Suspense fallback={null}>
-            <CourseFeedbackModal course={selectedCourse} onClose={() => setSelectedCourse(null)} />
+            <CourseFeedbackModal course={feedbackCourse} onClose={() => setFeedbackCourse(null)} />
           </Suspense>
         )}
       </main>

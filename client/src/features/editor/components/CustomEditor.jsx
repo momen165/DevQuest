@@ -54,14 +54,24 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "app/AuthContext";
-import { CODE_BLOCK_LANGUAGES, FONT_FAMILIES, FONT_SIZES, SPECIAL_CHARACTERS, STYLE_DEFINITIONS } from "features/editor/tiptap/constants";
+import {
+  CODE_BLOCK_LANGUAGES,
+  FONT_FAMILIES,
+  FONT_SIZES,
+  SPECIAL_CHARACTERS,
+  STYLE_DEFINITIONS,
+} from "features/editor/tiptap/constants";
 import { DraggableImage } from "features/editor/tiptap/extensions/DraggableImage";
 import { FontSize } from "features/editor/tiptap/extensions/FontSize";
 import { GlobalClassStyle } from "features/editor/tiptap/extensions/GlobalClassStyle";
 import { LabeledCodeBlock } from "features/editor/tiptap/extensions/LabeledCodeBlock";
 import { StyledTableCell } from "features/editor/tiptap/extensions/StyledTableCell";
 import { StyledTableHeader } from "features/editor/tiptap/extensions/StyledTableHeader";
-import { cleanEmptyParagraphs, escapeRegExp, normalizeLegacyCkHtml } from "features/editor/tiptap/utils/editorHtml";
+import {
+  cleanEmptyParagraphs,
+  escapeRegExp,
+  normalizeLegacyCkHtml,
+} from "features/editor/tiptap/utils/editorHtml";
 
 import "highlight.js/styles/github-dark.css";
 import "./CustomEditor.css";
@@ -71,6 +81,7 @@ const lowlight = createLowlight(common);
 const DEFAULT_CONFIG = {
   codeBlock: {
     languages: CODE_BLOCK_LANGUAGES,
+    defaultLanguage: "javascript",
   },
   fontFamily: {
     options: FONT_FAMILIES,
@@ -132,7 +143,10 @@ const IMAGE_ALIGNMENT_CLASSES = Object.values(IMAGE_ALIGNMENT_CLASS_MAP);
 const upsertInlineStyle = (styleValue, property, nextValue) => {
   const style = styleValue || "";
   const propertyPattern = new RegExp(`${property}\\s*:[^;]+;?`, "gi");
-  const cleaned = style.replace(propertyPattern, "").replace(/\s{2,}/g, " ").trim();
+  const cleaned = style
+    .replace(propertyPattern, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
   const normalized = cleaned.replace(/;\s*$/, "");
 
   if (!nextValue) {
@@ -159,7 +173,15 @@ const parseImageWidthPercent = (styleValue) => {
   return Math.max(10, Math.min(100, Math.round(width)));
 };
 
-const ToolbarButton = ({ active, disabled, onClick, children, title, icon: Icon, showLabel = true }) => (
+const ToolbarButton = ({
+  active,
+  disabled,
+  onClick,
+  children,
+  title,
+  icon: Icon,
+  showLabel = true,
+}) => (
   <button
     type="button"
     className={`toolbar-btn ${active ? "active" : ""} ${showLabel ? "" : "icon-only"}`}
@@ -184,15 +206,28 @@ const ToolbarMenu = ({ icon: Icon, label, children }) => (
   </details>
 );
 
-const CustomEditor = ({ initialData = "", config = {}, onChange, className, disabled }) => {
+const CustomEditor = ({
+  initialData = "",
+  config = {},
+  onChange,
+  className,
+  disabled,
+  onEditorReady,
+}) => {
   const { user } = useAuth();
   const fileInputRef = useRef(null);
   const editorRef = useRef(null);
+  const commandInputRef = useRef(null);
   const [error, setError] = useState(null);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [showSpecialChars, setShowSpecialChars] = useState(false);
   const [showFindReplace, setShowFindReplace] = useState(false);
   const [showBlocks, setShowBlocks] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [commandMode, setCommandMode] = useState("palette");
+  const [commandQuery, setCommandQuery] = useState("");
+  const [activeCommandIndex, setActiveCommandIndex] = useState(0);
+  const [commandPalettePosition, setCommandPalettePosition] = useState({ top: 84, left: 20 });
   const [findValue, setFindValue] = useState("");
   const [replaceValue, setReplaceValue] = useState("");
   const [matchCase, setMatchCase] = useState(false);
@@ -200,6 +235,26 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
   const [matchCount, setMatchCount] = useState(0);
 
   const mergedConfig = useMemo(() => mergeConfig(config), [config]);
+  const preferredCodeLanguage = useMemo(() => {
+    const configuredLanguage = String(mergedConfig.codeBlock.defaultLanguage || "").toLowerCase();
+    const availableLanguages = new Set(
+      mergedConfig.codeBlock.languages.map((language) => String(language.language).toLowerCase())
+    );
+
+    if (configuredLanguage && availableLanguages.has(configuredLanguage)) {
+      return configuredLanguage;
+    }
+
+    if (availableLanguages.has("javascript")) return "javascript";
+    return mergedConfig.codeBlock.languages[0]?.language?.toLowerCase() || "plaintext";
+  }, [mergedConfig.codeBlock.defaultLanguage, mergedConfig.codeBlock.languages]);
+
+  const preferredCodeLanguageLabel = useMemo(() => {
+    const match = mergedConfig.codeBlock.languages.find(
+      (language) => String(language.language).toLowerCase() === String(preferredCodeLanguage)
+    );
+    return match?.label || preferredCodeLanguage;
+  }, [mergedConfig.codeBlock.languages, preferredCodeLanguage]);
 
   const uploadImage = useCallback(
     async (file) => {
@@ -349,6 +404,50 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
   }, [editor]);
 
   useEffect(() => {
+    if (!onEditorReady) return undefined;
+    onEditorReady(editor?.view?.dom || null);
+    return () => {
+      if (onEditorReady) {
+        onEditorReady(null);
+      }
+    };
+  }, [editor, onEditorReady]);
+
+  const closeCommandPalette = useCallback(() => {
+    setShowCommandPalette(false);
+    setCommandQuery("");
+    setActiveCommandIndex(0);
+    editor?.chain().focus().run();
+  }, [editor]);
+
+  const openCommandPalette = useCallback(
+    (mode = "palette") => {
+      if (!editor) return;
+
+      setCommandMode(mode);
+      setCommandQuery("");
+      setActiveCommandIndex(0);
+
+      if (mode === "slash") {
+        const shellElement = editor.view?.dom?.closest(".editor-shell");
+        const shellRect = shellElement?.getBoundingClientRect();
+        const selectionPos = editor.state.selection?.from ?? 0;
+        const caretCoords = editor.view.coordsAtPos(selectionPos);
+
+        if (shellRect) {
+          setCommandPalettePosition({
+            top: Math.max(56, caretCoords.bottom - shellRect.top + 8),
+            left: Math.max(16, caretCoords.left - shellRect.left),
+          });
+        }
+      }
+
+      setShowCommandPalette(true);
+    },
+    [editor]
+  );
+
+  useEffect(() => {
     if (!editor) return;
     editor.setEditable(!disabled);
   }, [disabled, editor]);
@@ -366,10 +465,41 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
     if (!editor) return;
 
     const handleShortcut = (event) => {
+      const isPrimaryModifier = event.ctrlKey || event.metaKey;
+      if (isPrimaryModifier && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        openCommandPalette("palette");
+        return;
+      }
+
+      if (
+        event.key === "/" &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey &&
+        !showCommandPalette &&
+        !editor.isActive("codeBlock")
+      ) {
+        const selection = editor.state.selection;
+        if (!selection.empty) return;
+
+        const charBefore =
+          selection.from > 1
+            ? editor.state.doc.textBetween(selection.from - 1, selection.from, "\n", "\n")
+            : "";
+        const canTriggerSlash = charBefore === "" || /\s/.test(charBefore);
+
+        if (canTriggerSlash) {
+          event.preventDefault();
+          openCommandPalette("slash");
+          return;
+        }
+      }
+
       if (!event.ctrlKey || !event.altKey) return;
 
       const key = event.key.toLowerCase();
-      if (!["i", "j", "p", "h"].includes(key)) return;
+      if (!["i", "j", "p", "h", "c"].includes(key)) return;
 
       event.preventDefault();
 
@@ -389,6 +519,10 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
       if (key === "h") {
         editor.chain().focus().toggleCodeBlock({ language: "html" }).run();
       }
+
+      if (key === "c") {
+        editor.chain().focus().toggleCodeBlock({ language: preferredCodeLanguage }).run();
+      }
     };
 
     const domNode = editor.view?.dom;
@@ -398,7 +532,7 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
     return () => {
       domNode.removeEventListener("keydown", handleShortcut);
     };
-  }, [editor]);
+  }, [editor, openCommandPalette, preferredCodeLanguage, showCommandPalette]);
 
   useEffect(() => {
     if (!editor || !findValue.trim()) {
@@ -444,27 +578,52 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
     }
 
     if (definition.element === "h2") {
-      editor.chain().focus().setHeading({ level: 2 }).updateAttributes("heading", { class: definition.className || null }).run();
+      editor
+        .chain()
+        .focus()
+        .setHeading({ level: 2 })
+        .updateAttributes("heading", { class: definition.className || null })
+        .run();
       return;
     }
 
     if (definition.element === "h3") {
-      editor.chain().focus().setHeading({ level: 3 }).updateAttributes("heading", { class: definition.className || null }).run();
+      editor
+        .chain()
+        .focus()
+        .setHeading({ level: 3 })
+        .updateAttributes("heading", { class: definition.className || null })
+        .run();
       return;
     }
 
     if (definition.element === "p") {
-      editor.chain().focus().setParagraph().updateAttributes("paragraph", { class: definition.className || null }).run();
+      editor
+        .chain()
+        .focus()
+        .setParagraph()
+        .updateAttributes("paragraph", { class: definition.className || null })
+        .run();
       return;
     }
 
     if (definition.element === "blockquote") {
-      editor.chain().focus().setBlockquote().updateAttributes("blockquote", { class: definition.className || null }).run();
+      editor
+        .chain()
+        .focus()
+        .setBlockquote()
+        .updateAttributes("blockquote", { class: definition.className || null })
+        .run();
       return;
     }
 
     if (definition.element === "pre") {
-      editor.chain().focus().toggleCodeBlock({ language: "plaintext" }).updateAttributes("codeBlock", { class: definition.className || null }).run();
+      editor
+        .chain()
+        .focus()
+        .toggleCodeBlock({ language: "plaintext" })
+        .updateAttributes("codeBlock", { class: definition.className || null })
+        .run();
     }
   };
 
@@ -532,9 +691,14 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
     const current = match ? Number(match[1]) : 0;
     const next = Math.max(current - 40, 0);
     const stripped = style.replace(/margin-left:\s*\d+px;?/g, "").trim();
-    const composed = next > 0 ? `${stripped}${stripped ? "; " : ""}margin-left: ${next}px;` : stripped;
+    const composed =
+      next > 0 ? `${stripped}${stripped ? "; " : ""}margin-left: ${next}px;` : stripped;
 
-    editor.chain().focus().updateAttributes(target, { style: composed || null }).run();
+    editor
+      .chain()
+      .focus()
+      .updateAttributes(target, { style: composed || null })
+      .run();
   };
 
   const handleReplaceAll = () => {
@@ -567,6 +731,205 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
     if (!file) return;
     insertImageFromFile(file);
     event.target.value = "";
+  };
+
+  const insertCommandTemplate = useCallback(
+    (content) => {
+      if (!editor) return;
+      editor.chain().focus().insertContent(content).run();
+    },
+    [editor]
+  );
+
+  const commandActions = useMemo(() => {
+    if (!editor) return [];
+
+    return [
+      {
+        id: "heading-2",
+        label: "Heading 2",
+        aliases: ["title", "h2"],
+        showInSlash: true,
+        run: () => editor.chain().focus().setHeading({ level: 2 }).run(),
+      },
+      {
+        id: "heading-3",
+        label: "Heading 3",
+        aliases: ["subtitle", "h3"],
+        showInSlash: true,
+        run: () => editor.chain().focus().setHeading({ level: 3 }).run(),
+      },
+      {
+        id: "paragraph",
+        label: "Paragraph",
+        aliases: ["text", "normal"],
+        showInSlash: true,
+        run: () => editor.chain().focus().setParagraph().run(),
+      },
+      {
+        id: "bullet-list",
+        label: "Bulleted List",
+        aliases: ["list", "ul", "bullet"],
+        showInSlash: true,
+        run: () => editor.chain().focus().toggleBulletList().run(),
+      },
+      {
+        id: "numbered-list",
+        label: "Numbered List",
+        aliases: ["ordered", "ol", "steps"],
+        showInSlash: true,
+        run: () => editor.chain().focus().toggleOrderedList().run(),
+      },
+      {
+        id: "code-block-js",
+        label: `/code ${preferredCodeLanguageLabel} Block`,
+        aliases: [
+          "code",
+          "snippet",
+          preferredCodeLanguage,
+          preferredCodeLanguageLabel.toLowerCase(),
+        ],
+        showInSlash: true,
+        run: () =>
+          editor.chain().focus().toggleCodeBlock({ language: preferredCodeLanguage }).run(),
+      },
+      {
+        id: "quiz-block",
+        label: "/quiz Quiz Scaffold",
+        aliases: ["quiz", "assessment", "mcq"],
+        showInSlash: true,
+        run: () =>
+          insertCommandTemplate(
+            `<h3>Quick Quiz</h3><ol><li><p>Question 1?</p></li><li><p>Question 2?</p></li></ol><p><strong>Answer key:</strong> Add the expected answers here.</p>`
+          ),
+      },
+      {
+        id: "tip-block",
+        label: "/tip Tip Box",
+        aliases: ["tip", "hint", "note"],
+        showInSlash: true,
+        run: () =>
+          insertCommandTemplate(
+            `<p class="editor-info-box"><strong>Tip:</strong> Add a practical hint for learners.</p>`
+          ),
+      },
+      {
+        id: "warning-block",
+        label: "/warning Warning Box",
+        aliases: ["warning", "caution", "important"],
+        showInSlash: true,
+        run: () =>
+          insertCommandTemplate(
+            `<p class="editor-warning-box"><strong>Warning:</strong> Call out a common mistake or safety note.</p>`
+          ),
+      },
+      {
+        id: "table",
+        label: "Insert Table",
+        aliases: ["table", "grid"],
+        showInSlash: true,
+        run: () =>
+          editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+      },
+      {
+        id: "image-upload",
+        label: "Upload Image",
+        aliases: ["image", "photo", "media"],
+        showInSlash: true,
+        run: () => fileInputRef.current?.click(),
+      },
+      {
+        id: "quote",
+        label: "Block Quote",
+        aliases: ["quote", "blockquote"],
+        showInSlash: true,
+        run: () => editor.chain().focus().toggleBlockquote().run(),
+      },
+      {
+        id: "horizontal-rule",
+        label: "Horizontal Divider",
+        aliases: ["divider", "separator", "hr"],
+        showInSlash: true,
+        run: () => editor.chain().focus().setHorizontalRule().run(),
+      },
+    ];
+  }, [editor, insertCommandTemplate, preferredCodeLanguage, preferredCodeLanguageLabel]);
+
+  const filteredCommands = useMemo(() => {
+    const normalizedQuery = commandQuery.trim().toLowerCase().replace(/^\//, "");
+    const commandPool =
+      commandMode === "slash"
+        ? commandActions.filter((action) => action.showInSlash)
+        : commandActions;
+
+    if (!normalizedQuery) return commandPool;
+
+    return commandPool.filter((command) => {
+      const searchable = [command.label, ...(command.aliases || [])].join(" ").toLowerCase();
+      return searchable.includes(normalizedQuery);
+    });
+  }, [commandActions, commandMode, commandQuery]);
+
+  useEffect(() => {
+    if (!showCommandPalette) return;
+    setActiveCommandIndex(0);
+  }, [commandQuery, showCommandPalette, commandMode]);
+
+  useEffect(() => {
+    if (!showCommandPalette) return;
+    commandInputRef.current?.focus();
+  }, [showCommandPalette]);
+
+  useEffect(() => {
+    if (!showCommandPalette) return undefined;
+
+    const handleClickOutside = (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest(".command-palette")) return;
+      closeCommandPalette();
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showCommandPalette, closeCommandPalette]);
+
+  const executeCommand = useCallback((command) => {
+    if (!command) return;
+    command.run();
+    setShowCommandPalette(false);
+    setCommandQuery("");
+    setActiveCommandIndex(0);
+  }, []);
+
+  const handleCommandInputKeyDown = (event) => {
+    if (!showCommandPalette) return;
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeCommandPalette();
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveCommandIndex((prev) => (prev + 1) % Math.max(filteredCommands.length, 1));
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveCommandIndex(
+        (prev) =>
+          (prev - 1 + Math.max(filteredCommands.length, 1)) % Math.max(filteredCommands.length, 1)
+      );
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      executeCommand(filteredCommands[activeCommandIndex]);
+    }
   };
 
   const runMenuAction = (action) => (event) => {
@@ -649,6 +1012,15 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
                 <h4>Keyboard Shortcuts</h4>
                 <ul>
                   <li>
+                    <kbd>Ctrl/Cmd + K</kbd> Command Palette
+                  </li>
+                  <li>
+                    <kbd>/</kbd> Slash Commands
+                  </li>
+                  <li>
+                    <kbd>Ctrl + Alt + C</kbd> Course Language Code Block
+                  </li>
+                  <li>
                     <kbd>Ctrl + Alt + I</kbd> Insert Image
                   </li>
                   <li>
@@ -666,23 +1038,51 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
           </div>
 
           <div className="editor-menubar" role="menubar" aria-label="Editor menu bar">
-            <button type="button" className="menu-btn" onClick={() => setShowFindReplace((prev) => !prev)}>
+            <button
+              type="button"
+              className="menu-btn"
+              onClick={() => setShowFindReplace((prev) => !prev)}
+            >
               <Search size={13} />
               Edit
             </button>
-            <button type="button" className="menu-btn" onClick={() => setShowBlocks((prev) => !prev)}>
+            <button
+              type="button"
+              className="menu-btn"
+              onClick={() => setShowBlocks((prev) => !prev)}
+            >
               <Eye size={13} />
               View
             </button>
-            <button type="button" className="menu-btn" onClick={() => fileInputRef.current?.click()}>
+            <button
+              type="button"
+              className="menu-btn"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <ImagePlus size={13} />
               Insert
             </button>
-            <button type="button" className="menu-btn" onClick={() => handleStyleDefinition("Title")}>
+            <button
+              type="button"
+              className="menu-btn"
+              onClick={() => handleStyleDefinition("Title")}
+            >
               <Paintbrush2 size={13} />
               Format
             </button>
-            <button type="button" className="menu-btn" onClick={() => setShowShortcutsHelp((prev) => !prev)}>
+            <button
+              type="button"
+              className="menu-btn"
+              onClick={() => openCommandPalette("palette")}
+            >
+              <Search size={13} />
+              Command
+            </button>
+            <button
+              type="button"
+              className="menu-btn"
+              onClick={() => setShowShortcutsHelp((prev) => !prev)}
+            >
               <CircleHelp size={13} />
               Help
             </button>
@@ -691,151 +1091,288 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
           <div className="editor-toolbar" role="toolbar" aria-label="Editor toolbar">
             <div className="toolbar-row toolbar-row--compact">
               <div className="toolbar-primary-controls">
-              <ToolbarButton
-                title="Undo"
-                icon={Undo2}
-                showLabel={false}
-                onClick={() => editor.chain().focus().undo().run()}
-                disabled={!editor.can().undo()}
-              />
-              <ToolbarButton
-                title="Redo"
-                icon={Redo2}
-                showLabel={false}
-                onClick={() => editor.chain().focus().redo().run()}
-                disabled={!editor.can().redo()}
-              />
+                <ToolbarButton
+                  title="Undo"
+                  icon={Undo2}
+                  showLabel={false}
+                  onClick={() => editor.chain().focus().undo().run()}
+                  disabled={!editor.can().undo()}
+                />
+                <ToolbarButton
+                  title="Redo"
+                  icon={Redo2}
+                  showLabel={false}
+                  onClick={() => editor.chain().focus().redo().run()}
+                  disabled={!editor.can().redo()}
+                />
 
-              <span className="toolbar-divider" aria-hidden="true" />
+                <span className="toolbar-divider" aria-hidden="true" />
 
-              <select value={activeHeading} onChange={(event) => handleHeadingChange(event.target.value)} className="toolbar-select compact">
-                <option value="paragraph">Paragraph</option>
-                <option value="1">Heading 1</option>
-                <option value="2">Heading 2</option>
-                <option value="3">Heading 3</option>
-              </select>
+                <select
+                  value={activeHeading}
+                  onChange={(event) => handleHeadingChange(event.target.value)}
+                  className="toolbar-select compact"
+                >
+                  <option value="paragraph">Paragraph</option>
+                  <option value="1">Heading 1</option>
+                  <option value="2">Heading 2</option>
+                  <option value="3">Heading 3</option>
+                </select>
 
-              <select defaultValue="" onChange={(event) => event.target.value && handleStyleDefinition(event.target.value)} className="toolbar-select compact">
-                <option value="">Styles</option>
-                {mergedConfig.style.definitions.map((definition) => (
-                  <option key={definition.name} value={definition.name}>
-                    {definition.name}
-                  </option>
-                ))}
-              </select>
+                <select
+                  defaultValue=""
+                  onChange={(event) =>
+                    event.target.value && handleStyleDefinition(event.target.value)
+                  }
+                  className="toolbar-select compact"
+                >
+                  <option value="">Styles</option>
+                  {mergedConfig.style.definitions.map((definition) => (
+                    <option key={definition.name} value={definition.name}>
+                      {definition.name}
+                    </option>
+                  ))}
+                </select>
 
-              <span className="toolbar-divider" aria-hidden="true" />
+                <span className="toolbar-divider" aria-hidden="true" />
 
-              <select
-                defaultValue=""
-                onChange={(event) => event.target.value && editor.chain().focus().setFontFamily(event.target.value).run()}
-                className="toolbar-select compact"
-                title="Font family"
-              >
-                <option value="">Font family</option>
-                {mergedConfig.fontFamily.options.map((font) => (
-                  <option key={font} value={font}>
-                    {font}
-                  </option>
-                ))}
-              </select>
+                <select
+                  defaultValue=""
+                  onChange={(event) =>
+                    event.target.value &&
+                    editor.chain().focus().setFontFamily(event.target.value).run()
+                  }
+                  className="toolbar-select compact"
+                  title="Font family"
+                >
+                  <option value="">Font family</option>
+                  {mergedConfig.fontFamily.options.map((font) => (
+                    <option key={font} value={font}>
+                      {font}
+                    </option>
+                  ))}
+                </select>
 
-              <select
-                defaultValue=""
-                onChange={(event) => event.target.value && editor.chain().focus().setFontSize(event.target.value).run()}
-                className="toolbar-select compact toolbar-select--small"
-                title="Font size"
-              >
-                <option value="">Size</option>
-                {mergedConfig.fontSize.options.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
+                <select
+                  defaultValue=""
+                  onChange={(event) =>
+                    event.target.value &&
+                    editor.chain().focus().setFontSize(event.target.value).run()
+                  }
+                  className="toolbar-select compact toolbar-select--small"
+                  title="Font size"
+                >
+                  <option value="">Size</option>
+                  {mergedConfig.fontSize.options.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
 
-              <label className="toolbar-color" title="Text color">
-                <Type size={13} />
-                <input type="color" onChange={(event) => editor.chain().focus().setColor(event.target.value).run()} />
-              </label>
-              <label className="toolbar-color" title="Highlight color">
-                <Palette size={13} />
-                <input type="color" onChange={(event) => editor.chain().focus().setHighlight({ color: event.target.value }).run()} />
-              </label>
+                <label className="toolbar-color" title="Text color">
+                  <Type size={13} />
+                  <input
+                    type="color"
+                    onChange={(event) => editor.chain().focus().setColor(event.target.value).run()}
+                  />
+                </label>
+                <label className="toolbar-color" title="Highlight color">
+                  <Palette size={13} />
+                  <input
+                    type="color"
+                    onChange={(event) =>
+                      editor.chain().focus().setHighlight({ color: event.target.value }).run()
+                    }
+                  />
+                </label>
 
-              <span className="toolbar-divider" aria-hidden="true" />
+                <span className="toolbar-divider" aria-hidden="true" />
 
-              <ToolbarButton icon={Bold} showLabel={false} active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold" />
-              <ToolbarButton icon={Italic} showLabel={false} active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic" />
-              <ToolbarButton icon={UnderlineIcon} showLabel={false} active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline" />
-              <ToolbarButton icon={Strikethrough} showLabel={false} active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()} title="Strikethrough" />
-              <ToolbarButton icon={Code2} showLabel={false} active={editor.isActive("code")} onClick={() => editor.chain().focus().toggleCode().run()} title="Inline code" />
-              <ToolbarButton icon={SubscriptIcon} showLabel={false} active={editor.isActive("subscript")} onClick={() => editor.chain().focus().toggleSubscript().run()} title="Subscript" />
-              <ToolbarButton icon={SuperscriptIcon} showLabel={false} active={editor.isActive("superscript")} onClick={() => editor.chain().focus().toggleSuperscript().run()} title="Superscript" />
+                <ToolbarButton
+                  icon={Bold}
+                  showLabel={false}
+                  active={editor.isActive("bold")}
+                  onClick={() => editor.chain().focus().toggleBold().run()}
+                  title="Bold"
+                />
+                <ToolbarButton
+                  icon={Italic}
+                  showLabel={false}
+                  active={editor.isActive("italic")}
+                  onClick={() => editor.chain().focus().toggleItalic().run()}
+                  title="Italic"
+                />
+                <ToolbarButton
+                  icon={UnderlineIcon}
+                  showLabel={false}
+                  active={editor.isActive("underline")}
+                  onClick={() => editor.chain().focus().toggleUnderline().run()}
+                  title="Underline"
+                />
+                <ToolbarButton
+                  icon={Strikethrough}
+                  showLabel={false}
+                  active={editor.isActive("strike")}
+                  onClick={() => editor.chain().focus().toggleStrike().run()}
+                  title="Strikethrough"
+                />
+                <ToolbarButton
+                  icon={Code2}
+                  showLabel={false}
+                  active={editor.isActive("code")}
+                  onClick={() => editor.chain().focus().toggleCode().run()}
+                  title="Inline code"
+                />
+                <ToolbarButton
+                  icon={SubscriptIcon}
+                  showLabel={false}
+                  active={editor.isActive("subscript")}
+                  onClick={() => editor.chain().focus().toggleSubscript().run()}
+                  title="Subscript"
+                />
+                <ToolbarButton
+                  icon={SuperscriptIcon}
+                  showLabel={false}
+                  active={editor.isActive("superscript")}
+                  onClick={() => editor.chain().focus().toggleSuperscript().run()}
+                  title="Superscript"
+                />
 
-              <span className="toolbar-divider" aria-hidden="true" />
+                <span className="toolbar-divider" aria-hidden="true" />
 
-              <ToolbarButton icon={List} showLabel={false} active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bulleted list" />
-              <ToolbarButton icon={ListOrdered} showLabel={false} active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Numbered list" />
-              <ToolbarButton icon={Link2} showLabel={false} active={editor.isActive("link")} onClick={handleSetLink} title="Link" />
-              <ToolbarButton icon={Download} showLabel={false} active={Boolean(editor.getAttributes("link")?.download)} onClick={handleToggleDownloadableLink} title="Toggle downloadable link" />
-              <ToolbarButton icon={Quote} showLabel={false} active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()} title="Block quote" />
-              <ToolbarButton icon={Minus} showLabel={false} onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Horizontal line" />
+                <ToolbarButton
+                  icon={List}
+                  showLabel={false}
+                  active={editor.isActive("bulletList")}
+                  onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  title="Bulleted list"
+                />
+                <ToolbarButton
+                  icon={ListOrdered}
+                  showLabel={false}
+                  active={editor.isActive("orderedList")}
+                  onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                  title="Numbered list"
+                />
+                <ToolbarButton
+                  icon={Link2}
+                  showLabel={false}
+                  active={editor.isActive("link")}
+                  onClick={handleSetLink}
+                  title="Link"
+                />
+                <ToolbarButton
+                  icon={Download}
+                  showLabel={false}
+                  active={Boolean(editor.getAttributes("link")?.download)}
+                  onClick={handleToggleDownloadableLink}
+                  title="Toggle downloadable link"
+                />
+                <ToolbarButton
+                  icon={Quote}
+                  showLabel={false}
+                  active={editor.isActive("blockquote")}
+                  onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                  title="Block quote"
+                />
+                <ToolbarButton
+                  icon={Minus}
+                  showLabel={false}
+                  onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                  title="Horizontal line"
+                />
 
-              <span className="toolbar-divider" aria-hidden="true" />
+                <span className="toolbar-divider" aria-hidden="true" />
 
-              <select
-                defaultValue="javascript"
-                onChange={(event) => editor.chain().focus().toggleCodeBlock({ language: event.target.value }).run()}
-                className="toolbar-select compact toolbar-select--small"
-                title="Code block language"
-              >
-                {mergedConfig.codeBlock.languages.map((language) => (
-                  <option key={language.language} value={language.language}>
-                    {language.label}
-                  </option>
-                ))}
-              </select>
-              <span className="toolbar-divider" aria-hidden="true" />
+                <select
+                  defaultValue="javascript"
+                  onChange={(event) =>
+                    editor.chain().focus().toggleCodeBlock({ language: event.target.value }).run()
+                  }
+                  className="toolbar-select compact toolbar-select--small"
+                  title="Code block language"
+                >
+                  {mergedConfig.codeBlock.languages.map((language) => (
+                    <option key={language.language} value={language.language}>
+                      {language.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="toolbar-divider" aria-hidden="true" />
               </div>
 
               <div className="toolbar-menus-right">
                 <ToolbarMenu icon={AlignLeft} label="Align">
-                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => handleApplyAlignment("left"))}>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(() => handleApplyAlignment("left"))}
+                  >
                     <AlignLeft size={14} />
                     Align left
                   </button>
-                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => handleApplyAlignment("center"))}>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(() => handleApplyAlignment("center"))}
+                  >
                     <AlignCenter size={14} />
                     Align center
                   </button>
-                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => handleApplyAlignment("right"))}>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(() => handleApplyAlignment("right"))}
+                  >
                     <AlignRight size={14} />
                     Align right
                   </button>
-                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => handleApplyAlignment("justify"))}>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(() => handleApplyAlignment("justify"))}
+                  >
                     <AlignJustify size={14} />
                     Align justify
                   </button>
-                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(handleOutdent)}>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(handleOutdent)}
+                  >
                     <IndentDecrease size={14} />
                     Outdent
                   </button>
-                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(handleIndent)}>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(handleIndent)}
+                  >
                     <IndentIncrease size={14} />
                     Indent
                   </button>
                 </ToolbarMenu>
 
                 <ToolbarMenu icon={ImagePlus} label="Insert">
-                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => fileInputRef.current?.click())}>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(() => fileInputRef.current?.click())}
+                  >
                     <ImagePlus size={14} />
                     Upload image
                   </button>
                   <button
                     type="button"
                     className="toolbar-menu-item"
-                    onClick={runMenuAction(() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run())}
+                    onClick={runMenuAction(() =>
+                      editor
+                        .chain()
+                        .focus()
+                        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                        .run()
+                    )}
                   >
                     <Table2 size={14} />
                     Insert table
@@ -859,11 +1396,19 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
                     <Search size={14} />
                     Find/replace
                   </button>
-                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(() => editor.chain().focus().selectAll().run())}>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(() => editor.chain().focus().selectAll().run())}
+                  >
                     <CheckSquare size={14} />
                     Select all
                   </button>
-                  <button type="button" className="toolbar-menu-item" onClick={runMenuAction(handleRemoveFormatting)}>
+                  <button
+                    type="button"
+                    className="toolbar-menu-item"
+                    onClick={runMenuAction(handleRemoveFormatting)}
+                  >
                     <Eraser size={14} />
                     Remove format
                   </button>
@@ -938,23 +1483,49 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
 
             {editor.isActive("table") && (
               <div className="toolbar-row table-toolbar">
-                <ToolbarButton onClick={() => editor.chain().focus().addColumnBefore().run()}>+Col Before</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().addColumnAfter().run()}>+Col After</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().deleteColumn().run()}>-Col</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().addRowBefore().run()}>+Row Before</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().addRowAfter().run()}>+Row After</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().deleteRow().run()}>-Row</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().mergeCells().run()}>Merge</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().splitCell().run()}>Split</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().toggleHeaderRow().run()}>Header Row</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>Header Col</ToolbarButton>
-                <ToolbarButton onClick={() => editor.chain().focus().deleteTable().run()}>Delete Table</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().addColumnBefore().run()}>
+                  +Col Before
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().addColumnAfter().run()}>
+                  +Col After
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().deleteColumn().run()}>
+                  -Col
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().addRowBefore().run()}>
+                  +Row Before
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().addRowAfter().run()}>
+                  +Row After
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().deleteRow().run()}>
+                  -Row
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().mergeCells().run()}>
+                  Merge
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().splitCell().run()}>
+                  Split
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().toggleHeaderRow().run()}>
+                  Header Row
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>
+                  Header Col
+                </ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().deleteTable().run()}>
+                  Delete Table
+                </ToolbarButton>
                 <label className="toolbar-color">
                   Cell BG
                   <input
                     type="color"
                     onChange={(event) =>
-                      editor.chain().focus().setCellAttribute("backgroundColor", event.target.value).run()
+                      editor
+                        .chain()
+                        .focus()
+                        .setCellAttribute("backgroundColor", event.target.value)
+                        .run()
                     }
                   />
                 </label>
@@ -1019,6 +1590,53 @@ const CustomEditor = ({ initialData = "", config = {}, onChange, className, disa
                   Replace All
                 </button>
                 <span>{matchCount} match(es)</span>
+              </div>
+            </div>
+          )}
+
+          {showCommandPalette && (
+            <div
+              className={`command-palette ${commandMode === "slash" ? "slash" : "modal"}`}
+              style={commandMode === "slash" ? commandPalettePosition : undefined}
+            >
+              <div className="command-palette-header">
+                <span>{commandMode === "slash" ? "Slash Commands" : "Command Palette"}</span>
+                <button type="button" onClick={closeCommandPalette}>
+                  Esc
+                </button>
+              </div>
+              <input
+                ref={commandInputRef}
+                type="text"
+                className="command-palette-input"
+                value={commandQuery}
+                onChange={(event) => setCommandQuery(event.target.value)}
+                onKeyDown={handleCommandInputKeyDown}
+                placeholder={
+                  commandMode === "slash"
+                    ? "Type a command (quiz, code, tip, warning...)"
+                    : "Search commands..."
+                }
+              />
+              <div className="command-palette-list" role="listbox">
+                {filteredCommands.length === 0 ? (
+                  <p className="command-palette-empty">No commands found.</p>
+                ) : (
+                  filteredCommands.map((command, index) => (
+                    <button
+                      type="button"
+                      key={command.id}
+                      className={`command-palette-item ${index === activeCommandIndex ? "active" : ""}`}
+                      onMouseEnter={() => setActiveCommandIndex(index)}
+                      onClick={() => executeCommand(command)}
+                    >
+                      <span className="command-palette-item-label">{command.label}</span>
+                      <span className="command-palette-item-meta">
+                        {(command.aliases || []).join(" · ")}
+                      </span>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           )}

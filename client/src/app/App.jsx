@@ -362,7 +362,7 @@ function AppContent() {
             }
           />
           <Route
-            path="/AdminCourses"
+            path="/AdminCourses/*"
             element={
               <MaintenanceGuard>
                 <ProtectedRoute adminRequired={true}>
@@ -372,7 +372,7 @@ function AppContent() {
             }
           />
           <Route
-            path="/admincourses"
+            path="/admincourses/*"
             element={
               <MaintenanceGuard>
                 <ProtectedRoute adminRequired={true}>

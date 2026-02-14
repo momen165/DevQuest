@@ -1,6 +1,15 @@
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { FiEye, FiTrash2, FiPlus, FiEdit2, FiArrowLeft, FiMove, FiFolder } from "react-icons/fi";
+import {
+  FiEye,
+  FiTrash2,
+  FiPlus,
+  FiEdit2,
+  FiArrowLeft,
+  FiMove,
+  FiFolder,
+  FiAlertCircle,
+} from "react-icons/fi";
 import SectionForm from "./SectionForm";
 import "./AdminManage.css";
 import ErrorAlert from "./ErrorAlert";
@@ -12,13 +21,30 @@ const SectionManager = ({
   sections,
   courseId,
   languageId,
+  courseName,
+  selectedSectionId,
+  selectedLessonId,
   onSectionUpdate,
   onDeleteSection,
+  onOpenSection,
+  onOpenLesson,
+  onCloseSection,
+  onCloseLesson,
   onClose,
 }) => {
   const [editingSection, setEditingSection] = useState(null);
-  const [viewingSection, setViewingSection] = useState(null);
   const { error: sectionError, saveSection, reorderSections } = useSections();
+
+  const viewingSection = useMemo(() => {
+    if (!selectedSectionId) return null;
+    return sections.find((section) => String(section.section_id) === String(selectedSectionId));
+  }, [sections, selectedSectionId]);
+
+  useEffect(() => {
+    if (selectedSectionId) {
+      setEditingSection(null);
+    }
+  }, [selectedSectionId]);
 
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
@@ -51,13 +77,32 @@ const SectionManager = ({
     }
   };
 
-  return viewingSection ? (
+  return selectedSectionId ? (
     <Suspense fallback={<div className="manage-loading">Loading lessons...</div>}>
-      <LessonList
-        section={viewingSection}
-        languageId={languageId}
-        onClose={() => setViewingSection(null)}
-      />
+      {viewingSection ? (
+        <LessonList
+          section={viewingSection}
+          languageId={languageId}
+          selectedLessonId={selectedLessonId}
+          onOpenLesson={onOpenLesson}
+          onCloseLesson={onCloseLesson}
+          onClose={onCloseSection}
+        />
+      ) : (
+        <div className="manage-container">
+          <div className="list-empty">
+            <FiAlertCircle className="list-empty-icon" />
+            <h3 className="list-empty-title">Section not found</h3>
+            <p className="list-empty-text">
+              The selected section is unavailable for {courseName || "this course"}.
+            </p>
+            <button className="manage-back-btn" onClick={onCloseSection}>
+              <FiArrowLeft size={18} />
+              Back to Sections
+            </button>
+          </div>
+        </div>
+      )}
     </Suspense>
   ) : editingSection ? (
     <SectionForm
@@ -116,7 +161,7 @@ const SectionManager = ({
                         <div className="item-actions">
                           <button
                             className="action-btn action-btn-sections"
-                            onClick={() => setViewingSection(section)}
+                            onClick={() => onOpenSection(section)}
                             title="View Lessons"
                           >
                             <FiEye size={16} />

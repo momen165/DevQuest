@@ -654,6 +654,15 @@
   box-shadow: 5px 5px 0 #ffe6ef;
 }
 
+.custom-editor .ProseMirror p.editor-warning-box {
+  margin: 1.2em 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(251, 146, 60, 0.16);
+  border: 1px solid rgba(251, 146, 60, 0.42);
+  color: #9a3412;
+}
+
 .custom-editor .ProseMirror blockquote.editor-side-quote {
   font-family: 'Oswald';
   font-style: normal;
@@ -676,6 +685,112 @@
   color: #e7e7e7;
   z-index: -1;
   line-height: 1;
+}
+
+.custom-editor .command-palette {
+  z-index: 45;
+  width: min(92%, 420px);
+  border: 1px solid #d2dbe7;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.2);
+  overflow: hidden;
+}
+
+.custom-editor .command-palette.modal {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.custom-editor .command-palette.slash {
+  position: absolute;
+}
+
+.custom-editor .command-palette-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.custom-editor .command-palette-header button {
+  border: 1px solid #d2dbe7;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.custom-editor .command-palette-input {
+  width: calc(100% - 20px);
+  margin: 10px;
+  border: 1px solid #d1d9e5;
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+}
+
+.custom-editor .command-palette-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.custom-editor .command-palette-list {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0 8px 8px;
+}
+
+.custom-editor .command-palette-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.custom-editor .command-palette-item:hover,
+.custom-editor .command-palette-item.active {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.custom-editor .command-palette-item-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.custom-editor .command-palette-item-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.custom-editor .command-palette-empty {
+  margin: 4px 0 10px;
+  padding: 10px;
+  color: #64748b;
+  font-size: 13px;
 }
 
 .custom-editor .ProseMirror span.editor-marker {
