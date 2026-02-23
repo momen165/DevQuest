@@ -1,465 +1,290 @@
 /* ============================================
-   LessonList - Modern Redesign
+   Lesson Section
    ============================================ */
 
-.lesson-title {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  font-size: 1.1em;
-  font-weight: 500;
-  flex: 1;
-  text-align: center;
-  margin: 0;
-}
-
-.arrow {
-  font-size: 18px;
-  margin-left: 10px;
-}
-
-.lesson-list {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(10px);
-  color: white;
-  width: 100%;
-  margin-bottom: 20px;
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* Checkbox styles */
-.checkbox-wrapper-31:hover .check {
-  stroke-dashoffset: 0;
-}
-
-.checkbox-wrapper-31 {
-  position: relative;
-  display: inline-block;
-  width: 35px;
-  height: 35px;
-}
-
-.checkbox-wrapper-31 .background {
-  fill: rgba(255, 255, 255, 0.1);
-  transition: ease all 0.6s;
-  -webkit-transition: ease all 0.6s;
-}
-
-.checkbox-wrapper-31 .stroke {
-  fill: none;
-  stroke: #fff;
-  stroke-miterlimit: 10;
-  stroke-width: 2px;
-  stroke-dashoffset: 100;
-  stroke-dasharray: 100;
-  transition: ease all 0.6s;
-  -webkit-transition: ease all 0.6s;
-}
-
-.checkbox-wrapper-31 .check {
-  fill: none;
-  stroke: #fff;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2px;
-  stroke-dashoffset: 22;
-  stroke-dasharray: 22;
-  transition: ease all 0.6s;
-  -webkit-transition: ease all 0.6s;
-}
-
-.checkbox-wrapper-31 input[type='checkbox'] {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  margin: 0;
-  opacity: 0;
-  -appearance: none;
-  -webkit-appearance: none;
-}
-
-.checkbox-wrapper-31 input[type='checkbox']:hover {
-  cursor: pointer;
-}
-
-.checkbox-wrapper-31 input[type='checkbox']:checked + svg .background {
-  fill: #10b981;
-  animation: checkmark 0.3s ease-in-out;
-}
-
-.checkbox-wrapper-31 input[type='checkbox']:checked + svg .stroke {
-  stroke-dashoffset: 0;
-}
-
-.checkbox-wrapper-31 input[type='checkbox']:checked + svg .check {
-  stroke-dashoffset: 0;
-}
-
-.lesson-list ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 10px 0;
-}
-
-.lesson {
-  background: rgba(255, 255, 255, 0.02);
-  margin-bottom: 15px;
-  padding: 15px;
-  border-radius: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 30px;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.lesson:hover {
-  transform: translateX(5px);
-  background: rgba(99, 102, 241, 0.08);
-  border-color: rgba(99, 102, 241, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.lesson-item {
+/* ---- Section container ---- */
+.ls-section {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 20px 45px;
-  margin: 12px 0;
   border-radius: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  color: white;
-  font-size: 0.95em;
-  gap: 15px;
-  text-align: center;
+  overflow: hidden;
+  transition: border-color 0.2s;
 }
 
-.lesson-item:hover {
-  background: rgba(99, 102, 241, 0.08);
-  transform: translateX(5px);
-  border-color: rgba(99, 102, 241, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+.ls-section:hover {
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
-.lesson-item.completed {
-  border-left: 4px solid #10b981;
-  background: rgba(16, 185, 129, 0.05);
+.ls-completed {
+  border-color: rgba(16, 185, 129, 0.15);
 }
 
-.lesson-item.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
+.ls-completed:hover {
+  border-color: rgba(16, 185, 129, 0.25);
 }
 
-.lesson-item span {
-  font-weight: 500;
-  font-size: 1.05em;
+/* ---- Section header ---- */
+.ls-section-header {
+  width: 100%;
   display: flex;
   align-items: center;
-  flex: initial;
-  text-align: center;
-  justify-content: center;
-  gap: 20px; /* Add gap between elements */
-}
-
-/* Add specific style for lesson number */
-.lesson-number {
-  margin-right: 10px; /* Additional right margin */
-  color: #888; /* Optional: slightly muted color to distinguish from title */
-}
-
-/* Subscription related styles */
-.subscription-notice {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
-  padding: 15px 20px;
-  margin: 15px 0;
-  border-radius: 12px;
-  border: 1px solid rgba(99, 102, 241, 0.25);
-}
-
-.upgrade-message {
-  color: #f87171;
-  font-weight: bold;
-  margin-top: 5px;
-}
-
-.subscription-notice p {
-  margin: 0;
-  color: #a5b4fc;
-}
-
-/* Section header and completion styles */
-.section-header {
-  display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  cursor: pointer;
-  padding: 15px 0;
-  position: relative;
-  z-index: 1;
-}
-
-.section-header h2 {
-  margin: 0 0 5px 0;
-  font-size: 1.3em;
-}
-
-.toggle-button {
+  gap: 16px;
+  padding: 20px 24px;
   background: none;
   border: none;
-  color: white;
-  font-size: 1.5em;
+  color: #fff;
   cursor: pointer;
-  padding: 0 10px;
-  transition: transform 0.3s ease;
-  position: relative;
-  z-index: 2;
-  margin-right: 50px;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s;
 }
 
-.toggle-button.open {
+.ls-section-header:hover {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.ls-section-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ls-section-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.ls-section-count {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ls-completed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #10b981;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---- Header right side ---- */
+.ls-section-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.ls-mini-progress {
+  width: 72px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.ls-mini-progress-fill {
+  height: 100%;
+  background: #6366f1;
+  border-radius: 100px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ls-chevron {
+  color: rgba(255, 255, 255, 0.3);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.ls-chevron-open {
   transform: rotate(180deg);
 }
 
-.lesson-section-collapsible {
+/* ---- Collapsible area ---- */
+.ls-collapsible {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease-out;
 }
 
-.lesson-section-collapsible.open {
-  max-height: 2000px;
+.ls-collapsible-open {
+  max-height: 3000px;
   transition: max-height 0.5s ease-in;
 }
 
-/* Progress circle and completion styles */
-.lesson-section-progress {
-  width: 45px;
-  height: 45px;
-  transition: all 0.3s ease;
-  position: absolute;
-  background: rgba(10, 15, 28, 0.8);
-  border-radius: 50%;
-  padding: 3px;
+/* ---- Lesson list ---- */
+.ls-lessons {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  top: -10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 12px 16px;
 }
 
-.lesson-section-progress.center-aligned {
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.lesson-section-progress.right-aligned {
-  right: 80px;
-}
-
-.lesson-progress-circle-wrapper {
-  width: 100%;
-  height: 100%;
-}
-
-.lesson-progress-circle-wrapper path {
-  transition: fill 0.3s ease;
-}
-
-.lesson-progress-circle-wrapper:hover path {
-  filter: brightness(1.2);
-}
-
-.lesson-section-progress .CircularProgressbar-text {
-  dominant-baseline: middle;
-  text-anchor: middle;
-  font-size: 16px;
-  fill: #fff;
-}
-
-/* Section completion styles */
-.section-completed {
-  position: relative;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  background: rgba(16, 185, 129, 0.03);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
-}
-
-/* Add completion badge (tick) */
-.section-completed::before {
-  content: '✓';
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  background: linear-gradient(135deg, #10b981, #34d399);
-  border-radius: 50%;
+/* ---- Individual lesson ---- */
+.ls-lesson {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 1rem;
-  border: 2px solid white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-  transition: all 0.3s ease;
-  opacity: 0;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  animation: appearFromRight 0.3s ease;
-}
-
-/* Show tick only when section is closed */
-.section-completed:not(.content-open)::before {
-  opacity: 1;
-}
-
-/* Add completion banner with transition */
-.section-completed::after {
-  content: 'COMPLETED';
-  position: absolute;
-  background: linear-gradient(135deg, #10b981, #34d399);
-  color: white;
-  font-size: 0.8rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
-  z-index: 1;
-  transition: all 0.3s ease;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-/* Banner position when section is closed */
-.section-completed:not(.content-open)::after {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  right: 60px; /* Keep this the same */
-  top: 0;
-  height: 100%;
-  padding: 15px 5px 15px 5px; /* Added right padding to make room for tick */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Banner position when section is open */
-.section-completed.content-open::after {
-  writing-mode: horizontal-tb;
-  transform: rotate(45deg);
-  top: 25px;
-  right: -35px;
-  padding: 5px 40px;
-}
-
-/* Add hover effects */
-.section-completed:hover::before {
-  transform: translateY(-50%) scale(1.05);
-}
-
-.section-completed:hover::after {
-  filter: brightness(1.1);
-}
-
-/* Animations */
-@keyframes checkmark {
-  0% {
-    transform: scale(0.8);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Add new animation */
-@keyframes appearFromRight {
-  from {
-    opacity: 0;
-    transform: translate(10px, -50%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
-}
-
-/* Add these styles for the section description */
-.section-header-content {
-  flex: 1;
-  padding-right: 20px;
-}
-
-.section-description {
-  font-size: 0.9em;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 5px 0 0 0;
-  font-weight: normal;
-  line-height: 1.4;
-  max-width: 80%;
-}
-
-.lesson-item.locked {
-  cursor: not-allowed;
-  position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  opacity: 0.6;
-}
-
-.lesson-item.locked:hover {
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  transform: none;
-}
-
-.lesson-lock-icon {
-  color: #a5b4fc;
-  margin-right: 8px;
-  font-size: 0.85rem;
-}
-
-.lesson-item-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.lesson-error-message {
-  background-color: rgba(231, 76, 60, 0.85);
-  color: white;
-  padding: 10px 15px;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
   border-radius: 8px;
-  margin: 15px auto;
-  text-align: center;
-  max-width: 90%;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.3s ease-in-out;
+  text-decoration: none;
+  color: #fff;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
 }
 
-@keyframes fadeIn {
+.ls-lesson:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Completed lesson */
+.ls-lesson-done {
+  opacity: 0.65;
+}
+
+.ls-lesson-done:hover {
+  opacity: 0.85;
+}
+
+/* Locked lesson */
+.ls-lesson-locked {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.ls-lesson-locked:hover {
+  background: transparent;
+  opacity: 0.4;
+}
+
+/* Disabled (subscription limit) */
+.ls-lesson-disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ---- Lesson left side ---- */
+.ls-lesson-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.ls-lesson-index {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.2);
+  width: 24px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.ls-lesson-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ls-lesson:hover .ls-lesson-name {
+  color: #fff;
+}
+
+/* ---- Lesson right side ---- */
+.ls-lesson-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ls-lock-icon {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.ls-check-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+/* ---- Notification ---- */
+.ls-notification {
+  text-align: center;
+  padding: 12px 18px;
+  margin: 4px 12px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.15);
+  animation: ls-fade-in 0.25s ease;
+}
+
+@keyframes ls-fade-in {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ---- Loading & error ---- */
+.ls-section-loading {
+  padding: 18px 22px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.ls-error {
+  padding: 18px 22px;
+  font-size: 0.85rem;
+  color: #f87171;
+  margin: 0;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .ls-section-header {
+    padding: 14px 16px;
+  }
+
+  .ls-lesson {
+    padding: 11px 12px;
+  }
+
+  .ls-lessons {
+    padding: 0 6px 10px;
+  }
+
+  .ls-mini-progress {
+    display: none;
   }
 }

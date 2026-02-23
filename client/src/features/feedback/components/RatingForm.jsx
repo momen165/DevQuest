@@ -15,13 +15,7 @@ const RatingForm = memo(({ courseId }) => {
 
   useEffect(() => {
     const checkEligibility = async () => {
-      if (!user?.user_id || !courseId) {
-        console.log("Missing user or courseId:", {
-          user_id: user?.user_id,
-          courseId,
-        });
-        return;
-      }
+      if (!user?.user_id || !courseId) return;
 
       try {
         const response = await axios.get(
@@ -51,10 +45,7 @@ const RatingForm = memo(({ courseId }) => {
     checkEligibility();
   }, [user, courseId]);
 
-  // Handle rating selection
   const handleRating = (star) => setRating(star);
-
-  // Handle hover effects
   const handleMouseEnter = (star) => setHoverRating(star);
   const handleMouseLeave = () => setHoverRating(0);
 
@@ -92,74 +83,97 @@ const RatingForm = memo(({ courseId }) => {
     setIsVisible(!isVisible);
   };
 
-  const renderForm = () => {
-    if (courseProgress < 30 || (hasExistingFeedback && courseProgress < 100)) {
-      return (
-        <div className={`rating-form ${!isVisible ? "hidden" : ""}`}>
-          <p className="rating-title">Course Feedback</p>
-          <div className="feedback-message">
-            {!user?.user_id ? (
-              <p>Please log in to provide feedback.</p>
-            ) : courseProgress < 30 ? (
-              <p>
-                Complete at least 30% of the course to provide feedback. ({courseProgress}%
-                completed)
-              </p>
-            ) : (
-              <p>
-                You&apos;ve already submitted feedback for this course. Complete the entire course
-                to provide additional feedback, or contact us at support@mail.dev-quest.me for any
-                other thoughts.
-              </p>
-            )}
-            <p className="progress-info">Current Progress: {courseProgress}%</p>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className={`rating-form ${!isVisible ? "hidden" : ""}`}>
-        <p className="rating-title">Rate Course Content</p>
-        <div className="stars">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span
-              key={star}
-              className={`star ${star <= (hoverRating || rating) ? "filled" : ""}`}
-              onClick={() => handleRating(star)}
-              onMouseEnter={() => handleMouseEnter(star)}
-              onMouseLeave={handleMouseLeave}
-            >
-              ★
-            </span>
-          ))}
-        </div>
-        <p className="comment-title">What do you think about this course</p>
-        <textarea
-          placeholder="Add your comments..."
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          className="comment-box"
-        />
-        <button onClick={handleSubmit} className="submit-button">
-          Submit
-        </button>
-        {message && <p className="message">{message}</p>}
-      </div>
-    );
-  };
+  const canRate = courseProgress >= 30 && (!hasExistingFeedback || courseProgress >= 100);
 
   return (
-    <>
-      <button className="rating-toggle" onClick={toggleForm}>
-        <div className="toggle-content">
-          <span className="arrow">&#8249;</span>
-          <span className="star-icon">★</span>
-          <span className="rate-text">Rate</span>
-        </div>
+    <div className="rf-wrapper">
+      <button className="rf-toggle" onClick={toggleForm} type="button">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M8 1.5L9.79 5.12L13.81 5.72L10.91 8.54L11.59 12.54L8 10.67L4.41 12.54L5.09 8.54L2.19 5.72L6.21 5.12L8 1.5Z"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill={isVisible ? "currentColor" : "none"}
+          />
+        </svg>
+        <span>{isVisible ? "Close" : "Rate"}</span>
       </button>
-      {renderForm()}
-    </>
+
+      <div className={`rf-panel ${isVisible ? "rf-panel-visible" : ""}`}>
+        {!canRate ? (
+          <>
+            <p className="rf-heading">Course Feedback</p>
+            <div className="rf-info">
+              {!user?.user_id ? (
+                <p>Please log in to provide feedback.</p>
+              ) : courseProgress < 30 ? (
+                <p>
+                  Complete at least 30% of the course to leave feedback.
+                  <span className="rf-progress-note">{courseProgress}% completed</span>
+                </p>
+              ) : (
+                <p>
+                  You&apos;ve already submitted feedback. Complete the entire course to submit
+                  additional feedback.
+                </p>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="rf-heading">Rate this course</p>
+            <div className="rf-stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={`rf-star ${star <= (hoverRating || rating) ? "rf-star-active" : ""}`}
+                  onClick={() => handleRating(star)}
+                  onMouseEnter={() => handleMouseEnter(star)}
+                  onMouseLeave={handleMouseLeave}
+                  aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                >
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                      d="M10 2L12.09 6.26L16.81 6.97L13.41 10.27L14.18 14.97L10 12.77L5.82 14.97L6.59 10.27L3.19 6.97L7.91 6.26L10 2Z"
+                      fill={star <= (hoverRating || rating) ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              ))}
+            </div>
+            <textarea
+              placeholder="Share your thoughts about this course..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="rf-textarea"
+              rows={3}
+            />
+            <button
+              onClick={handleSubmit}
+              className="rf-submit"
+              type="button"
+              disabled={rating === 0}
+            >
+              Submit feedback
+            </button>
+          </>
+        )}
+        {message && (
+          <p
+            className={`rf-message ${message.includes("success") ? "rf-message-ok" : "rf-message-err"}`}
+          >
+            {message}
+          </p>
+        )}
+      </div>
+    </div>
   );
 });
 

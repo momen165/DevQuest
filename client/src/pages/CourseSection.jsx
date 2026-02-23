@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import LessonList from "features/lesson/components/LessonSection";
 import RatingForm from "features/feedback/components/RatingForm";
 import axios from "axios";
@@ -7,14 +7,13 @@ import "./CourseSections.css";
 import { useAuth } from "app/AuthContext";
 import { calculateLevel, calculateLevelProgress } from "features/profile/hooks/xpCalculator";
 
-// Create axios instance with default config
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   timeout: 10000,
 });
 
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+const RETRY_DELAY = 1000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -65,13 +64,12 @@ const CourseSection = () => {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
-        }; // Use the new optimized endpoint that combines all data in one request
+        };
         const response = await fetchWithRetry(`/optimized-course-section/${courseId}`, config);
 
         if (response.data) {
           const { course, subscription, profile, sections, stats } = response.data;
 
-          // Set all state from the optimized response
           setCourseName(course.title);
           setHasActiveSubscription(subscription.hasActiveSubscription);
           setProfileData({
@@ -81,7 +79,6 @@ const CourseSection = () => {
             exercisesCompleted: profile.exercisesCompleted,
           });
 
-          // Ensure lessons array exists and is properly formatted
           const formattedSections = sections.map((section) => ({
             ...section,
             lessons: Array.isArray(section.lessons) ? section.lessons : [],
@@ -92,8 +89,6 @@ const CourseSection = () => {
         }
       } catch (err) {
         console.error("Error loading optimized course section data:", err);
-
-        // Fallback to original approach if optimized endpoint fails
         await fetchDataFallback();
       } finally {
         setLoading(false);
@@ -108,7 +103,6 @@ const CourseSection = () => {
           },
         };
 
-        // Original separate API calls as fallback
         try {
           const courseResponse = await fetchWithRetry(`/courses/${courseId}`, config);
           if (courseResponse.data) {
@@ -127,7 +121,6 @@ const CourseSection = () => {
           throw err;
         }
 
-        // Check subscription status and load profile in parallel
         const [subscriptionResponse, profileResponse] = await Promise.all([
           fetchWithRetry("/check", config),
           fetchWithRetry(`/students/${user.user_id}`, config),
@@ -135,7 +128,6 @@ const CourseSection = () => {
         setHasActiveSubscription(subscriptionResponse.data.hasActiveSubscription);
         setProfileData(profileResponse.data);
 
-        // Get sections, course stats, and overall stats
         const [sectionsResponse, courseStatsResponse, overallStatsResponse] = await Promise.all([
           fetchWithRetry(`/sections/course/${courseId}`, config),
           fetchWithRetry(`/student/courses/${courseId}/stats`, config),
@@ -176,12 +168,10 @@ const CourseSection = () => {
   }, [courseId, user, navigate]);
 
   useEffect(() => {
-    // Check for error message in location state (from redirects)
     if (location.state?.errorMessage) {
       setErrorMessage(location.state.errorMessage);
       setShowErrorMessage(true);
 
-      // Clear the error message after 5 seconds
       const timer = setTimeout(() => {
         setShowErrorMessage(false);
       }, 5000);
@@ -190,123 +180,194 @@ const CourseSection = () => {
     }
   }, [location]);
 
-  return (
-    <div className="course-section-wrapper">
-      <div className="Page">
-        <div className="Section">
-          <div className="course-header">
-            <h1>{courseName}</h1>
-            <div className="course-breadcrumb">
-              <span>Courses</span>
-              <span className="separator">/</span>
-              <span className="current">{courseName}</span>
-            </div>
+  const totalLessons = sections.reduce((sum, s) => sum + (s.lessons?.length || 0), 0);
+  const completedLessons = sections.reduce(
+    (sum, s) => sum + (s.lessons?.filter((l) => l.completed)?.length || 0),
+    0
+  );
+  const overallProgress =
+    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
-            {/* Error message for locked lessons */}
-            {showErrorMessage && (
-              <div className="course-error-message">
-                <span>{errorMessage}</span>
-                <button onClick={() => setShowErrorMessage(false)}>×</button>
+  return (
+    <div className="cs-page">
+      {/* Error toast */}
+      {showErrorMessage && (
+        <div className="cs-toast">
+          <span>{errorMessage}</span>
+          <button className="cs-toast-close" onClick={() => setShowErrorMessage(false)}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M1 1L13 13M13 1L1 13"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      <div className="cs-container">
+        {/* Main content */}
+        <main className="cs-main">
+          {/* Breadcrumb */}
+          <nav className="cs-breadcrumb">
+            <Link to="/courses">Courses</Link>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M6 4L10 8L6 12"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>{courseName}</span>
+          </nav>
+
+          {/* Page header */}
+          <div className="cs-header">
+            <div className="cs-header-text">
+              <h1 className="cs-title">{courseName}</h1>
+              {!loading && totalLessons > 0 && (
+                <p className="cs-subtitle">
+                  {completedLessons} of {totalLessons} lessons completed
+                </p>
+              )}
+            </div>
+            {!loading && totalLessons > 0 && (
+              <div className="cs-header-progress">
+                <div className="cs-header-progress-bar">
+                  <div
+                    className="cs-header-progress-fill"
+                    style={{ width: `${overallProgress}%` }}
+                  />
+                </div>
+                <span className="cs-header-progress-label">{overallProgress}%</span>
               </div>
             )}
+          </div>
 
-            {profileData && !hasActiveSubscription && (
-              <div className="subscription-notice">
+          {/* Subscription notice */}
+          {profileData && !hasActiveSubscription && (
+            <div className="cs-subscription-notice">
+              <div className="cs-subscription-notice-content">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.5" />
+                  <path
+                    d="M9 5V9.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="9" cy="12.5" r="0.75" fill="currentColor" />
+                </svg>
                 <p>
                   Free trial: {profileData.exercisesCompleted || 0}/{FREE_LESSON_LIMIT} lessons
                   completed
                 </p>
-                {(profileData.exercisesCompleted || 0) >= FREE_LESSON_LIMIT && (
-                  <p className="upgrade-message">Subscribe now to unlock all lessons!</p>
-                )}
               </div>
-            )}
+              {(profileData.exercisesCompleted || 0) >= FREE_LESSON_LIMIT && (
+                <Link to="/pricing" className="cs-upgrade-link">
+                  Upgrade to unlock all lessons
+                </Link>
+              )}
+            </div>
+          )}
 
+          {/* Sections list */}
+          <div className="cs-sections">
             {loading ? (
-              <p>Loading sections...</p>
+              <div className="cs-loading">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="cs-skeleton-section">
+                    <div className="cs-skeleton-bar cs-skeleton-title" />
+                    <div className="cs-skeleton-bar cs-skeleton-line" />
+                    <div className="cs-skeleton-bar cs-skeleton-line short" />
+                  </div>
+                ))}
+              </div>
             ) : error ? (
-              <p className="error">{error}</p>
+              <div className="cs-error-state">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                  <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M20 12V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <circle cx="20" cy="28" r="1.5" fill="currentColor" />
+                </svg>
+                <p>{error}</p>
+              </div>
             ) : sections.length === 0 ? (
-              <p>No sections found for this course.</p>
+              <div className="cs-empty-state">
+                <p>No sections available for this course yet.</p>
+              </div>
             ) : (
-              sections.map((section) => {
-                return (
-                  <LessonList
-                    key={section.section_id}
-                    sectionName={section.name}
-                    sectionId={section.section_id}
-                    lessons={section.lessons}
-                    profileData={profileData}
-                    hasActiveSubscription={hasActiveSubscription}
-                  />
-                );
-              })
+              sections.map((section) => (
+                <LessonList
+                  key={section.section_id}
+                  sectionName={section.name}
+                  sectionId={section.section_id}
+                  lessons={section.lessons}
+                  profileData={profileData}
+                  hasActiveSubscription={hasActiveSubscription}
+                />
+              ))
             )}
           </div>
-          {/* The "rating" div is now outside and after the "course-header" div, but still within "Section" as per new.txt initial structure.
-              To match old.txt, "rating" div should be a sibling to "Section" div.
-              The following change moves the "rating" div to be a sibling of "Section" */}
-        </div>{" "}
-        {/* End of "Section" div */}
-        <div className="rating">
-          {" "}
-          {/* "rating" div is now a sibling to "Section" */}
-          <div className="user-sidebar">
-            <p className="status-title">My Status</p>
-            <div className="user-info">
-              <div className="user-icon">
+        </main>
+
+        {/* Sidebar */}
+        <aside className="cs-sidebar">
+          <div className="cs-sidebar-card">
+            <div className="cs-sidebar-header">
+              <span className="cs-sidebar-label">My Progress</span>
+            </div>
+
+            <div className="cs-user-row">
+              <div className="cs-avatar">
                 {stats.profileImage ? (
-                  <img src={user.profileimage} alt="Profile" className="profile-image" />
+                  <img src={user.profileimage} alt="Profile" />
                 ) : (
-                  <div className="default-avatar">
-                    {stats.name ? stats.name[0].toUpperCase() : "?"}
-                  </div>
+                  <span>{stats.name ? stats.name[0].toUpperCase() : "?"}</span>
                 )}
               </div>
-              <div className="user-details">
-                <p className="username">{stats.name}</p>
-                <p className="user-level">Level {stats.level}</p>
-                <div className="xp-progress">
-                  <div className="xp-progress-bar">
-                    <div
-                      className="xp-progress-fill"
-                      style={{
-                        width: `${
-                          stats.totalXP && stats.totalXP > 0
-                            ? calculateLevelProgress(stats.totalXP)
-                            : 0
-                        }%`,
-                      }}
-                    />
-                  </div>
-                  <p className="xp-progress-text">{stats.xpToNextLevel} XP to next level</p>
-                </div>
+              <div className="cs-user-meta">
+                <p className="cs-user-name">{stats.name}</p>
+                <p className="cs-user-level">Level {stats.level}</p>
               </div>
             </div>
 
-            <div className="user-progress">
-              <div className="progress-box">
-                <p className="progress-value">{stats.courseXP}+</p>
-                <p className="progress-label">Course XP</p>
+            <div className="cs-xp-section">
+              <div className="cs-xp-bar-track">
+                <div
+                  className="cs-xp-bar-fill"
+                  style={{
+                    width: `${
+                      stats.totalXP && stats.totalXP > 0 ? calculateLevelProgress(stats.totalXP) : 0
+                    }%`,
+                  }}
+                />
               </div>
-              <div className="progress-box">
-                <p className="progress-value">{stats.exercisesCompleted}</p>
-                <p className="progress-label">Lessons Completed</p>
+              <span className="cs-xp-label">{stats.xpToNextLevel} XP to next level</span>
+            </div>
+
+            <div className="cs-stats-grid">
+              <div className="cs-stat">
+                <span className="cs-stat-value">{stats.courseXP}</span>
+                <span className="cs-stat-label">Course XP</span>
               </div>
-              <div className="progress-box">
-                <p className="progress-value">{stats.streak}</p>
-                <p className="progress-label">Day Streak</p>
+              <div className="cs-stat">
+                <span className="cs-stat-value">{stats.exercisesCompleted}</span>
+                <span className="cs-stat-label">Completed</span>
+              </div>
+              <div className="cs-stat">
+                <span className="cs-stat-value">{stats.streak}</span>
+                <span className="cs-stat-label">Day Streak</span>
               </div>
             </div>
           </div>
+
           <RatingForm courseId={courseId} />
-        </div>
-        {showErrorMessage && (
-          <div className="error-message">
-            <p>{errorMessage}</p>
-            <button onClick={() => setShowErrorMessage(false)}>Close</button>
-          </div>
-        )}
+        </aside>
       </div>
     </div>
   );

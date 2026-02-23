@@ -1,392 +1,507 @@
 /* ============================================
-   Course Sections Page - Modern Redesign
+   Course Sections Page
    ============================================ */
 
-.course-section-wrapper {
+.cs-page {
   background: #0a0f1c;
   min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
-}
-
-.Page {
-  background: #0a0f1c;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: row;
   padding-top: 80px;
-  color: #ffffff;
-  font-family: "Inter";
-  position: relative;
-  overflow-x: hidden;
-  max-width: 100vw;
-  box-sizing: border-box;
+  color: #fff;
+  font-family: "Inter", sans-serif;
 }
 
-.Page::before {
-  content: "";
+/* ---- Toast notification ---- */
+.cs-toast {
   position: fixed;
-  top: 10%;
-  left: -15%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.Page::after {
-  content: "";
-  position: fixed;
-  bottom: 10%;
-  right: -10%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.Section {
-  width: 100%;
-  max-width: 1240px;
-  padding: 30px;
-  margin: 0 auto;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  box-sizing: border-box;
-  position: relative;
-  z-index: 1;
-}
-
-.lesson-list {
-  background: rgba(255, 255, 255, 0.02);
-  color: white;
-  width: 100%;
-  border-radius: 12px;
-  padding: 10px;
-}
-
-.lesson-list h3 {
-  margin-top: 0;
-}
-
-.lesson-list ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.lesson-list li {
-  background: rgba(255, 255, 255, 0.03);
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 8px;
+  top: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  padding: 14px 22px;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 10px;
+  color: #f87171;
+  font-size: 0.95rem;
+  font-weight: 500;
+  animation: cs-toast-in 0.3s ease;
+  backdrop-filter: blur(12px);
 }
 
-.rating {
-  margin: 100px 50px 0px 0px;
-  position: relative;
-  z-index: 1;
-}
-
-.user-sidebar {
+.cs-toast-close {
+  background: none;
+  border: none;
+  color: #f87171;
+  cursor: pointer;
+  padding: 2px;
   display: flex;
-  flex-direction: column;
-  width: 400px;
-  padding: 25px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 20px;
-  color: white;
-  font-family: "Inter";
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  opacity: 0.6;
+  transition: opacity 0.2s;
 }
 
-.user-sidebar:hover {
-  transform: translateY(-5px);
-  border-color: rgba(99, 102, 241, 0.15);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+.cs-toast-close:hover {
+  opacity: 1;
 }
 
-.status-title {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin-bottom: 15px;
-  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+@keyframes cs-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
-.user-info {
+/* ---- Layout ---- */
+.cs-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.cs-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- Breadcrumb ---- */
+.cs-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 28px;
+}
+
+.cs-breadcrumb a {
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.cs-breadcrumb a:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cs-breadcrumb svg {
+  color: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.cs-breadcrumb > span {
+  color: #a5b4fc;
+  font-weight: 500;
+}
+
+/* ---- Page header ---- */
+.cs-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cs-header-text {
+  min-width: 0;
+}
+
+.cs-title {
+  font-size: clamp(1.85rem, 3.5vw, 2.5rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.cs-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 400;
+}
+
+.cs-header-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.cs-header-progress-bar {
+  width: 180px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.cs-header-progress-fill {
+  height: 100%;
+  background: #6366f1;
+  border-radius: 100px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cs-header-progress-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #a5b4fc;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ---- Subscription notice ---- */
+.cs-subscription-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  margin-bottom: 28px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+}
+
+.cs-subscription-notice-content {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 15px;
+  color: #a5b4fc;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
-.user-icon {
-  width: 50px;
-  height: 50px;
+.cs-subscription-notice-content svg {
+  flex-shrink: 0;
+}
+
+.cs-subscription-notice-content p {
+  margin: 0;
+}
+
+.cs-upgrade-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6366f1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.cs-upgrade-link:hover {
+  color: #818cf8;
+}
+
+/* ---- Sections list ---- */
+.cs-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- Loading skeletons ---- */
+.cs-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cs-skeleton-section {
+  padding: 28px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cs-skeleton-bar {
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  animation: cs-pulse 1.6s ease-in-out infinite;
+}
+
+.cs-skeleton-title {
+  width: 40%;
+  height: 20px;
+}
+
+.cs-skeleton-line {
+  width: 80%;
+  height: 14px;
+}
+
+.cs-skeleton-line.short {
+  width: 55%;
+}
+
+@keyframes cs-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ---- Error / empty states ---- */
+.cs-error-state,
+.cs-empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1rem;
+}
+
+.cs-error-state svg {
+  color: #f87171;
+  margin-bottom: 16px;
+}
+
+.cs-error-state p,
+.cs-empty-state p {
+  margin: 0;
+}
+
+/* ---- Sidebar ---- */
+.cs-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 112px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cs-sidebar-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.cs-sidebar-header {
+  margin-bottom: 18px;
+}
+
+.cs-sidebar-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ---- User row ---- */
+.cs-user-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.cs-avatar {
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: url("assets/icons/user-icon.svg");
-  margin-right: 15px;
   overflow: hidden;
-  border: 2px solid rgba(99, 102, 241, 0.3);
+  flex-shrink: 0;
+  background: rgba(99, 102, 241, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.profile-image {
+.cs-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.default-avatar {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5em;
-  font-weight: bold;
-}
-
-.user-details .username {
-  font-size: 1em;
-  font-weight: bold;
-}
-
-.user-details .user-level {
-  font-size: 0.9em;
+.cs-avatar span {
+  font-size: 1.1rem;
+  font-weight: 600;
   color: #a5b4fc;
 }
 
-.user-progress {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  margin-top: 10px;
+.cs-user-meta {
+  min-width: 0;
 }
 
-.progress-box {
-  text-align: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 14px;
-  padding: 20px;
-  width: 90px;
-  transition: all 0.3s ease;
-}
-
-.progress-box:hover {
-  transform: translateY(-3px);
-  background: rgba(99, 102, 241, 0.08);
-  border-color: rgba(99, 102, 241, 0.2);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.progress-value {
-  font-size: 1.4em;
-  font-weight: bold;
-  background: linear-gradient(90deg, #34d399, #10b981);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.cs-user-name {
   margin: 0;
-}
-
-.progress-label {
-  font-size: 0.8em;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.xp-progress {
-  margin-top: 12px;
-  width: 100%;
-}
-
-.xp-progress-bar {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
   overflow: hidden;
-  position: relative;
+  text-overflow: ellipsis;
 }
 
-.xp-progress-fill {
+.cs-user-level {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+
+/* ---- XP progress ---- */
+.cs-xp-section {
+  margin-bottom: 20px;
+}
+
+.cs-xp-bar-track {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.cs-xp-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
-  border-radius: 6px;
-  transition: width 0.5s ease;
-  position: relative;
+  background: #6366f1;
+  border-radius: 100px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.xp-progress-text {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+.cs-xp-label {
+  display: block;
   margin-top: 8px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.35);
   text-align: center;
   font-weight: 500;
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-.section-completed {
-  position: relative;
-  border-left: 4px solid #10b981;
+/* ---- Stats grid ---- */
+.cs-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
-.section-completed.content-open::after {
-  background-color: #10b981;
-  opacity: 0.8;
-}
-.course-header {
-  margin-bottom: 30px;
-  padding: 20px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.course-header h1 {
-  font-size: 2.5em;
-  font-weight: 700;
-  margin-bottom: 10px;
-  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #c4b5fd 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.course-breadcrumb {
-  font-size: 0.9em;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.course-breadcrumb .separator {
-  margin: 0 10px;
-  color: rgba(255, 255, 255, 0.2);
-}
-
-.course-breadcrumb .current {
-  color: #a5b4fc;
-  font-weight: 500;
-}
-
-.lesson-section {
+.cs-stat {
+  text-align: center;
+  padding: 16px 6px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
-  border-radius: 16px;
-  padding: 25px;
-  margin-bottom: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: border-color 0.2s;
 }
 
-.lesson-section:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+.cs-stat:hover {
   border-color: rgba(99, 102, 241, 0.15);
 }
 
-.lesson-section h2 {
-  font-size: 1.5em;
-  margin-bottom: 20px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-  letter-spacing: 0.5px;
+.cs-stat-value {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
 }
 
-.lesson-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-
-  padding: 0px 10px;
-  justify-content: center;
-  align-items: center;
-}
-
-.lesson-item {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 20px 25px;
-  margin: 12px 0;
-  border-radius: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 95%;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  color: white;
-}
-
-.lesson-item:hover {
-  background: rgba(99, 102, 241, 0.08);
-  transform: translateX(5px);
-  border-color: rgba(99, 102, 241, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.lesson-item.completed {
-  border-left: 4px solid #10b981;
-  background: rgba(16, 185, 129, 0.05);
-}
-
-.lesson-item span {
+.cs-stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
   font-weight: 500;
-  font-size: 1.1em;
 }
 
-.course-error-message {
-  background-color: rgba(231, 76, 60, 0.85);
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  margin: 15px 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  animation: fadeIn 0.4s ease-in-out;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+/* ---- Section styles (shared with LessonSection) ---- */
+.lesson-section {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  padding: 22px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: border-color 0.2s;
 }
 
-.course-error-message button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0 0 0 15px;
-  opacity: 0.8;
-  transition: opacity 0.2s ease;
+.lesson-section:hover {
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
-.course-error-message button:hover {
-  opacity: 1;
+.lesson-section h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+.section-completed {
+  border-color: rgba(16, 185, 129, 0.15);
+}
+
+.section-completed:hover {
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1024px) {
+  .cs-container {
+    flex-direction: column;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .cs-sidebar {
+    width: 100%;
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .cs-sidebar-card {
+    flex: 1;
+    min-width: 280px;
+  }
+}
+
+@media (max-width: 640px) {
+  .cs-container {
+    padding: 20px 16px 48px;
+  }
+
+  .cs-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cs-header-progress {
+    width: 100%;
+  }
+
+  .cs-header-progress-bar {
+    flex: 1;
+  }
+
+  .cs-sidebar {
+    flex-direction: column;
+  }
+
+  .cs-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cs-subscription-notice {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
