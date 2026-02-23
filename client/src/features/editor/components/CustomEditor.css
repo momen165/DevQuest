@@ -1,10 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+/* Fonts loaded via index.html CDN links */
 
 @media print {
   body {
@@ -13,7 +7,7 @@
 }
 
 .custom-editor {
-  font-family: 'Lato', sans-serif;
+  font-family: "Inter";
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -74,7 +68,9 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.16s ease, border-color 0.16s ease;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease;
 }
 
 .custom-editor .menu-btn:hover {
@@ -183,7 +179,9 @@
   font-size: 12px;
   height: 32px;
   min-width: 110px;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .custom-editor .toolbar-select.compact {
@@ -499,7 +497,7 @@
 
 .custom-editor .tiptap-editor .ProseMirror pre code {
   display: block;
-  font-family: 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: "Fira Code", monospace;
   font-size: 14px;
   line-height: 1.6;
 }
@@ -614,7 +612,7 @@
 }
 
 .custom-editor .ProseMirror h3.editor-category {
-  font-family: 'Oswald' !important;
+  font-family: "Inter" !important;
   font-size: 20px !important;
   font-weight: bold !important;
   color: #555 !important;
@@ -624,7 +622,7 @@
 }
 
 .custom-editor .ProseMirror h3.editor-subtitle {
-  font-family: 'Oswald';
+  font-family: "Inter";
   font-size: 20px;
   color: #000;
   margin: 0 0 1em;
@@ -637,7 +635,8 @@
   --background-color: #e91e63;
   padding: 1.2em 2em;
   border: 1px solid var(--background-color);
-  background: linear-gradient(
+  background:
+    linear-gradient(
       135deg,
       var(--background-color) 0%,
       var(--background-color) var(--background-size),
@@ -664,7 +663,7 @@
 }
 
 .custom-editor .ProseMirror blockquote.editor-side-quote {
-  font-family: 'Oswald';
+  font-family: "Inter";
   font-style: normal;
   float: right;
   width: 35%;
@@ -826,17 +825,17 @@
 }
 
 .custom-editor .ProseMirror p.editor-font-nunito {
-  font-family: 'Nunito Sans', sans-serif;
+  font-family: "Inter";
   line-height: 1.6;
 }
 
 .custom-editor .ProseMirror p.editor-font-inter {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter";
   line-height: 1.6;
 }
 
 .custom-editor .ProseMirror p.editor-font-source {
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: "Inter";
   line-height: 1.6;
 }
 

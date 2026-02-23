@@ -203,34 +203,34 @@
 }
 
 .console-output {
-    white-space: pre;
-    word-wrap: normal;
-    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-    padding: 10px 8px;
-    line-height: 1.2;
-    background: rgba(5, 8, 18, 0.95);
-    color: #e2e8f0;
-    border-radius: 4px;
-    overflow: auto;
-    max-height: 300px;
-    font-size: 14px;
+  white-space: pre;
+  word-wrap: normal;
+  font-family: "Fira Code", monospace;
+  padding: 10px 8px;
+  line-height: 1.2;
+  background: rgba(5, 8, 18, 0.95);
+  color: #e2e8f0;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 300px;
+  font-size: 14px;
 }
 
 .console-output::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
 }
 
 .console-output::-webkit-scrollbar-track {
-    background: #0a0f1c;
+  background: #0a0f1c;
 }
 
 .console-output::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-radius: 4px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 4px;
 }
 
 .console-output::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #7c7ff5, #9d7ff7);
+  background: linear-gradient(135deg, #7c7ff5, #9d7ff7);
 }
 
 .reset-button {
@@ -371,4 +371,3 @@
 .reset-modal-btn:active {
   transform: translateY(1px);
 }
-

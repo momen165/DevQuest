@@ -12,7 +12,11 @@ const { logger } = require("../utils/logger");
 require("dotenv").config();
 
 // Initialize cache for user existence checks
-const userExistenceCache = new NodeCache({ stdTTL: 60, maxKeys: 2000, useClones: false });
+const userExistenceCache = new NodeCache({
+  stdTTL: 60,
+  maxKeys: 2000,
+  useClones: false,
+});
 const USER_EXISTENCE_CACHE_KEY_PREFIX = "user_exists_";
 
 // Configuration
@@ -38,7 +42,7 @@ const mg = mailgun.client({
 // Define styles for reusability
 const emailStyles = {
   container:
-    "font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;",
+    "font-family: 'Inter'; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;",
   header:
     "background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); padding: 40px 20px; text-align: center;",
   logo: "max-width: 200px; height: auto; margin-bottom: 20px;",
@@ -213,7 +217,7 @@ const signup = handleAsync(async (req, res) => {
   const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
   const emailContent = helpers.getEmailTemplate(`
-    <div style="font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+    <div style="font-family: 'Inter'; max-width: 600px; margin: 0 auto; padding: 24px;">
       <h1 style="color: #1F2937; font-size: 28px; font-weight: 700; margin-bottom: 32px; text-align: center;
                  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">
         Welcome to Devquest!

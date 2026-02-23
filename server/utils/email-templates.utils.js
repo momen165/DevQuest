@@ -17,7 +17,7 @@ const EMAIL_STYLES = `
     .email-container {
       max-width: 600px;
       margin: 0 auto;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Inter';
       line-height: 1.6;
       color: #333;
       background-color: ${BRAND_COLORS.background};

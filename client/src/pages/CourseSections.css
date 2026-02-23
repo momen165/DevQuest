@@ -16,7 +16,7 @@
   flex-direction: row;
   padding-top: 80px;
   color: #ffffff;
-  font-family: Inter, sans-serif;
+  font-family: "Inter";
   position: relative;
   overflow-x: hidden;
   max-width: 100vw;
@@ -24,7 +24,7 @@
 }
 
 .Page::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 10%;
   left: -15%;
@@ -37,7 +37,7 @@
 }
 
 .Page::after {
-  content: '';
+  content: "";
   position: fixed;
   bottom: 10%;
   right: -10%;
@@ -105,7 +105,7 @@
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 20px;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter";
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
@@ -137,7 +137,7 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: url('assets/icons/user-icon.svg');
+  background: url("assets/icons/user-icon.svg");
   margin-right: 15px;
   overflow: hidden;
   border: 2px solid rgba(99, 102, 241, 0.3);

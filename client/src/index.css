@@ -1,12 +1,11 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, libre-franklin, 'LibreFranklin-ExtraBold', 'LibreFranklin-Black', 'LibreFranklin-Medium', 'Chivo Thin Italic', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: "Inter";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #0a0f1c;
   color: #ffffff;
 }
-
 
 /* Responsive styles */
 @media (max-width: 1200px) {

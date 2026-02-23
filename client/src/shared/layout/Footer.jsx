@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "app/AuthContext";
 import "./Footer.css";
-import footerLogo from "assets/icons/layer1.svg";
+import footerLogo from "assets/icons/footer.svg";
 import { FaLinkedin, FaGithub, FaEnvelope } from "react-icons/fa";
 
 const Footer = memo(() => {

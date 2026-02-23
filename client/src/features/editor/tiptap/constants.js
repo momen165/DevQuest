@@ -21,14 +21,7 @@ export const CODE_BLOCK_LANGUAGES = [
   { language: "markdown", label: "Markdown" },
 ];
 
-export const FONT_FAMILIES = [
-  "Source Sans Pro, sans-serif",
-  "Nunito Sans, sans-serif",
-  "Inter, sans-serif",
-  "Lato, sans-serif",
-  "Open Sans, sans-serif",
-  "Roboto, sans-serif",
-];
+export const FONT_FAMILIES = ["Inter"];
 
 export const FONT_SIZES = ["12px", "14px", "16px", "18px", "20px", "24px", "28px", "32px"];
 

@@ -17,27 +17,6 @@ body {
   overflow-x: hidden; /* Disable horizontal scrolling */
 }
 
-@font-face {
-  font-family: 'Chivo Thin Italic';
-  src: url('assets/fonts/chivo/Chivo-ThinItalic.ttf') format('truetype');
-  font-weight: 100;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: 'LibreFranklin-ExtraBold';
-  src: url('assets/fonts/librefranklinfont/LibreFranklin-ExtraBold.ttf') format('truetype');
-  font-weight: 100;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: 'LibreFranklin-Medium';
-  src: url('assets/fonts/librefranklinfont/LibreFranklin-Medium.ttf') format('truetype');
-  font-weight: 100;
-  font-style: italic;
-}
-
 .App-logo {
   height: 40vmin;
   pointer-events: none;

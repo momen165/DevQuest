@@ -86,7 +86,7 @@ const buildPreviewDocument = ({ lessonName, content }) => {
         margin: 0;
         background: radial-gradient(circle at top, #1e293b 0%, #0f172a 60%);
         color: var(--text);
-        font-family: "Lato", "Segoe UI", sans-serif;
+        font-family: "Inter";
       }
       .lesson-shell {
         max-width: 860px;

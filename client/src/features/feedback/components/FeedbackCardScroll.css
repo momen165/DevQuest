@@ -20,7 +20,7 @@
 }
 
 .scroll-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -30,7 +30,7 @@
 }
 
 .scroll-section::after {
-  content: 'Student Testimonials';
+  content: "Student Testimonials";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -38,7 +38,7 @@
   font-size: clamp(6rem, 12vw, 16rem);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.01);
-  font-family: 'Courier New', monospace;
+  font-family: "Fira Code", monospace;
   pointer-events: none;
   z-index: 1;
 }
@@ -166,7 +166,7 @@
 }
 
 .sticky-card::before {
-  content: '0' counter(card); /* Corrected content value */
+  content: "0" counter(card); /* Corrected content value */
   position: absolute;
   left: 1.25em;
   top: 1.25em;
@@ -209,9 +209,9 @@
 
 .scroll-feedback-card {
   position: absolute;
-  
+
   width: 400px; /* Increased from 400px */
-  
+
   transform-style: preserve-3d; /* Corrected property value */
   will-change: transform, opacity; /* Corrected property value */
   pointer-events: all; /* Corrected property value */
@@ -223,7 +223,7 @@
   backdrop-filter: blur(20px);
   border-radius: 20px;
   border: 1px solid rgba(99, 102, 241, 0.15);
-  box-shadow: 
+  box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(255, 255, 255, 0.05),
     inset 0 0 60px rgba(99, 102, 241, 0.03);
@@ -258,7 +258,7 @@
   background-size: cover;
   background-position: center;
   border: 2px solid rgba(99, 102, 241, 0.4);
-  box-shadow: 
+  box-shadow:
     0 8px 16px rgba(0, 0, 0, 0.2),
     0 0 0 2px rgba(255, 255, 255, 0.05);
   transition: transform 0.3s ease;
@@ -312,7 +312,7 @@
 /* Card color variations with modern gradients */
 .scroll-feedback-card:nth-child(3n + 1) .feedback-scroll-card-content {
   border: 1px solid rgba(99, 102, 241, 0.2);
-  box-shadow: 
+  box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(99, 102, 241, 0.1),
     inset 0 0 60px rgba(99, 102, 241, 0.03);
@@ -320,7 +320,7 @@
 
 .scroll-feedback-card:nth-child(3n + 2) .feedback-scroll-card-content {
   border: 1px solid rgba(168, 85, 247, 0.2);
-  box-shadow: 
+  box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(168, 85, 247, 0.1),
     inset 0 0 60px rgba(168, 85, 247, 0.03);
@@ -328,7 +328,7 @@
 
 .scroll-feedback-card:nth-child(3n + 3) .feedback-scroll-card-content {
   border: 1px solid rgba(236, 72, 153, 0.2);
-  box-shadow: 
+  box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(236, 72, 153, 0.1),
     inset 0 0 60px rgba(236, 72, 153, 0.03);
@@ -338,7 +338,7 @@
 .feedback-scroll-card-content:hover {
   transform: translateY(-8px) scale(1.02);
   border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 
+  box-shadow:
     0 35px 70px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(99, 102, 241, 0.3),
     inset 0 0 80px rgba(99, 102, 241, 0.05);
@@ -359,7 +359,7 @@
 
 /* Add subtle background patterns */
 .feedback-scroll-card-content::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -474,7 +474,9 @@
 @media (hover: none) {
   .feedback-scroll-card-content:hover {
     transform: none; /* Disable hover transform */
-    box-shadow: /* Reset to base shadow */ 0 20px 40px rgba(0, 0, 0, 0.15),
-      0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 0 80px rgba(255, 255, 255, 0.5);
+    box-shadow: /* Reset to base shadow */
+      0 20px 40px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(255, 255, 255, 0.3),
+      inset 0 0 80px rgba(255, 255, 255, 0.5);
   }
 }

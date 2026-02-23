@@ -85,7 +85,7 @@ const DEFAULT_CONFIG = {
   },
   fontFamily: {
     options: FONT_FAMILIES,
-    defaultValue: "Source Sans Pro, sans-serif",
+    defaultValue: "Inter",
   },
   fontSize: {
     options: FONT_SIZES,

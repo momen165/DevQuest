@@ -57,7 +57,7 @@ const NotFoundPage = () => {
       background: `linear-gradient(-45deg, #1E3C90, #09112A, #230982, #1a4f7e)`,
       backgroundSize: "400% 400%",
       color: "#ffffff",
-      fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+      fontFamily: "Inter",
       overflow: "hidden",
       animation: "gradientBG 15s ease infinite",
     },

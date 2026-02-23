@@ -19,7 +19,7 @@
 .hero-head,
 .hero-para,
 .search-container,
-.courses-header>* {
+.courses-header > * {
   position: relative;
   z-index: 1;
 }
@@ -31,7 +31,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-family: "LibreFranklin-Black";
+  font-family: "Inter";
   font-weight: 900;
 }
 
@@ -42,21 +42,21 @@
   margin: 0 auto;
   font-size: 28px;
   color: rgba(255, 255, 255, 0.7);
-  font-family: sans-serif;
+  font-family: "Inter";
   font-weight: 500;
 }
 
 .filter-tab {
   background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, .8);
+  color: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 10px 20px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  letter-spacing: .5px;
-  transition: all .3s ease;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
   backdrop-filter: blur(10px);
 }
 
@@ -68,7 +68,7 @@
 
 .filter-tab.active {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, .3);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
   border: none;
   color: #ffffff;
 }
@@ -85,7 +85,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   width: 100%;
   max-width: 480px;
-  transition: all .3s ease;
+  transition: all 0.3s ease;
   color: #ffffff;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
@@ -110,12 +110,12 @@
   display: grid;
   place-content: center;
   overflow: hidden;
-  transition: all .5s ease-in-out;
+  transition: all 0.5s ease-in-out;
   z-index: 1;
 }
 
 .animated-logo-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -185,7 +185,7 @@
   border: 2px solid rgba(99, 102, 241, 0.5);
   opacity: 0;
   transform: rotate(10deg);
-  transition: all .5s ease-in-out;
+  transition: all 0.5s ease-in-out;
 }
 
 .animated-logo-bottom-text {
@@ -200,11 +200,11 @@
   color: #a5b4fc;
   opacity: 0;
   letter-spacing: 7px;
-  transition: all .5s ease-in-out;
+  transition: all 0.5s ease-in-out;
 }
 
 .animated-logo-content {
-  transition: all .5s ease-in-out;
+  transition: all 0.5s ease-in-out;
 }
 
 .animated-logo-content .animated-logo {
@@ -216,8 +216,6 @@
   display: flex;
   align-items: center;
 }
-
-
 
 .animated-logo-combined {
   display: flex;
@@ -275,7 +273,7 @@
   font-size: 16px;
   opacity: 0;
   letter-spacing: normal;
-  transition: all .5s ease-in-out .5s;
+  transition: all 0.5s ease-in-out 0.5s;
 }
 
 .animated-logo-card.animate {
@@ -368,7 +366,7 @@
   }
 
   .animated-logo-content .animated-logo {
-    transform: scale(.9);
+    transform: scale(0.9);
   }
 
   .animated-logo-content .animated-logo-content-bottom-text {
@@ -399,9 +397,9 @@
     width: 290px;
   }
   .animated-logo-content .animated-logo {
-    transform: scale(.7);
+    transform: scale(0.7);
   }
-  
+
   .animated-logo-content .animated-logo .animated-logo2 {
     left: 110px;
   }

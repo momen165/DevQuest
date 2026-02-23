@@ -1,5 +1,4 @@
-﻿/* Critical fonts loaded synchronously, others loaded asynchronously */
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+﻿/* Fonts loaded via index.html CDN links */
 
 .lesson-content {
   /* Performance optimizations */
@@ -8,7 +7,7 @@
   color: #e2e8f0;
   font-size: 17px;
   line-height: 1.6;
-  font-family: 'Lato', sans-serif;
+  font-family: "Inter";
   width: 100%;
   margin: 0;
   padding: 0 10px;
@@ -35,7 +34,7 @@
 }
 
 .lesson-content h2 {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter";
   font-size: 24px;
   padding: 15px 10px;
   margin: 0;
@@ -92,7 +91,7 @@
 }
 
 .lesson-content h3 {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter";
   font-size: 20px;
   font-weight: 500;
   margin: 1em 0 0.6em;
@@ -106,7 +105,8 @@
   --background-color: #8b5cf6;
   padding: 15px;
   border: 1px solid var(--background-color);
-  background: linear-gradient(
+  background:
+    linear-gradient(
       135deg,
       var(--background-color) 0%,
       var(--background-color) var(--background-size),
@@ -125,7 +125,7 @@
 
 /* Side quote styles - adjusted for responsive layout */
 .lesson-content blockquote.editor-side-quote {
-  font-family: 'Oswald', sans-serif;
+  font-family: "Inter";
   font-style: normal;
   float: right;
   width: 35%;
@@ -329,7 +329,7 @@
 
 /* Code element styling */
 .code-block code {
-  font-family: 'Fira Code', Consolas, monospace;
+  font-family: "Fira Code", Consolas, monospace;
   font-size: 14px;
   line-height: 1.5;
   display: block;
@@ -401,7 +401,7 @@
 /* Custom arrow indicator */
 .hint-title::after,
 .solution-title::after {
-  content: '▼';
+  content: "▼";
   margin-left: auto;
   transition: transform 0.3s ease;
 }
@@ -416,7 +416,7 @@
   color: #e2e8f0;
   font-size: 16px;
   line-height: 1.6;
-  font-family: 'Lato', sans-serif;
+  font-family: "Inter";
 }
 
 .lesson-template-heading {
@@ -441,7 +441,7 @@
   border: 1px solid rgba(99, 102, 241, 0.15);
   margin: 1em 10px;
   border-radius: 8px;
-  font-family: 'Fira Code', monospace;
+  font-family: "Fira Code", monospace;
   font-size: 14px;
   line-height: 1.5;
   padding: 12px;
@@ -514,7 +514,7 @@
 .help-section {
   margin: 1.5rem 0;
   padding: 0 10px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter";
   width: 100%;
   box-sizing: border-box;
 }
@@ -611,7 +611,7 @@
 
 .hint-content code,
 .solution-content code {
-  font-family: 'Fira Code', Consolas, monospace;
+  font-family: "Fira Code", Consolas, monospace;
   font-size: 14px;
 }
 

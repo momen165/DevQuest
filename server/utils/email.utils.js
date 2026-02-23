@@ -28,7 +28,7 @@ const mg = isMailgunConfigured
 
 // Email templates
 const emailStyles = {
-  container: `font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;`,
+  container: `font-family: 'Inter'; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;`,
   header: `background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); padding: 40px 20px; text-align: center; color: white;`,
   contentArea: `padding: 40px 30px; background-color: #ffffff;`,
   footer: `background-color: #F9FAFB; padding: 30px 20px; text-align: center; border-top: 1px solid #e5e7eb;`,
