@@ -207,4 +207,4 @@ npm run dev
 
 ## License
 
-This project is public for portfolio/review purposes only. Please do not copy, reuse, or distribute the code.
+This project is licensed under the MIT License. See the LICENSE file for details.
